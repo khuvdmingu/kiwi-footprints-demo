@@ -10,6 +10,8 @@
 //   · 바위는 제자리  물은 바위를 지운 판(plate-sea)에서 읽고, 바위는 가림막 자리에 원본에서 다시 얹는다
 //  해안선 값은 beach.edge(x) 를 그대로 받는다(줄 텍스처) → 발자국을 지우는 줄과 그림 속 물가가 정확히 같다.
 
+const N = 512;   // 해안선 줄 텍스처 칸 수
+
 const VS = `#version 300 es
 in vec2 aP; void main(){ gl_Position = vec4(aP, 0., 1.); }`;
 
@@ -21,6 +23,18 @@ uniform vec3 uMap;
 uniform float uDpr, uT, uU, uSnow, uNight, uSurge;
 out vec4 o;
 
+// 해안선 줄: 8비트 두 칸에 16비트로 나눠 담은 값을 보간 없이 직접 읽어 손으로 잇는다
+// (반정밀도 실수 텍스처는 일부 휴대폰 GPU에서 몇 칸이 깨져 물 위에 모래색 세로선이 번쩍였다)
+#define NL ${N}
+float dec(vec2 h) { return (floor(h.x * 255. + .5) * 256. + floor(h.y * 255. + .5)) / 65535. * 2.5 - .5; }
+vec4 lineAt(float x) {
+  float f = clamp(x / uRes.x, 0., 1.) * float(NL - 1);
+  int i = int(floor(f)), j = min(i + 1, NL - 1);
+  float t = f - float(i);
+  vec4 a0 = texelFetch(uLine, ivec2(i, 0), 0), a1 = texelFetch(uLine, ivec2(i, 1), 0);
+  vec4 b0 = texelFetch(uLine, ivec2(j, 0), 0), b1 = texelFetch(uLine, ivec2(j, 1), 0);
+  return mix(vec4(dec(a0.xy), dec(a0.zw), dec(a1.xy), dec(a1.zw)), vec4(dec(b0.xy), dec(b0.zw), dec(b1.xy), dec(b1.zw)), t);
+}
 vec2 uvOf(vec2 p) { return ((p - uMap.yz) / uMap.x) / uPS; }
 float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float vnoise(vec2 p) {
@@ -43,7 +57,7 @@ float web(vec2 p, float t) {
 
 void main() {
   vec2 p = vec2(gl_FragCoord.x, uRes.y * uDpr - gl_FragCoord.y) / uDpr;
-  vec4 L = texture(uLine, vec2(clamp(p.x / uRes.x, 0., 1.), .5));
+  vec4 L = lineAt(p.x);
   float e = L.r * uRes.y, s = L.g * uRes.y, w = L.b * uRes.y, s2 = L.a * uRes.y, u = uU;
   float d = p.y - e;
 
@@ -138,7 +152,14 @@ void main() {
   o = vec4(col, 1.);
 }`;
 
-const N = 512;   // 해안선 줄 텍스처 칸 수
+// 화면 높이로 나눈 값(−0.5~2)을 16비트로 → 두 바이트. 값이 숫자가 아니면 그린 해안선으로 대신한다
+function put(arr, o, a, b, H) {
+  for (const [k, v0] of [[0, a], [2, b]]) {
+    const v = Number.isFinite(v0) ? v0 : b;
+    const q = Math.round(Math.min(1, Math.max(0, (v / H + 0.5) / 2.5)) * 65535);
+    arr[o + k] = q >> 8; arr[o + k + 1] = q & 255;
+  }
+}
 
 export class WaterGL {
   constructor(canvas) {
@@ -156,8 +177,9 @@ export class WaterGL {
     const loc = gl.getAttribLocation(pr, 'aP'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     this.U = {};
     for (const n of ['uPlate', 'uDry', 'uLine', 'uSea', 'uRock', 'uRes', 'uPS', 'uMap', 'uDpr', 'uT', 'uU', 'uSnow', 'uNight', 'uSurge']) this.U[n] = gl.getUniformLocation(pr, n);
-    this.line = new Float32Array(N * 4);
-    this.lineTex = this.tex(2, () => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, N, 1, 0, gl.RGBA, gl.FLOAT, this.line), false);
+    this.line = new Uint8Array(N * 4 * 2);   // 1행: 해안선·그린 해안선 / 2행: 젖은 줄·바다 판 해안선 (값마다 2바이트)
+    this.lineTex = this.tex(2, () => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, N, 2, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.line), false);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.uniform1i(this.U.uPlate, 0); gl.uniform1i(this.U.uDry, 1); gl.uniform1i(this.U.uLine, 2); gl.uniform1i(this.U.uSea, 3); gl.uniform1i(this.U.uRock, 4);
     this.texs = {};
   }
@@ -196,13 +218,12 @@ export class WaterGL {
     const step = W / (N - 1), wet = beach.wet, wc = wet.length;
     for (let i = 0; i < N; i++) {
       const x = i * step, wf = (x / W) * (wc - 1), wi = Math.min(wc - 2, Math.floor(wf)), wt = wf - wi;
-      this.line[i * 4] = beach.edge(x) / H;
-      this.line[i * 4 + 1] = P.shore(x) / H;
-      this.line[i * 4 + 2] = (wet[wi] * (1 - wt) + wet[wi + 1] * wt) / H;
-      this.line[i * 4 + 3] = P.shoreSea(x) / H;
+      const e = beach.edge(x), sh = P.shore(x);
+      put(this.line, i * 4, e, sh, H);
+      put(this.line, (N + i) * 4, wet[wi] * (1 - wt) + wet[wi + 1] * wt, P.shoreSea(x), H);
     }
     gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, this.lineTex);
-    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, N, 1, gl.RGBA, gl.FLOAT, this.line);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, N, 2, gl.RGBA, gl.UNSIGNED_BYTE, this.line);
     gl.uniform2f(this.U.uRes, W, H);
     gl.uniform3f(this.U.uMap, m.s, m.ox, m.oy);
     gl.uniform1f(this.U.uDpr, this.dpr);

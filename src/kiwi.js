@@ -229,19 +229,22 @@ export class Kiwi {
 
   // ── 그리기 ──
   drawShadow(ctx) {
+    if (this.vis === 0) return;
     const k = this.k, h = this.hopY() / k;
     // 골든아워의 긴 그림자: 빛 방향(오른쪽 아래)으로 늘어진 부드러운 타원
     const [lx, ly] = LIGHT.dir, L = 0.55 * k * LIGHT.long * (1 + h * 0.8);
     const cx = this.x + lx * L * 0.75, cy = this.y + ly * L * 0.3;
     const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, L * 1.1);
     g.addColorStop(0, `rgba(${T.shadow},${0.26 * (1 - h * 0.5)})`); g.addColorStop(1, `rgba(${T.shadow},0)`);
-    ctx.save(); ctx.translate(cx, cy); ctx.rotate(Math.atan2(ly, lx) * 0.5); ctx.scale(1, 0.32); ctx.translate(-cx, -cy);
+    ctx.save(); ctx.globalAlpha = this.vis ?? 1; ctx.translate(cx, cy); ctx.rotate(Math.atan2(ly, lx) * 0.5); ctx.scale(1, 0.32); ctx.translate(-cx, -cy);
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, L * 1.1, 0, 6.29); ctx.fill();
     ctx.restore();
   }
 
   draw(ctx) {
     const k = this.k, moving = this.v > 3;
+    if (this.vis === 0) return;
+    ctx.globalAlpha = this.vis ?? 1;   // 숲 덤불 속에서는 안 보이다가 가장자리를 나서며 서서히 드러난다
     if (this.shade != null && this.shade < 0.97) ctx.filter = `brightness(${this.shade.toFixed(2)})`;
     const st = moving ? Math.sin(this.phase) : 0;
     const bob = moving ? Math.abs(st) * 0.035 * k : Math.sin(this.clock * 2.2 + this.id) * 0.006 * k;
@@ -281,6 +284,7 @@ export class Kiwi {
     ctx.filter = 'none';
     if (this.alertT > 0 && this.alertT <= 0.9) this.drawAlert(ctx, k, Math.max(1, k * 0.032));
     if (this.hops > 1 && this.clock - this.hop0 < this.hops * HOP + 0.6) this.drawNotes(ctx, k);
+    ctx.globalAlpha = 1;
   }
 
   drawAlert(ctx, k, lw) {

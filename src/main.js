@@ -78,6 +78,15 @@ let view = VIEWS.includes(q.get('view')) ? q.get('view') : 'top';
 const cam = { x: 0, y: 0, z: 1 };
 const world = { beach, sound, kiwis, stride: 8, foot: 5, speed: 100, writeSpeed: 60, k: 30 };
 let notes = [];   // 발자국 음이 날 때 떠오르는 ♪
+let leaves = [];  // 키위가 덤불을 드나들 때 튀는 잎
+const LEAF_C = ['#6F9A3B', '#A9C24C', '#3E6B37', '#C8C85A'];
+function rustle(x, y) {
+  const u = beach.u;
+  for (let i = 0; i < 6; i++) {
+    const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.4, sp = (40 + Math.random() * 70) * u;
+    leaves.push({ x: x + (Math.random() - 0.5) * 18 * u, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, rot: Math.random() * 6, spin: (Math.random() - 0.5) * 9, s: (3 + Math.random() * 2.5) * u, c: LEAF_C[i % 4], age: 0, life: 0.7 + Math.random() * 0.4 });
+  }
+}
 world.onNote = (x, y) => { notes.push({ x, y, t: beach.t, d: Math.random() < 0.5 ? -1 : 1 }); if (notes.length > 60) notes.shift(); };
 
 function sizeFor(s) {
@@ -194,7 +203,8 @@ function showCaption(m) {
 function spawn() {
   const u = beach.u, x0 = box ? box.x0 - 40 : W * 0.2, x1 = box ? box.x1 + 40 : W * 0.8;
   const x = clamp(x0 + Math.random() * (x1 - x0), 24, W - 24);
-  const kw = new Kiwi(x, beach.grass(x) - (60 + Math.random() * 30) * u, Math.PI / 2 + (Math.random() - 0.5) * 0.6, world.k);
+  // 숲 가장자리 바로 안쪽(덤불 잎 아래)에서 나온다
+  const kw = new Kiwi(x, beach.grass(x) - (34 + Math.random() * 16) * u, Math.PI / 2 + (Math.random() - 0.5) * 0.4, world.k);
   kiwis.push(kw);
   return kw;
 }
@@ -322,7 +332,15 @@ function tick(dt) {
   for (const kw of kiwis) {
     if (kw.state === 'free' && phase !== 'writing') loiter(kw);
     kw.update(dt, world);
+    // 숲 덤불을 드나들 때: 가장자리 근처에서 서서히 보였다 사라지고, 잎이 살짝 흔들려 튄다
+    const g = beach.grass(kw.x), u = beach.u;
+    kw.vis = clamp((kw.y - (g - 40 * u)) / (46 * u), 0, 1);
+    const inside = kw.y < g - 8 * u;
+    if (kw.inside !== undefined && inside !== kw.inside) rustle(kw.x, g - 6 * u);
+    kw.inside = inside;
   }
+  leaves = leaves.filter(l => (l.age += dt) < l.life);
+  for (const l of leaves) { l.x += l.vx * dt; l.y += l.vy * dt; l.vy += 140 * beach.u * dt; l.vx *= 0.97; l.rot += l.spin * dt; }
   kiwis = kiwis.filter(k => !k.gone);
   world.kiwis = kiwis;
 
@@ -357,6 +375,10 @@ function draw() {
   fctx.setTransform(stageScale, 0, 0, stageScale, 0, 0);
   fctx.clearRect(0, 0, W, H);
   gulls.draw(fctx, beach);
+  for (const l of leaves) {
+    fctx.save(); fctx.globalAlpha = 1 - l.age / l.life; fctx.translate(l.x, l.y); fctx.rotate(l.rot);
+    fctx.fillStyle = l.c; fctx.beginPath(); fctx.ellipse(0, 0, l.s, l.s * 0.45, 0, 0, 6.29); fctx.fill(); fctx.restore();
+  }
   atmos.draw(fctx, beach);
   // 발자국 음: 작은 ♪ 가 흔들리며 떠올라 사라진다
   if (notes.length) {
