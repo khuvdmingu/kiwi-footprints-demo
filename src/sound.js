@@ -303,6 +303,20 @@ export class Sound {
     }
   }
 
+  // v10 떠내려온 것: 물가에 닿으면 맑은 종 두 번, 열면 반짝이는 아르페지오
+  arrive(x) {
+    if (!this.ready() || !this.gap('arrive', 2)) return;
+    const t = this.ctx.currentTime, p = this.panOf(x);
+    this.bell(this.scaleNote(7) + 12, 0.06, t, p);
+    this.bell(this.scaleNote(9) + 12, 0.05, t + 0.18, p);
+  }
+  found(x) {
+    if (!this.ready()) return;
+    const t = this.ctx.currentTime, p = this.panOf(x);
+    this.noise(0.25, 2400, 1.2, 0.06, 0, 'bandpass', p);
+    [0, 2, 4, 7, 9].forEach((d, i) => this.bell(this.scaleNote(4 + d) + 12, 0.07, t + 0.05 + i * 0.07, p));
+  }
+
   alert() {
     if (!this.ready() || !this.gap('alert', 0.5)) return;
     this.pluck(this.root + 24, 0.11, 0, 0.25);

@@ -23,6 +23,9 @@ const PAL = { body: T.kiwi, lit: T.kiwiLit, beak: T.beak, leg: T.beak, eye: T.ey
 
 // ── 몸 그림 ──
 let SPR = null;
+// v10 옷 입은 몸 그림: 같은 키위 그림을 편집해 만들어 자리·크기가 원본과 같다 → 원본의 자리 맞춤을 그대로 쓴다
+const SKINS = {};
+export function setKiwiSkins(map) { Object.assign(SKINS, map); }
 export function setKiwiSprite(img) {
   const w = img.naturalWidth, h = img.naturalHeight;
   const c = document.createElement('canvas'); c.width = w; c.height = h;
@@ -274,7 +277,7 @@ export class Kiwi {
     if (SPR) {
       // 걸을 때 몸이 살짝 앞뒤로 기우뚱 (그림 한 장이 살아 보이게)
       if (moving && !this.peck) { ctx.translate(0, -0.15 * k); ctx.rotate(st * 0.035); ctx.translate(0, 0.15 * k); }
-      ctx.drawImage(SPR.img, SPR.x * k, SPR.y * k, SPR.w * k, SPR.h * k);
+      ctx.drawImage((this.skin && SKINS[this.skin]) || SPR.img, SPR.x * k, SPR.y * k, SPR.w * k, SPR.h * k);
     } else {
       const s = kiwiShape(k);
       ctx.fillStyle = PAL.body; ctx.fill(s.body);

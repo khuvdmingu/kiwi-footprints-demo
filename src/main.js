@@ -22,7 +22,8 @@ import { Sound } from './sound.js';
 import { loadPlate } from './plate.js';
 import { MAPS, MAP_IDS } from './maps.js';
 import { WaterGL } from './water.js';
-import { setKiwiSprite } from './kiwi.js';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js';
 import { Clouds } from './clouds.js';
 import { Gulls } from './gulls.js';
 import { Atmos, WEATHERS, WEATHER_NAME } from './atmos.js';
@@ -90,6 +91,11 @@ const cam = { x: 0, y: 0, z: 1 };
 const world = { beach, sound, kiwis, stride: 8, foot: 5, speed: 100, writeSpeed: 60, k: 30 };
 let notes = [];   // 발자국 음이 날 때 떠오르는 ♪
 let leaves = [];  // 키위가 덤불을 드나들 때 튀는 잎
+let sparks = [];  // 유리병·상자를 열 때 튀는 반짝이
+const col = new Collection(() => saved('items'), v => save('items', v));
+const drifters = new Drifters();
+// 새로 나오는 키위는 입히기로 고른 옷 중 하나를 입는다 (가끔은 맨몸)
+const pickSkin = () => { const w = col.wear; return w.length && Math.random() < 0.75 ? w[Math.floor(Math.random() * w.length)] : null; };
 const LEAF_C = ['#6F9A3B', '#A9C24C', '#3E6B37', '#C8C85A'];
 function rustle(x, y) {
   const u = beach.u;
@@ -129,6 +135,7 @@ function resize() {
   clouds.amount = atmos.cloud;   // 첫 화면부터 날씨에 맞는 구름 수
   clouds.resize(W, H, beach.u);
   gulls.resize(beach);
+  drifters.reset();
   beach.prints = [];
   cam.x = W / 2; cam.y = H / 2;
   sizeFor(clamp(Math.min(W, H) * 0.14, 44, 150));
@@ -167,6 +174,7 @@ function layout(text) {
 }
 
 function write(text, m = null) {
+  drifters.wrote();
   current = text;
   meta = m;
   showCaption(null);
@@ -256,6 +264,7 @@ function spawn() {
   const x = clamp(x0 + Math.random() * (x1 - x0), 24, W - 24);
   // 숲 가장자리 바로 안쪽(덤불 잎 아래)에서 나온다
   const kw = new Kiwi(x, beach.grass(x) - (34 + Math.random() * 16) * u, Math.PI / 2 + (Math.random() - 0.5) * 0.4, world.k);
+  kw.skin = pickSkin();
   kiwis.push(kw);
   return kw;
 }
@@ -390,6 +399,9 @@ function tick(dt) {
     if (kw.inside !== undefined && inside !== kw.inside) rustle(kw.x, g - 6 * u);
     kw.inside = inside;
   }
+  drifters.update(dt, beach, col, d => sound.arrive(d.x));
+  sparks = sparks.filter(s => (s.age += dt) < s.life);
+  for (const s of sparks) { s.x += s.vx * dt; s.y += s.vy * dt; s.vy += 60 * beach.u * dt; s.vx *= 0.96; }
   leaves = leaves.filter(l => (l.age += dt) < l.life);
   for (const l of leaves) { l.x += l.vx * dt; l.y += l.vy * dt; l.vy += 140 * beach.u * dt; l.vx *= 0.97; l.rot += l.spin * dt; }
   kiwis = kiwis.filter(k => !k.gone);
@@ -438,6 +450,7 @@ function draw() {
     ctx.restore();
   }
   const order = kiwis.slice().sort((a, b) => a.y - b.y);
+  drifters.draw(ctx, beach);
   for (const kw of order) kw.drawShadow(ctx);
   for (const kw of order) { kw.shade = plate.shadeAt(kw.x, kw.y - kw.k * 0.4); kw.draw(ctx); }
   const cs = +cloudCanvas.dataset.scale || 1;
@@ -447,6 +460,13 @@ function draw() {
   fctx.setTransform(stageScale, 0, 0, stageScale, 0, 0);
   fctx.clearRect(0, 0, W, H);
   gulls.draw(fctx, beach);
+  for (const s of sparks) {
+    const a = 1 - s.age / s.life, r = s.r * (0.6 + a * 0.6);
+    fctx.save(); fctx.globalAlpha = a; fctx.fillStyle = s.c; fctx.translate(s.x, s.y); fctx.rotate(s.age * 3);
+    fctx.beginPath(); fctx.moveTo(0, -r * 2); fctx.lineTo(r * 0.45, 0); fctx.lineTo(0, r * 2); fctx.lineTo(-r * 0.45, 0); fctx.closePath(); fctx.fill();
+    fctx.beginPath(); fctx.moveTo(-r * 2, 0); fctx.lineTo(0, r * 0.45); fctx.lineTo(r * 2, 0); fctx.lineTo(0, -r * 0.45); fctx.closePath(); fctx.fill();
+    fctx.restore();
+  }
   for (const l of leaves) {
     fctx.save(); fctx.globalAlpha = 1 - l.age / l.life; fctx.translate(l.x, l.y); fctx.rotate(l.rot);
     fctx.fillStyle = l.c; fctx.beginPath(); fctx.ellipse(0, 0, l.s, l.s * 0.45, 0, 0, 6.29); fctx.fill(); fctx.restore();
@@ -564,6 +584,8 @@ window.addEventListener('keydown', e => {
 document.getElementById('touch').addEventListener('pointerdown', e => {
   if (!plate) return;   // 그림을 다 읽기 전에는 누를 곳이 없다
   const [x, y] = toWorld(e.clientX, e.clientY);
+  const dr = drifters.hit(x, y, beach.u);
+  if (dr) { openDrift(dr); return; }
   const cl = clouds.hit(x, y);
   if (cl) { clouds.scatter(cl, x, y); sound.poof(x); return; }
   const hit = kiwis.find(k => dist(k.x, k.y - k.k * 0.45, x, y) < k.k * 0.55);
@@ -580,7 +602,10 @@ window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() =
 // 그림 판·키위·갈매기 그림을 다 읽은 뒤 시작한다
 async function boot() {
   const img = src => new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
-  const [p, kiwiImg, gullImg] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp'), img('assets/gull.webp')]);
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp'), img('assets/gull.webp'), img('assets/bottle.webp'), img('assets/crate.webp')]);
+  drifters.setSprites({ bottle, crate });
+  // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
+  for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
   plate = p;
   water = new WaterGL(plateEl);
   water.setPlate(plate);
@@ -615,7 +640,61 @@ function paintModeMenu() {
   for (const r of settings.querySelectorAll('input[name="fmt"]')) r.checked = r.value === clockOpt.fmt;
   document.getElementById('optSec').checked = clockOpt.sec;
 }
-setBtn.addEventListener('click', () => { unlock(); openSettings(settings.hidden); });
+setBtn.addEventListener('click', () => { unlock(); paintCollection(); openSettings(settings.hidden); });
+
+// ── v10 떠내려온 것 열기 · 카드 · 모은 것 ──
+const foundEl = document.getElementById('found'), foundWear = document.getElementById('foundWear');
+let foundItem = null;
+function openDrift(d) {
+  drifters.open(d, beach.t);
+  const fresh = !col.has(d.it.id);
+  col.add(d.it.id);
+  sound.found(d.x);
+  const u = beach.u, C = ['#fff6c9', '#ffd98a', '#ffffff', '#ffc2a8'];
+  for (let i = 0; i < 18; i++) { const a = Math.random() * 6.28, sp = (60 + Math.random() * 120) * u; sparks.push({ x: d.x, y: d.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 60 * u, r: (2 + Math.random() * 2.5) * u, c: C[i % 4], age: 0, life: 0.8 + Math.random() * 0.5 }); }
+  setTimeout(() => showFound(d.it, fresh), 380);
+}
+function showFound(it, fresh = false) {
+  foundItem = it;
+  const art = foundEl.querySelector('.art'), title = document.getElementById('foundTitle'), body = foundEl.querySelector('.body');
+  art.textContent = '';
+  if (it.kind === 'letter') {
+    const p = document.createElement('div'); p.className = 'paper'; p.textContent = it.text; art.append(p);
+    title.textContent = (fresh ? '유리병 속 ' : '') + it.title; body.textContent = `${col.count} / ${ITEMS.length} 모음`;
+    foundWear.hidden = true;
+  } else {
+    const im = document.createElement('img'); im.src = 'assets/' + it.img; im.alt = it.name; art.append(im);
+    title.textContent = (fresh ? '상자 속 ' : '') + it.name; body.textContent = `${it.note} · ${col.count} / ${ITEMS.length} 모음`;
+    foundWear.hidden = false; foundWear.textContent = col.wearing(it.id) ? '벗기기' : '입혀 보기';
+  }
+  foundEl.hidden = false; foundEl.querySelector('button:not([hidden])').focus();
+}
+function setWear(id, on) {
+  col.setWear(id, on);
+  if (on) { const free = kiwis.filter(k => !k.gone && k.skin !== id); free.slice(0, Math.max(1, Math.ceil(free.length / 3))).forEach(k => { k.skin = id; k.startle(); }); }
+  else kiwis.forEach(k => { if (k.skin === id) k.skin = pickSkin(); });
+  paintCollection();
+}
+foundWear.addEventListener('click', () => { if (foundItem) setWear(foundItem.id, !col.wearing(foundItem.id)); foundEl.hidden = true; });
+document.getElementById('foundClose').addEventListener('click', () => { foundEl.hidden = true; });
+foundEl.addEventListener('click', e => { if (e.target === foundEl) foundEl.hidden = true; });
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && !foundEl.hidden) foundEl.hidden = true; });
+function paintCollection() {
+  const grid = document.getElementById('colGrid');
+  document.getElementById('colTitle').textContent = `모은 것 ${col.count} / ${ITEMS.length}`;
+  grid.textContent = '';
+  for (const it of ITEMS) {
+    const b = document.createElement('button'); b.type = 'button';
+    if (!col.has(it.id)) { b.className = 'locked'; b.textContent = '?'; b.setAttribute('aria-label', '아직 못 찾음'); b.disabled = true; }
+    else if (it.kind === 'letter') { b.textContent = '✉'; b.setAttribute('aria-label', it.title + ' 다시 읽기'); b.addEventListener('click', () => showFound(it)); }
+    else {
+      const im = document.createElement('img'); im.src = 'assets/' + it.img; im.alt = ''; b.append(im);
+      b.classList.toggle('on', col.wearing(it.id)); b.setAttribute('aria-pressed', String(col.wearing(it.id))); b.setAttribute('aria-label', it.name + (col.wearing(it.id) ? ' 벗기기' : ' 입히기'));
+      b.addEventListener('click', () => setWear(it.id, !col.wearing(it.id)));
+    }
+    grid.append(b);
+  }
+}
 settings.addEventListener('change', e => {
   const t = e.target;
   if (t.name === 'map') { setMap(t.value); return; }
@@ -636,6 +715,8 @@ weatherBtn.addEventListener('click', () => {
 });
 paintWeather();
 
-setTimeout(() => { if (phase === 'idle' && !current && mode === 'free') write(FIRST); }, 700);
+// 첫 문장: 그림을 다 읽은 뒤에만 (느린 연결에서 그림보다 먼저 쓰려다 오류가 나지 않게)
+const firstWrite = () => { if (!plate) { setTimeout(firstWrite, 300); return; } if (phase === 'idle' && !current && mode === 'free') write(FIRST); };
+setTimeout(firstWrite, 700);
 
-window.__kiwi = { get phase() { return phase; }, get kiwis() { return kiwis; }, get jobs() { return jobs; }, get current() { return current; }, beach, clouds, atmos, sound, get plate() { return plate; }, get notes() { return notes; }, submit, setView, toWorld };
+window.__kiwi = { get phase() { return phase; }, get kiwis() { return kiwis; }, get jobs() { return jobs; }, get current() { return current; }, beach, clouds, atmos, sound, get plate() { return plate; }, drifters, col, openDrift, get notes() { return notes; }, submit, setView, toWorld };
