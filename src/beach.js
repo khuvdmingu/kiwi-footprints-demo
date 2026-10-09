@@ -84,6 +84,8 @@ export class Beach {
     this.prints.push({ x, y, a, f, kind, born: this.t, alpha: kind === 'faint' ? FAINT : 1, wash: false });
     if (this.prints.length > 4000) this.prints.splice(0, this.prints.length - 4000);
   }
+  // 초 발자국: 키위가 아니라 모래가 매초 스스로 눌린다 (born 이 미래면 그때 찍힌다)
+  addSec(x, y, a, f, born) { this.prints.push({ x, y, a, f, kind: 'sec', born, alpha: 0, wash: false, die: 0 }); }
   get printCount() { return this.prints.filter(p => p.kind === 'deep' && !p.wash).length; }
 
   update(dt) {
@@ -98,8 +100,9 @@ export class Beach {
       if (!p.wash && p.y > this.edge(p.x) - 1) p.wash = true;
       if (p.wash) p.alpha -= dt * 2.2;
       else if (p.kind === 'faint') p.alpha = FAINT * clamp(1 - (this.t - p.born) / FAINT_LIFE, 0, 1);
+      else if (p.kind === 'sec') p.alpha = clamp((this.t - p.born) / 0.1, 0, 1) * (p.die ? clamp(1 - (this.t - p.die) / 0.28, 0, 1) : 1);
     }
-    this.prints = this.prints.filter(p => p.alpha > 0.01);
+    this.prints = this.prints.filter(p => p.alpha > 0.01 || (p.kind === 'sec' && !p.die && !p.wash));
   }
 
   // ── 그리기 (2D 층) ──

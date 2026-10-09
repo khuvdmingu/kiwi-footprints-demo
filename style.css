@@ -86,7 +86,7 @@ body.info-open #say { opacity: 0; pointer-events: none; }
 #soundBtn[data-on="0"] .wave { display: none; }
 #soundBtn[data-on="0"] .mute { display: inline; }
 #modeBtn g, #weatherBtn g { display: none; }
-#modeBtn[data-mode="free"] .m-free, #modeBtn[data-mode="clock"] .m-clock, #modeBtn[data-mode="quote"] .m-quote, #modeBtn[data-mode="word"] .m-word { display: inline; }
+#modeBtn[data-mode="free"] .m-free, #modeBtn[data-mode="clock"] .m-clock, #modeBtn[data-mode="clocksec"] .m-clocksec, #modeBtn[data-mode="quote"] .m-quote, #modeBtn[data-mode="word"] .m-word { display: inline; }
 #weatherBtn[data-weather="clear"] .w-clear, #weatherBtn[data-weather="cloudy"] .w-cloudy, #weatherBtn[data-weather="rain"] .w-rain,
 #weatherBtn[data-weather="snow"] .w-snow, #weatherBtn[data-weather="fog"] .w-fog, #weatherBtn[data-weather="wind"] .w-wind { display: inline; }
 

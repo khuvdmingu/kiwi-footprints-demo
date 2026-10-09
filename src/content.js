@@ -2,8 +2,9 @@
 //  명언은 출처가 분명한 고전·오래된 속담만 쓴다(저작권이 끝났거나 관용구). 출처가 한 사람으로 확정되지 않으면 '속담'으로 적는다.
 //  화면에는 영어를 키위가 쓰고, 다 쓴 뒤 한국어 뜻·출처가 캡션으로 드러난다(플래시카드처럼).
 
-export const MODES = ['free', 'clock', 'quote', 'word'];
-export const MODE_NAME = { free: '직접 쓰기', clock: '시계', quote: '명언', word: '단어장' };
+export const MODES = ['free', 'clock', 'clocksec', 'quote', 'word'];
+export const MODE_NAME = { free: '직접 쓰기', clock: '시계', clocksec: '시계 · 초', quote: '명언', word: '단어장' };
+export const isClock = m => m === 'clock' || m === 'clocksec';
 
 export const QUOTES = [
   { en: 'Step by step', ko: '한 걸음씩', by: '영어 관용구' },

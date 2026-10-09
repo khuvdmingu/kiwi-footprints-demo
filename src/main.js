@@ -25,7 +25,7 @@ import { setKiwiSprite } from './kiwi.js';
 import { Clouds } from './clouds.js';
 import { Gulls } from './gulls.js';
 import { Atmos, WEATHERS, WEATHER_NAME } from './atmos.js';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText } from './content.js';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock } from './content.js';
 import { clamp, dist } from './util.js';
 
 const q = new URLSearchParams(location.search);
@@ -66,6 +66,7 @@ let hourShift = 0;          // T 키로 3시간씩 미리보기
 const quotes = new Deck(QUOTES), words = new Deck(WORDS);
 let meta = null;            // 지금 쓰는 글의 캡션 (뜻·출처)
 let tintAt = -1;
+let secAnchor = null, secShown = null;   // 시계 · 초: 초 두 자리를 찍을 자리와 지금 찍힌 값
 let lastClock = null;     // 시계 모드: 마지막으로 쓴 시각 (분이 바뀔 때만 다시 쓴다 — 그 사이 직접 쓴 글은 남겨 둔다)
 
 let W = 0, H = 0, dpr = 1;
@@ -133,7 +134,10 @@ function layout(text) {
   for (let x = xa; x <= xa + areaW; x += 6) { top = Math.max(top, beach.grass(x)); bot = Math.min(bot, beach.shoreAt(x)); }
   top += 34 * u; bot -= H * 0.03 + 26 * u;
   const maxS = clamp(Math.min(W, H) * 0.2, 60, 170);
-  const fit = L => Math.min(areaW / Math.max(L.width, 1), (bot - top) / Math.max(L.height, 1), maxS);
+  // 시계 · 초: 마지막 줄 오른쪽에 반 크기 초 두 자리 자리를 비워 두고 배치한다
+  const withSec = mode === 'clocksec' && text === lastClock, R = 0.6, GAP = 0.25, secU = withSec ? layoutText('00').width * R + GAP : 0;
+  const span = c => { const last = c.lines[c.lines.length - 1]; return Math.max(c.width, last ? (c.width + last.width) / 2 + secU : 0); };
+  const fit = L => Math.min(areaW / Math.max(span(L), 1), (bot - top) / Math.max(L.height, 1), maxS);
   let L = layoutText(text), best = fit(L);
   for (let m = Math.ceil(L.width); m >= 1; m -= 0.5) {
     const c = layoutText(text, { maxWidth: m }), s = fit(c);
@@ -141,7 +145,10 @@ function layout(text) {
   }
   if (!L.lines.length) return false;
   sizeFor(best);
-  const x = (W - L.width * S) / 2, y = (top + bot) / 2 - (L.height * S) / 2 + S * 0.08;
+  const x = (W - span(L) * S) / 2, y = (top + bot) / 2 - (L.height * S) / 2 + S * 0.08;
+  const last = L.lines[L.lines.length - 1];
+  secAnchor = withSec ? { x: x + ((L.width + last.width) / 2 + GAP) * S, y: y + (last.y + 1 - R) * S, size: R * S } : null;
+  secShown = null;
   jobs = strokesOf(L, { x, y, size: S }).map((st, i) => ({ i, item: st.item, pts: st.pts, kind: st.pts.length === 1 ? 'peck' : 'line', taken: null, done: false }));
   box = { x0: x, y0: y, x1: x + L.width * S, y1: y + L.height * S };
   sound.setStage(W, box.y0, box.y1);
@@ -186,12 +193,12 @@ function submit(text, m = null) {
 
 // 글 모드가 저절로 쓰는 다음 글
 function nextAuto(hour) {
-  if (mode === 'clock') { lastClock = clockText(hour); return [lastClock, null]; }
+  if (isClock(mode)) { lastClock = clockText(hour); return [lastClock, null]; }
   if (mode === 'quote') { const it = quotes.next(); return [it.en, { main: it.ko, sub: it.by }]; }
   if (mode === 'word') { const it = words.next(); return [it.en.toUpperCase(), { main: it.ko, sub: `${it.en} · ${it.pos}` }]; }
   return null;
 }
-function holdFor() { return mode === 'quote' ? 16 : mode === 'word' ? 12 : mode === 'clock' ? Infinity : HOLD; }
+function holdFor() { return mode === 'quote' ? 16 : mode === 'word' ? 12 : isClock(mode) ? Infinity : HOLD; }
 
 function showCaption(m) {
   if (!m) { captionEl.classList.remove('on'); return; }
@@ -326,7 +333,7 @@ function tick(dt) {
   }
   // 시계: 분이 바뀌면 다시 쓴다 · 다른 모드: 해변이 비어 있으면 바로 다음 글
   if (mode !== 'free' && !pending && (phase === 'idle' || phase === 'hold')) {
-    if (mode === 'clock' ? clockText(hour) !== lastClock && beach.t > 1 : phase === 'idle' && beach.t > 1.5) submit(...nextAuto(hour));
+    if (isClock(mode) ? clockText(hour) !== lastClock && beach.t > 1 : phase === 'idle' && beach.t > 1.5) submit(...nextAuto(hour));
   }
 
   for (const kw of kiwis) {
@@ -348,7 +355,28 @@ function tick(dt) {
     nextAmbient = beach.t + 4 + Math.random() * 6;
     if (kiwis.length < (atmos.night > 0.5 ? 4 : 2)) spawn();   // 키위는 야행성 — 밤에 더 많이 나온다
   }
+  // 시계 · 초: 매초 모래에 초 두 자리가 찍히고 앞 숫자는 스르르 지워진다
+  if (secAnchor && (phase === 'writing' || phase === 'hold') && !pending) {
+    const ss = String(HOUR_Q != null ? Math.floor(beach.t) % 60 : now.getSeconds()).padStart(2, '0');
+    if (ss !== secShown) { secShown = ss; stampSeconds(ss); }
+  } else if (secShown) { fadeSeconds(); secShown = null; }
   updateCamera(dt);
+}
+
+function fadeSeconds() { for (const p of beach.prints) if (p.kind === 'sec' && !p.die) p.die = beach.t; }
+function stampSeconds(ss) {
+  fadeSeconds();
+  const { x, y, size } = secAnchor, st = size * 0.15, f = size * 0.08, pts = [];
+  for (const s of strokesOf(layoutText(ss), { x, y, size })) {
+    let acc = st * 0.5, side = 1;
+    for (let i = 1; i < s.pts.length; i++) {
+      const [ax, ay] = s.pts[i - 1], [bx, by] = s.pts[i], d = Math.hypot(bx - ax, by - ay), a = Math.atan2(by - ay, bx - ax);
+      for (; acc <= d; acc += st) { const t = acc / d; side = -side; pts.push([ax + (bx - ax) * t - Math.sin(a) * side * st * 0.22, ay + (by - ay) * t + Math.cos(a) * side * st * 0.22, a]); }
+      acc -= d;
+    }
+  }
+  // 앞 숫자가 지워지는 동안(0.28초) 기다렸다가 0.3초에 걸쳐 앞에서부터 톡톡 찍힌다
+  pts.forEach(([px, py, a], i) => beach.addSec(px, py, a, f, beach.t + 0.18 + (i / pts.length) * 0.3));
 }
 
 function draw() {
