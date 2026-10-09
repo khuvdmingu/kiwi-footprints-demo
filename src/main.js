@@ -551,7 +551,7 @@ info.addEventListener('click', e => { if (e.target === info || e.target.closest(
 window.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !info.hidden) openInfo(false);
   if (e.key === 'v' && document.activeElement !== input) viewBtn.click();
-  if (e.key === 'm' && document.activeElement !== input && modeMenu.hidden) setMode(MODES[(MODES.indexOf(mode) + 1) % MODES.length]);
+  if (e.key === 'm' && document.activeElement !== input) modeBtn.click();
   if (e.key === 'w' && document.activeElement !== input) weatherBtn.click();
   if (e.key === 't' && document.activeElement !== input) { hourShift = (hourShift + 3) % 24; toast(`시간 미리보기 +${hourShift}시간`); }
 });
@@ -595,19 +595,18 @@ function setMode(m, announce = true) {
   if (mode !== 'free') submit(...nextAuto(nowHour()));
   else showCaption(null);
 }
-// 글 모드 메뉴: 버튼을 누르면 열린다 (M 키는 예전처럼 차례로 넘긴다)
-const modeMenu = document.getElementById('modeMenu');
-const openModeMenu = open => { modeMenu.hidden = !open; modeBtn.setAttribute('aria-expanded', String(open)); if (open) (modeMenu.querySelector('input:checked') || modeMenu.querySelector('input')).focus(); };
+// 글 모드 버튼: 누르면 바로 다음 모드로 (M 키도 같다)
+modeBtn.addEventListener('click', () => { unlock(); setMode(MODES[(MODES.indexOf(mode) + 1) % MODES.length]); });
+// 설정 창(톱니바퀴): 시계 초 표시 · 표기
+const settings = document.getElementById('settings'), setBtn = document.getElementById('setBtn');
+const openSettings = open => { settings.hidden = !open; setBtn.setAttribute('aria-expanded', String(open)); if (open) settings.querySelector('input').focus(); };
 function paintModeMenu() {
-  for (const r of modeMenu.querySelectorAll('input[name="mode"]')) r.checked = r.value === mode;
-  for (const r of modeMenu.querySelectorAll('input[name="fmt"]')) r.checked = r.value === clockOpt.fmt;
+  for (const r of settings.querySelectorAll('input[name="fmt"]')) r.checked = r.value === clockOpt.fmt;
   document.getElementById('optSec').checked = clockOpt.sec;
-  document.getElementById('clockOpts').hidden = mode !== 'clock';
 }
-modeBtn.addEventListener('click', () => { unlock(); openModeMenu(modeMenu.hidden); });
-modeMenu.addEventListener('change', e => {
+setBtn.addEventListener('click', () => { unlock(); openSettings(settings.hidden); });
+settings.addEventListener('change', e => {
   const t = e.target;
-  if (t.name === 'mode') { setMode(t.value); return; }
   if (t.name === 'fmt') clockOpt.fmt = t.value;
   if (t.id === 'optSec') clockOpt.sec = t.checked;
   save('clock', JSON.stringify(clockOpt));
@@ -615,8 +614,8 @@ modeMenu.addEventListener('change', e => {
   // 시계라면 바뀐 표기·초 자리에 맞춰 다시 쓴다 (같은 폭이면 바뀐 글자만, 아니면 파도로 지우고)
   if (mode === 'clock') { lastClock = null; submit(...nextAuto(nowHour())); }
 });
-document.addEventListener('pointerdown', e => { if (!modeMenu.hidden && !modeMenu.contains(e.target) && !modeBtn.contains(e.target)) openModeMenu(false); });
-window.addEventListener('keydown', e => { if (e.key === 'Escape' && !modeMenu.hidden) { openModeMenu(false); modeBtn.focus(); } });
+document.addEventListener('pointerdown', e => { if (!settings.hidden && !settings.contains(e.target) && !setBtn.contains(e.target)) openSettings(false); });
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && !settings.hidden) { openSettings(false); setBtn.focus(); } });
 paintMode(); paintModeMenu();
 const paintWeather = () => { weatherBtn.dataset.weather = atmos.weather; weatherBtn.setAttribute('aria-label', `날씨: ${WEATHER_NAME[atmos.weather]} (바꾸기)`); };
 weatherBtn.addEventListener('click', () => {

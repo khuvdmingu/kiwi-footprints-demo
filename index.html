@@ -33,7 +33,7 @@
   </form>
 
   <div class="corner">
-    <button id="modeBtn" type="button" class="round" aria-label="글 모드 바꾸기" data-mode="free" aria-haspopup="dialog" aria-expanded="false" aria-controls="modeMenu">
+    <button id="modeBtn" type="button" class="round" aria-label="글 모드 바꾸기" data-mode="free">
       <svg viewBox="0 0 24 24" aria-hidden="true"><g class="m-free"><path d="M4 20l4-1 11-11-3-3L5 16z" /><path d="M14 6l3 3" /></g><g class="m-clock"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></g><g class="m-quote"><path d="M5 17c0-4 1-7 5-9M14 17c0-4 1-7 5-9" /><path d="M5 17h4v-4H5zM14 17h4v-4h-4z" /></g><g class="m-word"><path d="M4 18 8 6l4 12M5.4 14h5.2" /><path d="M14 18v-7M14 14.5a2.5 2.5 0 1 0 5 0 2.5 2.5 0 1 0-5 0" /></g></svg>
     </button>
     <button id="weatherBtn" type="button" class="round" aria-label="날씨 바꾸기" data-weather="clear">
@@ -45,17 +45,15 @@
     <button id="soundBtn" type="button" class="round" aria-pressed="true" aria-label="소리 설정" aria-expanded="false" aria-controls="mixer">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" /><path class="wave" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" /><path class="mute" d="M16 9l5 6M21 9l-5 6" /></svg>
     </button>
+    <button id="setBtn" type="button" class="round" aria-label="설정" aria-expanded="false" aria-controls="settings">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7" /><circle cx="12" cy="12" r="6.3" /></svg>
+    </button>
     <button id="infoBtn" type="button" class="round" aria-label="작품 설명" aria-expanded="false" aria-controls="info">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 11v6M12 7.5v.5" /></svg>
     </button>
   </div>
-  <div id="modeMenu" role="dialog" aria-label="글 모드" hidden>
-    <div class="seg four" role="radiogroup" aria-label="글 모드">
-      <label><input type="radio" name="mode" value="free" /><span>직접 쓰기</span></label>
-      <label><input type="radio" name="mode" value="clock" /><span>시계</span></label>
-      <label><input type="radio" name="mode" value="quote" /><span>명언</span></label>
-      <label><input type="radio" name="mode" value="word" /><span>단어장</span></label>
-    </div>
+  <div id="settings" role="dialog" aria-label="설정" hidden>
+    <h2>시계</h2>
     <div id="clockOpts">
       <label class="row switch"><span>초 표시</span><input id="optSec" type="checkbox" /></label>
       <div class="seg three" role="radiogroup" aria-label="시각 표기">
@@ -63,7 +61,7 @@
         <label><input type="radio" name="fmt" value="en" /><span>AM/PM</span></label>
         <label><input type="radio" name="fmt" value="24" /><span>24시간</span></label>
       </div>
-      <p class="hint">시·분이 바뀌면 바뀐 글자만 모래가 덮고 키위가 다시 써요. 초는 모래에 매초 찍혀요.</p>
+      <p class="hint">글 모드 버튼으로 시계를 고르면 보여요. 시·분이 바뀌면 바뀐 글자만 모래가 덮고 키위가 다시 써요. 초는 모래에 매초 찍혀요.</p>
     </div>
   </div>
   <div id="mixer" role="dialog" aria-label="소리 설정" hidden>
@@ -84,8 +82,8 @@
       <p>문장을 쓰면 숲에 숨어 있던 키위들이 해변으로 걸어 나와, 획을 하나씩 맡아 발자국으로 한글을 씁니다. 점과 느낌표는 부리로 콕. 다음 문장을 쓰면 파도가 앞 글씨를 지우고, 키위들은 "!" 하고 숲으로 도망쳤다가 다시 나옵니다.</p>
       <p>모래를 누르면 근처 키위가 와서 콕, 키위를 누르면 깜짝, 빛안개(구름)를 누르면 흩어집니다.</p>
       <p>소리 버튼을 누르면 음악·파도·효과음 크기와 발자국 음악을 조절할 수 있어요. 키위가 글씨를 밟으면 음이 나고, 배경 음악은 시간대와 날씨에 따라 바뀝니다.</p>
-      <p>오른쪽 위 첫 버튼은 글 모드 메뉴입니다(M 키는 차례로 넘김) — 직접 쓰기 · 시계(초 표시, 오전/오후 · AM/PM · 24시간 선택. 시·분이 바뀌면 바뀐 글자만 다시 씀) · 명언 · 단어장(다 쓰면 뜻이 드러납니다). 둘째 버튼(W 키)은 날씨 — 맑음 · 흐림 · 비 · 눈 · 안개 · 바람. 장면의 빛은 실제 시각을 따라 새벽·낮·노을·밤으로 바뀌고, 밤에는 반딧불이가 뜨고 키위가 더 많이 나옵니다(T 키로 3시간씩 미리보기). 오른쪽 위 버튼으로 시점을 바꿉니다(V 키) — 위에서 · 디오라마 · 따라가기.</p>
-      <p class="credits">키위 스핀오프 v8.5.1 · 2026-10-10<br />영감: <a href="https://flocking-hangul.doodlefingers.kr/" target="_blank" rel="noopener">Flocking Hangul</a>(doodlefingers). 배경·키위·갈매기 그림은 AI 이미지 생성(Higgsfield)으로, 소리는 Web Audio 합성으로 만들었습니다.</p>
+      <p>오른쪽 위 첫 버튼(M 키)은 글 모드입니다 — 직접 쓰기 · 시계(시·분이 바뀌면 바뀐 글자만 다시 씀. 톱니바퀴 설정에서 초 표시와 오전/오후 · AM/PM · 24시간을 고름) · 명언 · 단어장(다 쓰면 뜻이 드러납니다). 둘째 버튼(W 키)은 날씨 — 맑음 · 흐림 · 비 · 눈 · 안개 · 바람. 장면의 빛은 실제 시각을 따라 새벽·낮·노을·밤으로 바뀌고, 밤에는 반딧불이가 뜨고 키위가 더 많이 나옵니다(T 키로 3시간씩 미리보기). 오른쪽 위 버튼으로 시점을 바꿉니다(V 키) — 위에서 · 디오라마 · 따라가기.</p>
+      <p class="credits">키위 스핀오프 v8.5.2 · 2026-10-10<br />영감: <a href="https://flocking-hangul.doodlefingers.kr/" target="_blank" rel="noopener">Flocking Hangul</a>(doodlefingers). 배경·키위·갈매기 그림은 AI 이미지 생성(Higgsfield)으로, 소리는 Web Audio 합성으로 만들었습니다.</p>
       <button type="button" data-close>닫기</button>
     </div>
   </div>
