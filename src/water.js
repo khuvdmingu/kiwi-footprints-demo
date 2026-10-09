@@ -55,9 +55,10 @@ void main() {
     land = mix(land, vec3(.97, .96, .94), k * smoothstep(e - 2., e - 30. * u, p.y) * .92);
   }
   // 젖은 모래: 물이 닿았던 줄(w) 아래부터 물가까지 짙고 반들반들
-  float wetK = smoothstep(w - 2. * u, w + 16. * u, p.y) * (1. - smoothstep(e - 1., e + 1., p.y));
-  land = mix(land, land * vec3(.8, .77, .78) + vec3(.02, .03, .05), wetK * .85);
-  land += wetK * .05 * smoothstep(.5, .85, fbm(vec2(p.x / (26. * u), p.y / (12. * u))));
+  // 마르는 중인 위쪽은 옅고, 물가로 갈수록 짙게 — 넓은 그라데이션 (각진 경계가 생기지 않게 경계선도 살짝 흔든다)
+  float wy = w + (fbm(vec2(p.x / (40. * u), 3.7)) - .5) * 24. * u;
+  float wetK = smoothstep(wy - 6. * u, wy + 150. * u, p.y) * (1. - smoothstep(e - 1., e + 1., p.y));
+  land = mix(land, land * vec3(.82, .79, .8) + vec3(.02, .03, .05), wetK * .8);
   // 물러난 물이 남긴 레이스 거품 한 줄 (물이 멀어질수록 옅어진다)
   float gap = e - w;
   float laceK = (1. - smoothstep(12. * u, 80. * u, gap)) * smoothstep(1. * u, 6. * u, gap);
@@ -74,24 +75,36 @@ void main() {
     float D0 = min(150. * u, uRes.y * .2), up = max(shift, 0.);
     // 바다 판 좌표: 바다 판 자신의 물가선(s2)을 지금 해안선(e)에 맞춘다
     float shift2 = s2 - e, rest = s2 - s;
-    vec2 sp = vec2(p.x, depth < D0 ? p.y + shift2 : (p.y < s + D0 ? s2 + D0 : p.y + rest + min(shift, 0.)));
+    // 띠 아래 Z 구간만 부드럽게 늘여 원래 바다로 잇는다 (늘임은 최대 1.5배 — 한 줄을 늘인 세로 줄무늬가 생기지 않게)
+    //  잔파도: 띠 아래 Z 구간을 살짝(≤1.5배) 늘여 원래 바다로 잇는다
+    //  큰 파도: 먼바다는 제자리, 띠와 먼바다 사이는 물 막이 덮는다 (늘이지 않으니 줄무늬·이음매가 없다)
+    float Z = max(3. * up, 220. * u), y1 = p.y - e - D0, big = smoothstep(20. * u, 90. * u, up);
+    float yS = depth < D0 ? p.y + shift2 : (y1 < Z ? s2 + D0 + y1 * (Z - up) / Z : p.y + rest + min(shift, 0.));
+    float yI = depth < D0 ? p.y + shift2 : p.y + rest + min(shift, 0.);
+    float pb = uMap.z + uPS.y * uMap.x - 2.;
+    if (yS > pb) yS = 2. * pb - yS;
+    vec2 sp = vec2(p.x, mix(yS, yI, step(.5, big)));
     vec2 q = sp / u;
     float a1 = (1. + 3.5 * smoothstep(0., 260. * u, depth)) * u;
     vec2 dis = vec2(sin(q.y * .045 + uT * .75 + 1.5 * sin(q.x * .012 + uT * .3)),
                     cos(q.x * .03 - uT * .6 + 1.2 * sin(q.y * .02 - uT * .25))) * a1;
     dis += (vec2(fbm(q * .008 + vec2(uT * .05, 0.)), fbm(q * .008 + vec2(5.2, uT * .04))) - .5) * 14. * u * smoothstep(60. * u, 420. * u, depth);
-    vec3 sea = texture(uSea, uvOf(sp + dis)).rgb;
+    vec3 sea = big > 0. && big < 1. ? mix(texture(uSea, uvOf(vec2(p.x, yS) + dis)).rgb, texture(uSea, uvOf(vec2(p.x, yI) + dis)).rgb, big) : texture(uSea, uvOf(sp + dis)).rgb;
     // 얕은 물 막: 그 줄의 물빛을 흐리게 펴고, 비친 모래·되돌아 흐르는 물결을 얹는다
     // 물 막은 물가 띠 안에서 차오르고 원래 바다 안쪽에서 빠진다 → 띠와 바다 사이의 "한 줄을 늘인" 자리는 늘 물 막에 가려진다
-    float sheet = smoothstep(e + D0 - 60. * u, e + D0, p.y) * (1. - smoothstep(s + D0, s + D0 + 50. * u, p.y)) * smoothstep(4. * u, 40. * u, up);
+    float sheet = smoothstep(e + D0 - 60. * u, e + D0, p.y) * (1. - smoothstep(s + D0, s + D0 + 50. * u, p.y)) * big;   // 물 막은 큰 파도 때만
     if (sheet > 0.) {
       // 그림 속 얕은 물빛(청록)으로 비친 모래를 덮는다 — 물가 쪽일수록 맑고 밝다
-      vec3 under = texture(uDry, uvOf(p + dis * .5)).rgb;
+      // 얕은 물 아래 모래가 일렁여 비친다: 큰 덩어리 노이즈로 휘게(도메인 워핑) 해서 반복 무늬가 안 보이게
+      vec2 wq = q * .012;
+      vec2 warp = vec2(fbm(wq + vec2(0., -uT * .18)), fbm(wq + vec2(4.3, -uT * .14))) - .5;
+      vec3 under = texture(uDry, uvOf(p + warp * 22. * u)).rgb;
       float k = clamp((p.y - e - D0) / max(1., up), 0., 1.);
-      vec3 teal = mix(vec3(.47, .84, .8), vec3(.27, .72, .74), k);
-      vec3 film = mix(under * vec3(.6, .92, .94) + vec3(.03, .1, .12), teal, .55 + .2 * k);
-      float flow = fbm(vec2(p.x / (46. * u) + sin(p.y / (70. * u)) * .25, (p.y - e) / (11. * u) - uT * 1.1));   // 되돌아 흐르는 가로 물결
-      film += (flow - .5) * .14 + smoothstep(.62, .78, flow) * .18;
+      vec3 teal = mix(vec3(.5, .85, .8), vec3(.3, .73, .75), k);
+      vec3 film = mix(under * vec3(.66, .93, .95) + vec3(.03, .09, .11), teal, .45 + .25 * k);
+      float lum = fbm(wq * 2.3 + warp * 1.6 + vec2(0., -uT * .3));
+      film += (lum - .5) * .07;                                                        // 물빛 얼룩 (부드럽게)
+      film = mix(film, vec3(1.), smoothstep(.66, .8, lum) * .14 * (1. - k));            // 드문드문 흩어지는 거품
       sea = mix(sea, film, sheet);
     }
     // 얕은 물의 빛 그물
@@ -172,7 +185,7 @@ export class WaterGL {
   }
 
   resize(W, H, dpr) {
-    this.W = W; this.H = H; this.dpr = Math.min(dpr, 1.5);   // 물은 부드러워서 해상도를 조금 낮춰도 된다
+    this.W = W; this.H = H; this.dpr = Math.min(dpr, 2);   // 숲 잎 층(키위 위)과 같은 해상도 — 다르면 잎 가장자리가 어긋나 보인다
     this.cv.width = Math.round(W * this.dpr); this.cv.height = Math.round(H * this.dpr);
     this.cv.style.width = W + 'px'; this.cv.style.height = H + 'px';
     this.gl.viewport(0, 0, this.cv.width, this.cv.height);

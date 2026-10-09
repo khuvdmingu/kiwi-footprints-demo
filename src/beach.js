@@ -30,6 +30,9 @@ export class Beach {
     const n = Math.ceil(W / 4) + 2;
     this.shoreC = new Float32Array(n); this.grassC = new Float32Array(n);
     for (let i = 0; i < n; i++) { this.shoreC[i] = plate.shore(i * 4); this.grassC[i] = plate.forest(i * 4) + 6 * this.u; }
+    // 물이 넘지 않는 바닥선: 숲 줄을 넓게 펴서(바위 자리의 급한 꺾임을 없애) 조금 아래로
+    this.floorC = new Float32Array(n);
+    for (let i = 0; i < n; i++) { let t = 0, c = 0; for (let k = -30; k <= 30; k++) { const j = i + k; if (j >= 0 && j < n) { t += this.grassC[j]; c++; } } this.floorC[i] = t / c + 30 * this.u; }
     // 대표값: 가운데 70% 구간의 평균 (숲 줄은 가장 낮은 곳)
     let sh = 0, gm = 0, sm = 0, c = 0;
     for (let x = W * 0.15; x <= W * 0.85; x += 4) { sh += this.shoreAt(x); gm = Math.max(gm, this.grass(x)); sm = Math.max(sm, this.shoreAt(x)); c++; }
@@ -64,7 +67,10 @@ export class Beach {
   // 해안선: 그려진 해안선을 파도 높이만큼 올리고, 밀려왔다 빠지는 잔물결을 얹는다
   edge(x) {
     const u = this.u, t = this.t, big = (this.bw ? 1.6 : 1) * this.amp;
-    return this.shoreAt(x) - (this.shoreY - this.lvl) + u * big * (4.5 * Math.sin((x * 0.009) / u + t * 0.8) + 2.5 * Math.sin((x * 0.023) / u - t * 1.1) + 1.2 * Math.sin((x * 0.06) / u + t * 0.5));
+    const y = this.shoreAt(x) - (this.shoreY - this.lvl) + u * big * (4.5 * Math.sin((x * 0.009) / u + t * 0.8) + 2.5 * Math.sin((x * 0.023) / u - t * 1.1) + 1.2 * Math.sin((x * 0.06) / u + t * 0.5));
+    // 물은 숲 안까지 들어가지 않는다 — 부드러운 최댓값이라 닿는 자리에서도 꺾이지 않는다
+    const f = this.lerpC(this.floorC, x), k = 18 * u;
+    return 0.5 * (y + f + Math.sqrt((y - f) * (y - f) + k * k));
   }
   // 숲 가장자리 (그림에서 읽은 줄)
   grass(x) { return this.lerpC(this.grassC, x); }

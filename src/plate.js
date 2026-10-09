@@ -68,7 +68,10 @@ export class Plate {
       md.data[i + 3] = on ? 255 : 0;
     }
     mg.putImageData(md, 0, 0);
-    this.leafMask = m;
+    // 잎 가장자리를 부드럽게 (계단·점박이 방지)
+    const ms = document.createElement('canvas'); ms.width = aw; ms.height = ah;
+    const msg = ms.getContext('2d'); msg.filter = 'blur(0.8px)'; msg.drawImage(m, 0, 0);
+    this.leafMask = ms;
 
     // 모래 밝기 기준 (그늘 판정용): 숲 줄과 해안선 사이 밝기의 상위 10%
     const lums = [];
