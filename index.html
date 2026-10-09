@@ -53,7 +53,12 @@
     </button>
   </div>
   <div id="settings" role="dialog" aria-label="설정" hidden>
-    <h2>시계</h2>
+    <h2>장소</h2>
+    <div class="seg two" role="radiogroup" aria-label="장소">
+      <label><input type="radio" name="map" value="beach" /><span>바닷가</span></label>
+      <label><input type="radio" name="map" value="nz" /><span>뉴질랜드 숲</span></label>
+    </div>
+    <h2 class="sep">시계</h2>
     <div id="clockOpts">
       <label class="row switch"><span>초 표시</span><input id="optSec" type="checkbox" /></label>
       <div class="seg three" role="radiogroup" aria-label="시각 표기">
@@ -82,8 +87,8 @@
       <p>문장을 쓰면 숲에 숨어 있던 키위들이 해변으로 걸어 나와, 획을 하나씩 맡아 발자국으로 한글을 씁니다. 점과 느낌표는 부리로 콕. 다음 문장을 쓰면 파도가 앞 글씨를 지우고, 키위들은 "!" 하고 숲으로 도망쳤다가 다시 나옵니다.</p>
       <p>모래를 누르면 근처 키위가 와서 콕, 키위를 누르면 깜짝, 빛안개(구름)를 누르면 흩어집니다.</p>
       <p>소리 버튼을 누르면 음악·파도·효과음 크기와 발자국 음악을 조절할 수 있어요. 키위가 글씨를 밟으면 음이 나고, 배경 음악은 시간대와 날씨에 따라 바뀝니다.</p>
-      <p>오른쪽 위 첫 버튼(M 키)은 글 모드입니다 — 직접 쓰기 · 시계(시·분이 바뀌면 바뀐 글자만 다시 씀. 톱니바퀴 설정에서 초 표시와 오전/오후 · AM/PM · 24시간을 고름) · 명언 · 단어장(다 쓰면 뜻이 드러납니다). 둘째 버튼(W 키)은 날씨 — 맑음 · 흐림 · 비 · 눈 · 안개 · 바람. 장면의 빛은 실제 시각을 따라 새벽·낮·노을·밤으로 바뀌고, 밤에는 반딧불이가 뜨고 키위가 더 많이 나옵니다(T 키로 3시간씩 미리보기). 오른쪽 위 버튼으로 시점을 바꿉니다(V 키) — 위에서 · 디오라마 · 따라가기.</p>
-      <p class="credits">키위 스핀오프 v8.5.2 · 2026-10-10<br />영감: <a href="https://flocking-hangul.doodlefingers.kr/" target="_blank" rel="noopener">Flocking Hangul</a>(doodlefingers). 배경·키위·갈매기 그림은 AI 이미지 생성(Higgsfield)으로, 소리는 Web Audio 합성으로 만들었습니다.</p>
+      <p>오른쪽 위 첫 버튼(M 키)은 글 모드입니다 — 직접 쓰기 · 시계(시·분이 바뀌면 바뀐 글자만 다시 씀. 톱니바퀴 설정에서 장소(바닷가 · 뉴질랜드 숲), 초 표시와 오전/오후 · AM/PM · 24시간을 고름) · 명언 · 단어장(다 쓰면 뜻이 드러납니다). 둘째 버튼(W 키)은 날씨 — 맑음 · 흐림 · 비 · 눈 · 안개 · 바람. 장면의 빛은 실제 시각을 따라 새벽·낮·노을·밤으로 바뀌고, 밤에는 반딧불이가 뜨고 키위가 더 많이 나옵니다(T 키로 3시간씩 미리보기). 오른쪽 위 버튼으로 시점을 바꿉니다(V 키) — 위에서 · 디오라마 · 따라가기.</p>
+      <p class="credits">키위 스핀오프 v9 · 2026-10-10<br />영감: <a href="https://flocking-hangul.doodlefingers.kr/" target="_blank" rel="noopener">Flocking Hangul</a>(doodlefingers). 배경·키위·갈매기 그림은 AI 이미지 생성(Higgsfield)으로, 소리는 Web Audio 합성으로 만들었습니다.</p>
       <button type="button" data-close>닫기</button>
     </div>
   </div>

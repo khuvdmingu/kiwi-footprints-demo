@@ -13,17 +13,17 @@
 
 const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 
-export async function loadPlate(base = 'assets/', name = 'plate') {
+export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
   const [img, dry, sea] = await Promise.all([load(name + '.webp'), load(name + '-dry.webp'), load(name + '-sea.webp')]);
-  const p = new Plate(img, dry, sea);
+  const p = new Plate(img, dry, sea, opts);
   p.name = name;
   return p;
 }
 
 export class Plate {
-  constructor(img, dry, sea) {
-    this.img = img; this.dry = dry; this.sea = sea;
+  constructor(img, dry, sea, opts = {}) {
+    this.img = img; this.dry = dry; this.sea = sea; this.opts = opts;
     this.pw = img.naturalWidth; this.ph = img.naturalHeight;
     this.analyze();
   }
@@ -35,29 +35,45 @@ export class Plate {
     g.drawImage(this.img, 0, 0, aw, ah);
     const px = g.getImageData(0, 0, aw, ah).data;
     const at = (x, y) => { const i = (y * aw + x) * 4; return [px[i], px[i + 1], px[i + 2]]; };
-    const water = ([r, gg, b]) => gg > r + 8 || (r > 228 && gg > 226 && b > 208);
+    // 물 뺀 판과 비교: 두 그림이 크게 다른 곳이 물이다 (모래·흙·돌·통나무는 두 그림에서 같다)
+    g.drawImage(this.dry, 0, 0, aw, ah);
+    const dp = g.getImageData(0, 0, aw, ah).data;
+    const wet = (x, y) => { const i = (y * aw + x) * 4; return Math.abs(px[i] - dp[i]) + Math.abs(px[i + 1] - dp[i + 1]) + Math.abs(px[i + 2] - dp[i + 2]) > 60; };
+    const runWet = (x, y0, n) => { for (let k = 0; k < n; k++) if (y0 + k >= ah || !wet(x, y0 + k)) return false; return true; };
     const leaf = ([r, gg, b]) => (gg >= r * 0.93 && b < gg * 0.9) || r + gg + b < 210;
-    const sand = ([r, gg, b]) => r > 175 && r >= gg && gg > b && r - b > 45 && !(gg >= r * 0.93);
+    const sand = ([r, gg, b]) => r > 170 && r >= gg && gg >= b && r - b > 26 && !(gg >= r * 0.93);   // 바닷가 모래 · 창백한 강가 흙 둘 다
     const run = (x, y0, test, n) => { for (let k = 0; k < n; k++) if (y0 + k >= ah || !test(at(x, y0 + k))) return false; return true; };
 
-    const shore = new Float32Array(aw), forest = new Float32Array(aw);
-    const RUN = Math.round(aw * 0.015);   // 연속 판정 길이 (폭 기준 — 세로 판에서도 얕은 거품 지대를 놓치지 않게)
-    for (let x = 0; x < aw; x++) {
-      let s = ah * 0.62;
-      for (let y = Math.round(ah * 0.36); y < ah - RUN; y++) if (run(x, y, water, RUN)) { s = y; break; }
-      shore[x] = s;
-      let f = ah * 0.12;
-      for (let y = 0; y < ah * 0.5; y++) if (run(x, y, sand, Math.round(RUN * 0.8))) { f = y; break; }
-      forest[x] = f;
-    }
-    // 바위·조개 같은 잡음을 걸러 내는 이동 중앙값
+    // 잡음을 걸러 내는 이동 중앙값 · 이동 평균
     const box = (a, r) => { const o = new Float32Array(a.length); for (let i = 0; i < a.length; i++) { let t = 0, n = 0; for (let k = -r; k <= r; k++) { const j = i + k; if (j >= 0 && j < a.length) { t += a[j]; n++; } } o[i] = t / n; } return o; };
     this.box = box;
     const median = (a, r) => { const o = new Float32Array(a.length); for (let i = 0; i < a.length; i++) { const w = []; for (let k = -r; k <= r; k++) w.push(a[Math.min(a.length - 1, Math.max(0, i + k))]); w.sort((p, q) => p - q); o[i] = w[r]; } return o; };
+    const shore = new Float32Array(aw), forest = new Float32Array(aw);
+    const RUN = Math.round(aw * 0.015), R2 = Math.round(RUN * 0.8);   // 연속 판정 길이 (폭 기준)
+    // ① 물가선: 맵이 정한 높이(shoreFrom) 아래에서 물 뺀 판과 크게 다른 곳이 처음 이어지는 줄
+    const from = Math.round(ah * (this.opts.shoreFrom ?? 0.4));
+    for (let x = 0; x < aw; x++) {
+      let s = ah * 0.62;
+      for (let y = from; y < ah - RUN; y++) if (runWet(x, y, RUN)) { s = y; break; }
+      shore[x] = s;
+    }
+    // 전체 중앙값에서 화면 높이의 10% 넘게 벗어난 칸(가장자리 바위·통나무를 물로 읽은 곳)은 버리고 가까운 정상 칸으로 메운다
+    const M = [...shore].sort((p, q) => p - q)[aw >> 1], okS = shore.map(v => Math.abs(v - M) <= ah * 0.1);
+    for (let x = 0; x < aw; x++) if (!okS[x]) { let l = x, r = x; while (l >= 0 && !okS[l]) l--; while (r < aw && !okS[r]) r++; shore[x] = l < 0 ? (r < aw ? shore[r] : M) : r >= aw ? shore[l] : shore[l] + (shore[r] - shore[l]) * (x - l) / (r - l); }
+    const shoreS = box(box(median(shore, 12), 10), 10);
+    // ② 숲 줄: 물가선에서 위로 올라가며 모래·흙이 끝나는 곳 (햇살 받은 잎을 모래로 읽어도 위쪽이라 상관없다)
+    for (let x = 0; x < aw; x++) {
+      let f = 0, cnt = 0;
+      // 물가의 거품·젖은 띠를 건너뛰고(물가선 위 6% 부터), 흰 거품은 모래 쪽으로 친다
+      const ground = c => sand(c) || (c[0] > 205 && c[1] > 200 && c[2] > 185);
+      for (let y = Math.round(shoreS[x] - ah * 0.06); y >= 0; y--) { if (!ground(at(x, y))) { if (++cnt >= R2) { f = y + cnt; break; } } else cnt = 0; }
+      forest[x] = Math.min(f, shoreS[x] - ah * 0.2);   // 글씨 쓸 바닥은 적어도 화면 높이의 20%
+    }
     // 판 좌표(픽셀)로 저장
     const k = this.pw / aw;
-    this.shoreP = box(box(median(shore, 12), 10), 10).map(v => v * k - 2 * k);
+    this.shoreP = shoreS.map(v => v * k - 2 * k);
     this.forestP = median(forest, 5).map(v => v * k);
+    this._dp = dp;
 
     // 잎 가림막: 숲 줄 근처까지의 잎 픽셀만 남긴 알파 (판 위쪽 절반에서만)
     const m = document.createElement('canvas'); m.width = aw; m.height = ah;
@@ -81,18 +97,20 @@ export class Plate {
     this.sandLum = lums[Math.floor(lums.length * 0.9)] || 220;
     this.aw = aw; this.ah = ah;
     // 바위 지운 판은 다시 그린 그림이라 물가선이 몇 픽셀 다를 수 있다 → 그 판의 물가선도 따로 읽어 바다를 맞춰 끌어올린다
-    this.shoreSeaP = this.shoreOf(this.sea, water, median, k);
+    this.shoreSeaP = this.shoreOf(this.sea, median, k);
+    this._dp = null;
     this.rockMask = this.makeRockMask(Math.round(forest.reduce((a, b) => a + b, 0) / aw / ah * 100) / 100);
   }
 
-  shoreOf(im, water, median, k) {
-    const aw = this.aw, ah = this.ah;
+  // 바위 지운 판의 물가선: 그 판과 물 뺀 판이 크게 다른 곳을, 원래 물가선 근처에서만 찾는다
+  shoreOf(im, median, k) {
+    const aw = this.aw, ah = this.ah, dp = this._dp;
     const c = document.createElement('canvas'); c.width = aw; c.height = ah;
     const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(im, 0, 0, aw, ah);
     const px = g.getImageData(0, 0, aw, ah).data, RUN = Math.round(aw * 0.015);
-    const ok = (x, y) => { for (let j = 0; j < RUN; j++) { const i = ((y + j) * aw + x) * 4; if (!water([px[i], px[i + 1], px[i + 2]])) return false; } return true; };
+    const ok = (x, y) => { for (let j = 0; j < RUN; j++) { const i = ((y + j) * aw + x) * 4; if (Math.abs(px[i] - dp[i]) + Math.abs(px[i + 1] - dp[i + 1]) + Math.abs(px[i + 2] - dp[i + 2]) <= 60) return false; } return true; };
     const out = new Float32Array(aw);
-    for (let x = 0; x < aw; x++) { out[x] = this.shoreP[x] / k + 2; for (let y = Math.round(ah * 0.36); y < ah - RUN; y++) if (ok(x, y)) { out[x] = y; break; } }
+    for (let x = 0; x < aw; x++) { const s0 = this.shoreP[x] / k + 2; out[x] = s0; for (let y = Math.round(s0 - ah * 0.06); y < Math.min(ah - RUN, s0 + ah * 0.08); y++) if (ok(x, y)) { out[x] = y; break; } }
     // 두 판의 물가선 차이만 아주 부드럽게 남긴다 (판정 잡음이 바다를 세로로 찢지 않게)
     const m = median(out, 6).map(v => v * k - 2 * k);
     const diff = this.box(m.map((v, i) => v - this.shoreP[i]), 40);
@@ -119,7 +137,9 @@ export class Plate {
       const landRock = y < shoreY && a[i + 2] > a[i] * 0.78 && la < 165 && a[i + 1] < a[i] * 1.05;
       // 바위 색인지: 어둡거나, 빨강과 파랑이 비슷한 회보라 (모래·거품 조각을 바위로 잘못 잡지 않게)
       const rocky = la < 120 || (Math.abs(a[i] - a[i + 2]) < 45 && la < 170);
-      bin[y * mw + x] = !red && rocky && ((diff > 90 && lb - la > 20) || landRock) ? 1 : 0;
+      // 개울 돌(opts.stones): 물보다 밝은 회색 돌도 제자리에 — 빨강·초록·파랑이 고르고 거품만큼 하얗지는 않다
+      const grey = this.opts.stones && Math.abs(a[i] - a[i + 1]) < 38 && Math.abs(a[i + 1] - a[i + 2]) < 38 && la > 60 && la < 215;
+      bin[y * mw + x] = !red && ((rocky && ((diff > 90 && lb - la > 20) || landRock)) || (grey && diff > 70)) ? 1 : 0;
     }
     // 열기(깎았다 다시 불리기): 물결·거품 윤곽 같은 가는 선은 사라지고 바위 덩어리만 남는다
     const R = 4, pass = (src, keep) => {

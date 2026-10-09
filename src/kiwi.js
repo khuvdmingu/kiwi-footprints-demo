@@ -112,6 +112,7 @@ export class Kiwi {
   }
 
   step(moved, W, kind) {
+    if (!(W.stride > 0)) return;   // 안전장치: 보폭이 0 이하면 아래 반복이 끝나지 않는다
     this.phase += (moved / W.stride) * Math.PI;
     this.stepAcc += moved;
     while (this.stepAcc >= W.stride) {

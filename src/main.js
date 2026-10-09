@@ -20,6 +20,7 @@ import { Beach } from './beach.js';
 import { Kiwi } from './kiwi.js';
 import { Sound } from './sound.js';
 import { loadPlate } from './plate.js';
+import { MAPS, MAP_IDS } from './maps.js';
 import { WaterGL } from './water.js';
 import { setKiwiSprite } from './kiwi.js';
 import { Clouds } from './clouds.js';
@@ -45,8 +46,10 @@ const plateEl = document.getElementById('plate'), canopyEl = document.getElement
 let plate = null, water = null;
 // 판 두 벌: 가로 화면은 plate*, 세로로 긴 화면(휴대폰)은 tall* — 처음 필요할 때 읽어 둔다
 const plates = {};
-const plateFor = (w, h) => (w / h < 0.8 ? 'tall' : 'plate');
-function getPlate(name) { return (plates[name] ||= loadPlate('assets/', name)); }
+// 장소: ?map= 이 기기에 저장된 값보다 먼저
+let mapId = MAP_IDS.includes(q.get('map')) ? q.get('map') : MAP_IDS.includes(saved('map')) ? saved('map') : 'beach';
+const plateFor = (w, h) => MAPS[mapId][w / h < 0.8 ? 'tall' : 'wide'];
+function getPlate(name) { const m = Object.values(MAPS).find(v => v.wide === name || v.tall === name) || {}; return (plates[name] ||= loadPlate('assets/', name, { stones: !!m.stones, shoreFrom: m.shoreFrom })); }
 const cloudCanvas = document.getElementById('clouds'), cctx = cloudCanvas.getContext('2d');
 const glowEl = document.getElementById('glow');
 const clouds = new Clouds();
@@ -98,7 +101,7 @@ function rustle(x, y) {
 world.onNote = (x, y) => { notes.push({ x, y, t: beach.t, d: Math.random() < 0.5 ? -1 : 1 }); if (notes.length > 60) notes.shift(); };
 
 function sizeFor(s) {
-  S = s;
+  S = Math.max(20, s);   // 안전장치: 글자 크기가 0 이하가 되면 걸음 계산이 끝나지 않는다
   const k = clamp(S * 0.36, 18, 74);
   Object.assign(world, { stride: S * 0.085, foot: S * 0.056, speed: S * 0.9 * SPEED, writeSpeed: S * 0.55 * SPEED, k });
   for (const kw of kiwis) kw.k = k;
@@ -140,6 +143,7 @@ function layout(text) {
   let top = 0, bot = Infinity;
   for (let x = xa; x <= xa + areaW; x += 6) { top = Math.max(top, beach.grass(x)); bot = Math.min(bot, beach.shoreAt(x)); }
   top += 34 * u; bot -= H * 0.03 + 26 * u;
+  if (bot - top < H * 0.12) top = bot - H * 0.12;   // 안전장치: 바닥이 너무 좁게 읽혀도 글씨 칸은 남긴다
   const maxS = clamp(Math.min(W, H) * 0.2, 60, 170);
   // 시계 · 초: 마지막 줄 오른쪽에 반 크기 초 두 자리 자리를 비워 두고 배치한다
   const withSec = mode === 'clock' && clockOpt.sec && text === lastClock, R = 0.6, GAP = 0.25, secU = withSec ? layoutText('00').width * R + GAP : 0;
@@ -341,7 +345,7 @@ function tick(dt) {
   atmos.update(dt, beach, hour);
   clouds.amount = atmos.cloud; clouds.windK = atmos.windK;
   clouds.update(dt);
-  gulls.update(dt, beach, x => sound.gull(x));
+  if (MAPS[mapId].gulls) gulls.update(dt, beach, x => sound.gull(x)); else gulls.list.length = 0;
   sound.update({ high: clamp((beach.shoreY - beach.lvl) / (beach.H * 0.3), 0, 1), rain: atmos.v.rain, wind: Math.max(atmos.v.wind, atmos.v.rain * 0.3), night: atmos.night, hour, weather: atmos.weather });
   if (beach.t - tintAt > 0.25) {
     tintAt = beach.t;
@@ -588,6 +592,12 @@ async function boot() {
 boot();
 const paintMode = () => { modeBtn.dataset.mode = mode; modeBtn.setAttribute('aria-label', `글 모드: ${MODE_NAME[mode]} (바꾸기)`); };
 const nowHour = () => ((HOUR_Q ?? new Date().getHours() + new Date().getMinutes() / 60 + new Date().getSeconds() / 3600) + hourShift) % 24;
+// 장소 바꾸기: 그 장소 그림 판을 읽고(처음 한 번) 화면을 다시 짠다 — resize 가 지금 글을 새 바닥에 다시 쓴다
+function setMap(id) {
+  if (!MAPS[id] || id === mapId) return;
+  mapId = id; save('map', id); paintModeMenu(); toast(MAPS[id].name);
+  if (plate) resize();
+}
 function setMode(m, announce = true) {
   mode = m;
   save('mode', mode); paintMode(); paintModeMenu();
@@ -601,12 +611,14 @@ modeBtn.addEventListener('click', () => { unlock(); setMode(MODES[(MODES.indexOf
 const settings = document.getElementById('settings'), setBtn = document.getElementById('setBtn');
 const openSettings = open => { settings.hidden = !open; setBtn.setAttribute('aria-expanded', String(open)); if (open) settings.querySelector('input').focus(); };
 function paintModeMenu() {
+  for (const r of settings.querySelectorAll('input[name="map"]')) r.checked = r.value === mapId;
   for (const r of settings.querySelectorAll('input[name="fmt"]')) r.checked = r.value === clockOpt.fmt;
   document.getElementById('optSec').checked = clockOpt.sec;
 }
 setBtn.addEventListener('click', () => { unlock(); openSettings(settings.hidden); });
 settings.addEventListener('change', e => {
   const t = e.target;
+  if (t.name === 'map') { setMap(t.value); return; }
   if (t.name === 'fmt') clockOpt.fmt = t.value;
   if (t.id === 'optSec') clockOpt.sec = t.checked;
   save('clock', JSON.stringify(clockOpt));
