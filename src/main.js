@@ -46,6 +46,9 @@ const ctx = canvas.getContext('2d');
 const plateEl = document.getElementById('plate'), canopyEl = document.getElementById('canopy');
 let plate = null, water = null;
 // 판 두 벌: 가로 화면은 plate*, 세로로 긴 화면(휴대폰)은 tall* — 처음 필요할 때 읽어 둔다
+// 기기 저장값 읽기·쓰기 — 장소·글 모드·시계 설정이 시작하자마자 쓰므로 맨 먼저 둔다
+const saved = k => { try { return localStorage.getItem('kiwi-footprints.' + k); } catch (e) { return null; } };
+const save = (k, v) => { try { localStorage.setItem('kiwi-footprints.' + k, v); } catch (e) { /* 저장소 없음 */ } };
 const plates = {};
 // 장소: ?map= 이 기기에 저장된 값보다 먼저
 let mapId = MAP_IDS.includes(q.get('map')) ? q.get('map') : MAP_IDS.includes(saved('map')) ? saved('map') : 'beach';
@@ -61,8 +64,6 @@ const fxCanvas = document.getElementById('fx');
 const fctx = fxCanvas.getContext('2d');
 const tintEl = document.getElementById('tint');
 const captionEl = document.getElementById('caption');
-const saved = k => { try { return localStorage.getItem('kiwi-footprints.' + k); } catch (e) { return null; } };
-const save = (k, v) => { try { localStorage.setItem('kiwi-footprints.' + k, v); } catch (e) { /* 저장소 없음 */ } };
 const atmos = new Atmos(q.get('weather') || saved('weather') || 'clear');
 // 시계 선택지: 초 표시 · 표기(오전/오후 · AM/PM · 24시간). 주소 ?sec=1 · ?ampm=ko|en|24 가 기기에 저장된 값보다 먼저
 const clockOpt = (() => { try { return { sec: false, fmt: 'ko', ...JSON.parse(saved('clock') || '{}') }; } catch (e) { return { sec: false, fmt: 'ko' }; } })();
@@ -174,7 +175,7 @@ function layout(text) {
 }
 
 function write(text, m = null) {
-  drifters.wrote();
+  drifters.wrote(beach.t);
   current = text;
   meta = m;
   showCaption(null);

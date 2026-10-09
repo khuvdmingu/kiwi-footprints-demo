@@ -42,7 +42,7 @@ export class Drifters {
   constructor() { this.list = []; this.nextAt = 35; this.imgs = {}; }
   setSprites(imgs) { this.imgs = imgs; }
   reset() { this.list = []; }
-  wrote() { this.nextAt -= 35; }   // 글을 쓸수록 조금 빨리
+  wrote(t) { this.nextAt = Math.max(t + 15, this.nextAt - 35); }   // 글을 쓸수록 조금 빨리 (그래도 적어도 15초 뒤)
 
   update(dt, beach, col, onArrive) {
     const { W, H, u, t } = beach;
