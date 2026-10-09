@@ -15,20 +15,20 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js';
-import { Beach } from './beach.js';
-import { Kiwi } from './kiwi.js';
-import { Sound } from './sound.js';
-import { loadPlate } from './plate.js';
-import { MAPS, MAP_IDS } from './maps.js';
-import { WaterGL } from './water.js';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js';
-import { Clouds } from './clouds.js';
-import { Gulls } from './gulls.js';
-import { Atmos, WEATHERS, WEATHER_NAME } from './atmos.js';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js';
-import { clamp, dist } from './util.js';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v10.0.1';
+import { Beach } from './beach.js?v=v10.0.1';
+import { Kiwi } from './kiwi.js?v=v10.0.1';
+import { Sound } from './sound.js?v=v10.0.1';
+import { loadPlate } from './plate.js?v=v10.0.1';
+import { MAPS, MAP_IDS } from './maps.js?v=v10.0.1';
+import { WaterGL } from './water.js?v=v10.0.1';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v10.0.1';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v10.0.1';
+import { Clouds } from './clouds.js?v=v10.0.1';
+import { Gulls } from './gulls.js?v=v10.0.1';
+import { Atmos, WEATHERS, WEATHER_NAME } from './atmos.js?v=v10.0.1';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v10.0.1';
+import { clamp, dist } from './util.js?v=v10.0.1';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -603,7 +603,7 @@ window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() =
 // 그림 판·키위·갈매기 그림을 다 읽은 뒤 시작한다
 async function boot() {
   const img = src => new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp'), img('assets/gull.webp'), img('assets/bottle.webp'), img('assets/crate.webp')]);
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp?v=v10.0.1'), img('assets/gull.webp?v=v10.0.1'), img('assets/bottle.webp?v=v10.0.1'), img('assets/crate.webp?v=v10.0.1')]);
   drifters.setSprites({ bottle, crate });
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
