@@ -422,7 +422,7 @@ function stampSeconds(ss) {
 function draw() {
   ctx.setTransform(stageScale, 0, 0, stageScale, 0, 0);
   ctx.clearRect(0, 0, W, H);
-  water.draw(beach, { snow: beach.snow, night: atmos.night });
+  water.draw(beach, { snow: beach.snow, night: atmos.night, rain: atmos.v.rain });
   ctx.save();
   beach.clipLand(ctx);
   beach.drawPrints(ctx);
@@ -558,6 +558,7 @@ window.addEventListener('keydown', e => {
 
 // 누르기: 구름이면 찢고, 키위면 놀라고, 빈 모래면 근처 키위가 와서 콕
 document.getElementById('touch').addEventListener('pointerdown', e => {
+  if (!plate) return;   // 그림을 다 읽기 전에는 누를 곳이 없다
   const [x, y] = toWorld(e.clientX, e.clientY);
   const cl = clouds.hit(x, y);
   if (cl) { clouds.scatter(cl, x, y); sound.poof(x); return; }

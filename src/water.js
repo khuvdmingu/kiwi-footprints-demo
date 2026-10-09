@@ -23,7 +23,7 @@ uniform vec4 uL[${N}];   // 칸마다 (해안선, 그린 해안선, 젖은 줄, 
 uniform float uLod;          // 그림을 읽을 해상도 단계 — 직접 정한다 (휴대폰 GPU가 조건문 안에서 단계를 잘못 골라 색이 튀지 않게)
 uniform vec2 uRes, uPS;
 uniform vec3 uMap;
-uniform float uDpr, uT, uU, uSnow, uNight, uSurge;
+uniform float uDpr, uT, uU, uSnow, uNight, uSurge, uRain;
 out vec4 o;
 
 // 해안선 줄: 텍스처를 거치지 않고 상수 배열에서 바로 읽어 잇는다
@@ -82,6 +82,11 @@ void main() {
   float lace = (1. - smoothstep(0., 2.2 * u, abs(p.y - w - 3. * u))) * smoothstep(.4, .6, vnoise(vec2(p.x / (5. * u), w / (9. * u))));
   land = mix(land, vec3(1., .99, .96), lace * laceK * .85);
 
+  // 비: 모래는 젖어 짙어지고 색이 조금 바랜다
+  if (uRain > 0.) {
+    float g = dot(land, vec3(.3, .59, .11));
+    land = mix(land, vec3(g), .22 * uRain) * (1. - .1 * uRain);
+  }
   vec3 col = land;
   if (d > -2.) {
     // ── 물: 그려진 바다를 해안선만큼 끌어올리고, 깊이에 따라 다르게 비튼다 ──
@@ -142,7 +147,22 @@ void main() {
     float tw = pow(max(0., sin(uT * (1.1 + hs * 1.6) + hs * 40.)), 26.);
     // 반짝임은 드문드문, 얕은 물~중간 물에서만 (그림 속 물방울 점과 겹치지 않게)
     float zone = smoothstep(.45, .7, vnoise(p / (90. * u) + vec2(uT * .02, 0.)));
-    sea += (1. - smoothstep(0., 1.5 * u, length(p - c0))) * tw * step(.82, hs) * zone * smoothstep(12. * u, 50. * u, depth) * (1. - smoothstep(200. * u, 380. * u, depth)) * .9 * (1. - uNight);
+    sea += (1. - smoothstep(0., 1.5 * u, length(p - c0))) * tw * step(.82, hs) * zone * smoothstep(12. * u, 50. * u, depth) * (1. - smoothstep(200. * u, 380. * u, depth)) * .9 * (1. - uNight) * (1. - uRain);
+    // 비: 물 위 곳곳에 빗방울 파문이 번갈아 퍼진다 (칸마다 하나, 저마다 다른 박자)
+    if (uRain > 0.) {
+      float rs = 30. * u;
+      for (int k = 0; k < 2; k++) {
+        vec2 gp = p / rs + float(k) * vec2(.5, .37), gi = floor(gp);
+        float h1 = h21(gi + float(k) * 7.1), h2 = h21(gi + 3.3 + float(k));
+        vec2 c = (gi + .2 + .6 * vec2(h1, h2)) * rs - float(k) * vec2(.5, .37) * rs;
+        float ph = fract(uT * (.55 + .4 * h1) + h2), r = ph * 11. * u;
+        vec2 dv = (p - c) * vec2(1., 2.);                    // 위에서 비스듬히 본 납작한 원
+        float ring = (1. - smoothstep(0., 1.3 * u, abs(length(dv) - r))) * (1. - ph) * step(.25, h1);
+        float ring2 = (1. - smoothstep(0., 1. * u, abs(length(dv) - r * .55))) * (1. - ph) * .6 * step(.25, h1) * step(.3, ph);
+        sea += (ring + ring2) * .32 * uRain * vec3(.92, .97, 1.);
+      }
+      sea = mix(sea, vec3(dot(sea, vec3(.3, .59, .11))), .15 * uRain);
+    }
     // 바위는 움직이는 물과 상관없이 원래 자리에 (깊은 바위만 물결 굴절로 살짝 흔들린다)
     vec2 rp = uvOf(p + dis * .5 * smoothstep(60. * u, 260. * u, depth));
     float rk = textureLod(uRock, rp, 0.).a;
@@ -170,7 +190,7 @@ export class WaterGL {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
     const loc = gl.getAttribLocation(pr, 'aP'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     this.U = {};
-    for (const n of ['uPlate', 'uDry', 'uL', 'uLod', 'uSea', 'uRock', 'uRes', 'uPS', 'uMap', 'uDpr', 'uT', 'uU', 'uSnow', 'uNight', 'uSurge']) this.U[n] = gl.getUniformLocation(pr, n);
+    for (const n of ['uPlate', 'uDry', 'uL', 'uLod', 'uSea', 'uRock', 'uRes', 'uPS', 'uMap', 'uDpr', 'uT', 'uU', 'uSnow', 'uNight', 'uSurge', 'uRain']) this.U[n] = gl.getUniformLocation(pr, n);
     this.line = new Float32Array(N * 4);
     gl.uniform1i(this.U.uPlate, 0); gl.uniform1i(this.U.uDry, 1); gl.uniform1i(this.U.uSea, 3); gl.uniform1i(this.U.uRock, 4);
     this.texs = {};
@@ -205,7 +225,7 @@ export class WaterGL {
     this.gl.viewport(0, 0, this.cv.width, this.cv.height);
   }
 
-  draw(beach, { snow = 0, night = 0 } = {}) {
+  draw(beach, { snow = 0, night = 0, rain = 0 } = {}) {
     const gl = this.gl, { W, H } = this, P = this.plate, m = P.map;
     const step = W / (N - 1), wet = beach.wet, wc = wet.length;
     for (let i = 0; i < N; i++) {
@@ -226,6 +246,7 @@ export class WaterGL {
     gl.uniform1f(this.U.uU, beach.u);
     gl.uniform1f(this.U.uSnow, snow);
     gl.uniform1f(this.U.uNight, night);
+    gl.uniform1f(this.U.uRain, rain);
     gl.uniform1f(this.U.uSurge, beach.surgeK || 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }

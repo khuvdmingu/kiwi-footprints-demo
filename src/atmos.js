@@ -55,14 +55,15 @@ export class Atmos {
     this.night = L.night;
     // 날씨가 색을 조금 바꾼다: 흐리고 비 오면 회청색으로, 눈 오면 차갑고 밝게
     const grey = [206, 212, 222], cool = [236, 242, 252];
-    this.tint = L.tint.map((c, i) => c * lerp(1, grey[i] / 255, this.v.grey) * lerp(1, cool[i] / 255, this.v.snow * 0.6));
+    const wet = [176, 188, 204];   // 비: 회청색으로 한 번 더 누른다 (밝은 한낮 그림이 맑은 날처럼 보이지 않게)
+    this.tint = L.tint.map((c, i) => c * lerp(1, grey[i] / 255, this.v.grey) * lerp(1, wet[i] / 255, this.v.rain) * lerp(1, cool[i] / 255, this.v.snow * 0.6));
     beach.amp = this.v.amp;
     beach.snow = clamp(beach.snow + (this.v.snow > 0.5 ? dt / 45 : -dt / 30), 0, 1);
 
     const W = beach.W, H = beach.H, u = beach.u, area = (W * H) / 1e6;
     // 비: 짧은 빗줄기 → 떨어진 자리에 고리
     const nRain = this.v.rain * 260 * area * dt * 10;
-    for (let i = 0; i < nRain; i++) if (Math.random() < 0.1) { const x = Math.random() * W, y = Math.random() * H; this.drops.push({ x, y, life: 0.22 + Math.random() * 0.15, age: 0, len: (8 + Math.random() * 6) * u, water: y > beach.edge(x) }); }
+    for (let i = 0; i < nRain; i++) if (Math.random() < 0.1) { const x = Math.random() * W, y = Math.random() * H; this.drops.push({ x, y, life: 0.26 + Math.random() * 0.14, age: 0, len: (16 + Math.random() * 10) * u, water: y > beach.edge(x) }); }
     for (const d of this.drops) {
       d.age += dt;
       if (d.age >= d.life && !d.done) { d.done = true; this.rings.push({ x: d.x + d.len * 0.4, y: d.y + d.len, age: 0, water: d.y + d.len > beach.edge(d.x) }); }
@@ -139,13 +140,13 @@ export class Atmos {
     }
     // 빗줄기 · 물방울 고리
     if (this.drops.length || this.rings.length) {
-      // 위에서 내려다보는 장면이라 빗줄기는 아주 흐리게 스며들었다 사라지고(어두운 물 위에서는 더 흐리게), 비는 주로 파문으로 보인다
-      ctx.lineWidth = Math.max(0.8, 1 * u);
+      // 빗줄기: 비스듬히 떨어지며 부드럽게 나타났다 사라진다 (물 위 파문은 water.js 셰이더가 그린다)
+      ctx.lineWidth = Math.max(1, 1.2 * u);
       ctx.lineCap = 'round';
       ctx.strokeStyle = 'rgb(232,238,244)';
       for (const d of this.drops) {
         const k = d.age / d.life;
-        ctx.globalAlpha = Math.sin(Math.PI * k) * (d.water ? 0.12 : 0.26);
+        ctx.globalAlpha = Math.sin(Math.PI * k) * (d.water ? 0.32 : 0.45);
         ctx.beginPath();
         ctx.moveTo(d.x + d.len * 0.4 * k, d.y + d.len * k);
         ctx.lineTo(d.x + d.len * 0.4 * (k + 0.5), d.y + d.len * (k + 0.5));
@@ -153,6 +154,7 @@ export class Atmos {
       }
       ctx.globalAlpha = 1;
       for (const r of this.rings) {
+        if (r.water) continue;   // 물 위 파문은 셰이더 몫 — 모래 위에는 작은 젖은 자국만
         const k = r.age / 0.9, a = Math.sin(Math.PI * Math.min(1, k * 1.6 + 0.08)) * (1 - k);
         ctx.strokeStyle = r.water ? `rgba(236,246,250,${0.55 * a})` : `rgba(150,130,100,${0.3 * a})`;
         ctx.lineWidth = Math.max(0.7, 1 * u);
