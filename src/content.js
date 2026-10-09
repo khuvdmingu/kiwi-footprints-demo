@@ -2,9 +2,11 @@
 //  명언은 출처가 분명한 고전·오래된 속담만 쓴다(저작권이 끝났거나 관용구). 출처가 한 사람으로 확정되지 않으면 '속담'으로 적는다.
 //  화면에는 영어를 키위가 쓰고, 다 쓴 뒤 한국어 뜻·출처가 캡션으로 드러난다(플래시카드처럼).
 
-export const MODES = ['free', 'clock', 'clocksec', 'quote', 'word'];
-export const MODE_NAME = { free: '직접 쓰기', clock: '시계', clocksec: '시계 · 초', quote: '명언', word: '단어장' };
-export const isClock = m => m === 'clock' || m === 'clocksec';
+export const MODES = ['free', 'clock', 'quote', 'word'];
+export const MODE_NAME = { free: '직접 쓰기', clock: '시계', quote: '명언', word: '단어장' };
+export const isClock = m => m === 'clock';
+// 시각 표기: ko 「오전 6:55」 · en 「AM 6:55」 · 24 「18:55」 (초는 표기와 따로 켜고 끈다)
+export const CLOCK_FMTS = ['ko', 'en', '24'];
 
 export const QUOTES = [
   { en: 'Step by step', ko: '한 걸음씩', by: '영어 관용구' },
@@ -60,7 +62,9 @@ export class Deck {
 }
 
 // 시계 글: "오후 3:42"
-export function clockText(hour) {
-  const h = Math.floor(hour) % 24, m = Math.floor((hour % 1) * 60 + 1e-6);
-  return `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}:${String(m).padStart(2, '0')}`;
+export function clockText(hour, fmt = 'ko') {
+  const h = Math.floor(hour) % 24, m = Math.floor((hour % 1) * 60 + 1e-6), mm = String(m).padStart(2, '0');
+  if (fmt === '24') return `${h}:${mm}`;
+  const ap = fmt === 'en' ? (h < 12 ? 'AM' : 'PM') : (h < 12 ? '오전' : '오후');
+  return `${ap} ${h % 12 || 12}:${mm}`;
 }

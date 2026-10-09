@@ -15,7 +15,7 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf } from './hangul.js';
+import { layoutText, strokesOf, glyph } from './hangul.js';
 import { Beach } from './beach.js';
 import { Kiwi } from './kiwi.js';
 import { Sound } from './sound.js';
@@ -25,7 +25,7 @@ import { setKiwiSprite } from './kiwi.js';
 import { Clouds } from './clouds.js';
 import { Gulls } from './gulls.js';
 import { Atmos, WEATHERS, WEATHER_NAME } from './atmos.js';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock } from './content.js';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js';
 import { clamp, dist } from './util.js';
 
 const q = new URLSearchParams(location.search);
@@ -60,7 +60,14 @@ const captionEl = document.getElementById('caption');
 const saved = k => { try { return localStorage.getItem('kiwi-footprints.' + k); } catch (e) { return null; } };
 const save = (k, v) => { try { localStorage.setItem('kiwi-footprints.' + k, v); } catch (e) { /* 저장소 없음 */ } };
 const atmos = new Atmos(q.get('weather') || saved('weather') || 'clear');
-let mode = MODES.includes(q.get('mode')) ? q.get('mode') : MODES.includes(saved('mode')) ? saved('mode') : 'free';
+// 시계 선택지: 초 표시 · 표기(오전/오후 · AM/PM · 24시간). 주소 ?sec=1 · ?ampm=ko|en|24 가 기기에 저장된 값보다 먼저
+const clockOpt = (() => { try { return { sec: false, fmt: 'ko', ...JSON.parse(saved('clock') || '{}') }; } catch (e) { return { sec: false, fmt: 'ko' }; } })();
+if (q.get('sec') != null) clockOpt.sec = q.get('sec') !== '0';
+if (CLOCK_FMTS.includes(q.get('ampm'))) clockOpt.fmt = q.get('ampm');
+if (!CLOCK_FMTS.includes(clockOpt.fmt)) clockOpt.fmt = 'ko';
+// 예전 '시계 · 초' 모드(clocksec)는 시계 + 초 켜기로 옮긴다
+const modeIn = m => (m === 'clocksec' ? ((clockOpt.sec = true), 'clock') : m);
+let mode = MODES.includes(modeIn(q.get('mode'))) ? modeIn(q.get('mode')) : MODES.includes(modeIn(saved('mode'))) ? modeIn(saved('mode')) : 'free';
 const HOUR_Q = q.get('hour') != null && q.get('hour') !== '' && !isNaN(+q.get('hour')) ? +q.get('hour') : null;
 let hourShift = 0;          // T 키로 3시간씩 미리보기
 const quotes = new Deck(QUOTES), words = new Deck(WORDS);
@@ -135,7 +142,7 @@ function layout(text) {
   top += 34 * u; bot -= H * 0.03 + 26 * u;
   const maxS = clamp(Math.min(W, H) * 0.2, 60, 170);
   // 시계 · 초: 마지막 줄 오른쪽에 반 크기 초 두 자리 자리를 비워 두고 배치한다
-  const withSec = mode === 'clocksec' && text === lastClock, R = 0.6, GAP = 0.25, secU = withSec ? layoutText('00').width * R + GAP : 0;
+  const withSec = mode === 'clock' && clockOpt.sec && text === lastClock, R = 0.6, GAP = 0.25, secU = withSec ? layoutText('00').width * R + GAP : 0;
   const span = c => { const last = c.lines[c.lines.length - 1]; return Math.max(c.width, last ? (c.width + last.width) / 2 + secU : 0); };
   const fit = L => Math.min(areaW / Math.max(span(L), 1), (bot - top) / Math.max(L.height, 1), maxS);
   let L = layoutText(text), best = fit(L);
@@ -186,14 +193,47 @@ function submit(text, m = null) {
   if (!text) return;
   sound.commit();
   if (phase === 'washing') { pending = [text, m]; return; }
+  if (isClock(mode) && (phase === 'hold' || phase === 'writing') && !pending && canPatch(current, text)) { patch(text); return; }
   if (phase === 'idle' && beach.printCount === 0) { write(text, m); return; }
   pending = [text, m];
   wash();
 }
 
+// ── 시계: 바뀐 글자만 고쳐 쓰기 ──
+// 글자 수가 같고 바뀐 자리의 글자 폭이 같으면(숫자↔숫자, 오전↔오후) 배치가 그대로라 그 글자만 지우고 다시 쓸 수 있다
+const inked = t => [...t].filter(ch => !/\s/.test(ch));
+function canPatch(a, b) {
+  if (!a || !b || a === b || a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i] && (/\s/.test(a[i]) || /\s/.test(b[i]) || glyph(a[i]).w !== glyph(b[i]).w)) return false;
+  return true;
+}
+function patch(text) {
+  const ca = inked(current), cb = inked(text), changed = new Set();
+  cb.forEach((ch, i) => { if (ch !== ca[i]) changed.add(i); });
+  const old = jobs;
+  if (!layout(text)) return;
+  // 그대로인 글자는 쓰던 상태를 이어받고, 바뀐 글자는 발자국을 모래가 덮은 뒤 새로 쓴다
+  const keep = new Map();
+  for (const j of old) { if (!changed.has(j.item)) { if (!keep.has(j.item)) keep.set(j.item, []); keep.get(j.item).push(j); } else if (j.taken) { j.taken.job = null; if (j.taken.state !== 'flee') j.taken.state = 'free'; } }
+  const next = [];
+  for (const j of jobs) {
+    if (changed.has(j.item)) { j.notBefore = beach.t + 0.9; next.push(j); }
+    else { const k = keep.get(j.item); if (k && k.length) next.push(k.shift()); else next.push({ ...j, done: true }); }
+  }
+  next.forEach((j, i) => { j.i = i; });
+  jobs = next;
+  beach.erase(changed);
+  current = text; meta = null;
+  phase = 'writing';
+  const active = kiwis.filter(k => !k.gone && k.state !== 'flee').length, todo = jobs.filter(j => !j.done).length;
+  const need = clamp(Math.ceil(todo / 2.5), 2, 10) - active;
+  for (let i = 0; i < need; i++) spawnQ.push(beach.t + (i * 0.4) / Math.sqrt(SPEED));
+  sound.call(0.2, W / 2);
+}
+
 // 글 모드가 저절로 쓰는 다음 글
 function nextAuto(hour) {
-  if (isClock(mode)) { lastClock = clockText(hour); return [lastClock, null]; }
+  if (isClock(mode)) { lastClock = clockText(hour, clockOpt.fmt); return [lastClock, null]; }
   if (mode === 'quote') { const it = quotes.next(); return [it.en, { main: it.ko, sub: it.by }]; }
   if (mode === 'word') { const it = words.next(); return [it.en.toUpperCase(), { main: it.ko, sub: `${it.en} · ${it.pos}` }]; }
   return null;
@@ -217,7 +257,7 @@ function spawn() {
 }
 
 function assign() {
-  const open = jobs.filter(j => !j.done && !j.taken);
+  const open = jobs.filter(j => !j.done && !j.taken && !(j.notBefore > beach.t));
   for (const kw of kiwis.filter(k => k.state === 'free' && !k.gone)) {
     if (!open.length) break;
     const first = open[0].i;
@@ -333,7 +373,7 @@ function tick(dt) {
   }
   // 시계: 분이 바뀌면 다시 쓴다 · 다른 모드: 해변이 비어 있으면 바로 다음 글
   if (mode !== 'free' && !pending && (phase === 'idle' || phase === 'hold')) {
-    if (isClock(mode) ? clockText(hour) !== lastClock && beach.t > 1 : phase === 'idle' && beach.t > 1.5) submit(...nextAuto(hour));
+    if (isClock(mode) ? clockText(hour, clockOpt.fmt) !== lastClock && beach.t > 1 : phase === 'idle' && beach.t > 1.5) submit(...nextAuto(hour));
   }
 
   for (const kw of kiwis) {
@@ -511,7 +551,7 @@ info.addEventListener('click', e => { if (e.target === info || e.target.closest(
 window.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !info.hidden) openInfo(false);
   if (e.key === 'v' && document.activeElement !== input) viewBtn.click();
-  if (e.key === 'm' && document.activeElement !== input) modeBtn.click();
+  if (e.key === 'm' && document.activeElement !== input && modeMenu.hidden) setMode(MODES[(MODES.indexOf(mode) + 1) % MODES.length]);
   if (e.key === 'w' && document.activeElement !== input) weatherBtn.click();
   if (e.key === 't' && document.activeElement !== input) { hourShift = (hourShift + 3) % 24; toast(`시간 미리보기 +${hourShift}시간`); }
 });
@@ -546,13 +586,37 @@ async function boot() {
   }
 boot();
 const paintMode = () => { modeBtn.dataset.mode = mode; modeBtn.setAttribute('aria-label', `글 모드: ${MODE_NAME[mode]} (바꾸기)`); };
-modeBtn.addEventListener('click', () => {
-  mode = MODES[(MODES.indexOf(mode) + 1) % MODES.length];
-  save('mode', mode); paintMode(); toast(MODE_NAME[mode]);
-  if (mode !== 'free') submit(...nextAuto(((HOUR_Q ?? new Date().getHours() + new Date().getMinutes() / 60) + hourShift) % 24));
+const nowHour = () => ((HOUR_Q ?? new Date().getHours() + new Date().getMinutes() / 60 + new Date().getSeconds() / 3600) + hourShift) % 24;
+function setMode(m, announce = true) {
+  mode = m;
+  save('mode', mode); paintMode(); paintModeMenu();
+  if (announce) toast(MODE_NAME[mode]);
+  if (mode !== 'free') submit(...nextAuto(nowHour()));
   else showCaption(null);
+}
+// 글 모드 메뉴: 버튼을 누르면 열린다 (M 키는 예전처럼 차례로 넘긴다)
+const modeMenu = document.getElementById('modeMenu');
+const openModeMenu = open => { modeMenu.hidden = !open; modeBtn.setAttribute('aria-expanded', String(open)); if (open) (modeMenu.querySelector('input:checked') || modeMenu.querySelector('input')).focus(); };
+function paintModeMenu() {
+  for (const r of modeMenu.querySelectorAll('input[name="mode"]')) r.checked = r.value === mode;
+  for (const r of modeMenu.querySelectorAll('input[name="fmt"]')) r.checked = r.value === clockOpt.fmt;
+  document.getElementById('optSec').checked = clockOpt.sec;
+  document.getElementById('clockOpts').hidden = mode !== 'clock';
+}
+modeBtn.addEventListener('click', () => { unlock(); openModeMenu(modeMenu.hidden); });
+modeMenu.addEventListener('change', e => {
+  const t = e.target;
+  if (t.name === 'mode') { setMode(t.value); return; }
+  if (t.name === 'fmt') clockOpt.fmt = t.value;
+  if (t.id === 'optSec') clockOpt.sec = t.checked;
+  save('clock', JSON.stringify(clockOpt));
+  paintModeMenu();
+  // 시계라면 바뀐 표기·초 자리에 맞춰 다시 쓴다 (같은 폭이면 바뀐 글자만, 아니면 파도로 지우고)
+  if (mode === 'clock') { lastClock = null; submit(...nextAuto(nowHour())); }
 });
-paintMode();
+document.addEventListener('pointerdown', e => { if (!modeMenu.hidden && !modeMenu.contains(e.target) && !modeBtn.contains(e.target)) openModeMenu(false); });
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && !modeMenu.hidden) { openModeMenu(false); modeBtn.focus(); } });
+paintMode(); paintModeMenu();
 const paintWeather = () => { weatherBtn.dataset.weather = atmos.weather; weatherBtn.setAttribute('aria-label', `날씨: ${WEATHER_NAME[atmos.weather]} (바꾸기)`); };
 weatherBtn.addEventListener('click', () => {
   atmos.setWeather(WEATHERS[(WEATHERS.indexOf(atmos.weather) + 1) % WEATHERS.length]);

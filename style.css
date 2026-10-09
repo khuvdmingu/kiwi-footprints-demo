@@ -86,7 +86,7 @@ body.info-open #say { opacity: 0; pointer-events: none; }
 #soundBtn[data-on="0"] .wave { display: none; }
 #soundBtn[data-on="0"] .mute { display: inline; }
 #modeBtn g, #weatherBtn g { display: none; }
-#modeBtn[data-mode="free"] .m-free, #modeBtn[data-mode="clock"] .m-clock, #modeBtn[data-mode="clocksec"] .m-clocksec, #modeBtn[data-mode="quote"] .m-quote, #modeBtn[data-mode="word"] .m-word { display: inline; }
+#modeBtn[data-mode="free"] .m-free, #modeBtn[data-mode="clock"] .m-clock, #modeBtn[data-mode="quote"] .m-quote, #modeBtn[data-mode="word"] .m-word { display: inline; }
 #weatherBtn[data-weather="clear"] .w-clear, #weatherBtn[data-weather="cloudy"] .w-cloudy, #weatherBtn[data-weather="rain"] .w-rain,
 #weatherBtn[data-weather="snow"] .w-snow, #weatherBtn[data-weather="fog"] .w-fog, #weatherBtn[data-weather="wind"] .w-wind { display: inline; }
 
@@ -112,6 +112,26 @@ body.typing #caption, body.info-open #caption { opacity: 0; }
   background: rgba(20, 47, 73, 0.78); border: 1px solid var(--panel-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 10px 30px rgba(var(--shadow), 0.35); font-size: 14px; }
 #mixer[hidden] { display: none; }
+/* 글 모드 메뉴 (소리 창과 같은 모양) */
+#modeMenu { position: fixed; z-index: 25; top: calc(max(14px, env(safe-area-inset-top)) + 46px); right: max(14px, env(safe-area-inset-right));
+  width: min(300px, calc(100vw - 28px)); padding: 12px 12px 8px; border-radius: 14px;
+  background: rgba(20, 47, 73, 0.78); border: 1px solid var(--panel-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 10px 30px rgba(var(--shadow), 0.35); font-size: 14px; }
+#modeMenu[hidden], #clockOpts[hidden] { display: none; }
+#modeMenu .seg { display: grid; gap: 6px; }
+#modeMenu .seg.four { grid-template-columns: repeat(2, 1fr); }
+#modeMenu .seg.three { grid-template-columns: repeat(3, 1fr); margin-top: 4px; }
+#modeMenu .seg label { position: relative; }
+#modeMenu .seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+#modeMenu .seg span { display: block; text-align: center; padding: 9px 4px; border-radius: 10px; border: 1px solid var(--panel-line); font-weight: 500; white-space: nowrap; }
+#modeMenu .seg.three span { padding: 7px 2px; font-size: 13px; }
+#modeMenu .seg input:checked + span { background: var(--sand); color: #2a2016; border-color: transparent; }
+#modeMenu .seg input:focus-visible + span { outline: 2px solid rgb(var(--ink)); outline-offset: 2px; }
+#clockOpts { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--panel-line); }
+#clockOpts .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; }
+#clockOpts .row span { font-weight: 500; }
+#clockOpts input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--sand); }
+#clockOpts .hint { margin: 8px 2px 2px; font-size: 12px; line-height: 1.5; opacity: 0.7; word-break: keep-all; }
 #mixer .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; }
 #mixer .row span { flex: none; font-weight: 500; }
 #mixer input[type="range"] { flex: 1; min-width: 0; accent-color: var(--sand); }

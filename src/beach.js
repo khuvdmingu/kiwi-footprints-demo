@@ -78,14 +78,17 @@ export class Beach {
   wet128() { return this.wet; }
 
   // ── 발자국 ──
-  addPrint(x, y, a, f, kind = 'deep') {
+  // tag = 몇 번째 글자의 발자국인지 (시계가 바뀐 글자만 지울 때 쓴다)
+  addPrint(x, y, a, f, kind = 'deep', tag) {
     if (y > this.edge(x) - 2) return;
     if (kind === 'faint') f *= 0.8;
-    this.prints.push({ x, y, a, f, kind, born: this.t, alpha: kind === 'faint' ? FAINT : 1, wash: false });
+    this.prints.push({ x, y, a, f, kind, tag, born: this.t, alpha: kind === 'faint' ? FAINT : 1, wash: false });
     if (this.prints.length > 4000) this.prints.splice(0, this.prints.length - 4000);
   }
   // 초 발자국: 키위가 아니라 모래가 매초 스스로 눌린다 (born 이 미래면 그때 찍힌다)
   addSec(x, y, a, f, born) { this.prints.push({ x, y, a, f, kind: 'sec', born, alpha: 0, wash: false, die: 0 }); }
+  // 글자 하나 지우기: 모래가 스르르 덮는다 (0.9초)
+  erase(tags) { for (const p of this.prints) if (p.tag != null && tags.has(p.tag) && !p.erase) p.erase = this.t; }
   get printCount() { return this.prints.filter(p => p.kind === 'deep' && !p.wash).length; }
 
   update(dt) {
@@ -98,6 +101,7 @@ export class Beach {
     }
     for (const p of this.prints) {
       if (!p.wash && p.y > this.edge(p.x) - 1) p.wash = true;
+      if (p.erase) p.alpha = Math.min(p.alpha, clamp(1 - (this.t - p.erase) / 0.9, 0, 1));
       if (p.wash) p.alpha -= dt * 2.2;
       else if (p.kind === 'faint') p.alpha = FAINT * clamp(1 - (this.t - p.born) / FAINT_LIFE, 0, 1);
       else if (p.kind === 'sec') p.alpha = clamp((this.t - p.born) / 0.1, 0, 1) * (p.die ? clamp(1 - (this.t - p.die) / 0.28, 0, 1) : 1);

@@ -120,7 +120,7 @@ export class Kiwi {
       const side = this.foot ? 1 : -1;
       const lat = kind === 'deep' ? W.stride * 0.24 : this.k * 0.12;
       const px = this.x - Math.sin(this.a) * side * lat, py = this.y + Math.cos(this.a) * side * lat;
-      W.beach.addPrint(px, py, this.a, W.foot, kind);
+      W.beach.addPrint(px, py, this.a, W.foot, kind, kind === 'deep' && this.job ? this.job.item : undefined);
       // 글씨 획 위 발자국은 음 하나 (v5 발자국 음악) — 소리가 났으면 작은 ♪ 를 띄운다
       if (kind === 'deep' && W.sound.step(px, py) && W.onNote) W.onNote(px, py);
     }
@@ -166,7 +166,7 @@ export class Kiwi {
         this.v = moved / Math.max(dt, 1e-3);
         this.step(moved, W, 'deep');
         if (this.s >= this.path.len - 1e-6) {
-          W.beach.addPrint(p.x, p.y, this.a, W.foot, 'deep');
+          W.beach.addPrint(p.x, p.y, this.a, W.foot, 'deep', this.job.item);
           this.job.done = true; this.job = null; this.state = 'free';
         }
         break;
@@ -182,7 +182,7 @@ export class Kiwi {
           this.lastPeck = n;
           const hx = this.holeAt ? this.holeAt[0] : this.x + this.face * REACH * this.k;
           const hy = this.holeAt ? this.holeAt[1] : this.y;
-          W.beach.addPrint(hx, hy, 0, W.foot * (this.job ? 2.4 : this.holeAt ? 1.5 : 0.9), 'hole');
+          W.beach.addPrint(hx, hy, 0, W.foot * (this.job ? 2.4 : this.holeAt ? 1.5 : 0.9), 'hole', this.job ? this.job.item : undefined);
           W.sound.peck(hx);
         }
         if (n >= this.pecks) {
