@@ -10,30 +10,29 @@
 //   · 바위는 제자리  물은 바위를 지운 판(plate-sea)에서 읽고, 바위는 가림막 자리에 원본에서 다시 얹는다
 //  해안선 값은 beach.edge(x) 를 그대로 받는다(줄 텍스처) → 발자국을 지우는 줄과 그림 속 물가가 정확히 같다.
 
-const N = 512;   // 해안선 줄 텍스처 칸 수
+const N = 128;   // 해안선 줄 칸 수 (셰이더 상수 배열로 넘긴다)
 
 const VS = `#version 300 es
 in vec2 aP; void main(){ gl_Position = vec4(aP, 0., 1.); }`;
 
 const FS = `#version 300 es
 precision highp float;
-uniform sampler2D uPlate, uDry, uLine, uSea, uRock;
+precision highp sampler2D;
+uniform sampler2D uPlate, uDry, uSea, uRock;
+uniform vec4 uL[${N}];   // 칸마다 (해안선, 그린 해안선, 젖은 줄, 바다 판 해안선) ÷ 화면 높이
+uniform float uLod;          // 그림을 읽을 해상도 단계 — 직접 정한다 (휴대폰 GPU가 조건문 안에서 단계를 잘못 골라 색이 튀지 않게)
 uniform vec2 uRes, uPS;
 uniform vec3 uMap;
 uniform float uDpr, uT, uU, uSnow, uNight, uSurge;
 out vec4 o;
 
-// 해안선 줄: 8비트 두 칸에 16비트로 나눠 담은 값을 보간 없이 직접 읽어 손으로 잇는다
-// (반정밀도 실수 텍스처는 일부 휴대폰 GPU에서 몇 칸이 깨져 물 위에 모래색 세로선이 번쩍였다)
+// 해안선 줄: 텍스처를 거치지 않고 상수 배열에서 바로 읽어 잇는다
+// (반정밀도 텍스처·8비트 텍스처 모두 S25 Ultra 에서 물 위에 모래색 세로선이 번쩍였다)
 #define NL ${N}
-float dec(vec2 h) { return (floor(h.x * 255. + .5) * 256. + floor(h.y * 255. + .5)) / 65535. * 2.5 - .5; }
 vec4 lineAt(float x) {
   float f = clamp(x / uRes.x, 0., 1.) * float(NL - 1);
   int i = int(floor(f)), j = min(i + 1, NL - 1);
-  float t = f - float(i);
-  vec4 a0 = texelFetch(uLine, ivec2(i, 0), 0), a1 = texelFetch(uLine, ivec2(i, 1), 0);
-  vec4 b0 = texelFetch(uLine, ivec2(j, 0), 0), b1 = texelFetch(uLine, ivec2(j, 1), 0);
-  return mix(vec4(dec(a0.xy), dec(a0.zw), dec(a1.xy), dec(a1.zw)), vec4(dec(b0.xy), dec(b0.zw), dec(b1.xy), dec(b1.zw)), t);
+  return mix(uL[i], uL[j], f - float(i));
 }
 vec2 uvOf(vec2 p) { return ((p - uMap.yz) / uMap.x) / uPS; }
 float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
@@ -58,12 +57,16 @@ float web(vec2 p, float t) {
 void main() {
   vec2 p = vec2(gl_FragCoord.x, uRes.y * uDpr - gl_FragCoord.y) / uDpr;
   vec4 L = lineAt(p.x);
-  float e = L.r * uRes.y, s = L.g * uRes.y, w = L.b * uRes.y, s2 = L.a * uRes.y, u = uU;
+  float s = L.g * uRes.y, u = uU;
+  // 안전장치: 값이 어떻게 들어와도 그린 해안선 근처로 묶는다 (물이 어느 한 칸만 사라지는 일이 없게)
+  float e = clamp(L.r * uRes.y, s - uRes.y * .7, s + uRes.y * .06);
+  float w = clamp(L.b * uRes.y, e - uRes.y, e);
+  float s2 = clamp(L.a * uRes.y, s - uRes.y * .08, s + uRes.y * .08);
   float d = p.y - e;
 
   // ── 땅: 그려진 판, 그려진 해안선 아래는 물 뺀 모래 바닥 ──
-  vec3 land = texture(uPlate, uvOf(p)).rgb;
-  if (p.y > s - 6. * u) land = mix(land, texture(uDry, uvOf(p)).rgb, smoothstep(s - 4. * u, s + 8. * u, p.y));
+  vec3 land = textureLod(uPlate, uvOf(p), uLod).rgb;
+  if (p.y > s - 6. * u) land = mix(land, textureLod(uDry, uvOf(p), uLod).rgb, smoothstep(s - 4. * u, s + 8. * u, p.y));
   if (uSnow > 0.) {
     float k = smoothstep(.38, .7, fbm(p / (55. * u)) + uSnow * .9 - .42) * uSnow;
     land = mix(land, vec3(.97, .96, .94), k * smoothstep(e - 2., e - 30. * u, p.y) * .92);
@@ -103,7 +106,7 @@ void main() {
     vec2 dis = vec2(sin(q.y * .045 + uT * .75 + 1.5 * sin(q.x * .012 + uT * .3)),
                     cos(q.x * .03 - uT * .6 + 1.2 * sin(q.y * .02 - uT * .25))) * a1;
     dis += (vec2(fbm(q * .008 + vec2(uT * .05, 0.)), fbm(q * .008 + vec2(5.2, uT * .04))) - .5) * 14. * u * smoothstep(60. * u, 420. * u, depth);
-    vec3 sea = big > 0. && big < 1. ? mix(texture(uSea, uvOf(vec2(p.x, yS) + dis)).rgb, texture(uSea, uvOf(vec2(p.x, yI) + dis)).rgb, big) : texture(uSea, uvOf(sp + dis)).rgb;
+    vec3 sea = big > 0. && big < 1. ? mix(textureLod(uSea, uvOf(vec2(p.x, yS) + dis), uLod).rgb, textureLod(uSea, uvOf(vec2(p.x, yI) + dis), uLod).rgb, big) : textureLod(uSea, uvOf(sp + dis), uLod).rgb;
     // 얕은 물 막: 그 줄의 물빛을 흐리게 펴고, 비친 모래·되돌아 흐르는 물결을 얹는다
     // 물 막은 물가 띠 안에서 차오르고 원래 바다 안쪽에서 빠진다 → 띠와 바다 사이의 "한 줄을 늘인" 자리는 늘 물 막에 가려진다
     float sheet = smoothstep(e + D0 - 60. * u, e + D0, p.y) * (1. - smoothstep(s + D0, s + D0 + 50. * u, p.y)) * big;   // 물 막은 큰 파도 때만
@@ -112,7 +115,7 @@ void main() {
       // 얕은 물 아래 모래가 일렁여 비친다: 큰 덩어리 노이즈로 휘게(도메인 워핑) 해서 반복 무늬가 안 보이게
       vec2 wq = q * .012;
       vec2 warp = vec2(fbm(wq + vec2(0., -uT * .18)), fbm(wq + vec2(4.3, -uT * .14))) - .5;
-      vec3 under = texture(uDry, uvOf(p + warp * 22. * u)).rgb;
+      vec3 under = textureLod(uDry, uvOf(p + warp * 22. * u), uLod).rgb;
       float k = clamp((p.y - e - D0) / max(1., up), 0., 1.);
       vec3 teal = mix(vec3(.5, .85, .8), vec3(.3, .73, .75), k);
       vec3 film = mix(under * vec3(.66, .93, .95) + vec3(.03, .09, .11), teal, .45 + .25 * k);
@@ -142,24 +145,15 @@ void main() {
     sea += (1. - smoothstep(0., 1.5 * u, length(p - c0))) * tw * step(.82, hs) * zone * smoothstep(12. * u, 50. * u, depth) * (1. - smoothstep(200. * u, 380. * u, depth)) * .9 * (1. - uNight);
     // 바위는 움직이는 물과 상관없이 원래 자리에 (깊은 바위만 물결 굴절로 살짝 흔들린다)
     vec2 rp = uvOf(p + dis * .5 * smoothstep(60. * u, 260. * u, depth));
-    float rk = texture(uRock, rp).a;
+    float rk = textureLod(uRock, rp, 0.).a;
     if (rk > .01) {
-      vec3 rc = texture(uPlate, rp).rgb;
+      vec3 rc = textureLod(uPlate, rp, uLod).rgb;
       sea = mix(sea, rc, rk);
     }
     col = mix(land, sea, smoothstep(-1.2, 1.2, d));
   }
   o = vec4(col, 1.);
 }`;
-
-// 화면 높이로 나눈 값(−0.5~2)을 16비트로 → 두 바이트. 값이 숫자가 아니면 그린 해안선으로 대신한다
-function put(arr, o, a, b, H) {
-  for (const [k, v0] of [[0, a], [2, b]]) {
-    const v = Number.isFinite(v0) ? v0 : b;
-    const q = Math.round(Math.min(1, Math.max(0, (v / H + 0.5) / 2.5)) * 65535);
-    arr[o + k] = q >> 8; arr[o + k + 1] = q & 255;
-  }
-}
 
 export class WaterGL {
   constructor(canvas) {
@@ -176,11 +170,9 @@ export class WaterGL {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
     const loc = gl.getAttribLocation(pr, 'aP'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     this.U = {};
-    for (const n of ['uPlate', 'uDry', 'uLine', 'uSea', 'uRock', 'uRes', 'uPS', 'uMap', 'uDpr', 'uT', 'uU', 'uSnow', 'uNight', 'uSurge']) this.U[n] = gl.getUniformLocation(pr, n);
-    this.line = new Uint8Array(N * 4 * 2);   // 1행: 해안선·그린 해안선 / 2행: 젖은 줄·바다 판 해안선 (값마다 2바이트)
-    this.lineTex = this.tex(2, () => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, N, 2, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.line), false);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.uniform1i(this.U.uPlate, 0); gl.uniform1i(this.U.uDry, 1); gl.uniform1i(this.U.uLine, 2); gl.uniform1i(this.U.uSea, 3); gl.uniform1i(this.U.uRock, 4);
+    for (const n of ['uPlate', 'uDry', 'uL', 'uLod', 'uSea', 'uRock', 'uRes', 'uPS', 'uMap', 'uDpr', 'uT', 'uU', 'uSnow', 'uNight', 'uSurge']) this.U[n] = gl.getUniformLocation(pr, n);
+    this.line = new Float32Array(N * 4);
+    gl.uniform1i(this.U.uPlate, 0); gl.uniform1i(this.U.uDry, 1); gl.uniform1i(this.U.uSea, 3); gl.uniform1i(this.U.uRock, 4);
     this.texs = {};
   }
 
@@ -218,12 +210,15 @@ export class WaterGL {
     const step = W / (N - 1), wet = beach.wet, wc = wet.length;
     for (let i = 0; i < N; i++) {
       const x = i * step, wf = (x / W) * (wc - 1), wi = Math.min(wc - 2, Math.floor(wf)), wt = wf - wi;
-      const e = beach.edge(x), sh = P.shore(x);
-      put(this.line, i * 4, e, sh, H);
-      put(this.line, (N + i) * 4, wet[wi] * (1 - wt) + wet[wi + 1] * wt, P.shoreSea(x), H);
+      const sh = P.shore(x), ok = v => (Number.isFinite(v) ? v / H : sh / H);
+      this.line[i * 4] = ok(beach.edge(x));
+      this.line[i * 4 + 1] = sh / H;
+      this.line[i * 4 + 2] = ok(wet[wi] * (1 - wt) + wet[wi + 1] * wt);
+      this.line[i * 4 + 3] = ok(P.shoreSea(x));
     }
-    gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, this.lineTex);
-    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, N, 2, gl.RGBA, gl.UNSIGNED_BYTE, this.line);
+    gl.uniform4fv(this.U.uL, this.line);
+    // 그림 한 픽셀이 화면 몇 픽셀에 해당하는지로 해상도 단계를 정한다 (화면보다 큰 그림을 줄여 볼 때만 > 0)
+    gl.uniform1f(this.U.uLod, Math.max(0, Math.log2(1 / (m.s * this.dpr))));
     gl.uniform2f(this.U.uRes, W, H);
     gl.uniform3f(this.U.uMap, m.s, m.ox, m.oy);
     gl.uniform1f(this.U.uDpr, this.dpr);
