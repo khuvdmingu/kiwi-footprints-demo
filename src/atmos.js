@@ -62,14 +62,14 @@ export class Atmos {
     const W = beach.W, H = beach.H, u = beach.u, area = (W * H) / 1e6;
     // 비: 짧은 빗줄기 → 떨어진 자리에 고리
     const nRain = this.v.rain * 260 * area * dt * 10;
-    for (let i = 0; i < nRain; i++) if (Math.random() < 0.1) this.drops.push({ x: Math.random() * W, y: Math.random() * H, life: 0.18 + Math.random() * 0.15, age: 0, len: (10 + Math.random() * 8) * u });
+    for (let i = 0; i < nRain; i++) if (Math.random() < 0.1) { const x = Math.random() * W, y = Math.random() * H; this.drops.push({ x, y, life: 0.22 + Math.random() * 0.15, age: 0, len: (8 + Math.random() * 6) * u, water: y > beach.edge(x) }); }
     for (const d of this.drops) {
       d.age += dt;
-      if (d.age >= d.life && !d.done) { d.done = true; this.rings.push({ x: d.x + d.len * 0.4, y: d.y + d.len, age: 0, water: d.y > beach.edge(d.x) }); }
+      if (d.age >= d.life && !d.done) { d.done = true; this.rings.push({ x: d.x + d.len * 0.4, y: d.y + d.len, age: 0, water: d.y + d.len > beach.edge(d.x) }); }
     }
     this.drops = this.drops.filter(d => !d.done);
     for (const r of this.rings) r.age += dt;
-    this.rings = this.rings.filter(r => r.age < 0.6);
+    this.rings = this.rings.filter(r => r.age < 0.9);
     // 눈송이: 천천히 흩날린다
     const nSnow = Math.round(this.v.snow * 170 * area);
     while (this.flakes.length < nSnow) this.flakes.push({ x: Math.random() * W, y: Math.random() * H, r: (1.4 + Math.random() * 2.2) * u, ph: Math.random() * 6.28, sp: (10 + Math.random() * 14) * u });
@@ -139,21 +139,28 @@ export class Atmos {
     }
     // 빗줄기 · 물방울 고리
     if (this.drops.length || this.rings.length) {
-      ctx.strokeStyle = 'rgba(226,234,242,0.5)';
-      ctx.lineWidth = Math.max(1, 1.3 * u);
+      // 위에서 내려다보는 장면이라 빗줄기는 아주 흐리게 스며들었다 사라지고(어두운 물 위에서는 더 흐리게), 비는 주로 파문으로 보인다
+      ctx.lineWidth = Math.max(0.8, 1 * u);
       ctx.lineCap = 'round';
-      ctx.beginPath();
+      ctx.strokeStyle = 'rgb(232,238,244)';
       for (const d of this.drops) {
         const k = d.age / d.life;
+        ctx.globalAlpha = Math.sin(Math.PI * k) * (d.water ? 0.12 : 0.26);
+        ctx.beginPath();
         ctx.moveTo(d.x + d.len * 0.4 * k, d.y + d.len * k);
         ctx.lineTo(d.x + d.len * 0.4 * (k + 0.5), d.y + d.len * (k + 0.5));
+        ctx.stroke();
       }
-      ctx.stroke();
+      ctx.globalAlpha = 1;
       for (const r of this.rings) {
-        const k = r.age / 0.6;
-        ctx.strokeStyle = r.water ? `rgba(240,248,250,${0.6 * (1 - k)})` : `rgba(150,130,100,${0.35 * (1 - k)})`;
-        ctx.lineWidth = Math.max(0.8, 1.1 * u);
-        ctx.beginPath(); ctx.ellipse(r.x, r.y, (2 + k * (r.water ? 9 : 4)) * u, (1 + k * (r.water ? 4.5 : 2)) * u, 0, 0, 6.29); ctx.stroke();
+        const k = r.age / 0.9, a = Math.sin(Math.PI * Math.min(1, k * 1.6 + 0.08)) * (1 - k);
+        ctx.strokeStyle = r.water ? `rgba(236,246,250,${0.55 * a})` : `rgba(150,130,100,${0.3 * a})`;
+        ctx.lineWidth = Math.max(0.7, 1 * u);
+        ctx.beginPath(); ctx.ellipse(r.x, r.y, (1.5 + k * (r.water ? 11 : 4)) * u, (0.8 + k * (r.water ? 5.5 : 2)) * u, 0, 0, 6.29); ctx.stroke();
+        if (r.water && k > 0.25) {   // 안쪽 두 번째 고리
+          ctx.strokeStyle = `rgba(236,246,250,${0.3 * a})`;
+          ctx.beginPath(); ctx.ellipse(r.x, r.y, (k - 0.25) * 9 * u, (k - 0.25) * 4.5 * u, 0, 0, 6.29); ctx.stroke();
+        }
       }
     }
     // 눈송이
