@@ -9,7 +9,13 @@
 //  믹서 값(소리 켜기·음악·환경음·효과음·발자국 음악)은 기기에 기억한다.
 //  브라우저는 사용자 동작 안에서만 소리를 열 수 있어서 unlock() 을 그때 부른다. 탭을 숨기면 멈춘다.
 
-import { Music } from './music.js?v=v15.2.0';
+import { Music } from './music.js?v=v16.0.0';
+
+// v16 아이템 소리·곡은 오픈소스 녹음 (전부 CC0 — 출처는 docs/v8-assets.md · 작품 설명). assets/audio/ 에서 처음 고를 때 받는다
+const AUDIO = 'assets/audio/';
+export const STEP_SAMPLES = { snow: 'steps-snow.mp3', leaves: 'steps-leaves.mp3', gravel: 'steps-gravel.mp3' };   // 0.5초 칸마다 한 걸음
+export const NATURE_LOOPS = { birds: 'amb-forest.mp3', fire: 'amb-fire.mp3', frogs: 'amb-frogs.mp3' };          // 끝과 처음을 겹쳐 이음매 없이 도는 고리
+export const SONG_TRACKS = { heavenly: 'song-heavenly.mp3', snowtrack: 'song-snow.mp3', contemplation: 'song-contemplation.mp3' };
 
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 const MIX_KEY = 'kiwi-footprints.mix';
@@ -30,7 +36,8 @@ export class Sound {
     this.last = {};
     this.stage = { W: 1, top: 0, bottom: 1 };
     this.music = new Music(this);
-    this.music.setSong(this.mix.song === 'auto' ? null : this.mix.song);   // v15 고른 곡
+    this.music.setSong(this.mix.song === 'auto' || SONG_TRACKS[this.mix.song] ? null : this.mix.song);   // v15 고른 곡
+    this.music.silent = !!SONG_TRACKS[this.mix.song];   // v16 녹음 곡이면 생성 음악은 쉰다
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', () => {
         if (!this.ctx) return;
@@ -160,7 +167,8 @@ export class Sound {
         o.connect(g); this.route(g, 'amb', pan, 0.3); o.start(w); o.stop(w + 0.06);
       }
     }
-    if (this.mix.nature !== 'none') { if (this.mix.nature === 'fire' && !this.bed) this.setNature('fire'); this.natureTick(night); }
+    if (!this.loopsOn) { this.loopsOn = true; if (NATURE_LOOPS[this.mix.nature]) this.setNature(this.mix.nature); if (SONG_TRACKS[this.mix.song]) this.setSong(this.mix.song); }
+    if (this.mix.nature !== 'none') this.natureTick(night);
     this.music.tick();
   }
   // (예전 이름 호환)
@@ -260,18 +268,31 @@ export class Sound {
 
   // ── v14 발자국 소리 (질감) ── 전부 잡음·발진기 합성, 녹음 없음
   //  v15.1: 발자국 음악(칼림바)·파도에 묻혀 "바꿔도 안 바뀐다"(사용자) → 2.5배 키우고, 글씨가 아닌 걸음에도 작게 낸다(walkStep)
+  // 녹음 파일 읽기 (한 번만, 다 읽으면 this.got[file] 에 바로 쓸 수 있게)
+  loadBuf(file) {
+    this.bufs ||= {}; this.got ||= {};
+    if (!this.bufs[file] && this.ctx) {
+      this.bufs[file] = fetch(AUDIO + file).then(r => r.arrayBuffer())
+        .then(a => new Promise((res, rej) => this.ctx.decodeAudioData(a, res, rej)))
+        .then(b => (this.got[file] = b)).catch(() => null);
+    }
+    return this.bufs[file] || Promise.resolve(null);
+  }
+  // 발자국 소리: 녹음에서 자른 한 걸음(0.5초 칸 중 하나)을 높낮이를 조금씩 바꿔 낸다
   stepTex(pk, x, k = 1) {
-    const p = this.panOf(x), R = Math.random, v = 2.5 * k;
-    if (pk === 'snow') {          // 뽀드득: 눌리는 눈 결정이 잘게 여러 번 바스러진다
-      for (let i = 0; i < 4; i++) this.noise(0.022, 1700 + R() * 2300, 1.6, 0.12 * v * (1 - i * 0.15), i * 0.017 + R() * 0.006, 'bandpass', p);
-      this.noise(0.07, 420, 0.8, 0.06 * v, 0, 'lowpass', p);
-    } else if (pk === 'leaves') { // 바스락: 마른 잎이 높은 소리로 여러 번 부서진다
-      for (let i = 0; i < 6; i++) this.noise(0.025 + R() * 0.03, 3000 + R() * 4000, 1.4, 0.022 * v, R() * 0.13, 'highpass', p);
-    } else if (pk === 'gravel') { // 자박: 작은 돌끼리 딸깍 + 낮은 눌림
-      for (let i = 0; i < 4; i++) this.noise(0.014, 2400 + R() * 3600, 3.5, 0.16 * v, R() * 0.05, 'bandpass', p);
-      this.noise(0.05, 260, 1, 0.07 * v, 0, 'lowpass', p);
-    } else if (pk === 'splash') { // 찰박: 물 한 방울 떨어지는 소리(내려가는 음) + 물 튀는 잡음
-      const ctx = this.ctx, t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
+    const p = this.panOf(x), R = Math.random, file = STEP_SAMPLES[pk];
+    if (file) {
+      const b = this.got && this.got[file];
+      if (!b) { this.loadBuf(file); return; }
+      const ctx = this.ctx, t = ctx.currentTime, src = ctx.createBufferSource(), g = ctx.createGain();
+      src.buffer = b; src.playbackRate.value = 0.9 + R() * 0.2;
+      g.gain.value = 0.14 * k;
+      src.connect(g); this.route(g, 'sfx', p, 0.12);
+      src.start(t, Math.floor(R() * Math.floor(b.duration / 0.5)) * 0.5, 0.45);
+      return;
+    }
+    if (pk === 'splash') {        // 찰박: 물 한 방울 떨어지는 소리(내려가는 음) + 물 튀는 잡음 — CC0 녹음을 찾을 때까지 합성
+      const v = 2.5 * k, ctx = this.ctx, t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
       o.type = 'sine'; o.frequency.setValueAtTime(760 + R() * 200, t); o.frequency.exponentialRampToValueAtTime(240, t + 0.07);
       g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.05 * v, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
       o.connect(g); this.route(g, 'sfx', p, 0.2); o.start(t); o.stop(t + 0.1);
@@ -285,55 +306,46 @@ export class Sound {
     this.stepTex(pk, x, 0.45);
   }
   // v15 곡 고르기 ('auto' = 시간 따라)
-  setSong(id) { this.mix.song = id; this.saveMix(); this.music.setSong(id === 'auto' ? null : id); }
+  setSong(id) {
+    this.mix.song = id; this.saveMix();
+    const file = SONG_TRACKS[id];
+    this.music.silent = !!file;               // 녹음 곡이 흐르는 동안 생성 음악은 쉰다 (화음 진행은 계속 — 발자국 음악용)
+    this.music.setSong(file || id === 'auto' ? null : id);
+    this.playLoop('track', file, 'music', 0.36);   // 생성 음악과 비슷한 크기로
+  }
+  // 고리 하나(배경 소리 bed · 곡 track): 바꾸면 이전 것은 천천히 줄이고 새 것은 천천히 키운다
+  playLoop(slot, file, bus, level) {
+    this.want ||= {}; this.want[slot] = file || null;
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime, old = this[slot];
+    if (old && old.file !== file) { old.g.gain.setTargetAtTime(0, t, 0.5); setTimeout(() => { try { old.src.stop(); } catch (e) { /* 이미 멈춤 */ } }, 3000); this[slot] = null; }
+    if (!file || (this[slot] && this[slot].file === file)) return;
+    this.loadBuf(file).then(b => {
+      if (!b || this.want[slot] !== file || (this[slot] && this[slot].file === file)) return;
+      const ctx = this.ctx, src = ctx.createBufferSource(), g = ctx.createGain();
+      src.buffer = b; src.loop = true; g.gain.value = 0;
+      src.connect(g); this.route(g, bus, 0, 0.05); src.start();
+      g.gain.setTargetAtTime(level, ctx.currentTime, 0.6);
+      this[slot] = { src, g, file };
+    });
+  }
   // 들어 보기: 발자국 네 번
   previewStep(pk) {
     if (!this.ready()) return;
     for (let i = 0; i < 4; i++) setTimeout(() => (pk === 'music' ? this.pluck(this.scaleNote(4 + i * 2), 0.085, 0, 1.1, 0, 'sfx', 0.35) : pk === 'sand' ? this.noise(0.04, 900 + Math.random() * 700, 1.2, 0.06, 0, 'bandpass', 0) : this.stepTex(pk, this.stage.W * (0.4 + i * 0.07))), i * 260);
   }
 
-  // ── v14 자연 배경 ── 한 번에 하나. 바탕 소리(모닥불)는 노드를 만들고, 나머지는 매 프레임 가끔 소리를 낸다
+  // ── 자연 배경 ── 한 번에 하나. v16: 새·모닥불·개구리는 녹음 고리(playLoop), 풍경은 매 프레임 가끔 합성으로 낸다
   setNature(pk) {
     this.mix.nature = pk; this.saveMix();
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
     for (const k of ['bird', 'crk', 'pop', 'frog', 'chime']) this.last[k] = 0;   // 고르자마자 첫 소리가 나게
-    if (this.bed) { const b = this.bed; b.g.gain.setTargetAtTime(0, t, 0.4); setTimeout(() => { try { b.src.stop(); } catch (e) { /* 이미 멈춤 */ } }, 2500); this.bed = null; }
-    if (pk === 'fire') {          // 모닥불 바탕: 낮게 웅웅거리는 불길
-      const src = this.loop(this.brown, Math.random() * 2), f = this.ctx.createBiquadFilter(), g = this.ctx.createGain();
-      f.type = 'lowpass'; f.frequency.value = 320; g.gain.value = 0;
-      src.connect(f); f.connect(g); this.route(g, 'amb', 0.1, 0.1);
-      g.gain.setTargetAtTime(0.32, t, 0.3);
-      this.bed = { src, g };
-    }
+    this.playLoop('bed', NATURE_LOOPS[pk], 'amb', pk === 'birds' ? 0.9 : 0.6);   // 숲 녹음은 조용해서 조금 크게
   }
   natureTick(night) {
     const pk = this.mix.nature, R = Math.random, ctx = this.ctx, t = ctx.currentTime;
-    if (pk === 'birds') {         // 숲 새: 두 음 휘파람 · 떨림 · 내려가는 울음 (밤에는 거의 잔다)
-      if (!this.gap('bird', 0.6 + R() * 2)) return;
-      const vel = 0.1 * (1 - night * 0.8), pan = R() * 1.6 - 0.8, kind = Math.floor(R() * 3);
-      const tone = (f0, f1, at, dur, v = vel) => {
-        const o = ctx.createOscillator(), g = ctx.createGain();
-        o.frequency.setValueAtTime(f0, at); o.frequency.exponentialRampToValueAtTime(f1, at + dur);
-        g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(v, at + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
-        o.connect(g); this.route(g, 'amb', pan, 0.35); o.start(at); o.stop(at + dur + 0.02);
-      };
-      const b = 2600 + R() * 1400;
-      if (kind === 0) { tone(b, b * 1.12, t, 0.13); tone(b * 1.25, b * 1.05, t + 0.17, 0.16); }
-      else if (kind === 1) { const n = 6 + Math.floor(R() * 5); for (let i = 0; i < n; i++) tone(b * 1.3, b * 1.22, t + i * 0.055, 0.04, vel * 0.8); }
-      else tone(b * 1.5, b * 0.95, t, 0.28);
-    } else if (pk === 'fire') {   // 타닥: 짧고 높은 딱 소리가 불규칙하게, 가끔 큰 톡
-      if (this.gap('crk', R() * 0.28)) this.noise(0.006 + R() * 0.012, 2500 + R() * 3500, 1, 0.07 + R() * 0.1, 0, 'highpass', R() * 0.4 - 0.2, 'amb');
-      if (this.gap('pop', 2.5 + R() * 6)) this.noise(0.035, 700 + R() * 300, 2, 0.16, 0, 'bandpass', R() * 0.4 - 0.2, 'amb');
-    } else if (pk === 'frogs') {  // 개굴: 낮은 톱니 소리를 짧게 끊어 여러 번 (밤에 더 많이)
-      if (!this.gap('frog', (0.5 + R() * 1.6) / (0.6 + night * 0.8))) return;
-      const o = ctx.createOscillator(), lp = ctx.createBiquadFilter(), g = ctx.createGain(), pan = R() * 1.8 - 0.9;
-      o.type = 'sawtooth'; o.frequency.value = 130 + R() * 140; lp.type = 'lowpass'; lp.frequency.value = 900;
-      const n = 3 + Math.floor(R() * 4), v = 0.07 + R() * 0.04;
-      g.gain.setValueAtTime(0, t);
-      for (let i = 0; i < n; i++) { const w = t + i * 0.034; g.gain.setValueAtTime(0, w); g.gain.linearRampToValueAtTime(v, w + 0.008); g.gain.linearRampToValueAtTime(0, w + 0.026); }
-      o.connect(lp); lp.connect(g); this.route(g, 'amb', pan, 0.25); o.start(t); o.stop(t + n * 0.034 + 0.05);
-    } else if (pk === 'chime') {  // 풍경: 처마 끝 쇠 막대 종이 바람에 몇 개씩 부딪힌다 (지금 곡의 화음 음으로, 바람 불면 잦게)
+    if (pk === 'chime') {  // 풍경: 처마 끝 쇠 막대 종이 바람에 몇 개씩 부딪힌다 (지금 곡의 화음 음으로, 바람 불면 잦게)
       if (!this.gap('chime', 0.7 + R() * 2.6)) return;
       const ch = this.music.chord(), n = 1 + Math.floor(R() * 3), pan = R() * 1.2 - 0.6;
       for (let i = 0; i < n; i++) {

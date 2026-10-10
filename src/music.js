@@ -10,6 +10,7 @@ const MOODS = {
   sunset: { key: 65, bpm: 66, density: 0.38, bright: 2000, prog: [[0, 4, 7, 11], [2, 5, 9, 12], [5, 9, 12, 16], [7, 11, 14, 17]] },  // Imaj7 · ii7 · IVmaj7 · V7
   night: { key: 57, bpm: 58, density: 0.26, bright: 1300, prog: [[0, 4, 7, 14], [5, 9, 12, 19], [9, 12, 16, 23], [7, 11, 14, 21]] },  // add9 · 느리고 어둡게
 };
+// v16: 이 생성 곡들은 아이템에서 뺐다(아이템 곡은 오픈소스 녹음 — sound.js SONG_TRACKS). 엔진 기능으로만 남긴다.
 // v15 곡: 시간 따라 바뀌는 분위기 대신 하나를 골라 계속 듣는다 (소라로 얻고 소리 창에서 고른다). 전부 직접 짠 진행·선율, 남의 곡 없음.
 //  lead: bell 오르골 · pluck 칼림바 · rhodes 로즈 피아노 · glass 유리 · flute 플루트
 //  pad: tri 지금 패드 · soft 부드러운 사인 · warm 따뜻한 톱니(어둡게)   bass: two 1·3박 · one 첫 박 · none
@@ -59,7 +60,7 @@ export class Music {
     if (this.next < ctx.currentTime) this.next = ctx.currentTime + 0.05;
     while (this.next < ctx.currentTime + 0.25) {
       if (this.wantSong !== this.song) { this.song = this.wantSong; this.bar = 0; this.beat = 0; }   // v15.1 곡은 다음 박에 바로, 첫 마디부터
-      this.play(this.next);
+      if (!this.silent) this.play(this.next);   // v16 녹음 곡이 흐를 땐 쉰다 (박·화음은 계속)
       const spb = 60 / this.m.bpm / 2;   // 8분음표 길이
       this.next += spb;
       this.beat = (this.beat + 1) % 8;
