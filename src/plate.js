@@ -15,7 +15,7 @@ const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
-  const [img, dry, sea] = await Promise.all([load(name + '.webp?v=v10.0.1'), load(name + '-dry.webp?v=v10.0.1'), load(name + '-sea.webp?v=v10.0.1')]);
+  const [img, dry, sea] = await Promise.all([load(name + '.webp?v=v11.0.0'), load(name + '-dry.webp?v=v11.0.0'), load(name + '-sea.webp?v=v11.0.0')]);
   const p = new Plate(img, dry, sea, opts);
   p.name = name;
   return p;
@@ -42,6 +42,9 @@ export class Plate {
     const runWet = (x, y0, n) => { for (let k = 0; k < n; k++) if (y0 + k >= ah || !wet(x, y0 + k)) return false; return true; };
     const leaf = ([r, gg, b]) => (gg >= r * 0.93 && b < gg * 0.9) || r + gg + b < 210;
     const sand = ([r, gg, b]) => r > 170 && r >= gg && gg >= b && r - b > 26 && !(gg >= r * 0.93);   // 바닷가 모래 · 창백한 강가 흙 둘 다
+    // 눈(opts.ground 'snow'): 밝고 색이 옅다 — 볕 받은 따뜻한 흰색도, 푸른 그늘도 (짙은 침엽수는 어두워서 빠진다)
+    const snowy = ([r, gg, b]) => { const mx = Math.max(r, gg, b); return r + gg + b > 480 && mx - Math.min(r, gg, b) < mx * 0.3; };
+    this.snowGround = this.opts.ground === 'snow';
     const run = (x, y0, test, n) => { for (let k = 0; k < n; k++) if (y0 + k >= ah || !test(at(x, y0 + k))) return false; return true; };
 
     // 잡음을 걸러 내는 이동 중앙값 · 이동 평균
@@ -65,7 +68,7 @@ export class Plate {
     for (let x = 0; x < aw; x++) {
       let f = 0, cnt = 0;
       // 물가의 거품·젖은 띠를 건너뛰고(물가선 위 6% 부터), 흰 거품은 모래 쪽으로 친다
-      const ground = c => sand(c) || (c[0] > 205 && c[1] > 200 && c[2] > 185);
+      const ground = this.snowGround ? snowy : c => sand(c) || (c[0] > 205 && c[1] > 200 && c[2] > 185);
       for (let y = Math.round(shoreS[x] - ah * 0.06); y >= 0; y--) { if (!ground(at(x, y))) { if (++cnt >= R2) { f = y + cnt; break; } } else cnt = 0; }
       forest[x] = Math.min(f, shoreS[x] - ah * 0.2);   // 글씨 쓸 바닥은 적어도 화면 높이의 20%
     }
@@ -134,7 +137,8 @@ export class Plate {
       // 물가·물속 바위: 바위 지운 판과 크게 다르고 원본이 더 어둡다
       // 모래 위 바위: 해안선보다 위에서, 모래와 달리 파랑이 빨강만큼 있고(회보라) 어두우며 잎처럼 초록이 아니다
       const shoreY = this.shoreP[Math.min(this.shoreP.length - 1, Math.floor(x * this.shoreP.length / mw))] * mh / this.ph;
-      const landRock = y < shoreY && a[i + 2] > a[i] * 0.78 && la < 165 && a[i + 1] < a[i] * 1.05;
+      // (눈밭은 땅 위 바위를 따로 찾지 않는다 — 푸른 눈 그늘이 회보라 바위처럼 읽혀서)
+      const landRock = !this.opts.ground && y < shoreY && a[i + 2] > a[i] * 0.78 && la < 165 && a[i + 1] < a[i] * 1.05;
       // 바위 색인지: 어둡거나, 빨강과 파랑이 비슷한 회보라 (모래·거품 조각을 바위로 잘못 잡지 않게)
       const rocky = la < 120 || (Math.abs(a[i] - a[i + 2]) < 45 && la < 170);
       // 개울 돌(opts.stones): 물보다 밝은 회색 돌도 제자리에 — 빨강·초록·파랑이 고르고 거품만큼 하얗지는 않다

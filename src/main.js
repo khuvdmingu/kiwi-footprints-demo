@@ -15,20 +15,20 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v10.0.1';
-import { Beach } from './beach.js?v=v10.0.1';
-import { Kiwi } from './kiwi.js?v=v10.0.1';
-import { Sound } from './sound.js?v=v10.0.1';
-import { loadPlate } from './plate.js?v=v10.0.1';
-import { MAPS, MAP_IDS } from './maps.js?v=v10.0.1';
-import { WaterGL } from './water.js?v=v10.0.1';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v10.0.1';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v10.0.1';
-import { Clouds } from './clouds.js?v=v10.0.1';
-import { Gulls } from './gulls.js?v=v10.0.1';
-import { Atmos, WEATHERS, WEATHER_NAME } from './atmos.js?v=v10.0.1';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v10.0.1';
-import { clamp, dist } from './util.js?v=v10.0.1';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v11.0.0';
+import { Beach } from './beach.js?v=v11.0.0';
+import { Kiwi } from './kiwi.js?v=v11.0.0';
+import { Sound } from './sound.js?v=v11.0.0';
+import { loadPlate } from './plate.js?v=v11.0.0';
+import { MAPS, MAP_IDS } from './maps.js?v=v11.0.0';
+import { WaterGL } from './water.js?v=v11.0.0';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v11.0.0';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v11.0.0';
+import { Clouds } from './clouds.js?v=v11.0.0';
+import { Gulls } from './gulls.js?v=v11.0.0';
+import { Atmos, WEATHERS, WEATHER_NAME } from './atmos.js?v=v11.0.0';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v11.0.0';
+import { clamp, dist } from './util.js?v=v11.0.0';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -53,7 +53,7 @@ const plates = {};
 // 장소: ?map= 이 기기에 저장된 값보다 먼저
 let mapId = MAP_IDS.includes(q.get('map')) ? q.get('map') : MAP_IDS.includes(saved('map')) ? saved('map') : 'beach';
 const plateFor = (w, h) => MAPS[mapId][w / h < 0.8 ? 'tall' : 'wide'];
-function getPlate(name) { const m = Object.values(MAPS).find(v => v.wide === name || v.tall === name) || {}; return (plates[name] ||= loadPlate('assets/', name, { stones: !!m.stones, shoreFrom: m.shoreFrom })); }
+function getPlate(name) { const m = Object.values(MAPS).find(v => v.wide === name || v.tall === name) || {}; return (plates[name] ||= loadPlate('assets/', name, { stones: !!m.stones, shoreFrom: m.shoreFrom, ground: m.ground })); }
 const cloudCanvas = document.getElementById('clouds'), cctx = cloudCanvas.getContext('2d');
 const glowEl = document.getElementById('glow');
 const clouds = new Clouds();
@@ -603,7 +603,7 @@ window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() =
 // 그림 판·키위·갈매기 그림을 다 읽은 뒤 시작한다
 async function boot() {
   const img = src => new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp?v=v10.0.1'), img('assets/gull.webp?v=v10.0.1'), img('assets/bottle.webp?v=v10.0.1'), img('assets/crate.webp?v=v10.0.1')]);
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp?v=v11.0.0'), img('assets/gull.webp?v=v11.0.0'), img('assets/bottle.webp?v=v11.0.0'), img('assets/crate.webp?v=v11.0.0')]);
   drifters.setSprites({ bottle, crate });
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
@@ -620,7 +620,7 @@ const paintMode = () => { modeBtn.dataset.mode = mode; modeBtn.setAttribute('ari
 const nowHour = () => ((HOUR_Q ?? new Date().getHours() + new Date().getMinutes() / 60 + new Date().getSeconds() / 3600) + hourShift) % 24;
 // 장소 바꾸기: 그 장소 그림 판을 읽고(처음 한 번) 화면을 다시 짠다 — resize 가 지금 글을 새 바닥에 다시 쓴다
 function setMap(id) {
-  if (!MAPS[id] || id === mapId) return;
+  if (!MAPS[id] || id === mapId || !mapOpen(id)) return;
   mapId = id; save('map', id); paintModeMenu(); toast(MAPS[id].name);
   if (plate) resize();
 }
@@ -636,8 +636,15 @@ modeBtn.addEventListener('click', () => { unlock(); setMode(MODES[(MODES.indexOf
 // 설정 창(톱니바퀴): 시계 초 표시 · 표기
 const settings = document.getElementById('settings'), setBtn = document.getElementById('setBtn');
 const openSettings = open => { settings.hidden = !open; setBtn.setAttribute('aria-expanded', String(open)); if (open) settings.querySelector('input').focus(); };
+const mapOpen = id => !MAPS[id].unlock || col.has(MAPS[id].unlock);
 function paintModeMenu() {
-  for (const r of settings.querySelectorAll('input[name="map"]')) r.checked = r.value === mapId;
+  for (const r of settings.querySelectorAll('input[name="map"]')) {
+    const open = mapOpen(r.value);
+    r.checked = r.value === mapId; r.disabled = !open;
+    r.parentElement.classList.toggle('locked', !open);
+    r.nextElementSibling.textContent = open ? MAPS[r.value].name : '상자 속';
+    r.parentElement.title = open ? '' : '물에서 떠내려오는 상자를 열면 갈 수 있어요';
+  }
   for (const r of settings.querySelectorAll('input[name="fmt"]')) r.checked = r.value === clockOpt.fmt;
   document.getElementById('optSec').checked = clockOpt.sec;
 }
@@ -650,6 +657,7 @@ function openDrift(d) {
   drifters.open(d, beach.t);
   const fresh = !col.has(d.it.id);
   col.add(d.it.id);
+  if (d.it.kind === 'map') paintModeMenu();
   sound.found(d.x);
   const u = beach.u, C = ['#fff6c9', '#ffd98a', '#ffffff', '#ffc2a8'];
   for (let i = 0; i < 18; i++) { const a = Math.random() * 6.28, sp = (60 + Math.random() * 120) * u; sparks.push({ x: d.x, y: d.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 60 * u, r: (2 + Math.random() * 2.5) * u, c: C[i % 4], age: 0, life: 0.8 + Math.random() * 0.5 }); }
@@ -663,6 +671,10 @@ function showFound(it, fresh = false) {
     const p = document.createElement('div'); p.className = 'paper'; p.textContent = it.text; art.append(p);
     title.textContent = (fresh ? '유리병 속 ' : '') + it.title; body.textContent = `${col.count} / ${ITEMS.length} 모음`;
     foundWear.hidden = true;
+  } else if (it.kind === 'map') {
+    const im = document.createElement('img'); im.src = 'assets/' + it.img; im.alt = it.name; im.className = 'place'; art.append(im);
+    title.textContent = (fresh ? '새 장소 · ' : '') + it.name; body.textContent = `${it.note} · ${col.count} / ${ITEMS.length} 모음`;
+    foundWear.hidden = false; foundWear.textContent = mapId === it.map ? '지금 여기' : '가 보기';
   } else {
     const im = document.createElement('img'); im.src = 'assets/' + it.img; im.alt = it.name; art.append(im);
     title.textContent = (fresh ? '상자 속 ' : '') + it.name; body.textContent = `${it.note} · ${col.count} / ${ITEMS.length} 모음`;
@@ -676,7 +688,11 @@ function setWear(id, on) {
   else kiwis.forEach(k => { if (k.skin === id) k.skin = pickSkin(); });
   paintCollection();
 }
-foundWear.addEventListener('click', () => { if (foundItem) setWear(foundItem.id, !col.wearing(foundItem.id)); foundEl.hidden = true; });
+foundWear.addEventListener('click', () => {
+  if (foundItem?.kind === 'map') { setMap(foundItem.map); paintCollection(); }
+  else if (foundItem) setWear(foundItem.id, !col.wearing(foundItem.id));
+  foundEl.hidden = true;
+});
 document.getElementById('foundClose').addEventListener('click', () => { foundEl.hidden = true; });
 foundEl.addEventListener('click', e => { if (e.target === foundEl) foundEl.hidden = true; });
 window.addEventListener('keydown', e => { if (e.key === 'Escape' && !foundEl.hidden) foundEl.hidden = true; });
@@ -688,6 +704,11 @@ function paintCollection() {
     const b = document.createElement('button'); b.type = 'button';
     if (!col.has(it.id)) { b.className = 'locked'; b.textContent = '?'; b.setAttribute('aria-label', '아직 못 찾음'); b.disabled = true; }
     else if (it.kind === 'letter') { b.textContent = '✉'; b.setAttribute('aria-label', it.title + ' 다시 읽기'); b.addEventListener('click', () => showFound(it)); }
+    else if (it.kind === 'map') {
+      const im = document.createElement('img'); im.src = 'assets/' + it.img; im.alt = ''; b.append(im); b.classList.add('place');
+      b.classList.toggle('on', mapId === it.map); b.setAttribute('aria-label', it.name + ' 가 보기');
+      b.addEventListener('click', () => { setMap(it.map); paintCollection(); });
+    }
     else {
       const im = document.createElement('img'); im.src = 'assets/' + it.img; im.alt = ''; b.append(im);
       b.classList.toggle('on', col.wearing(it.id)); b.setAttribute('aria-pressed', String(col.wearing(it.id))); b.setAttribute('aria-label', it.name + (col.wearing(it.id) ? ' 벗기기' : ' 입히기'));

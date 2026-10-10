@@ -4,18 +4,20 @@
 //        누르면 열리고 안에 든 것이 카드로 나온다 → 이 기기에 저장(모은 것). 옷은 키위에게 입혀 볼 수 있다.
 //  순서: 편지(유리병)와 옷(상자)을 번갈아. 처음 하나는 금방, 그 뒤로는 몇 분에 한 번 — 글을 쓸수록 조금 빨리.
 //  다 모으면 더는 떠내려오지 않는다 (다음 묶음·새 장소는 여기 목록에 더하면 된다).
+//  v11: 장소도 상자에서 나온다 (kind 'map' — 열면 설정 창 「장소」에서 고를 수 있다. maps.js 의 unlock 과 짝)
 
 export const ITEMS = [
   { id: 'letter1', kind: 'letter', box: 'bottle', title: '첫 번째 편지', text: '파도가 글씨를 가져가도, 쓰고 싶었던 마음은 모래 속에 남아요.' },
-  { id: 'hat', kind: 'wear', box: 'crate', name: '밀짚모자', img: 'kiwi-hat.webp?v=v10.0.1', note: '햇볕 좋은 날 산책용.' },
+  { id: 'hat', kind: 'wear', box: 'crate', name: '밀짚모자', img: 'kiwi-hat.webp?v=v11.0.0', note: '햇볕 좋은 날 산책용.' },
   { id: 'letter2', kind: 'letter', box: 'bottle', title: '두 번째 편지', text: '키위는 날지 못해서 천천히 걸어요. 천천히 가도 결국 도착해요.' },
-  { id: 'scarf', kind: 'wear', box: 'crate', name: '빨간 목도리', img: 'kiwi-scarf.webp?v=v10.0.1', note: '밤바람이 차가울 때.' },
+  { id: 'scarf', kind: 'wear', box: 'crate', name: '빨간 목도리', img: 'kiwi-scarf.webp?v=v11.0.0', note: '밤바람이 차가울 때.' },
   { id: 'letter3', kind: 'letter', box: 'bottle', title: '세 번째 편지', text: '작은 발자국도 모이면 글자가 돼요. 오늘 찍은 한 걸음도요.' },
-  { id: 'crown', kind: 'wear', box: 'crate', name: '꽃 화관', img: 'kiwi-crown.webp?v=v10.0.1', note: '숲 가장자리에서 엮었대요.' },
+  { id: 'crown', kind: 'wear', box: 'crate', name: '꽃 화관', img: 'kiwi-crown.webp?v=v11.0.0', note: '숲 가장자리에서 엮었대요.' },
   { id: 'letter4', kind: 'letter', box: 'bottle', title: '네 번째 편지', text: '지워진 자리는 다음 문장을 위한 빈 모래예요.' },
-  { id: 'glasses', kind: 'wear', box: 'crate', name: '동그란 안경', img: 'kiwi-glasses.webp?v=v10.0.1', note: '글씨를 더 반듯하게 쓰고 싶어서.' },
+  { id: 'glasses', kind: 'wear', box: 'crate', name: '동그란 안경', img: 'kiwi-glasses.webp?v=v11.0.0', note: '글씨를 더 반듯하게 쓰고 싶어서.' },
   { id: 'letter5', kind: 'letter', box: 'bottle', title: '다섯 번째 편지', text: '여기까지 걸어온 당신에게. — 키위 일동' },
-  { id: 'backpack', kind: 'wear', box: 'crate', name: '작은 배낭', img: 'kiwi-backpack.webp?v=v10.0.1', note: '다음 장소로 떠날 준비.' },
+  { id: 'backpack', kind: 'wear', box: 'crate', name: '작은 배낭', img: 'kiwi-backpack.webp?v=v11.0.0', note: '다음 장소로 떠날 준비.' },
+  { id: 'map-snow', kind: 'map', box: 'crate', map: 'snow', name: '눈밭', img: 'snow-card.webp?v=v11.0.0', note: '눈 덮인 숲 아래 호숫가. 발자국이 또렷하게 남아요.' },
 ];
 export const ITEM = Object.fromEntries(ITEMS.map(it => [it.id, it]));
 

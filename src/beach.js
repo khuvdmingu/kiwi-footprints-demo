@@ -5,8 +5,8 @@
 //  · 큰 파도: surge(y) — 오르기 · 머물기 · 빠지기. 물이 지나간 자리는 한동안 젖어 있다(wet)
 //  · 발자국: 'deep' 글씨 획 · 'faint' 오가는 길(곧 사라짐) · 'hole' 부리 자국
 
-import { clamp, easeOut, easeInOut } from './util.js?v=v10.0.1';
-import { PAL } from './tokens.js?v=v10.0.1';
+import { clamp, easeOut, easeInOut } from './util.js?v=v11.0.0';
+import { PAL } from './tokens.js?v=v11.0.0';
 
 const RISE = 1.5, HOLD = 0.5, FALL = 3.2;
 const FAINT = 0.22, FAINT_LIFE = 2.2;
@@ -25,6 +25,7 @@ export class Beach {
 
   resize(W, H, dpr, plate) {
     Object.assign(this, { W, H, dpr });
+    this.snowGround = !!plate.snowGround;   // 눈밭: 발자국은 처음부터 푸르스름한 눈 그늘
     this.u = Math.min(W, H) / 800;
     // 그림에서 읽은 해안선·숲 줄을 4px 간격으로 미리 재 둔다
     const n = Math.ceil(W / 4) + 2;
@@ -131,7 +132,7 @@ export class Beach {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     // 모래 위 발자국은 한 톤 짙은 모래색, 눈 위에서는 푸르스름한 그늘
-    const sn = this.snow > 0.35;
+    const sn = this.snow > 0.35 || this.snowGround;
     const C = sn ? ['#BCC4CF', '#9AA6B6', '#B0BAC7', '#8C98AA'] : ['rgba(150,96,48,0.55)', 'rgba(112,66,30,0.55)', 'rgba(150,96,48,0.6)', 'rgba(105,62,28,0.6)'];
     const LIT = sn ? 'rgba(255,255,255,0.7)' : 'rgba(255,240,205,0.75)';
     for (const g of groups.values()) {

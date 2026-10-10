@@ -16,5 +16,13 @@ export const MAPS = {
     stones: true,                    // 개울 바닥 조약돌: 밝은 회색 돌도 물이 불어날 때 제자리
     shoreFrom: 0.5,                  // 가장자리 통나무·고사리가 낮게 내려와 있어 조금 더 아래에서 찾는다
   },
+  snow: {
+    name: '눈밭',                     // 눈 덮인 침엽수 숲 아래 빈 눈밭, 차가운 산 호수가 불어나 지운다
+    wide: 'snow', tall: 'snow-tall',
+    gulls: false,
+    ground: 'snow',                  // 바닥이 하얀 눈: 판 읽기(땅 색)·발자국 색이 눈 기준
+    shoreFrom: 0.5,
+    unlock: 'map-snow',              // 물에서 떠내려온 상자를 열어야 고를 수 있다 (items.js)
+  },
 };
 export const MAP_IDS = Object.keys(MAPS);
