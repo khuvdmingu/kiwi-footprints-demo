@@ -205,6 +205,14 @@ body.typing #caption, body.info-open #caption { opacity: 0; }
 #found button { padding: 9px 16px; border-radius: 999px; border: 0; background: #e8dcc2; color: #3a2c1c; font-weight: 600; font-size: 14px; cursor: pointer; }
 #found #foundWear { background: #e8972e; color: #fff; }
 #found #foundWear[hidden] { display: none; }
+/* 시간대 (v16.3) */
+#lightOpts { margin-top: 8px; }
+#lightOpts .lightNow { margin: 0 0 4px; font-weight: 500; font-variant-numeric: tabular-nums; }
+#lightOpts input[type="range"] { width: 100%; margin: 4px 0 8px; accent-color: var(--sand); }
+#lightOpts .chips { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+#lightOpts .chips button { font: inherit; font-size: 12.5px; padding: 6px 0; border-radius: 9px; border: 1px solid var(--panel-line); background: transparent; color: inherit; cursor: pointer; white-space: nowrap; }
+#lightOpts .chips button.on { background: var(--sand); color: #2a2016; border-color: transparent; }
+#lightOpts.auto input[type="range"], #lightOpts.auto .chips { display: none; }
 #clockOpts .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; }
 #clockOpts .row span { font-weight: 500; }
 #clockOpts input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--sand); }

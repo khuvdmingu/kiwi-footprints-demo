@@ -15,23 +15,23 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v16.2.4';
-import { Beach } from './beach.js?v=v16.2.4';
-import { Kiwi } from './kiwi.js?v=v16.2.4';
-import { Sound } from './sound.js?v=v16.2.4';
-import { loadPlate } from './plate.js?v=v16.2.4';
-import { MAPS, MAP_IDS } from './maps.js?v=v16.2.4';
-import { WaterGL } from './water.js?v=v16.2.4';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v16.2.4';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v16.2.4';
-import { Clouds } from './clouds.js?v=v16.2.4';
-import { Gulls } from './gulls.js?v=v16.2.4';
-import { Atmos, WEATHERS, WEATHER_NAME } from './atmos.js?v=v16.2.4';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v16.2.4';
-import { clamp, dist } from './util.js?v=v16.2.4';
-import { Focus, Awake, LENGTHS } from './focus.js?v=v16.2.4';
-import { UNLOCK_ALL } from './config.js?v=v16.2.4';
-import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v16.2.4';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v16.3.0';
+import { Beach } from './beach.js?v=v16.3.0';
+import { Kiwi } from './kiwi.js?v=v16.3.0';
+import { Sound } from './sound.js?v=v16.3.0';
+import { loadPlate } from './plate.js?v=v16.3.0';
+import { MAPS, MAP_IDS } from './maps.js?v=v16.3.0';
+import { WaterGL } from './water.js?v=v16.3.0';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v16.3.0';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v16.3.0';
+import { Clouds } from './clouds.js?v=v16.3.0';
+import { Gulls } from './gulls.js?v=v16.3.0';
+import { Atmos, WEATHERS, WEATHER_NAME, timeLight } from './atmos.js?v=v16.3.0';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v16.3.0';
+import { clamp, dist } from './util.js?v=v16.3.0';
+import { Focus, Awake, LENGTHS } from './focus.js?v=v16.3.0';
+import { UNLOCK_ALL } from './config.js?v=v16.3.0';
+import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v16.3.0';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -78,6 +78,12 @@ const modeIn = m => (m === 'clocksec' ? ((clockOpt.sec = true), 'clock') : m);
 let mode = MODES.includes(modeIn(q.get('mode'))) ? modeIn(q.get('mode')) : MODES.includes(modeIn(saved('mode'))) ? modeIn(saved('mode')) : 'free';
 const HOUR_Q = q.get('hour') != null && q.get('hour') !== '' && !isNaN(+q.get('hour')) ? +q.get('hour') : null;
 let hourShift = 0;          // T 키로 3시간씩 미리보기
+const realHour = (now = new Date()) => ((HOUR_Q ?? now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600) + hourShift) % 24;
+// 시간대 (v16.3): 'auto' = 지금 시각을 따라 빛이 바뀐다 · 'manual' = 고른 시각의 빛에 머문다(낮에도 저녁 빛으로 두고 싶을 때)
+//  시계 글씨와 물가 줍기(밤·해 질 녘 희귀품)는 언제나 실제 시각을 따른다.
+let lightMode = saved('light') === 'manual' ? 'manual' : 'auto';
+let lightPick = (() => { const v = parseFloat(saved('lightHour')); return v >= 0 && v < 24 ? v : 18.3; })();
+let lightShown = null;   // 화면에 보이는 빛의 시각 — 고른 시각까지 1~2초에 걸쳐 시계 방향 짧은 쪽으로 돈다
 const quotes = new Deck(QUOTES), words = new Deck(WORDS);
 let meta = null;            // 지금 쓰는 글의 캡션 (뜻·출처)
 let tintAt = -1;
@@ -463,17 +469,21 @@ function setView(v, announce = true) {
 // ── 한 프레임 ──
 function tick(dt) {
   const now = new Date();
-  const hour = ((HOUR_Q ?? now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600) + hourShift) % 24;
-  atmos.update(dt, beach, hour);
+  const hour = realHour(now);
+  const lightTarget = lightMode === 'manual' ? lightPick : hour;
+  if (lightShown == null) lightShown = lightTarget;
+  else { const d = ((lightTarget - lightShown + 36) % 24) - 12; lightShown = Math.abs(d) < 0.005 ? lightTarget : (lightShown + d * Math.min(1, dt * 2.2) + 24) % 24; }
+  atmos.update(dt, beach, lightShown);
   clouds.amount = atmos.cloud; clouds.windK = atmos.windK;
   clouds.update(dt);
   if (MAPS[mapId].gulls) gulls.update(dt, beach, x => sound.gull(x)); else gulls.list.length = 0;
-  sound.update({ high: clamp((beach.shoreY - beach.lvl) / (beach.H * 0.3), 0, 1), rain: atmos.v.rain, wind: Math.max(atmos.v.wind, atmos.v.rain * 0.3), night: atmos.night, hour, weather: atmos.weather });
+  sound.update({ high: clamp((beach.shoreY - beach.lvl) / (beach.H * 0.3), 0, 1), rain: atmos.v.rain, wind: Math.max(atmos.v.wind, atmos.v.rain * 0.3), night: atmos.night, hour: lightShown, weather: atmos.weather });
   if (beach.t - tintAt > 0.25) {
     tintAt = beach.t;
     tintEl.style.background = atmos.tintCSS();
     glowEl.style.opacity = String(Math.max(0.15, 1 - atmos.night * 0.85));   // 골든아워 빛은 밤엔 거의 사라진다
     document.body.classList.toggle('snowy', beach.snow > 0.3);
+    if (lightMode === 'auto' && !settings.hidden) paintLight();
   }
   beach.update(dt);
   while (spawnQ.length && spawnQ[0] <= beach.t) { spawnQ.shift(); spawn(); }
@@ -516,7 +526,7 @@ function tick(dt) {
   drifters.paused = focus.active;
   drifters.update(dt, beach, col, d => sound.arrive(d.x));
   focusTick();
-  shore.update(dt, beach, { map: mapId, night: atmos.night, weather: atmos.weather, hour });
+  shore.update(dt, beach, { map: mapId, night: timeLight(hour).night, weather: atmos.weather, hour });
   { const nowMs = Date.now(); if (ambAt && !document.hidden && focus.ambient(nowMs - ambAt) && !focusPanel.hidden) paintFocus(); ambAt = nowMs; }
   checkMapSteps();
   sparks = sparks.filter(s => (s.age += dt) < s.life);
@@ -803,8 +813,8 @@ window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() =
 // 그림 판·키위·갈매기 그림을 다 읽은 뒤 시작한다
 async function boot() {
   const img = src => new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp?v=v16.2.4'), img('assets/gull.webp?v=v16.2.4'), img('assets/bottle.webp?v=v16.2.4'), img('assets/crate.webp?v=v16.2.4')]);
-  img('assets/finds.webp?v=v16.2.4').then(im => {
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp?v=v16.3.0'), img('assets/gull.webp?v=v16.3.0'), img('assets/bottle.webp?v=v16.3.0'), img('assets/crate.webp?v=v16.3.0')]);
+  img('assets/finds.webp?v=v16.3.0').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
@@ -823,7 +833,7 @@ async function boot() {
   }
 boot();
 const paintMode = () => { modeBtn.dataset.mode = mode; modeBtn.setAttribute('aria-label', `글 모드: ${MODE_NAME[mode]} (바꾸기)`); };
-const nowHour = () => ((HOUR_Q ?? new Date().getHours() + new Date().getMinutes() / 60 + new Date().getSeconds() / 3600) + hourShift) % 24;
+const nowHour = () => realHour();
 // 장소 바꾸기: 그 장소 그림 판을 읽고(처음 한 번) 화면을 다시 짠다 — resize 가 지금 글을 새 바닥에 다시 쓴다
 function setMap(id) {
   if (!MAPS[id] || id === mapId || !mapOpen(id)) return;
@@ -855,7 +865,29 @@ function paintModeMenu() {
   for (const r of settings.querySelectorAll('input[name="fmt"]')) r.checked = r.value === clockOpt.fmt;
   document.getElementById('optSec').checked = clockOpt.sec;
 }
-setBtn.addEventListener('click', () => { unlock(); paintCollection(); paintModeMenu(); openSettings(settings.hidden); });
+setBtn.addEventListener('click', () => { unlock(); paintCollection(); paintModeMenu(); paintLight(); openSettings(settings.hidden); });
+
+// ── 시간대 ──
+const lightOpts = document.getElementById('lightOpts'), lightRange = document.getElementById('lightHour'), lightNowEl = document.getElementById('lightNow');
+const DAY_PART = [[0, '밤'], [4.5, '새벽'], [6.5, '아침'], [10, '한낮'], [15, '오후'], [17.5, '노을'], [19.3, '저녁'], [20.5, '밤']];
+const partOf = h => DAY_PART.filter(([a]) => a <= h).pop()[1];
+const hhmm = h => { const m = Math.round(h * 60) % 1440, H = Math.floor(m / 60), M = m % 60; return `${H < 12 ? '오전' : '오후'} ${(H % 12) || 12}:${String(M).padStart(2, '0')}`; };
+function paintLight() {
+  for (const r of settings.querySelectorAll('input[name="light"]')) r.checked = r.value === lightMode;
+  lightOpts.classList.toggle('auto', lightMode === 'auto');
+  const h = lightMode === 'manual' ? lightPick : realHour();
+  lightNowEl.textContent = `${lightMode === 'manual' ? '' : '지금 '}${hhmm(h)} · ${partOf(h)}`;
+  if (document.activeElement !== lightRange) lightRange.value = String(lightPick);
+  for (const b of lightOpts.querySelectorAll('.chips button')) b.classList.toggle('on', lightMode === 'manual' && Math.abs(+b.dataset.h - lightPick) < 0.01);
+}
+function setLight(mode, h) {
+  lightMode = mode; if (h != null) lightPick = ((h % 24) + 24) % 24;
+  save('light', lightMode); save('lightHour', String(lightPick));
+  paintLight();
+}
+for (const r of settings.querySelectorAll('input[name="light"]')) r.addEventListener('change', () => { if (r.checked) setLight(r.value); });
+lightRange.addEventListener('input', () => setLight('manual', +lightRange.value));
+for (const b of lightOpts.querySelectorAll('.chips button')) b.addEventListener('click', () => setLight('manual', +b.dataset.h));
 
 // ── v10 떠내려온 것 열기 · 카드 · 모은 것 ──
 const foundEl = document.getElementById('found'), foundWear = document.getElementById('foundWear');
@@ -1040,4 +1072,4 @@ paintWeather();
 const firstWrite = () => { if (!plate) { setTimeout(firstWrite, 300); return; } if (phase === 'idle' && !current && mode === 'free') write(FIRST); };
 setTimeout(firstWrite, 700);
 
-window.__kiwi = { setPack, paintPacks, focus, completeFocus, shore, finds, pickUp, paintCollection, get phase() { return phase; }, get kiwis() { return kiwis; }, get jobs() { return jobs; }, get current() { return current; }, beach, get water() { return water; }, get artDpr() { return artDpr(); }, perf, clouds, atmos, sound, get plate() { return plate; }, drifters, col, openDrift, get notes() { return notes; }, submit, setView, toWorld };
+window.__kiwi = { setPack, paintPacks, focus, completeFocus, shore, finds, pickUp, paintCollection, get phase() { return phase; }, get kiwis() { return kiwis; }, get jobs() { return jobs; }, get current() { return current; }, beach, get water() { return water; }, get light() { return { mode: lightMode, pick: lightPick, shown: lightShown }; }, setLight, get artDpr() { return artDpr(); }, perf, clouds, atmos, sound, get plate() { return plate; }, drifters, col, openDrift, get notes() { return notes; }, submit, setView, toWorld };
