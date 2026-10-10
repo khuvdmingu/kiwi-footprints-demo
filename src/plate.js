@@ -15,7 +15,7 @@ const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
-  const [img, dry, sea] = await Promise.all([load(name + '.webp?v=v11.1.0'), load(name + '-dry.webp?v=v11.1.0'), load(name + '-sea.webp?v=v11.1.0')]);
+  const [img, dry, sea] = await Promise.all([load(name + '.webp?v=v12.0.0'), load(name + '-dry.webp?v=v12.0.0'), load(name + '-sea.webp?v=v12.0.0')]);
   const p = new Plate(img, dry, sea, opts);
   p.name = name;
   return p;

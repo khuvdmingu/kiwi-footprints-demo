@@ -4,27 +4,28 @@
 //        누르면 열리고 안에 든 것이 카드로 나온다 → 이 기기에 저장(모은 것). 옷은 키위에게 입혀 볼 수 있다.
 //  순서: 편지(유리병)와 옷(상자)을 번갈아. 처음 하나는 금방, 그 뒤로는 몇 분에 한 번 — 글을 쓸수록 조금 빨리.
 //  다 모으면 더는 떠내려오지 않는다 (다음 묶음·새 장소는 여기 목록에 더하면 된다).
+//  v12: 가만히 두면 편지(유리병)만 가끔 온다. 옷·장소(상자)는 집중 모드를 끝까지 하면 선물로 온다 (focus.js)
 //  v11: 장소도 상자에서 나온다 (kind 'map' — 열면 설정 창 「장소」에서 고를 수 있다. maps.js 의 unlock 과 짝)
 
 export const ITEMS = [
   { id: 'letter1', kind: 'letter', box: 'bottle', title: '첫 번째 편지', text: '파도가 글씨를 가져가도, 쓰고 싶었던 마음은 모래 속에 남아요.' },
-  { id: 'hat', kind: 'wear', box: 'crate', name: '밀짚모자', img: 'kiwi-hat.webp?v=v11.1.0', note: '햇볕 좋은 날 산책용.' },
+  { id: 'hat', kind: 'wear', box: 'crate', name: '밀짚모자', img: 'kiwi-hat.webp?v=v12.0.0', note: '햇볕 좋은 날 산책용.' },
   { id: 'letter2', kind: 'letter', box: 'bottle', title: '두 번째 편지', text: '키위는 날지 못해서 천천히 걸어요. 천천히 가도 결국 도착해요.' },
-  { id: 'scarf', kind: 'wear', box: 'crate', name: '빨간 목도리', img: 'kiwi-scarf.webp?v=v11.1.0', note: '밤바람이 차가울 때.' },
+  { id: 'scarf', kind: 'wear', box: 'crate', name: '빨간 목도리', img: 'kiwi-scarf.webp?v=v12.0.0', note: '밤바람이 차가울 때.' },
   { id: 'letter3', kind: 'letter', box: 'bottle', title: '세 번째 편지', text: '작은 발자국도 모이면 글자가 돼요. 오늘 찍은 한 걸음도요.' },
-  { id: 'crown', kind: 'wear', box: 'crate', name: '꽃 화관', img: 'kiwi-crown.webp?v=v11.1.0', note: '숲 가장자리에서 엮었대요.' },
+  { id: 'crown', kind: 'wear', box: 'crate', name: '꽃 화관', img: 'kiwi-crown.webp?v=v12.0.0', note: '숲 가장자리에서 엮었대요.' },
   { id: 'letter4', kind: 'letter', box: 'bottle', title: '네 번째 편지', text: '지워진 자리는 다음 문장을 위한 빈 모래예요.' },
-  { id: 'glasses', kind: 'wear', box: 'crate', name: '동그란 안경', img: 'kiwi-glasses.webp?v=v11.1.0', note: '글씨를 더 반듯하게 쓰고 싶어서.' },
+  { id: 'glasses', kind: 'wear', box: 'crate', name: '동그란 안경', img: 'kiwi-glasses.webp?v=v12.0.0', note: '글씨를 더 반듯하게 쓰고 싶어서.' },
   { id: 'letter5', kind: 'letter', box: 'bottle', title: '다섯 번째 편지', text: '여기까지 걸어온 당신에게. — 키위 일동' },
-  { id: 'backpack', kind: 'wear', box: 'crate', name: '작은 배낭', img: 'kiwi-backpack.webp?v=v11.1.0', note: '다음 장소로 떠날 준비.' },
-  { id: 'map-snow', kind: 'map', box: 'crate', map: 'snow', name: '눈밭', img: 'snow-card.webp?v=v11.1.0', note: '눈 덮인 숲 아래 호숫가. 발자국이 또렷하게 남아요.' },
+  { id: 'backpack', kind: 'wear', box: 'crate', name: '작은 배낭', img: 'kiwi-backpack.webp?v=v12.0.0', note: '다음 장소로 떠날 준비.' },
+  { id: 'map-snow', kind: 'map', box: 'crate', map: 'snow', name: '눈밭', img: 'snow-card.webp?v=v12.0.0', note: '눈 덮인 숲 아래 호숫가. 발자국이 또렷하게 남아요.' },
   // v11.1 겨울 옷 (두 번째 묶음 — 눈밭을 연 뒤에 떠내려온다)
-  { id: 'beanie', kind: 'wear', box: 'crate', name: '방울 털모자', img: 'kiwi-beanie.webp?v=v11.1.0', note: '눈밭 산책 필수품.' },
-  { id: 'earmuffs', kind: 'wear', box: 'crate', name: '분홍 귀마개', img: 'kiwi-earmuffs.webp?v=v11.1.0', note: '호수 바람이 찰 때.' },
-  { id: 'sweater', kind: 'wear', box: 'crate', name: '눈꽃 스웨터', img: 'kiwi-sweater.webp?v=v11.1.0', note: '눈송이 무늬 두꺼운 니트.' },
-  { id: 'blanket', kind: 'wear', box: 'crate', name: '체크 담요', img: 'kiwi-blanket.webp?v=v11.1.0', note: '글씨 쓰다 쉬어 갈 때 두르는 망토.' },
-  { id: 'santa', kind: 'wear', box: 'crate', name: '산타 모자', img: 'kiwi-santa.webp?v=v11.1.0', note: '12월이 오면.' },
-  { id: 'vest', kind: 'wear', box: 'crate', name: '패딩 조끼', img: 'kiwi-vest.webp?v=v11.1.0', note: '털 깃이 달린 따뜻한 조끼.' },
+  { id: 'beanie', kind: 'wear', box: 'crate', name: '방울 털모자', img: 'kiwi-beanie.webp?v=v12.0.0', note: '눈밭 산책 필수품.' },
+  { id: 'earmuffs', kind: 'wear', box: 'crate', name: '분홍 귀마개', img: 'kiwi-earmuffs.webp?v=v12.0.0', note: '호수 바람이 찰 때.' },
+  { id: 'sweater', kind: 'wear', box: 'crate', name: '눈꽃 스웨터', img: 'kiwi-sweater.webp?v=v12.0.0', note: '눈송이 무늬 두꺼운 니트.' },
+  { id: 'blanket', kind: 'wear', box: 'crate', name: '체크 담요', img: 'kiwi-blanket.webp?v=v12.0.0', note: '글씨 쓰다 쉬어 갈 때 두르는 망토.' },
+  { id: 'santa', kind: 'wear', box: 'crate', name: '산타 모자', img: 'kiwi-santa.webp?v=v12.0.0', note: '12월이 오면.' },
+  { id: 'vest', kind: 'wear', box: 'crate', name: '패딩 조끼', img: 'kiwi-vest.webp?v=v12.0.0', note: '털 깃이 달린 따뜻한 조끼.' },
 ];
 export const ITEM = Object.fromEntries(ITEMS.map(it => [it.id, it]));
 
@@ -42,21 +43,22 @@ export class Collection {
   add(id) { if (!this.has(id)) { this.found.push(id); this.store(); } }
   wearing(id) { return this.wear.includes(id); }
   setWear(id, on) { this.wear = this.wear.filter(w => w !== id); if (on && this.has(id)) this.wear.push(id); this.store(); }
-  next() { return ITEMS.find(it => !this.has(it.id)) || null; }
+  next(ok = () => true) { return ITEMS.find(it => !this.has(it.id) && ok(it)) || null; }
   get count() { return this.found.length; }
 }
 
 // 떠내려오는 것
 export class Drifters {
-  constructor() { this.list = []; this.nextAt = 35; this.imgs = {}; }
+  constructor() { this.list = []; this.nextAt = 35; this.imgs = {}; this.paused = false; }
   setSprites(imgs) { this.imgs = imgs; }
   reset() { this.list = []; }
   wrote(t) { this.nextAt = Math.max(t + 15, this.nextAt - 35); }   // 글을 쓸수록 조금 빨리 (그래도 적어도 15초 뒤)
 
   update(dt, beach, col, onArrive) {
     const { W, H, u, t } = beach;
-    if (!this.list.length && t > this.nextAt) {
-      const it = col.next();
+    // 가만히 둘 때는 편지만 (집중 중에는 아무것도 띄우지 않는다 — 선물은 집중이 끝날 때 send 로)
+    if (!this.paused && !this.list.length && t > this.nextAt) {
+      const it = col.next(it => it.kind === 'letter');
       if (it) {
         const x = W * (0.22 + Math.random() * 0.56);
         this.list.push({ it, x, y: H + 30 * u, vx: (Math.random() - 0.5) * 8 * u, ph: Math.random() * 6, born: t, ashore: false, size: Math.max(it.box === 'bottle' ? 44 : 40, (it.box === 'bottle' ? 78 : 66) * u) });
@@ -103,6 +105,14 @@ export class Drifters {
       }
       ctx.restore();
     }
+  }
+
+  // 바로 띄우기 (집중 선물 · 내 편지): 이미 떠 있는 것과 겹치지 않게 옆으로
+  send(it, beach) {
+    const { W, H, u } = beach, taken = this.list.map(d => d.x);
+    let x = W * (0.3 + Math.random() * 0.4);
+    for (let k = 0; k < 6 && taken.some(o => Math.abs(o - x) < 110 * u); k++) x = W * (0.2 + Math.random() * 0.6);
+    this.list.push({ it, x, y: H + 30 * u, vx: (Math.random() - 0.5) * 6 * u, ph: Math.random() * 6, born: beach.t, ashore: false, size: Math.max(it.box === 'bottle' ? 44 : 40, (it.box === 'bottle' ? 78 : 66) * u) });
   }
 
   hit(x, y, u) { return this.list.find(d => Math.hypot(d.x - x, d.y - y) < d.size * 0.75 + 10 * u) || null; }

@@ -15,20 +15,21 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v11.1.0';
-import { Beach } from './beach.js?v=v11.1.0';
-import { Kiwi } from './kiwi.js?v=v11.1.0';
-import { Sound } from './sound.js?v=v11.1.0';
-import { loadPlate } from './plate.js?v=v11.1.0';
-import { MAPS, MAP_IDS } from './maps.js?v=v11.1.0';
-import { WaterGL } from './water.js?v=v11.1.0';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v11.1.0';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v11.1.0';
-import { Clouds } from './clouds.js?v=v11.1.0';
-import { Gulls } from './gulls.js?v=v11.1.0';
-import { Atmos, WEATHERS, WEATHER_NAME } from './atmos.js?v=v11.1.0';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v11.1.0';
-import { clamp, dist } from './util.js?v=v11.1.0';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v12.0.0';
+import { Beach } from './beach.js?v=v12.0.0';
+import { Kiwi } from './kiwi.js?v=v12.0.0';
+import { Sound } from './sound.js?v=v12.0.0';
+import { loadPlate } from './plate.js?v=v12.0.0';
+import { MAPS, MAP_IDS } from './maps.js?v=v12.0.0';
+import { WaterGL } from './water.js?v=v12.0.0';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v12.0.0';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v12.0.0';
+import { Clouds } from './clouds.js?v=v12.0.0';
+import { Gulls } from './gulls.js?v=v12.0.0';
+import { Atmos, WEATHERS, WEATHER_NAME } from './atmos.js?v=v12.0.0';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v12.0.0';
+import { clamp, dist } from './util.js?v=v12.0.0';
+import { Focus, Awake, LENGTHS } from './focus.js?v=v12.0.0';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -95,6 +96,9 @@ let leaves = [];  // 키위가 덤불을 드나들 때 튀는 잎
 let sparks = [];  // 유리병·상자를 열 때 튀는 반짝이
 const col = new Collection(() => saved('items'), v => save('items', v));
 const drifters = new Drifters();
+const focus = new Focus(saved, save);   // v12 집중 모드
+const awake = new Awake();
+let walker = null;   // 집중하는 동안 숲 가장자리를 따라 오가는 키위 한 마리
 // 새로 나오는 키위는 입히기로 고른 옷 중 하나를 입는다 (가끔은 맨몸)
 const pickSkin = () => { const w = col.wear; return w.length && Math.random() < 0.75 ? w[Math.floor(Math.random() * w.length)] : null; };
 const LEAF_C = ['#6F9A3B', '#A9C24C', '#3E6B37', '#C8C85A'];
@@ -191,6 +195,7 @@ function wash() {
   const top = box ? box.y0 - S * 0.5 : beach.shoreY - beach.H * 0.3;
   const rise = beach.surge(Math.max(beach.bushY + 30 * beach.u, top));
   for (const k of kiwis) {
+    if (k.focus) continue;   // 집중 키위는 파도가 와도 제 길을 간다
     if (k.job) { k.job.taken = null; k.job = null; }
     k.flee(beach.grass(k.x) - 50 * beach.u);
   }
@@ -272,7 +277,7 @@ function spawn() {
 
 function assign() {
   const open = jobs.filter(j => !j.done && !j.taken && !(j.notBefore > beach.t));
-  for (const kw of kiwis.filter(k => k.state === 'free' && !k.gone)) {
+  for (const kw of kiwis.filter(k => k.state === 'free' && !k.gone && !k.focus)) {
     if (!open.length) break;
     const first = open[0].i;
     let best = null, bestScore = Infinity, rev = false;
@@ -303,6 +308,107 @@ function loiter(kw) {
   } while (++tries < 6 && phase !== 'idle' && x > b.x0 && x < b.x1 && y > b.y0 && y < b.y1);
   kw.wanderTo(x, y);
 }
+
+// ── v12 집중 모드 ──
+// 집중 키위: 숲 가장자리 바로 아래 길을 따라 왼쪽 끝 ↔ 오른쪽 끝을 천천히 오간다 (진행 막대 대신)
+// 길은 숲 줄을 따라 10칸으로 나눠 이어 걷는다 (한 번에 곧게 가면 숲이 낮게 내려온 곳에서 덤불 속으로 들어간다)
+function patrol(kw) {
+  const u = beach.u, lane = x => Math.min(beach.grass(x) + 36 * u, beach.edge(x) - 40 * u);
+  if (kw.state === 'wander' && kw.goal && dist(kw.x, kw.y, kw.goal.x, kw.goal.y) > kw.k * 0.3) return;
+  if (kw.state !== 'wander' && kw.state !== 'free' && kw.state !== 'idle') return;   // 콕 하는 중 등은 마저 하게
+  kw.lap ??= kw.x < W / 2 ? 1 : -1;
+  const x = clamp(kw.x + kw.lap * W * 0.08, W * 0.08, W * 0.92);
+  if (x <= W * 0.08 + 1 || x >= W * 0.92 - 1) kw.lap = -kw.lap;
+  kw.wanderTo(x, lane(x));
+}
+function pickWalker() {
+  const pool = kiwis.filter(k => !k.gone && k.state !== 'flee' && !k.busy);
+  const kw = pool.length ? pool[Math.floor(Math.random() * pool.length)] : spawn();
+  if (kw.job) { kw.job.taken = null; kw.job = null; }
+  kw.focus = true; kw.lap = null; kw.state = 'free';
+  return kw;
+}
+const focusBtn = document.getElementById('focusBtn'), focusPanel = document.getElementById('focusPanel'), focusHud = document.getElementById('focusHud');
+const fmtTime = ms => { const t = Math.ceil(ms / 1000); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
+const n0 = v => v.toLocaleString('ko-KR');
+const km = st => (st * 0.5 / 1000).toFixed(1);   // 키위 걸음 0.5m 로 친 거리 (디자인 값)
+let focusShownAt = 0;
+function paintFocus() {
+  const on = focus.active, now = Date.now();
+  focusBtn.classList.toggle('on', on);
+  focusHud.hidden = !on;
+  focusPanel.querySelector('.idle').hidden = on;
+  focusPanel.querySelector('.busy').hidden = !on;
+  if (on) {
+    const left = fmtTime(focus.left(now)), st = n0(focus.steps(now));
+    focusHud.querySelector('.t').textContent = left; focusHud.querySelector('.s').textContent = st + '보';
+    focusHud.setAttribute('aria-label', `집중 중, ${left} 남음, ${st}보`);
+    document.getElementById('focusLeft').textContent = left; document.getElementById('focusSteps').textContent = st;
+  }
+  for (const r of focusPanel.querySelectorAll('input[name="flen"]')) r.checked = Number(r.value) === focus.len;
+  document.getElementById('focusStats').textContent = focus.total || focus.done
+    ? `오늘 ${n0(focus.todaySteps)}보 · 지금까지 ${n0(focus.total)}보 (약 ${km(focus.total)}km) · 끝까지 ${focus.done}번` : '';
+}
+function startFocus() {
+  const ta = document.getElementById('focusLetter');
+  focus.start(focus.len, ta.value);
+  ta.value = '';
+  awake.on();
+  walker = pickWalker();
+  walker.startle();
+  sound.call(0, walker.x);
+  openFocusPanel(false);
+  toast(`집중 ${focus.len}분 시작`);
+  paintFocus();
+}
+function releaseWalker(hop) {
+  if (walker) { walker.focus = false; if (hop) walker.hop(3); if (walker.state === 'wander') walker.state = 'free'; }
+  walker = null;
+}
+// 끝까지 했다: 걸음을 쌓고, 물 위로 선물 상자(옷·장소, 다 모았으면 편지) + 시작할 때 쓴 내 편지
+function completeFocus() {
+  const r = focus.complete();
+  awake.off(); releaseWalker(true);
+  kiwis.forEach((k, i) => k.hop(2, i * 0.07));
+  sound.chorus(kiwis.filter(k => !k.gone).map(k => k.x));
+  const gift = col.next(it => it.kind !== 'letter') || col.next();
+  if (gift) drifters.send(gift, beach);
+  if (r.letter) drifters.send({ id: 'mine', kind: 'mine', box: 'bottle', title: `${r.min}분 전의 나에게서`, text: r.letter }, beach);
+  toast(`집중 끝 · ${n0(r.steps)}보 걸었어요${gift || r.letter ? ' — 물 위를 보세요' : ''}`, 3200);
+  paintFocus();
+}
+function endFocus(r, why) {
+  awake.off(); releaseWalker(false);
+  if (r) toast(`${why} · 여기까지 ${n0(r.steps)}보`, 3200);
+  paintFocus();
+}
+function focusTick() {
+  if (!focus.active) { if (walker) releaseWalker(false); return; }
+  if (!walker || walker.gone || !kiwis.includes(walker)) walker = pickWalker();
+  if (focus.tick() === 'done') { completeFocus(); return; }
+  const now = Date.now();
+  if (now - focusShownAt > 250) { focusShownAt = now; paintFocus(); }
+}
+const openFocusPanel = open => {
+  focusPanel.hidden = !open; focusBtn.setAttribute('aria-expanded', String(open));
+  if (open) { paintFocus(); (focusPanel.querySelector('.busy:not([hidden]) button') || focusPanel.querySelector('input:checked') || focusPanel.querySelector('input')).focus(); }
+};
+focusBtn.addEventListener('click', () => { unlock(); openFocusPanel(focusPanel.hidden); });
+focusHud.addEventListener('click', () => openFocusPanel(focusPanel.hidden));
+focusPanel.addEventListener('change', e => { if (e.target.name === 'flen') { focus.len = Number(e.target.value); focus.store(); } });
+document.getElementById('focusStart').addEventListener('click', () => { unlock(); startFocus(); });
+document.getElementById('focusStop').addEventListener('click', () => { openFocusPanel(false); endFocus(focus.finish(Date.now()), '집중을 멈췄어요'); });
+document.addEventListener('pointerdown', e => { if (!focusPanel.hidden && !focusPanel.contains(e.target) && !focusBtn.contains(e.target) && !focusHud.contains(e.target)) openFocusPanel(false); });
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && !focusPanel.hidden) { openFocusPanel(false); focusBtn.focus(); } });
+// 화면을 떠났다 돌아오면: 10초 안이면 이어서, 넘으면 멈춤 (떠난 때까지 걸은 것만 친다)
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { focus.hidden(); return; }
+  const r = focus.visible();
+  if (r && r.due) completeFocus();
+  else if (r && r.failed) endFocus(r, '화면을 떠나서 집중이 멈췄어요');
+  else if (focus.active) awake.on();
+});
+window.addEventListener('pagehide', () => focus.hidden());
 
 // ── 카메라 ──
 function updateCamera(dt) {
@@ -391,7 +497,8 @@ function tick(dt) {
   }
 
   for (const kw of kiwis) {
-    if (kw.state === 'free' && phase !== 'writing') loiter(kw);
+    if (kw.focus) patrol(kw);
+    else if (kw.state === 'free' && phase !== 'writing') loiter(kw);
     kw.update(dt, world);
     // 숲 덤불을 드나들 때: 가장자리 근처에서 서서히 보였다 사라지고, 잎이 살짝 흔들려 튄다
     const g = beach.grass(kw.x), u = beach.u;
@@ -400,7 +507,9 @@ function tick(dt) {
     if (kw.inside !== undefined && inside !== kw.inside) rustle(kw.x, g - 6 * u);
     kw.inside = inside;
   }
+  drifters.paused = focus.active;
   drifters.update(dt, beach, col, d => sound.arrive(d.x));
+  focusTick();
   sparks = sparks.filter(s => (s.age += dt) < s.life);
   for (const s of sparks) { s.x += s.vx * dt; s.y += s.vy * dt; s.vy += 60 * beach.u * dt; s.vx *= 0.96; }
   leaves = leaves.filter(l => (l.age += dt) < l.life);
@@ -512,11 +621,11 @@ const weatherBtn = document.getElementById('weatherBtn');
 const TOUCH = matchMedia('(hover: none)').matches;
 
 let toastT = null;
-function toast(text) {
+function toast(text, ms = 1300) {
   toastEl.textContent = text;
   toastEl.classList.add('on');
   clearTimeout(toastT);
-  toastT = setTimeout(() => toastEl.classList.remove('on'), 1300);
+  toastT = setTimeout(() => toastEl.classList.remove('on'), ms);
 }
 
 const unlock = () => sound.unlock();
@@ -575,10 +684,11 @@ infoBtn.addEventListener('click', () => openInfo(info.hidden));
 info.addEventListener('click', e => { if (e.target === info || e.target.closest('[data-close]')) openInfo(false); });
 window.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !info.hidden) openInfo(false);
-  if (e.key === 'v' && document.activeElement !== input) viewBtn.click();
-  if (e.key === 'm' && document.activeElement !== input) modeBtn.click();
-  if (e.key === 'w' && document.activeElement !== input) weatherBtn.click();
-  if (e.key === 't' && document.activeElement !== input) { hourShift = (hourShift + 3) % 24; toast(`시간 미리보기 +${hourShift}시간`); }
+  if (e.target.matches && e.target.matches('input[type="text"], textarea')) return;
+  if (e.key === 'v') viewBtn.click();
+  if (e.key === 'm') modeBtn.click();
+  if (e.key === 'w') weatherBtn.click();
+  if (e.key === 't') { hourShift = (hourShift + 3) % 24; toast(`시간 미리보기 +${hourShift}시간`); }
 });
 
 // 누르기: 구름이면 찢고, 키위면 놀라고, 빈 모래면 근처 키위가 와서 콕
@@ -592,7 +702,7 @@ document.getElementById('touch').addEventListener('pointerdown', e => {
   const hit = kiwis.find(k => dist(k.x, k.y - k.k * 0.45, x, y) < k.k * 0.55);
   if (hit) { if (!hit.busy && hit.state !== 'flee') hit.startle(); sound.call(0, hit.x); return; }
   if (y < beach.grass(x) || y > beach.edge(x) - 10) return;
-  const idle = kiwis.filter(k => !k.busy && k.state !== 'flee');
+  const idle = kiwis.filter(k => !k.busy && k.state !== 'flee' && !k.focus);
   const kw = idle.length ? idle.reduce((a, b) => (dist(a.x, a.y, x, y) < dist(b.x, b.y, x, y) ? a : b)) : spawn();
   kw.digAt(x, y);
 });
@@ -603,7 +713,7 @@ window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() =
 // 그림 판·키위·갈매기 그림을 다 읽은 뒤 시작한다
 async function boot() {
   const img = src => new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp?v=v11.1.0'), img('assets/gull.webp?v=v11.1.0'), img('assets/bottle.webp?v=v11.1.0'), img('assets/crate.webp?v=v11.1.0')]);
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp?v=v12.0.0'), img('assets/gull.webp?v=v12.0.0'), img('assets/bottle.webp?v=v12.0.0'), img('assets/crate.webp?v=v12.0.0')]);
   drifters.setSprites({ bottle, crate });
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
@@ -655,8 +765,9 @@ const foundEl = document.getElementById('found'), foundWear = document.getElemen
 let foundItem = null;
 function openDrift(d) {
   drifters.open(d, beach.t);
-  const fresh = !col.has(d.it.id);
-  col.add(d.it.id);
+  const mine = d.it.kind === 'mine';
+  const fresh = mine || !col.has(d.it.id);
+  if (!mine) col.add(d.it.id);
   if (d.it.kind === 'map') paintModeMenu();
   sound.found(d.x);
   const u = beach.u, C = ['#fff6c9', '#ffd98a', '#ffffff', '#ffc2a8'];
@@ -667,7 +778,11 @@ function showFound(it, fresh = false) {
   foundItem = it;
   const art = foundEl.querySelector('.art'), title = document.getElementById('foundTitle'), body = foundEl.querySelector('.body');
   art.textContent = '';
-  if (it.kind === 'letter') {
+  if (it.kind === 'mine') {
+    const p = document.createElement('div'); p.className = 'paper'; p.textContent = it.text; art.append(p);
+    title.textContent = it.title; body.textContent = '집중을 끝까지 했어요';
+    foundWear.hidden = true;
+  } else if (it.kind === 'letter') {
     const p = document.createElement('div'); p.className = 'paper'; p.textContent = it.text; art.append(p);
     title.textContent = (fresh ? '유리병 속 ' : '') + it.title; body.textContent = `${col.count} / ${ITEMS.length} 모음`;
     foundWear.hidden = true;
@@ -730,6 +845,7 @@ settings.addEventListener('change', e => {
 document.addEventListener('pointerdown', e => { if (!settings.hidden && !settings.contains(e.target) && !setBtn.contains(e.target)) openSettings(false); });
 window.addEventListener('keydown', e => { if (e.key === 'Escape' && !settings.hidden) { openSettings(false); setBtn.focus(); } });
 paintMode(); paintModeMenu();
+{ const st = focus.resolveStale(); paintFocus(); if (st) setTimeout(() => toast(`지난 집중은 화면을 떠나서 멈췄어요 · ${n0(st.steps)}보`, 3200), 1500); }
 const paintWeather = () => { weatherBtn.dataset.weather = atmos.weather; weatherBtn.setAttribute('aria-label', `날씨: ${WEATHER_NAME[atmos.weather]} (바꾸기)`); };
 weatherBtn.addEventListener('click', () => {
   atmos.setWeather(WEATHERS[(WEATHERS.indexOf(atmos.weather) + 1) % WEATHERS.length]);
@@ -741,4 +857,4 @@ paintWeather();
 const firstWrite = () => { if (!plate) { setTimeout(firstWrite, 300); return; } if (phase === 'idle' && !current && mode === 'free') write(FIRST); };
 setTimeout(firstWrite, 700);
 
-window.__kiwi = { get phase() { return phase; }, get kiwis() { return kiwis; }, get jobs() { return jobs; }, get current() { return current; }, beach, clouds, atmos, sound, get plate() { return plate; }, drifters, col, openDrift, get notes() { return notes; }, submit, setView, toWorld };
+window.__kiwi = { focus, completeFocus, get phase() { return phase; }, get kiwis() { return kiwis; }, get jobs() { return jobs; }, get current() { return current; }, beach, clouds, atmos, sound, get plate() { return plate; }, drifters, col, openDrift, get notes() { return notes; }, submit, setView, toWorld };
