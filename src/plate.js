@@ -15,7 +15,7 @@ const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
-  const [img, dry, sea] = await Promise.all([load(name + '.webp?v=v16.2.2'), load(name + '-dry.webp?v=v16.2.2'), load(name + '-sea.webp?v=v16.2.2')]);
+  const [img, dry, sea] = await Promise.all([load(name + '.webp?v=v16.2.3'), load(name + '-dry.webp?v=v16.2.3'), load(name + '-sea.webp?v=v16.2.3')]);
   const p = new Plate(img, dry, sea, opts);
   p.name = name;
   return p;
@@ -145,19 +145,50 @@ export class Plate {
       const grey = this.opts.stones && Math.abs(a[i] - a[i + 1]) < 38 && Math.abs(a[i + 1] - a[i + 2]) < 38 && la > 60 && la < 215;
       bin[y * mw + x] = !red && ((rocky && ((diff > 90 && lb - la > 20) || landRock)) || (grey && diff > 70)) ? 1 : 0;
     }
-    // 열기(깎았다 다시 불리기): 물결·거품 윤곽 같은 가는 선은 사라지고 바위 덩어리만 남는다
-    const R = 4, pass = (src, keep) => {
-      const tmp = new Uint8Array(mw * mh), out = new Uint8Array(mw * mh);
-      for (let y = 0; y < mh; y++) for (let x = 0; x < mw; x++) { let v = keep; for (let k = -R; k <= R; k++) { const xx = Math.min(mw - 1, Math.max(0, x + k)); if (src[y * mw + xx] !== keep) { v = 1 - keep; break; } } tmp[y * mw + x] = v; }
-      for (let y = 0; y < mh; y++) for (let x = 0; x < mw; x++) { let v = keep; for (let k = -R; k <= R; k++) { const yy = Math.min(mh - 1, Math.max(0, y + k)); if (tmp[yy * mw + x] !== keep) { v = 1 - keep; break; } } out[y * mw + x] = v; }
-      return out;
+    // 다듬기 (v16.2.3): 예전엔 네모 틀(9×9)로 깎았다 불려서 남은 조각이 전부 네모났다(물속 돌이 픽셀처럼 깨져 보임).
+    //  ① 둥근 틀로 열기(흐림 + 문턱으로 깎고 불리기) — 가는 선(물결·거품 윤곽)·흩어진 점은 사라지고, 모서리는 둥글게 남는다
+    //  ② 덩어리별로 거르기 — 너무 작은 조각 · 가로로 길고 얇은 띠(물가 거품 줄이 바위로 잡힌 것)는 버린다
+    const yS = Math.max(0, y0 - 16);   // 그 위는 바위를 찾지 않은 숲 쪽이라 늘 0 — 건너뛴다
+    const soft = new Float32Array(mw * mh), tmp = new Float32Array(mw * mh);
+    for (let j = yS * mw; j < mw * mh; j++) soft[j] = bin[j];
+    const blur = (r) => {   // 상자 흐림 가로·세로 (두 번 돌리면 둥근 흐림에 가깝다)
+      const n = 2 * r + 1;
+      for (let y = yS; y < mh; y++) { let acc = 0; const o = y * mw; for (let x = -r; x <= r; x++) acc += soft[o + Math.min(mw - 1, Math.max(0, x))]; for (let x = 0; x < mw; x++) { tmp[o + x] = acc / n; acc += soft[o + Math.min(mw - 1, x + r + 1)] - soft[o + Math.max(0, x - r)]; } }
+      for (let x = 0; x < mw; x++) { let acc = 0; for (let y = yS - r; y <= yS + r; y++) acc += tmp[Math.min(mh - 1, Math.max(0, y)) * mw + x]; for (let y = yS; y < mh; y++) { soft[y * mw + x] = acc / n; acc += tmp[Math.min(mh - 1, y + r + 1) * mw + x] - tmp[Math.max(0, y - r) * mw + x]; } }
     };
-    const opened = pass(pass(bin, 1), 0);   // 깎기(1이 모두 1이어야 1) → 불리기(0이 모두 0이어야 0)
+    // 깎기: 흐린 뒤 0.75 넘는 곳만(촘촘히 바위인 곳) → 불리기: 그것을 다시 흐린 뒤 0.25 넘는 곳 = 둥근 틀로 연 것과 같다
+    blur(3); blur(3);
+    for (let j = yS * mw; j < mw * mh; j++) soft[j] = soft[j] > 0.75 ? 1 : 0;
+    blur(3); blur(3);
+    const opened = new Uint8Array(mw * mh);
+    for (let j = yS * mw; j < mw * mh; j++) opened[j] = soft[j] > 0.25 ? 1 : 0;
+    const seen = new Uint8Array(mw * mh), stack = new Int32Array(mw * mh), comp = new Int32Array(mw * mh);
+    for (let j0 = yS * mw; j0 < mw * mh; j0++) {
+      if (!opened[j0] || seen[j0]) continue;
+      let sp = 0, n = 0, x0 = mw, x1 = 0, yA = mh, yB = 0;
+      stack[sp++] = j0; seen[j0] = 1;
+      while (sp) {
+        const j = stack[--sp]; comp[n++] = j;
+        const x = j % mw, y = (j - x) / mw;
+        if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < yA) yA = y; if (y > yB) yB = y;
+        if (x > 0 && opened[j - 1] && !seen[j - 1]) { seen[j - 1] = 1; stack[sp++] = j - 1; }
+        if (x < mw - 1 && opened[j + 1] && !seen[j + 1]) { seen[j + 1] = 1; stack[sp++] = j + 1; }
+        if (y > 0 && opened[j - mw] && !seen[j - mw]) { seen[j - mw] = 1; stack[sp++] = j - mw; }
+        if (y < mh - 1 && opened[j + mw] && !seen[j + mw]) { seen[j + mw] = 1; stack[sp++] = j + mw; }
+      }
+      const bw = x1 - x0 + 1, bh = yB - yA + 1;
+      const tiny = n < 110;                                   // 지름 약 12칸(판 기준) 보다 작은 조각
+      // 가로로 길고 얇은 띠(굽어도) = 물가 거품 줄 — 평균 두께(넓이 ÷ 너비)로 잰다. 물가선 가까이면 조금 두꺼워도 거품으로 본다
+      const cx = (x0 + x1) >> 1, sy = this.shoreP[Math.min(this.shoreP.length - 1, Math.floor(cx * this.shoreP.length / mw))] * mh / this.ph;
+      const nearShore = Math.abs((yA + yB) / 2 - sy) < 90, thick = n / bw;
+      const streak = bw > 30 && bw > bh * 2.2 && (thick < 9 || (nearShore && thick < 18));
+      if (tiny || streak) for (let k = 0; k < n; k++) opened[comp[k]] = 0;
+    }
     for (let j = 0; j < mw * mh; j++) { d.data[j * 4] = d.data[j * 4 + 1] = d.data[j * 4 + 2] = 255; d.data[j * 4 + 3] = opened[j] * 255; }
     g.putImageData(d, 0, 0);
     // 가장자리를 살짝 부풀리고 부드럽게
     const o = document.createElement('canvas'); o.width = mw; o.height = mh;
-    const og = o.getContext('2d'); og.filter = 'blur(1.5px)';
+    const og = o.getContext('2d'); og.filter = 'blur(2px)';
     og.drawImage(m, 0, 0);
     return o;
   }
