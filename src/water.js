@@ -18,7 +18,8 @@ in vec2 aP; void main(){ gl_Position = vec4(aP, 0., 1.); }`;
 const FS = `#version 300 es
 precision highp float;
 precision highp sampler2D;
-uniform sampler2D uPlate, uDry, uSea, uRock;
+uniform sampler2D uPlate, uDry, uSea, uRock, uPlateN, uDryN, uSeaN;   // …N = 밤 그림 (v16.5)
+uniform float uNA;          // 밤 그림을 섞는 정도 0~1
 uniform vec4 uL[${N}];   // 칸마다 (해안선, 그린 해안선, 젖은 줄, 바다 판 해안선) ÷ 화면 높이
 uniform float uLod;          // 그림을 읽을 해상도 단계 — 직접 정한다 (휴대폰 GPU가 조건문 안에서 단계를 잘못 골라 색이 튀지 않게)
 uniform vec2 uRes, uPS;
@@ -35,6 +36,10 @@ vec4 lineAt(float x) {
   return mix(uL[i], uL[j], f - float(i));
 }
 vec2 uvOf(vec2 p) { return ((p - uMap.yz) / uMap.x) / uPS; }
+// 판 읽기: 해 질 녘부터 밤 그림을 섞는다 (낮에는 uNA = 0 이라 밤 그림을 읽지 않는다)
+vec3 tP(vec2 uv, float l) { vec3 c = textureLod(uPlate, uv, l).rgb; return uNA > 0. ? mix(c, textureLod(uPlateN, uv, l).rgb, uNA) : c; }
+vec3 tD(vec2 uv, float l) { vec3 c = textureLod(uDry, uv, l).rgb; return uNA > 0. ? mix(c, textureLod(uDryN, uv, l).rgb, uNA) : c; }
+vec3 tS(vec2 uv, float l) { vec3 c = textureLod(uSea, uv, l).rgb; return uNA > 0. ? mix(c, textureLod(uSeaN, uv, l).rgb, uNA) : c; }
 float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float vnoise(vec2 p) {
   vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
@@ -68,8 +73,8 @@ void main() {
   // (최적화) 깊은 물(d ≥ 1.2)에서는 땅 색이 섞이지 않는다 — 판 읽기·노이즈를 건너뛴다
   vec3 land = vec3(0.);
   if (d < 1.2) {
-    land = textureLod(uPlate, uvOf(p), uLod).rgb;
-    if (p.y > s - 6. * u) land = mix(land, textureLod(uDry, uvOf(p), uLod).rgb, smoothstep(s - 4. * u, s + 8. * u, p.y));
+    land = tP(uvOf(p), uLod);
+    if (p.y > s - 6. * u) land = mix(land, tD(uvOf(p), uLod), smoothstep(s - 4. * u, s + 8. * u, p.y));
     if (uSnow > 0.) {
       float k = smoothstep(.38, .7, fbm(p / (55. * u)) + uSnow * .9 - .42) * uSnow;
       land = mix(land, vec3(.97, .96, .94), k * smoothstep(e - 2., e - 30. * u, p.y) * .92);
@@ -124,7 +129,7 @@ void main() {
     vec2 dis = vec2(sin(q.y * .045 + uT * .75 + 1.5 * sin(q.x * .012 + uT * .3)),
                     cos(q.x * .03 - uT * .6 + 1.2 * sin(q.y * .02 - uT * .25))) * a1;
     if (depth > 60. * u) dis += (vec2(fbm(q * .008 + vec2(uT * .05, 0.)), fbm(q * .008 + vec2(5.2, uT * .04))) - .5) * 14. * u * smoothstep(60. * u, 420. * u, depth);
-    vec3 sea = big > 0. && big < 1. ? mix(textureLod(uSea, uvOf(vec2(p.x, yS) + dis), uLod).rgb, textureLod(uSea, uvOf(vec2(p.x, yI) + dis), uLod).rgb, big) : textureLod(uSea, uvOf(sp + dis), uLod).rgb;
+    vec3 sea = big > 0. && big < 1. ? mix(tS(uvOf(vec2(p.x, yS) + dis), uLod), tS(uvOf(vec2(p.x, yI) + dis), uLod), big) : tS(uvOf(sp + dis), uLod);
     // 얕은 물 막: 그 줄의 물빛을 흐리게 펴고, 비친 모래·되돌아 흐르는 물결을 얹는다
     // 물 막은 물가 띠 안에서 차오르고 원래 바다 안쪽에서 빠진다 → 띠와 바다 사이의 "한 줄을 늘인" 자리는 늘 물 막에 가려진다
     float sheet = smoothstep(e + D0 - 60. * u, e + D0, p.y) * (1. - smoothstep(s + D0, s + D0 + 50. * u, p.y)) * big;   // 물 막은 큰 파도 때만
@@ -133,7 +138,7 @@ void main() {
       // 얕은 물 아래 모래가 일렁여 비친다: 큰 덩어리 노이즈로 휘게(도메인 워핑) 해서 반복 무늬가 안 보이게
       vec2 wq = q * .012;
       vec2 warp = vec2(fbm(wq + vec2(0., -uT * .18)), fbm(wq + vec2(4.3, -uT * .14))) - .5;
-      vec3 under = textureLod(uDry, uvOf(p + warp * 22. * u), uLod).rgb;
+      vec3 under = tD(uvOf(p + warp * 22. * u), uLod);
       float k = clamp((p.y - e - D0) / max(1., up), 0., 1.);
       vec3 teal = mix(vec3(.5, .85, .8), vec3(.3, .73, .75), k);
       vec3 film = mix(under * vec3(.66, .93, .95) + vec3(.03, .09, .11), teal, .45 + .25 * k);
@@ -188,7 +193,7 @@ void main() {
     vec2 rp = uvOf(p + dis * .5 * smoothstep(60. * u, 260. * u, depth));
     float rk = textureLod(uRock, rp, 0.).a;
     if (rk > .01) {
-      vec3 rc = textureLod(uPlate, rp, uLod).rgb;
+      vec3 rc = tP(rp, uLod);
       sea = mix(sea, rc, rk);
     }
     col = mix(land, sea, smoothstep(-1.2, 1.2, d));
@@ -211,9 +216,11 @@ export class WaterGL {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
     const loc = gl.getAttribLocation(pr, 'aP'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     this.U = {};
-    for (const n of ['uPlate', 'uDry', 'uL', 'uLod', 'uSea', 'uRock', 'uRes', 'uPS', 'uMap', 'uDpr', 'uT', 'uU', 'uSnow', 'uNight', 'uSurge', 'uRain']) this.U[n] = gl.getUniformLocation(pr, n);
+    for (const n of ['uPlate', 'uDry', 'uL', 'uLod', 'uSea', 'uRock', 'uPlateN', 'uDryN', 'uSeaN', 'uNA', 'uRes', 'uPS', 'uMap', 'uDpr', 'uT', 'uU', 'uSnow', 'uNight', 'uSurge', 'uRain']) this.U[n] = gl.getUniformLocation(pr, n);
     this.line = new Float32Array(N * 4);
     gl.uniform1i(this.U.uPlate, 0); gl.uniform1i(this.U.uDry, 1); gl.uniform1i(this.U.uSea, 3); gl.uniform1i(this.U.uRock, 4);
+    gl.uniform1i(this.U.uPlateN, 5); gl.uniform1i(this.U.uDryN, 6); gl.uniform1i(this.U.uSeaN, 7);
+    this.ntexs = null;   // 밤 그림 (읽었을 때만)
     this.texs = {};
   }
 
@@ -233,11 +240,22 @@ export class WaterGL {
     const gl = this.gl;
     if (this.plate === plate) return;
     for (const t of Object.values(this.texs)) gl.deleteTexture(t);   // 가로 ↔ 세로 판을 바꿀 때 앞 판을 비운다
+    this.dropNight();
     this.plate = plate;
     const up = (unit, src) => this.tex(unit, () => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src), true);
     this.texs = { img: up(0, plate.img), dry: up(1, plate.dry), sea: up(3, plate.sea), rock: up(4, plate.rockMask) };
     gl.uniform2f(this.U.uPS, plate.pw, plate.ph);
   }
+
+  // 밤 그림 올리기 · 내리기 (v16.5)
+  setNight(plate) {
+    const gl = this.gl;
+    if (plate !== this.plate || !plate.night || this.ntexs) return;
+    const up = (unit, src) => this.tex(unit, () => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src), true);
+    this.ntexs = { img: up(5, plate.night.img), dry: up(6, plate.night.dry), sea: up(7, plate.night.sea) };
+  }
+  dropNight() { if (this.ntexs) for (const t of Object.values(this.ntexs)) this.gl.deleteTexture(t); this.ntexs = null; }
+  get nightOK() { return !!this.ntexs; }
 
   resize(W, H, dpr) {
     this.W = W; this.H = H; this.dpr = Math.min(dpr, 2);   // 숲 잎 층(키위 위)과 같은 해상도 — 다르면 잎 가장자리가 어긋나 보인다
@@ -246,7 +264,7 @@ export class WaterGL {
     this.gl.viewport(0, 0, this.cv.width, this.cv.height);
   }
 
-  draw(beach, { snow = 0, night = 0, rain = 0 } = {}) {
+  draw(beach, { snow = 0, night = 0, rain = 0, art = 0 } = {}) {
     const gl = this.gl, { W, H } = this, P = this.plate, m = P.map;
     const step = W / (N - 1), wc = beach.wet.length;
     // 젖은 줄을 옆 칸과 이어 부드럽게 (v16.2.4) — 칸마다 "가장 높이 왔던 곳"을 따로 기억하고 똑같은 속도로 말라서,
@@ -276,6 +294,7 @@ export class WaterGL {
     gl.uniform1f(this.U.uSnow, snow);
     gl.uniform1f(this.U.uNight, night);
     gl.uniform1f(this.U.uRain, rain);
+    gl.uniform1f(this.U.uNA, this.ntexs ? art : 0);
     gl.uniform1f(this.U.uSurge, beach.surgeK || 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }

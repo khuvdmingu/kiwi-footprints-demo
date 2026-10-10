@@ -5,8 +5,8 @@
 //  · 큰 파도: surge(y) — 오르기 · 머물기 · 빠지기. 물이 지나간 자리는 한동안 젖어 있다(wet)
 //  · 발자국: 'deep' 글씨 획 · 'faint' 오가는 길(곧 사라짐) · 'hole' 부리 자국
 
-import { clamp, easeOut, easeInOut } from './util.js?v=v16.4.0';
-import { PAL } from './tokens.js?v=v16.4.0';
+import { clamp, easeOut, easeInOut } from './util.js?v=v16.5.0';
+import { PAL } from './tokens.js?v=v16.5.0';
 
 const RISE = 1.5, HOLD = 0.5, FALL = 3.2;
 const FAINT = 0.22, FAINT_LIFE = 2.2;

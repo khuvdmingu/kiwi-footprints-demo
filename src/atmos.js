@@ -6,7 +6,7 @@
 //        구름 양·흐름 속도·파도 높이는 셰이더/해변에 넘기고, 빗줄기·물방울 고리·눈송이·나뭇잎·안개·반딧불이·야광은 여기서 #fx 캔버스에 그린다.
 //        눈은 시간이 지날수록 땅(셰이더 uSnow)과 나무에 쌓이고, 그치면 천천히 녹는다.
 
-import { clamp, lerp } from './util.js?v=v16.4.0';
+import { clamp, lerp } from './util.js?v=v16.5.0';
 
 export const WEATHERS = ['clear', 'cloudy', 'rain', 'snow', 'fog', 'wind'];
 export const WEATHER_NAME = { clear: '맑음', cloudy: '흐림', rain: '비', snow: '눈', fog: '안개', wind: '바람' };
@@ -141,8 +141,10 @@ export class Atmos {
     this.plankton = this.plankton.filter(p => p.age < p.life);
   }
 
-  tintCSS() {
-    const [r, g, b] = this.tint.map(Math.round);
+  // art: 밤 그림이 섞인 정도 — 그림이 이미 달밤이라 그만큼 시간 빛을 옅게 씌운다 (한밤은 그래도 더 어둡게 누른다)
+  tintCSS(art = 0) {
+    const k = 1 - 0.35 * art;
+    const [r, g, b] = this.tint.map(c => Math.round(255 - (255 - c) * k));
     const c = `rgb(${r},${g},${b})`;
     // 밤에는 가운데를 밝게 (달빛 웅덩이) — 한밤일수록 가장자리는 더 어둡고 글씨 쓰는 가운데는 읽힐 만큼 남는다
     const lift = this.night * 0.3, [r2, g2, b2] = [r, g, b].map(v => Math.round(v + (255 - v) * lift));
