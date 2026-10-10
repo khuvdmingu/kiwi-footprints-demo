@@ -42,6 +42,7 @@ export const MAPS = {
     gulls: false,
     eraser: 'rake',                  // 지우개: 물(파도) 대신 갈퀴 (beach.js · zen.js) — 판은 한 장(물 뺀·바위 지운 판 없음)
     rest: 0.58,                      // 갈퀴가 쉬는 줄(판 높이 비율). 그 아래 바위 섬에는 글씨를 쓰지 않는다
+    lineGap: 26.5,                   // 그림 속 가로 갈퀴 줄 간격(판 px, 가로·세로 판 모두 실측) — 다시 긋는 줄을 여기에 맞춘다
     ground: 'gravel',                // 숲 줄 찾기·발자국 색이 자갈 기준
     finds: ['pebble', 'heart', 'gold', 'pearl'],   // 물가 물건 중 정원에 어울리는 것만
     art: false,
