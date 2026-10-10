@@ -9,7 +9,7 @@
 //  믹서 값(소리 켜기·음악·환경음·효과음·발자국 음악)은 기기에 기억한다.
 //  브라우저는 사용자 동작 안에서만 소리를 열 수 있어서 unlock() 을 그때 부른다. 탭을 숨기면 멈춘다.
 
-import { Music } from './music.js?v=v16.0.0';
+import { Music } from './music.js?v=v16.1.0';
 
 // v16 아이템 소리·곡은 오픈소스 녹음 (전부 CC0 — 출처는 docs/v8-assets.md · 작품 설명). assets/audio/ 에서 처음 고를 때 받는다
 const AUDIO = 'assets/audio/';
@@ -253,18 +253,43 @@ export class Sound {
   step(x, y) {
     if (!this.ready()) return false;
     const pk = this.mix.stepPack || 'music';
-    if (pk !== 'music') {   // 고른 발자국 소리가 발자국 음악을 대신한다 (겹치지 않게)
-      if (this.gap('tex', 0.09)) { if (pk === 'sand') this.noise(0.04, 900 + Math.random() * 700, 1.2, 0.06, 0, 'bandpass', this.panOf(x)); else this.stepTex(pk, x); }
+    if (pk === 'sand') {     // 모래: 음 없이 조용한 톡
+      if (this.gap('tex', 0.09)) this.noise(0.04, 900 + Math.random() * 700, 1.2, 0.06, 0, 'bandpass', this.panOf(x));
       return false;
     }
     if (!this.gap('step', 0.11)) return false;
     const { top, bottom } = this.stage;
     const k = 1 - Math.max(0, Math.min(1, (y - top) / Math.max(1, bottom - top)));
-    const n = this.scaleNote(Math.round(k * 7) + 3);
-    this.pluck(n, 0.085, 0, 1.1, this.panOf(x), 'sfx', 0.35);
+    const n = this.scaleNote(Math.round(k * 7) + 3), pan = this.panOf(x);
+    if (pk === 'music') { this.pluck(n, 0.085, 0, 1.1, pan, 'sfx', 0.35); return true; }
+    // v16.1 발자국 소리도 음악처럼: 같은 규칙(화음 안, 위쪽 획일수록 높은 음)으로 바닥에 어울리는 악기가 울리고, 녹음 질감은 밑에 작게
+    this.stepVoice(pk, n, pan);
+    if (pk !== 'splash' && this.gap('tex', 0.09)) this.stepTex(pk, x, 0.55);
     return true;
   }
   pat() {}
+  // 바닥마다 다른 악기 (음 n 은 지금 화음 안의 음)
+  //  눈 = 얼음 종(맑은 사인 + 어긋난 배음, 길게) · 낙엽 = 나무 마림바(둥글고 짧게 + 나무 톡) · 자갈 = 돌 실로폰(단단하고 아주 짧게) · 물웅덩이 = 물방울(위에서 그 음으로 떨어진다)
+  stepVoice(pk, n, pan) {
+    const ctx = this.ctx, t = ctx.currentTime;
+    const tone = (midi, parts, vel, rev, glide = 0) => {
+      const f = 440 * Math.pow(2, (midi - 69) / 12), g = ctx.createGain();
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vel, t + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(...parts.map(p => p[2])) + 0.05);
+      this.route(g, 'sfx', pan, rev);
+      for (const [mul, amp, dec, type = 'sine'] of parts) {
+        const o = ctx.createOscillator(), og = ctx.createGain();
+        o.type = type;
+        if (glide) { o.frequency.setValueAtTime(f * mul * glide, t); o.frequency.exponentialRampToValueAtTime(f * mul, t + 0.045); } else o.frequency.value = f * mul;
+        og.gain.setValueAtTime(amp, t); og.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+        o.connect(og); og.connect(g); o.start(t); o.stop(t + dec + 0.05);
+      }
+    };
+    if (pk === 'snow') tone(n + 12, [[1, 1, 1.3], [2.76, 0.32, 0.5], [5.4, 0.12, 0.18]], 0.085, 0.45);
+    else if (pk === 'leaves') { tone(n, [[1, 1, 0.42], [4, 0.28, 0.07], [9.8, 0.06, 0.025]], 0.15, 0.25); this.noise(0.02, 2200, 1.5, 0.02, 0, 'bandpass', pan); }
+    else if (pk === 'gravel') tone(n + 12, [[1, 1, 0.22, 'triangle'], [2.9, 0.35, 0.09], [6.2, 0.1, 0.04]], 0.12, 0.18);
+    else if (pk === 'splash') tone(n + 12, [[1, 1, 0.28], [2, 0.15, 0.1]], 0.12, 0.35, 1.6);
+  }
 
   // ── v14 발자국 소리 (질감) ── 전부 잡음·발진기 합성, 녹음 없음
   //  v15.1: 발자국 음악(칼림바)·파도에 묻혀 "바꿔도 안 바뀐다"(사용자) → 2.5배 키우고, 글씨가 아닌 걸음에도 작게 낸다(walkStep)
@@ -332,7 +357,13 @@ export class Sound {
   // 들어 보기: 발자국 네 번
   previewStep(pk) {
     if (!this.ready()) return;
-    for (let i = 0; i < 4; i++) setTimeout(() => (pk === 'music' ? this.pluck(this.scaleNote(4 + i * 2), 0.085, 0, 1.1, 0, 'sfx', 0.35) : pk === 'sand' ? this.noise(0.04, 900 + Math.random() * 700, 1.2, 0.06, 0, 'bandpass', 0) : this.stepTex(pk, this.stage.W * (0.4 + i * 0.07))), i * 260);
+    // 들어 보기: 화음을 따라 올라가는 네 걸음 (고른 악기로)
+    for (let i = 0; i < 4; i++) setTimeout(() => {
+      const n = this.scaleNote(4 + i * 2);
+      if (pk === 'music') this.pluck(n, 0.085, 0, 1.1, 0, 'sfx', 0.35);
+      else if (pk === 'sand') this.noise(0.04, 900 + Math.random() * 700, 1.2, 0.06, 0, 'bandpass', 0);
+      else { this.stepVoice(pk, n, 0); if (pk !== 'splash') this.stepTex(pk, this.stage.W / 2, 0.55); }
+    }, i * 260);
   }
 
   // ── 자연 배경 ── 한 번에 하나. v16: 새·모닥불·개구리는 녹음 고리(playLoop), 풍경은 매 프레임 가끔 합성으로 낸다
