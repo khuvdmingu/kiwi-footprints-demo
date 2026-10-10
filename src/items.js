@@ -10,24 +10,25 @@
 
 export const ITEMS = [
   { id: 'letter1', kind: 'letter', box: 'bottle', title: '첫 번째 편지', text: '파도가 글씨를 가져가도, 쓰고 싶었던 마음은 모래 속에 남아요.' },
-  { id: 'hat', kind: 'wear', box: 'crate', name: '밀짚모자', img: 'kiwi-hat.webp?v=v17.0.2', note: '햇볕 좋은 날 산책용.' },
+  { id: 'hat', kind: 'wear', box: 'crate', name: '밀짚모자', img: 'kiwi-hat.webp?v=v18.0.0', note: '햇볕 좋은 날 산책용.' },
   { id: 'letter2', kind: 'letter', box: 'bottle', title: '두 번째 편지', text: '키위는 날지 못해서 천천히 걸어요. 천천히 가도 결국 도착해요.' },
-  { id: 'scarf', kind: 'wear', box: 'crate', name: '빨간 목도리', img: 'kiwi-scarf.webp?v=v17.0.2', note: '밤바람이 차가울 때.' },
+  { id: 'scarf', kind: 'wear', box: 'crate', name: '빨간 목도리', img: 'kiwi-scarf.webp?v=v18.0.0', note: '밤바람이 차가울 때.' },
   { id: 'letter3', kind: 'letter', box: 'bottle', title: '세 번째 편지', text: '작은 발자국도 모이면 글자가 돼요. 오늘 찍은 한 걸음도요.' },
-  { id: 'crown', kind: 'wear', box: 'crate', name: '꽃 화관', img: 'kiwi-crown.webp?v=v17.0.2', note: '숲 가장자리에서 엮었대요.' },
+  { id: 'crown', kind: 'wear', box: 'crate', name: '꽃 화관', img: 'kiwi-crown.webp?v=v18.0.0', note: '숲 가장자리에서 엮었대요.' },
   { id: 'letter4', kind: 'letter', box: 'bottle', title: '네 번째 편지', text: '지워진 자리는 다음 문장을 위한 빈 모래예요.' },
-  { id: 'glasses', kind: 'wear', box: 'crate', name: '동그란 안경', img: 'kiwi-glasses.webp?v=v17.0.2', note: '글씨를 더 반듯하게 쓰고 싶어서.' },
+  { id: 'glasses', kind: 'wear', box: 'crate', name: '동그란 안경', img: 'kiwi-glasses.webp?v=v18.0.0', note: '글씨를 더 반듯하게 쓰고 싶어서.' },
   { id: 'letter5', kind: 'letter', box: 'bottle', title: '다섯 번째 편지', text: '여기까지 걸어온 당신에게. — 키위 일동' },
-  { id: 'backpack', kind: 'wear', box: 'crate', name: '작은 배낭', img: 'kiwi-backpack.webp?v=v17.0.2', note: '다음 장소로 떠날 준비.' },
-  { id: 'map-snow', kind: 'map', box: 'crate', map: 'snow', name: '눈밭', img: 'snow-card.webp?v=v17.0.2', note: '눈 덮인 숲 아래 호숫가. 발자국이 또렷하게 남아요.' },
+  { id: 'backpack', kind: 'wear', box: 'crate', name: '작은 배낭', img: 'kiwi-backpack.webp?v=v18.0.0', note: '다음 장소로 떠날 준비.' },
+  { id: 'map-snow', kind: 'map', box: 'crate', map: 'snow', name: '눈밭', img: 'snow-card.webp?v=v18.0.0', note: '눈 덮인 숲 아래 호숫가. 발자국이 또렷하게 남아요.' },
   // v11.1 겨울 옷 (두 번째 묶음 — 눈밭을 연 뒤에 떠내려온다)
-  { id: 'beanie', kind: 'wear', box: 'crate', name: '방울 털모자', img: 'kiwi-beanie.webp?v=v17.0.2', note: '눈밭 산책 필수품.' },
-  { id: 'earmuffs', kind: 'wear', box: 'crate', name: '분홍 귀마개', img: 'kiwi-earmuffs.webp?v=v17.0.2', note: '호수 바람이 찰 때.' },
-  { id: 'sweater', kind: 'wear', box: 'crate', name: '눈꽃 스웨터', img: 'kiwi-sweater.webp?v=v17.0.2', note: '눈송이 무늬 두꺼운 니트.' },
-  { id: 'blanket', kind: 'wear', box: 'crate', name: '체크 담요', img: 'kiwi-blanket.webp?v=v17.0.2', note: '글씨 쓰다 쉬어 갈 때 두르는 망토.' },
-  { id: 'santa', kind: 'wear', box: 'crate', name: '산타 모자', img: 'kiwi-santa.webp?v=v17.0.2', note: '12월이 오면.' },
-  { id: 'vest', kind: 'wear', box: 'crate', name: '패딩 조끼', img: 'kiwi-vest.webp?v=v17.0.2', note: '털 깃이 달린 따뜻한 조끼.' },
-  { id: 'map-fall', kind: 'map', box: 'crate', map: 'fall', name: '가을 호숫가', img: 'fall-card.webp?v=v17.0.2', note: '단풍 숲 아래 잔잔한 호수. 낙엽이 떠다녀요.' },
+  { id: 'beanie', kind: 'wear', box: 'crate', name: '방울 털모자', img: 'kiwi-beanie.webp?v=v18.0.0', note: '눈밭 산책 필수품.' },
+  { id: 'earmuffs', kind: 'wear', box: 'crate', name: '분홍 귀마개', img: 'kiwi-earmuffs.webp?v=v18.0.0', note: '호수 바람이 찰 때.' },
+  { id: 'sweater', kind: 'wear', box: 'crate', name: '눈꽃 스웨터', img: 'kiwi-sweater.webp?v=v18.0.0', note: '눈송이 무늬 두꺼운 니트.' },
+  { id: 'blanket', kind: 'wear', box: 'crate', name: '체크 담요', img: 'kiwi-blanket.webp?v=v18.0.0', note: '글씨 쓰다 쉬어 갈 때 두르는 망토.' },
+  { id: 'santa', kind: 'wear', box: 'crate', name: '산타 모자', img: 'kiwi-santa.webp?v=v18.0.0', note: '12월이 오면.' },
+  { id: 'vest', kind: 'wear', box: 'crate', name: '패딩 조끼', img: 'kiwi-vest.webp?v=v18.0.0', note: '털 깃이 달린 따뜻한 조끼.' },
+  { id: 'map-fall', kind: 'map', box: 'crate', map: 'fall', name: '가을 호숫가', img: 'fall-card.webp?v=v18.0.0', note: '단풍 숲 아래 잔잔한 호수. 낙엽이 떠다녀요.' },
+  { id: 'map-zen', kind: 'map', box: 'crate', map: 'zen', name: '모래 정원', img: 'zen-card.webp?v=v18.0.0', note: '갈퀴 줄 그은 흰 자갈 정원. 파도 대신 갈퀴가 쓸어 지워요.' },
   // v14 소리 (소라 껍데기에 담겨 온다 — 켜 두기만 해도, 편지 다음 순서). group: step = 발자국 소리, nature = 자연 배경 (sound.js)
   { id: 's-snow', kind: 'sound', box: 'conch', group: 'step', pack: 'snow', name: '눈 밟는 소리', note: '발자국마다 뽀드득 — 녹음 BigSoundBank (CC0).' },
   { id: 'n-birds', kind: 'sound', box: 'conch', group: 'nature', pack: 'birds', name: '숲 새소리', note: '숲속 새와 바람 — 녹음 BigSoundBank (CC0).' },
@@ -42,10 +43,10 @@ export const ITEMS = [
   { id: 'm-snowtrack', kind: 'sound', box: 'conch', group: 'music', pack: 'snowtrack', name: '눈길을 지나', note: '포근한 겨울 고리 — Through the Snow, Cleyton Kauffman (CC0).' },
   { id: 'm-contemplation', kind: 'sound', box: 'conch', group: 'music', pack: 'contemplation', name: '생각에 잠겨', note: '선율 없이 잔잔하게 — Contemplation, Joth (CC0).' },
   // v13.1 바꾸기: 물가에서 주운 것으로 만든다 (craft = 필요한 개수, shore.js 의 id). 떠내려오지 않는다
-  { id: 'necklace', kind: 'wear', name: '조개 목걸이', img: 'kiwi-necklace.webp?v=v17.0.2', note: '주운 조개를 꿰어 만들었어요.', craft: { scallop: 4, snail: 4 } },
-  { id: 'plume', kind: 'wear', name: '깃털 머리띠', img: 'kiwi-plume.webp?v=v17.0.2', note: '깃털과 유목을 엮었어요.', craft: { feather: 5, drift: 2 } },
-  { id: 'pendant', kind: 'wear', name: '바다 유리 펜던트', img: 'kiwi-pendant.webp?v=v17.0.2', note: '초록·파랑 바다 유리를 은실로 감았어요.', craft: { glassG: 4, glassB: 2 } },
-  { id: 'starpin', kind: 'wear', name: '불가사리 머리핀', img: 'kiwi-starpin.webp?v=v17.0.2', note: '하트 돌 구슬을 달았어요.', craft: { star: 2, heart: 1 } },
+  { id: 'necklace', kind: 'wear', name: '조개 목걸이', img: 'kiwi-necklace.webp?v=v18.0.0', note: '주운 조개를 꿰어 만들었어요.', craft: { scallop: 4, snail: 4 } },
+  { id: 'plume', kind: 'wear', name: '깃털 머리띠', img: 'kiwi-plume.webp?v=v18.0.0', note: '깃털과 유목을 엮었어요.', craft: { feather: 5, drift: 2 } },
+  { id: 'pendant', kind: 'wear', name: '바다 유리 펜던트', img: 'kiwi-pendant.webp?v=v18.0.0', note: '초록·파랑 바다 유리를 은실로 감았어요.', craft: { glassG: 4, glassB: 2 } },
+  { id: 'starpin', kind: 'wear', name: '불가사리 머리핀', img: 'kiwi-starpin.webp?v=v18.0.0', note: '하트 돌 구슬을 달았어요.', craft: { star: 2, heart: 1 } },
 ];
 export const ITEM = Object.fromEntries(ITEMS.map(it => [it.id, it]));
 
@@ -87,12 +88,14 @@ export class Drifters {
     }
     for (const d of this.list) {
       const edge = beach.edge(d.x), rest = edge + 7 * u;
+      // 물 없는 장소(모래 정원 v18): 떠내려오지 않고 바위 섬 앞 쉬는 줄에 놓여 있다 (스르르 나타난다)
+      if (!d.ashore && beach.still) { d.y = rest; d.ashore = true; onArrive && onArrive(d); }
       if (!d.ashore) {
         // 물결을 타고 천천히 다가온다 (20초 남짓)
         d.y -= Math.max(10 * u, (d.y - rest) * 0.09) * dt;
         d.x = Math.min(W - 40 * u, Math.max(40 * u, d.x + d.vx * dt + Math.sin(t * 0.7 + d.ph) * 4 * u * dt));
         if (d.y <= rest) { d.ashore = true; onArrive && onArrive(d); }
-      } else d.y += (rest - d.y) * Math.min(1, dt * 3);   // 물가선을 따라 (큰 파도가 오면 같이 밀려 올라간다)
+      } else if (!beach.still) d.y += (rest - d.y) * Math.min(1, dt * 3);   // 물가선을 따라 (큰 파도가 오면 같이 밀려 올라간다) — 모래 정원에서는 놓인 자리 그대로
     }
   }
 
@@ -101,19 +104,20 @@ export class Drifters {
     for (const d of this.list) {
       const im = this.imgs[d.it.box];
       if (!im) continue;
-      const bob = Math.sin(t * 1.8 + d.ph) * 2.2 * u, tilt = Math.sin(t * 1.3 + d.ph) * 0.12 + (d.it.box === 'bottle' ? -0.5 : 0);
+      const dryG = beach.still, show = dryG ? Math.min(1, (t - d.born) / 0.8) : 1;   // 물 없는 장소: 까딱이지 않고, 물결 없이 스르르 나타난다
+      const bob = dryG ? 0 : Math.sin(t * 1.8 + d.ph) * 2.2 * u, tilt = (dryG ? 0.1 : Math.sin(t * 1.3 + d.ph) * 0.12) + (d.it.box === 'bottle' ? -0.5 : 0);
       ctx.save();
       // 물에 뜬 자리의 동그란 물결
       ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 1.3 * u;
-      for (let k = 0; k < 2; k++) {
+      if (!dryG) for (let k = 0; k < 2; k++) {
         const ph = ((t * 0.5 + k * 0.5 + d.ph) % 1);
         ctx.globalAlpha = (1 - ph) * 0.8;
         ctx.beginPath(); ctx.ellipse(d.x, d.y + 4 * u, d.size * (0.5 + ph * 0.5), d.size * (0.22 + ph * 0.2), 0, 0, 6.29); ctx.stroke();
       }
       // 물에 비친 어두운 그림자 (투명한 유리병도 물빛에 묻히지 않게)
-      ctx.globalAlpha = 0.28; ctx.fillStyle = '#0b2b3a';
+      ctx.globalAlpha = 0.28 * show; ctx.fillStyle = dryG ? '#3a3226' : '#0b2b3a';
       ctx.beginPath(); ctx.ellipse(d.x + 4 * u, d.y + 6 * u, d.size * 0.42, d.size * 0.2, 0, 0, 6.29); ctx.fill();
-      ctx.globalAlpha = 1;
+      ctx.globalAlpha = show;
       ctx.translate(d.x, d.y + bob); ctx.rotate(tilt);
       ctx.drawImage(im, -d.size / 2, -d.size / 2, d.size, d.size);
       // 눈길을 끄는 반짝임 (물가에 닿은 뒤)

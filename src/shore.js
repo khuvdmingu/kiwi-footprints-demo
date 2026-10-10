@@ -35,6 +35,7 @@ export const FIND = Object.fromEntries(FINDS.map(f => [f.id, f]));
 const golden = h => (h >= 5.5 && h < 7.5) || (h >= 16.5 && h < 19);
 export function canFind(f, env) {
   if (f.maps && !f.maps.includes(env.map)) return false;
+  if (env.only && !env.only.includes(f.id)) return false;   // 장소가 고른 것만 (모래 정원: 조약돌·하트 돌·금빛 깃털·진주)
   if (f.when === 'night' && env.night < 0.5) return false;
   if (f.when === 'rain' && env.weather !== 'rain') return false;
   if (f.when === 'golden' && !golden(env.hour)) return false;

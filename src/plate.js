@@ -15,7 +15,8 @@ const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
-  const [img, dry, sea] = await Promise.all([load(name + '.webp?v=v17.0.2'), load(name + '-dry.webp?v=v17.0.2'), load(name + '-sea.webp?v=v17.0.2')]);
+  // 물 없는 장소(opts.rest — 젠 가든 v18): 물 뺀 판·바위 지운 판이 없다 → 같은 판 한 장을 세 자리에 쓴다
+  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v18.0.0').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v18.0.0'), load(name + '-dry.webp?v=v18.0.0'), load(name + '-sea.webp?v=v18.0.0')]);
   const p = new Plate(img, dry, sea, opts);
   p.name = name; p.base = base;
   return p;
@@ -44,6 +45,8 @@ export class Plate {
     const sand = ([r, gg, b]) => r > 170 && r >= gg && gg >= b && r - b > 26 && !(gg >= r * 0.93);   // 바닷가 모래 · 창백한 강가 흙 둘 다
     // 눈(opts.ground 'snow'): 밝고 색이 옅다 — 볕 받은 따뜻한 흰색도, 푸른 그늘도 (짙은 침엽수는 어두워서 빠진다)
     const snowy = ([r, gg, b]) => { const mx = Math.max(r, gg, b); return r + gg + b > 480 && mx - Math.min(r, gg, b) < mx * 0.3; };
+    // 자갈(opts.ground 'gravel', 젠 가든): 밝은 회백색 — 채도가 낮다 (초록 이끼·붉은 단풍은 빠진다)
+    const gravel = ([r, gg, b]) => { const mx = Math.max(r, gg, b); return mx > 135 && mx - Math.min(r, gg, b) < mx * 0.2; };
     this.snowGround = this.opts.ground === 'snow';
     const run = (x, y0, test, n) => { for (let k = 0; k < n; k++) if (y0 + k >= ah || !test(at(x, y0 + k))) return false; return true; };
 
@@ -55,7 +58,9 @@ export class Plate {
     const RUN = Math.round(aw * 0.015), R2 = Math.round(RUN * 0.8);   // 연속 판정 길이 (폭 기준)
     // ① 물가선: 맵이 정한 높이(shoreFrom) 아래에서 물 뺀 판과 크게 다른 곳이 처음 이어지는 줄
     const from = Math.round(ah * (this.opts.shoreFrom ?? 0.4));
-    for (let x = 0; x < aw; x++) {
+    // 물 없는 장소: 지우개(갈퀴)가 쉬는 줄을 판 높이 비율로 정해 둔다 — 그 아래(바위 섬)에는 글씨를 쓰지 않는다
+    if (this.opts.rest) shore.fill(ah * this.opts.rest);
+    else for (let x = 0; x < aw; x++) {
       let s = ah * 0.62;
       for (let y = from; y < ah - RUN; y++) if (runWet(x, y, RUN)) { s = y; break; }
       shore[x] = s;
@@ -73,7 +78,7 @@ export class Plate {
     for (let x = 0; x < aw; x++) {
       let f = 0, cnt = 0;
       // 물가의 거품·젖은 띠를 건너뛰고(물가선 위 6% 부터), 흰 거품은 모래 쪽으로 친다
-      const ground = this.snowGround ? snowy : c => sand(c) || (c[0] > 205 && c[1] > 200 && c[2] > 185);
+      const ground = this.snowGround ? snowy : this.opts.ground === 'gravel' ? gravel : c => sand(c) || (c[0] > 205 && c[1] > 200 && c[2] > 185);
       for (let y = Math.round(shoreS[x] - ah * 0.06); y >= 0; y--) { if (!ground(at(x, y))) { if (++cnt >= R2) { f = y + cnt; break; } } else cnt = 0; }
       forest[x] = Math.min(f, shoreS[x] - ah * 0.2);   // 글씨 쓸 바닥은 적어도 화면 높이의 20%
     }
@@ -105,8 +110,9 @@ export class Plate {
     this.sandLum = lums[Math.floor(lums.length * 0.9)] || 220;
     this.aw = aw; this.ah = ah;
     // 바위 지운 판은 다시 그린 그림이라 물가선이 몇 픽셀 다를 수 있다 → 그 판의 물가선도 따로 읽어 바다를 맞춰 끌어올린다
-    this.shoreSeaP = this.shoreOf(this.sea, median, k);
+    this.shoreSeaP = this.opts.rest ? this.shoreP : this.shoreOf(this.sea, median, k);
     this._dp = null;
+    if (this.opts.rest) { this.rockMask = document.createElement('canvas'); this.rockMask.width = this.rockMask.height = 1; return; }   // 물이 없으면 바위 가림막도 없다
     this.rockMask = this.makeRockMask(Math.round(forest.reduce((a, b) => a + b, 0) / aw / ah * 100) / 100);
   }
 
@@ -236,7 +242,7 @@ export class Plate {
     if (this.opts.art === false) return Promise.resolve(null);   // 시간대 그림 판이 없는 장소: 코드 빛만
     const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = rej; im.src = this.base + src; });
     this.sets ||= {}; this._sets ||= {};
-    return (this._sets[kind] ||= Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v17.0.2`)))
+    return (this._sets[kind] ||= Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v18.0.0`)))
       .then(([img, dry, sea]) => (this.sets[kind] = { img, dry, sea }))
       .catch(() => null));
   }

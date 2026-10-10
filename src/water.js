@@ -26,6 +26,7 @@ uniform float uLod;          // 그림을 읽을 해상도 단계 — 직접 정
 uniform vec2 uRes, uPS;
 uniform vec3 uMap;
 uniform float uDpr, uT, uU, uSnow, uNight, uSurge, uRain;
+uniform float uLand;        // 1 = 물 없는 장소(젠 가든 v18): 판만 그린다 — 지우는 그림은 2D 층(zen.js)이 맡는다
 out vec4 o;
 
 // 해안선 줄: 텍스처를 거치지 않고 상수 배열에서 바로 읽어 잇는다
@@ -64,6 +65,11 @@ void main() {
   vec2 p = vec2(gl_FragCoord.x, uRes.y * uDpr - gl_FragCoord.y) / uDpr;
   vec4 L = lineAt(p.x);
   float s = L.g * uRes.y, u = uU;
+  if (uLand > .5) {
+    vec3 c = tP(uvOf(p), uLod);
+    if (uSnow > 0.) { float k = smoothstep(.38, .7, fbm(p / (55. * u)) + uSnow * .9 - .42) * uSnow; c = mix(c, vec3(.97, .96, .94), k * .92); }
+    o = vec4(c, 1.); return;
+  }
   // 안전장치: 값이 어떻게 들어와도 그린 해안선 근처로 묶는다 (물이 어느 한 칸만 사라지는 일이 없게)
   float e = clamp(L.r * uRes.y, s - uRes.y * .7, s + uRes.y * .06);
   float w = clamp(L.b * uRes.y, e - uRes.y, e);
@@ -217,7 +223,7 @@ export class WaterGL {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
     const loc = gl.getAttribLocation(pr, 'aP'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     this.U = {};
-    for (const n of ['uPlate', 'uDry', 'uL', 'uLod', 'uSea', 'uRock', 'uPlateN', 'uDryN', 'uSeaN', 'uNA', 'uPlateW', 'uDryW', 'uSeaW', 'uWA', 'uNS', 'uWS', 'uRes', 'uPS', 'uMap', 'uDpr', 'uT', 'uU', 'uSnow', 'uNight', 'uSurge', 'uRain']) this.U[n] = gl.getUniformLocation(pr, n);
+    for (const n of ['uPlate', 'uDry', 'uL', 'uLod', 'uSea', 'uRock', 'uPlateN', 'uDryN', 'uSeaN', 'uNA', 'uPlateW', 'uDryW', 'uSeaW', 'uWA', 'uNS', 'uWS', 'uRes', 'uPS', 'uMap', 'uDpr', 'uT', 'uU', 'uSnow', 'uNight', 'uSurge', 'uRain', 'uLand']) this.U[n] = gl.getUniformLocation(pr, n);
     this.line = new Float32Array(N * 4);
     gl.uniform1i(this.U.uPlate, 0); gl.uniform1i(this.U.uDry, 1); gl.uniform1i(this.U.uSea, 3); gl.uniform1i(this.U.uRock, 4);
     gl.uniform1i(this.U.uPlateN, 5); gl.uniform1i(this.U.uDryN, 6); gl.uniform1i(this.U.uSeaN, 7);
@@ -271,7 +277,7 @@ export class WaterGL {
     this.gl.viewport(0, 0, this.cv.width, this.cv.height);
   }
 
-  draw(beach, { snow = 0, night = 0, rain = 0, art = 0, warm = 0 } = {}) {
+  draw(beach, { snow = 0, night = 0, rain = 0, art = 0, warm = 0, land = false } = {}) {
     const gl = this.gl, { W, H } = this, P = this.plate, m = P.map;
     const step = W / (N - 1), wc = beach.wet.length;
     // 젖은 줄을 옆 칸과 이어 부드럽게 (v16.2.4) — 칸마다 "가장 높이 왔던 곳"을 따로 기억하고 똑같은 속도로 말라서,
@@ -305,6 +311,7 @@ export class WaterGL {
     gl.uniform1f(this.U.uNA, sN ? art : 0); gl.uniform1f(this.U.uNS, sN ? sN.shift : 0);
     gl.uniform1f(this.U.uWA, sW ? warm : 0); gl.uniform1f(this.U.uWS, sW ? sW.shift : 0);
     gl.uniform1f(this.U.uSurge, beach.surgeK || 0);
+    gl.uniform1f(this.U.uLand, land ? 1 : 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
 }

@@ -6,7 +6,7 @@
 //        구름 양·흐름 속도·파도 높이는 셰이더/해변에 넘기고, 빗줄기·물방울 고리·눈송이·나뭇잎·안개·반딧불이·야광은 여기서 #fx 캔버스에 그린다.
 //        눈은 시간이 지날수록 땅(셰이더 uSnow)과 나무에 쌓이고, 그치면 천천히 녹는다.
 
-import { clamp, lerp } from './util.js?v=v17.0.2';
+import { clamp, lerp } from './util.js?v=v18.0.0';
 
 export const WEATHERS = ['clear', 'cloudy', 'rain', 'snow', 'fog', 'wind'];
 export const WEATHER_NAME = { clear: '맑음', cloudy: '흐림', rain: '비', snow: '눈', fog: '안개', wind: '바람' };
@@ -142,7 +142,7 @@ export class Atmos {
       fl.vx *= 0.97; fl.vy *= 0.97;
       fl.x = clamp(fl.x + fl.vx * dt, 0, W); fl.y = clamp(fl.y + fl.vy * dt, beach.bushY - 90 * u, beach.shoreY - 40 * u);
     }
-    if (laid && glowOK > 0.3 && Math.random() < dt * 30 * glowOK) {
+    if (laid && !beach.still && glowOK > 0.3 && Math.random() < dt * 30 * glowOK) {   // 야광 플랑크톤은 물가에만
       const x = Math.random() * W;
       this.plankton.push({ x, y: beach.edge(x) + Math.random() * 14 * u, age: 0, life: 1 + Math.random() * 1.5 });
     }
