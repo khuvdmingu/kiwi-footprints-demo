@@ -15,7 +15,7 @@ const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
-  const [img, dry, sea] = await Promise.all([load(name + '.webp?v=v16.5.0'), load(name + '-dry.webp?v=v16.5.0'), load(name + '-sea.webp?v=v16.5.0')]);
+  const [img, dry, sea] = await Promise.all([load(name + '.webp?v=v16.6.0'), load(name + '-dry.webp?v=v16.6.0'), load(name + '-sea.webp?v=v16.6.0')]);
   const p = new Plate(img, dry, sea, opts);
   p.name = name; p.base = base;
   return p;
@@ -224,12 +224,13 @@ export class Plate {
   }
 
   // 키위 위에 덮을 숲 잎 그림 (화면 해상도로 한 번 그린다)
-  // 밤 그림 한 벌 (v16.5): <이름>-night · -dry-night · -sea-night — 낮 판과 같은 구도를 달밤 빛으로 다시 칠한 것.
-  //  저녁이 다가올 때만 읽는다(낮에는 메모리를 쓰지 않는다). 없으면 null — 그때는 시간 빛만 쓴다.
-  loadNight() {
+  // 시간대 그림 한 벌 (v16.5 밤 · v16.6 노을·새벽): <이름>-<kind> · -dry-<kind> · -sea-<kind> — 낮 판과 같은 구도를 그 빛으로 다시 칠한 것.
+  //  그 시간대가 다가올 때만 읽는다(낮에는 메모리를 쓰지 않는다). 없으면 null — 그때는 시간 빛만 쓴다.
+  loadSet(kind) {
     const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = rej; im.src = this.base + src; });
-    return (this._night ||= Promise.all([load(this.name + '-night.webp?v=v16.5.0'), load(this.name + '-dry-night.webp?v=v16.5.0'), load(this.name + '-sea-night.webp?v=v16.5.0')])
-      .then(([a, b, c]) => { this.night = { img: a, dry: b, sea: c }; return this; })
+    this.sets ||= {}; this._sets ||= {};
+    return (this._sets[kind] ||= Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v16.6.0`)))
+      .then(([img, dry, sea]) => (this.sets[kind] = { img, dry, sea }))
       .catch(() => null));
   }
 

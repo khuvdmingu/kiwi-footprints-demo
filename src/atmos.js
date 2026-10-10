@@ -6,7 +6,7 @@
 //        구름 양·흐름 속도·파도 높이는 셰이더/해변에 넘기고, 빗줄기·물방울 고리·눈송이·나뭇잎·안개·반딧불이·야광은 여기서 #fx 캔버스에 그린다.
 //        눈은 시간이 지날수록 땅(셰이더 uSnow)과 나무에 쌓이고, 그치면 천천히 녹는다.
 
-import { clamp, lerp } from './util.js?v=v16.5.0';
+import { clamp, lerp } from './util.js?v=v16.6.0';
 
 export const WEATHERS = ['clear', 'cloudy', 'rain', 'snow', 'fog', 'wind'];
 export const WEATHER_NAME = { clear: '맑음', cloudy: '흐림', rain: '비', snow: '눈', fog: '안개', wind: '바람' };
@@ -31,6 +31,15 @@ const KEYS = [
   [19.2, [168, 140, 188], 0.45], [20.3, [100, 112, 168], 0.85],       // 해 질 녘 보라 → 저녁 푸른 어둠
   [21.8, [64, 76, 128], 1], [23.2, [38, 48, 94], 1], [24, [36, 46, 92], 1],   // 밤 → 한밤
 ];
+// 시간대 그림을 섞는 비율 (v16.6): n = 밤 그림 · w = 따뜻한 빛 그림(아침 쪽은 새벽, 저녁 쪽은 노을) · n + w ≤ 1
+//  한밤 —(4.4~5.4)→ 새벽 —(6.4~7.6)→ 낮 —(16.6~17.8)→ 노을 —(18.8~20)→ 밤
+const ss = (a, b, h) => { const t = clamp((h - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+export function artAt(hour) {
+  const h = ((hour % 24) + 24) % 24;
+  if (h < 12) { const up = ss(4.4, 5.4, h); return { n: 1 - up, w: up * (1 - ss(6.4, 7.6, h)), kind: 'dawn' }; }
+  const dn = ss(18.8, 20, h); return { n: dn, w: ss(16.6, 17.8, h) * (1 - dn), kind: 'sunset' };
+}
+
 export function timeLight(hour) {
   const h = ((hour % 24) + 24) % 24;
   let i = 0;
@@ -141,9 +150,10 @@ export class Atmos {
     this.plankton = this.plankton.filter(p => p.age < p.life);
   }
 
-  // art: 밤 그림이 섞인 정도 — 그림이 이미 달밤이라 그만큼 시간 빛을 옅게 씌운다 (한밤은 그래도 더 어둡게 누른다)
-  tintCSS(art = 0) {
-    const k = 1 - 0.35 * art;
+  // n·w: 밤 · 노을/새벽 그림이 섞인 정도 — 그림이 이미 그 빛이라 그만큼 시간 빛을 옅게 씌운다
+  //  (밤은 35%만 옅게 — 한밤은 그래도 더 어둡게 누른다 · 노을/새벽은 75% 옅게 — 색이 두 번 겹치지 않게)
+  tintCSS(n = 0, w = 0) {
+    const k = 1 - 0.35 * n - 0.75 * w;
     const [r, g, b] = this.tint.map(c => Math.round(255 - (255 - c) * k));
     const c = `rgb(${r},${g},${b})`;
     // 밤에는 가운데를 밝게 (달빛 웅덩이) — 한밤일수록 가장자리는 더 어둡고 글씨 쓰는 가운데는 읽힐 만큼 남는다

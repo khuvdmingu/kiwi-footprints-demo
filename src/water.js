@@ -18,8 +18,9 @@ in vec2 aP; void main(){ gl_Position = vec4(aP, 0., 1.); }`;
 const FS = `#version 300 es
 precision highp float;
 precision highp sampler2D;
-uniform sampler2D uPlate, uDry, uSea, uRock, uPlateN, uDryN, uSeaN;   // …N = 밤 그림 (v16.5)
-uniform float uNA;          // 밤 그림을 섞는 정도 0~1
+uniform sampler2D uPlate, uDry, uSea, uRock, uPlateN, uDryN, uSeaN, uPlateW, uDryW, uSeaW;   // …N = 밤 그림 (v16.5) · …W = 노을·새벽 그림 (v16.6)
+uniform float uNA, uWA;     // 섞는 정도 0~1 (따뜻한 빛을 먼저 섞고 그 위에 밤)
+uniform float uNS, uWS;     // 그 그림을 줄여 올린 비율의 log2 (≤ 0) — 해상도 단계 맞추기
 uniform vec4 uL[${N}];   // 칸마다 (해안선, 그린 해안선, 젖은 줄, 바다 판 해안선) ÷ 화면 높이
 uniform float uLod;          // 그림을 읽을 해상도 단계 — 직접 정한다 (휴대폰 GPU가 조건문 안에서 단계를 잘못 골라 색이 튀지 않게)
 uniform vec2 uRes, uPS;
@@ -37,9 +38,9 @@ vec4 lineAt(float x) {
 }
 vec2 uvOf(vec2 p) { return ((p - uMap.yz) / uMap.x) / uPS; }
 // 판 읽기: 해 질 녘부터 밤 그림을 섞는다 (낮에는 uNA = 0 이라 밤 그림을 읽지 않는다)
-vec3 tP(vec2 uv, float l) { vec3 c = textureLod(uPlate, uv, l).rgb; return uNA > 0. ? mix(c, textureLod(uPlateN, uv, l).rgb, uNA) : c; }
-vec3 tD(vec2 uv, float l) { vec3 c = textureLod(uDry, uv, l).rgb; return uNA > 0. ? mix(c, textureLod(uDryN, uv, l).rgb, uNA) : c; }
-vec3 tS(vec2 uv, float l) { vec3 c = textureLod(uSea, uv, l).rgb; return uNA > 0. ? mix(c, textureLod(uSeaN, uv, l).rgb, uNA) : c; }
+vec3 tP(vec2 uv, float l) { vec3 c = textureLod(uPlate, uv, l).rgb; if (uWA > 0.) c = mix(c, textureLod(uPlateW, uv, max(0., l + uWS)).rgb, uWA); if (uNA > 0.) c = mix(c, textureLod(uPlateN, uv, max(0., l + uNS)).rgb, uNA); return c; }
+vec3 tD(vec2 uv, float l) { vec3 c = textureLod(uDry, uv, l).rgb; if (uWA > 0.) c = mix(c, textureLod(uDryW, uv, max(0., l + uWS)).rgb, uWA); if (uNA > 0.) c = mix(c, textureLod(uDryN, uv, max(0., l + uNS)).rgb, uNA); return c; }
+vec3 tS(vec2 uv, float l) { vec3 c = textureLod(uSea, uv, l).rgb; if (uWA > 0.) c = mix(c, textureLod(uSeaW, uv, max(0., l + uWS)).rgb, uWA); if (uNA > 0.) c = mix(c, textureLod(uSeaN, uv, max(0., l + uNS)).rgb, uNA); return c; }
 float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float vnoise(vec2 p) {
   vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
@@ -216,11 +217,12 @@ export class WaterGL {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
     const loc = gl.getAttribLocation(pr, 'aP'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     this.U = {};
-    for (const n of ['uPlate', 'uDry', 'uL', 'uLod', 'uSea', 'uRock', 'uPlateN', 'uDryN', 'uSeaN', 'uNA', 'uRes', 'uPS', 'uMap', 'uDpr', 'uT', 'uU', 'uSnow', 'uNight', 'uSurge', 'uRain']) this.U[n] = gl.getUniformLocation(pr, n);
+    for (const n of ['uPlate', 'uDry', 'uL', 'uLod', 'uSea', 'uRock', 'uPlateN', 'uDryN', 'uSeaN', 'uNA', 'uPlateW', 'uDryW', 'uSeaW', 'uWA', 'uNS', 'uWS', 'uRes', 'uPS', 'uMap', 'uDpr', 'uT', 'uU', 'uSnow', 'uNight', 'uSurge', 'uRain']) this.U[n] = gl.getUniformLocation(pr, n);
     this.line = new Float32Array(N * 4);
     gl.uniform1i(this.U.uPlate, 0); gl.uniform1i(this.U.uDry, 1); gl.uniform1i(this.U.uSea, 3); gl.uniform1i(this.U.uRock, 4);
     gl.uniform1i(this.U.uPlateN, 5); gl.uniform1i(this.U.uDryN, 6); gl.uniform1i(this.U.uSeaN, 7);
-    this.ntexs = null;   // 밤 그림 (읽었을 때만)
+    gl.uniform1i(this.U.uPlateW, 8); gl.uniform1i(this.U.uDryW, 9); gl.uniform1i(this.U.uSeaW, 10);
+    this.slots = { N: null, W: null };   // 시간대 그림 칸: N = 밤 · W = 노을 또는 새벽 (읽었을 때만)
     this.texs = {};
   }
 
@@ -240,22 +242,27 @@ export class WaterGL {
     const gl = this.gl;
     if (this.plate === plate) return;
     for (const t of Object.values(this.texs)) gl.deleteTexture(t);   // 가로 ↔ 세로 판을 바꿀 때 앞 판을 비운다
-    this.dropNight();
+    this.drop('N'); this.drop('W');
     this.plate = plate;
     const up = (unit, src) => this.tex(unit, () => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src), true);
     this.texs = { img: up(0, plate.img), dry: up(1, plate.dry), sea: up(3, plate.sea), rock: up(4, plate.rockMask) };
     gl.uniform2f(this.U.uPS, plate.pw, plate.ph);
   }
 
-  // 밤 그림 올리기 · 내리기 (v16.5)
-  setNight(plate) {
-    const gl = this.gl;
-    if (plate !== this.plate || !plate.night || this.ntexs) return;
-    const up = (unit, src) => this.tex(unit, () => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src), true);
-    this.ntexs = { img: up(5, plate.night.img), dry: up(6, plate.night.dry), sea: up(7, plate.night.sea) };
+  // 시간대 그림 올리기 · 내리기 (v16.5~): 칸 N(밤) · W(노을/새벽).
+  //  화면에 필요한 만큼만 줄여 올린다 (휴대폰 세로면 약 70% → GPU 메모리 절반) — 판 한 픽셀이 화면 몇 픽셀인지 × 1.25
+  setSet(slot, plate, kind) {
+    const gl = this.gl, set = plate.sets && plate.sets[kind];
+    if (plate !== this.plate || !set || (this.slots[slot] && this.slots[slot].kind === kind)) return;
+    this.drop(slot);
+    const f = Math.min(1, 1.25 * (this.plate.map ? this.plate.map.s : 1) * this.dpr);
+    const shrink = src => { if (f >= 0.999) return src; const c = document.createElement('canvas'); c.width = Math.round(src.naturalWidth * f); c.height = Math.round(src.naturalHeight * f); const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, c.width, c.height); return c; };
+    const base = slot === 'N' ? 5 : 8;
+    const up = (unit, src) => this.tex(unit, () => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, shrink(src)), true);
+    this.slots[slot] = { kind, shift: Math.log2(f), texs: [up(base, set.img), up(base + 1, set.dry), up(base + 2, set.sea)] };
   }
-  dropNight() { if (this.ntexs) for (const t of Object.values(this.ntexs)) this.gl.deleteTexture(t); this.ntexs = null; }
-  get nightOK() { return !!this.ntexs; }
+  drop(slot) { const s = this.slots[slot]; if (s) for (const t of s.texs) this.gl.deleteTexture(t); this.slots[slot] = null; }
+  has(slot, kind) { const s = this.slots[slot]; return !!s && (!kind || s.kind === kind); }
 
   resize(W, H, dpr) {
     this.W = W; this.H = H; this.dpr = Math.min(dpr, 2);   // 숲 잎 층(키위 위)과 같은 해상도 — 다르면 잎 가장자리가 어긋나 보인다
@@ -264,7 +271,7 @@ export class WaterGL {
     this.gl.viewport(0, 0, this.cv.width, this.cv.height);
   }
 
-  draw(beach, { snow = 0, night = 0, rain = 0, art = 0 } = {}) {
+  draw(beach, { snow = 0, night = 0, rain = 0, art = 0, warm = 0 } = {}) {
     const gl = this.gl, { W, H } = this, P = this.plate, m = P.map;
     const step = W / (N - 1), wc = beach.wet.length;
     // 젖은 줄을 옆 칸과 이어 부드럽게 (v16.2.4) — 칸마다 "가장 높이 왔던 곳"을 따로 기억하고 똑같은 속도로 말라서,
@@ -294,7 +301,9 @@ export class WaterGL {
     gl.uniform1f(this.U.uSnow, snow);
     gl.uniform1f(this.U.uNight, night);
     gl.uniform1f(this.U.uRain, rain);
-    gl.uniform1f(this.U.uNA, this.ntexs ? art : 0);
+    const sN = this.slots.N, sW = this.slots.W;   // (N 은 해안선 칸 수 상수라 다른 이름)
+    gl.uniform1f(this.U.uNA, sN ? art : 0); gl.uniform1f(this.U.uNS, sN ? sN.shift : 0);
+    gl.uniform1f(this.U.uWA, sW ? warm : 0); gl.uniform1f(this.U.uWS, sW ? sW.shift : 0);
     gl.uniform1f(this.U.uSurge, beach.surgeK || 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
