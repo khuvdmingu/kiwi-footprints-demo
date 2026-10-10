@@ -5,11 +5,13 @@
 //  · 큰 파도: surge(y) — 오르기 · 머물기 · 빠지기. 물이 지나간 자리는 한동안 젖어 있다(wet)
 //  · 발자국: 'deep' 글씨 획 · 'faint' 오가는 길(곧 사라짐) · 'hole' 부리 자국
 
-import { clamp, easeOut, easeInOut } from './util.js?v=v12.0.0';
-import { PAL } from './tokens.js?v=v12.0.0';
+import { clamp, easeOut, easeInOut } from './util.js?v=v12.0.1';
+import { PAL } from './tokens.js?v=v12.0.1';
 
 const RISE = 1.5, HOLD = 0.5, FALL = 3.2;
 const FAINT = 0.22, FAINT_LIFE = 2.2;
+// 그냥 콕 찍은 구멍(심심해서 콕 · 모래를 눌러 부른 콕 — 글자의 점이 아닌 것)은 잠시 남았다가 모래가 덮는다
+const HOLE_LIFE = 10, HOLE_FADE = 4;
 
 export class Beach {
   constructor(seed = 7) {
@@ -105,6 +107,7 @@ export class Beach {
       if (p.erase) p.alpha = Math.min(p.alpha, clamp(1 - (this.t - p.erase) / 0.9, 0, 1));
       if (p.wash) p.alpha -= dt * 2.2;
       else if (p.kind === 'faint') p.alpha = FAINT * clamp(1 - (this.t - p.born) / FAINT_LIFE, 0, 1);
+      else if (p.kind === 'hole' && p.tag == null) p.alpha = clamp(1 - (this.t - p.born - HOLE_LIFE) / HOLE_FADE, 0, 1);
       else if (p.kind === 'sec') p.alpha = clamp((this.t - p.born) / 0.1, 0, 1) * (p.die ? clamp(1 - (this.t - p.die) / 0.28, 0, 1) : 1);
     }
     this.prints = this.prints.filter(p => p.alpha > 0.01 || (p.kind === 'sec' && !p.die && !p.wash));
