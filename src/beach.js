@@ -5,10 +5,10 @@
 //  · 큰 파도: surge(y) — 오르기 · 머물기 · 빠지기. 물이 지나간 자리는 한동안 젖어 있다(wet)
 //  · 발자국: 'deep' 글씨 획 · 'faint' 오가는 길(곧 사라짐) · 'hole' 부리 자국
 //  · 지우개(v18): 물가선 edge(x) 는 "발자국을 지우는 경계선"이다. 물이 아닌 장소(eraser 'rake' — 젠 가든)에서는
-//    같은 줄이 잔물결·밀물 없이 가만히 있다가 surge 때만 쓸어 올라간다(그림은 zen.js 갈퀴가 그린다)
+//    같은 줄이 잔물결·밀물 없이 가만히 있고, 지우기는 zen.js 가 발자국에 직접 표시한다(p.erase — 다시 긋는 갈퀴 줄)
 
-import { clamp, easeOut, easeInOut } from './util.js?v=v18.0.0';
-import { PAL } from './tokens.js?v=v18.0.0';
+import { clamp, easeOut, easeInOut } from './util.js?v=v18.1.0';
+import { PAL } from './tokens.js?v=v18.1.0';
 
 const RISE = 1.5, HOLD = 0.5, FALL = 3.2;
 const FAINT = 0.22, FAINT_LIFE = 2.2;
@@ -77,8 +77,7 @@ export class Beach {
     const u = this.u, t = this.t, big = this.still ? 0 : (this.bw ? 1.6 : 1) * this.amp;
     const y = this.shoreAt(x) - (this.shoreY - this.lvl) + u * big * (4.5 * Math.sin((x * 0.009) / u + t * 0.8) + 2.5 * Math.sin((x * 0.023) / u - t * 1.1) + 1.2 * Math.sin((x * 0.06) / u + t * 0.5));
     // 물은 숲 안까지 들어가지 않는다 — 부드러운 최댓값이라 닿는 자리에서도 꺾이지 않는다
-    // (갈퀴는 정원 가장자리 덤불 바로 앞까지 간다 — 덤불 밑 글씨도 남기지 않게)
-    const f = this.still ? this.grass(x) + 4 * u : this.lerpC(this.floorC, x), k = 18 * u;
+    const f = this.lerpC(this.floorC, x), k = 18 * u;
     return 0.5 * (y + f + Math.sqrt((y - f) * (y - f) + k * k));
   }
   // 숲 가장자리 (그림에서 읽은 줄)
