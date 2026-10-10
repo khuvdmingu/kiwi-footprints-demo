@@ -3,7 +3,7 @@
 //      날갯짓은 날개 방향으로 그림을 접었다 펴는 것, 물 위에는 흐린 그림자가 빛 방향으로 비켜 따라간다.
 //  한두 마리가 바다 위를 지나가고, 다 지나가면 잠시 뒤 다시 온다. 지나갈 때 가끔 운다(onCall).
 
-import { LIGHT, MOTION } from './tokens.js?v=v16.3.0';
+import { LIGHT, MOTION } from './tokens.js?v=v16.4.0';
 
 const HEAD = 0.654;      // 그림 속 갈매기가 향한 각 (오른쪽 위로 −0.654 rad) → 이만큼 돌리면 오른쪽을 본다
 const PIVOT = [0.478, 0.488];
@@ -13,7 +13,7 @@ export class Gulls {
   setSprite(img) { this.img = img; }
   resize(beach) { this.list = []; this.next = 2; }
 
-  update(dt, beach, onCall) {
+  update(dt, beach, onCall, spawn = true) {   // spawn=false: 새로 오지 않는다 (밤)
     this.t += dt;
     const { W, H, u } = beach;
     for (const g of this.list) {
@@ -22,7 +22,7 @@ export class Gulls {
       if (!g.called && Math.random() < dt * 0.06) { g.called = true; onCall && onCall(g.x); }
     }
     this.list = this.list.filter(g => g.x > -120 * u && g.x < W + 120 * u);
-    if (this.t > this.next && this.list.length < 2) {
+    if (spawn && this.t > this.next && this.list.length < 2) {
       this.next = this.t + 9 + Math.random() * 14;
       const dir = Math.random() < 0.5 ? 1 : -1, n = Math.random() < 0.5 ? 2 : 1;
       const top = beach.shoreY + 70 * u, y0 = top + Math.random() * Math.max(10, H - top - 80 * u);
