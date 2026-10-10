@@ -9,23 +9,23 @@
 
 export const ITEMS = [
   { id: 'letter1', kind: 'letter', box: 'bottle', title: '첫 번째 편지', text: '파도가 글씨를 가져가도, 쓰고 싶었던 마음은 모래 속에 남아요.' },
-  { id: 'hat', kind: 'wear', box: 'crate', name: '밀짚모자', img: 'kiwi-hat.webp?v=v12.0.1', note: '햇볕 좋은 날 산책용.' },
+  { id: 'hat', kind: 'wear', box: 'crate', name: '밀짚모자', img: 'kiwi-hat.webp?v=v13.0.0', note: '햇볕 좋은 날 산책용.' },
   { id: 'letter2', kind: 'letter', box: 'bottle', title: '두 번째 편지', text: '키위는 날지 못해서 천천히 걸어요. 천천히 가도 결국 도착해요.' },
-  { id: 'scarf', kind: 'wear', box: 'crate', name: '빨간 목도리', img: 'kiwi-scarf.webp?v=v12.0.1', note: '밤바람이 차가울 때.' },
+  { id: 'scarf', kind: 'wear', box: 'crate', name: '빨간 목도리', img: 'kiwi-scarf.webp?v=v13.0.0', note: '밤바람이 차가울 때.' },
   { id: 'letter3', kind: 'letter', box: 'bottle', title: '세 번째 편지', text: '작은 발자국도 모이면 글자가 돼요. 오늘 찍은 한 걸음도요.' },
-  { id: 'crown', kind: 'wear', box: 'crate', name: '꽃 화관', img: 'kiwi-crown.webp?v=v12.0.1', note: '숲 가장자리에서 엮었대요.' },
+  { id: 'crown', kind: 'wear', box: 'crate', name: '꽃 화관', img: 'kiwi-crown.webp?v=v13.0.0', note: '숲 가장자리에서 엮었대요.' },
   { id: 'letter4', kind: 'letter', box: 'bottle', title: '네 번째 편지', text: '지워진 자리는 다음 문장을 위한 빈 모래예요.' },
-  { id: 'glasses', kind: 'wear', box: 'crate', name: '동그란 안경', img: 'kiwi-glasses.webp?v=v12.0.1', note: '글씨를 더 반듯하게 쓰고 싶어서.' },
+  { id: 'glasses', kind: 'wear', box: 'crate', name: '동그란 안경', img: 'kiwi-glasses.webp?v=v13.0.0', note: '글씨를 더 반듯하게 쓰고 싶어서.' },
   { id: 'letter5', kind: 'letter', box: 'bottle', title: '다섯 번째 편지', text: '여기까지 걸어온 당신에게. — 키위 일동' },
-  { id: 'backpack', kind: 'wear', box: 'crate', name: '작은 배낭', img: 'kiwi-backpack.webp?v=v12.0.1', note: '다음 장소로 떠날 준비.' },
-  { id: 'map-snow', kind: 'map', box: 'crate', map: 'snow', name: '눈밭', img: 'snow-card.webp?v=v12.0.1', note: '눈 덮인 숲 아래 호숫가. 발자국이 또렷하게 남아요.' },
+  { id: 'backpack', kind: 'wear', box: 'crate', name: '작은 배낭', img: 'kiwi-backpack.webp?v=v13.0.0', note: '다음 장소로 떠날 준비.' },
+  { id: 'map-snow', kind: 'map', box: 'crate', map: 'snow', name: '눈밭', img: 'snow-card.webp?v=v13.0.0', note: '눈 덮인 숲 아래 호숫가. 발자국이 또렷하게 남아요.' },
   // v11.1 겨울 옷 (두 번째 묶음 — 눈밭을 연 뒤에 떠내려온다)
-  { id: 'beanie', kind: 'wear', box: 'crate', name: '방울 털모자', img: 'kiwi-beanie.webp?v=v12.0.1', note: '눈밭 산책 필수품.' },
-  { id: 'earmuffs', kind: 'wear', box: 'crate', name: '분홍 귀마개', img: 'kiwi-earmuffs.webp?v=v12.0.1', note: '호수 바람이 찰 때.' },
-  { id: 'sweater', kind: 'wear', box: 'crate', name: '눈꽃 스웨터', img: 'kiwi-sweater.webp?v=v12.0.1', note: '눈송이 무늬 두꺼운 니트.' },
-  { id: 'blanket', kind: 'wear', box: 'crate', name: '체크 담요', img: 'kiwi-blanket.webp?v=v12.0.1', note: '글씨 쓰다 쉬어 갈 때 두르는 망토.' },
-  { id: 'santa', kind: 'wear', box: 'crate', name: '산타 모자', img: 'kiwi-santa.webp?v=v12.0.1', note: '12월이 오면.' },
-  { id: 'vest', kind: 'wear', box: 'crate', name: '패딩 조끼', img: 'kiwi-vest.webp?v=v12.0.1', note: '털 깃이 달린 따뜻한 조끼.' },
+  { id: 'beanie', kind: 'wear', box: 'crate', name: '방울 털모자', img: 'kiwi-beanie.webp?v=v13.0.0', note: '눈밭 산책 필수품.' },
+  { id: 'earmuffs', kind: 'wear', box: 'crate', name: '분홍 귀마개', img: 'kiwi-earmuffs.webp?v=v13.0.0', note: '호수 바람이 찰 때.' },
+  { id: 'sweater', kind: 'wear', box: 'crate', name: '눈꽃 스웨터', img: 'kiwi-sweater.webp?v=v13.0.0', note: '눈송이 무늬 두꺼운 니트.' },
+  { id: 'blanket', kind: 'wear', box: 'crate', name: '체크 담요', img: 'kiwi-blanket.webp?v=v13.0.0', note: '글씨 쓰다 쉬어 갈 때 두르는 망토.' },
+  { id: 'santa', kind: 'wear', box: 'crate', name: '산타 모자', img: 'kiwi-santa.webp?v=v13.0.0', note: '12월이 오면.' },
+  { id: 'vest', kind: 'wear', box: 'crate', name: '패딩 조끼', img: 'kiwi-vest.webp?v=v13.0.0', note: '털 깃이 달린 따뜻한 조끼.' },
 ];
 export const ITEM = Object.fromEntries(ITEMS.map(it => [it.id, it]));
 

@@ -5,11 +5,13 @@
 //    그래서 규칙은 "이 화면을 끝까지 떠나지 않기". 떠나도 GRACE 초 안에 돌아오면 이어서 간다.
 //  · 집중 중에는 화면이 저절로 꺼지지 않게 한다 (Wake Lock — 지원하는 브라우저만).
 //  · 집중한 시간은 키위 걸음으로 센다: 1분 = 100보 (디자인 값). 그만두거나 실패해도 걸은 만큼은 쌓인다.
+//  · v13: 집중이 아니어도 화면을 켜 두면 1분 = 10보가 같은 걸음에 쌓인다 (idle). 걸음은 장소 열쇠로도 쓴다.
 //  · 시간은 rAF(beach.t)가 아니라 실제 시계(Date.now)로 잰다 — 화면이 숨으면 rAF 는 멈추니까.
 //  · 기록은 이 기기에만 저장한다 (localStorage). 진행 중인 집중도 저장해 두어서,
 //    탭을 닫거나 새로 고친 뒤 열면 "떠났다"로 처리하고 마지막으로 확인한 때까지 걸음을 쳐 준다.
 
 export const STEPS_PER_MIN = 100;
+export const IDLE_STEPS_PER_MIN = 10;   // v13 켜 두기만 해도 (집중의 1/10)
 export const GRACE = 10;   // 초: 이 안에 돌아오면 이어서
 export const LENGTHS = [15, 25, 50];
 
@@ -24,12 +26,14 @@ export class Focus {
     this.day = s.day || today();
     this.todaySteps = s.day === today() ? s.todaySteps || 0 : 0;
     this.done = s.done || 0;              // 끝까지 한 횟수
+    this.idle = s.idle || 0;              // 그중 켜 두기로 쌓은 걸음
+    this.idleMs = 0;
     this.len = LENGTHS.includes(s.len) ? s.len : 25;   // 마지막에 고른 길이
     this.run = null;                      // 진행 중: { start, dur(ms), letter, away, beat }
     try { this.stale = JSON.parse(load('focusRun') || 'null'); } catch (e) { this.stale = null; }
   }
   store() {
-    this.save('focus', JSON.stringify({ total: this.total, day: this.day, todaySteps: this.todaySteps, done: this.done, len: this.len }));
+    this.save('focus', JSON.stringify({ total: this.total, day: this.day, todaySteps: this.todaySteps, done: this.done, len: this.len, idle: this.idle }));
   }
   storeRun() { this.save('focusRun', this.run ? JSON.stringify(this.run) : ''); }
 
@@ -52,6 +56,17 @@ export class Focus {
     this.total += steps; this.todaySteps += steps;
     this.run = null; this.storeRun(); this.store();
     return { steps, min: Math.round(ms / 60000), full: ms >= r.dur, letter: r.letter };
+  }
+  // 켜 두기: 화면이 보이는 동안의 시간(ms)을 받아 6초마다 1보 (10보/분). 걸음이 늘면 true
+  ambient(ms) {
+    if (this.run || !(ms > 0)) return false;
+    this.idleMs += Math.min(ms, 2000);   // 한 번에 2초 넘게 건너뛰면(화면이 숨었다 돌아옴) 그만큼은 치지 않는다
+    const per = 60000 / IDLE_STEPS_PER_MIN;
+    if (this.idleMs < per) return false;
+    const n = Math.floor(this.idleMs / per); this.idleMs -= n * per;
+    if (this.day !== today()) { this.day = today(); this.todaySteps = 0; }
+    this.total += n; this.todaySteps += n; this.idle += n; this.store();
+    return true;
   }
   complete(now = Date.now()) { const out = this.finish(now); if (out) { this.done++; this.store(); } return out; }
 

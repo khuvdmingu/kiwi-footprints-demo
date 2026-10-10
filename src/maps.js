@@ -22,7 +22,8 @@ export const MAPS = {
     gulls: false,
     ground: 'snow',                  // 바닥이 하얀 눈: 판 읽기(땅 색)·발자국 색이 눈 기준
     shoreFrom: 0.5,
-    unlock: 'map-snow',              // 물에서 떠내려온 상자를 열어야 고를 수 있다 (items.js)
+    unlock: 'map-snow',              // 물에서 떠내려온 상자를 열거나
+    steps: 5000,                     // 걸음(켜 두기·집중)이 이만큼 쌓이면 고를 수 있다 (v13)
   },
 };
 export const MAP_IDS = Object.keys(MAPS);

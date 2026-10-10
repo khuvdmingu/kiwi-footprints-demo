@@ -15,21 +15,22 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v12.0.1';
-import { Beach } from './beach.js?v=v12.0.1';
-import { Kiwi } from './kiwi.js?v=v12.0.1';
-import { Sound } from './sound.js?v=v12.0.1';
-import { loadPlate } from './plate.js?v=v12.0.1';
-import { MAPS, MAP_IDS } from './maps.js?v=v12.0.1';
-import { WaterGL } from './water.js?v=v12.0.1';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v12.0.1';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v12.0.1';
-import { Clouds } from './clouds.js?v=v12.0.1';
-import { Gulls } from './gulls.js?v=v12.0.1';
-import { Atmos, WEATHERS, WEATHER_NAME } from './atmos.js?v=v12.0.1';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v12.0.1';
-import { clamp, dist } from './util.js?v=v12.0.1';
-import { Focus, Awake, LENGTHS } from './focus.js?v=v12.0.1';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v13.0.0';
+import { Beach } from './beach.js?v=v13.0.0';
+import { Kiwi } from './kiwi.js?v=v13.0.0';
+import { Sound } from './sound.js?v=v13.0.0';
+import { loadPlate } from './plate.js?v=v13.0.0';
+import { MAPS, MAP_IDS } from './maps.js?v=v13.0.0';
+import { WaterGL } from './water.js?v=v13.0.0';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v13.0.0';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v13.0.0';
+import { Clouds } from './clouds.js?v=v13.0.0';
+import { Gulls } from './gulls.js?v=v13.0.0';
+import { Atmos, WEATHERS, WEATHER_NAME } from './atmos.js?v=v13.0.0';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v13.0.0';
+import { clamp, dist } from './util.js?v=v13.0.0';
+import { Focus, Awake, LENGTHS } from './focus.js?v=v13.0.0';
+import { Shore, Finds, FINDS, RARITY } from './shore.js?v=v13.0.0';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -98,7 +99,10 @@ const col = new Collection(() => saved('items'), v => save('items', v));
 const drifters = new Drifters();
 const focus = new Focus(saved, save);   // v12 집중 모드
 const awake = new Awake();
-let walker = null;   // 집중하는 동안 숲 가장자리를 따라 오가는 키위 한 마리
+let walker = null;
+const shore = new Shore();   // v13 물가 줍기
+const finds = new Finds(() => saved('finds'), v => save('finds', v));
+let ambAt = 0;   // 켜 두기 걸음: 마지막으로 잰 실제 시각   // 집중하는 동안 숲 가장자리를 따라 오가는 키위 한 마리
 // 새로 나오는 키위는 입히기로 고른 옷 중 하나를 입는다 (가끔은 맨몸)
 const pickSkin = () => { const w = col.wear; return w.length && Math.random() < 0.75 ? w[Math.floor(Math.random() * w.length)] : null; };
 const LEAF_C = ['#6F9A3B', '#A9C24C', '#3E6B37', '#C8C85A'];
@@ -141,6 +145,7 @@ function resize() {
   clouds.resize(W, H, beach.u);
   gulls.resize(beach);
   drifters.reset();
+  shore.reset();
   beach.prints = [];
   cam.x = W / 2; cam.y = H / 2;
   sizeFor(clamp(Math.min(W, H) * 0.14, 44, 150));
@@ -510,6 +515,9 @@ function tick(dt) {
   drifters.paused = focus.active;
   drifters.update(dt, beach, col, d => sound.arrive(d.x));
   focusTick();
+  shore.update(dt, beach, { map: mapId, night: atmos.night, weather: atmos.weather, hour });
+  { const nowMs = Date.now(); if (ambAt && !document.hidden && focus.ambient(nowMs - ambAt) && !focusPanel.hidden) paintFocus(); ambAt = nowMs; }
+  checkMapSteps();
   sparks = sparks.filter(s => (s.age += dt) < s.life);
   for (const s of sparks) { s.x += s.vx * dt; s.y += s.vy * dt; s.vy += 60 * beach.u * dt; s.vx *= 0.96; }
   leaves = leaves.filter(l => (l.age += dt) < l.life);
@@ -560,6 +568,7 @@ function draw() {
     ctx.restore();
   }
   const order = kiwis.slice().sort((a, b) => a.y - b.y);
+  shore.draw(ctx, beach, atmos.night);
   drifters.draw(ctx, beach);
   for (const kw of order) kw.drawShadow(ctx);
   for (const kw of order) { kw.shade = plate.shadeAt(kw.x, kw.y - kw.k * 0.4); kw.draw(ctx); }
@@ -695,6 +704,8 @@ window.addEventListener('keydown', e => {
 document.getElementById('touch').addEventListener('pointerdown', e => {
   if (!plate) return;   // 그림을 다 읽기 전에는 누를 곳이 없다
   const [x, y] = toWorld(e.clientX, e.clientY);
+  const sh = shore.hit(x, y, beach.u);
+  if (sh) { pickUp(sh); return; }
   const dr = drifters.hit(x, y, beach.u);
   if (dr) { openDrift(dr); return; }
   const cl = clouds.hit(x, y);
@@ -713,7 +724,8 @@ window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() =
 // 그림 판·키위·갈매기 그림을 다 읽은 뒤 시작한다
 async function boot() {
   const img = src => new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp?v=v12.0.1'), img('assets/gull.webp?v=v12.0.1'), img('assets/bottle.webp?v=v12.0.1'), img('assets/crate.webp?v=v12.0.1')]);
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp?v=v13.0.0'), img('assets/gull.webp?v=v13.0.0'), img('assets/bottle.webp?v=v13.0.0'), img('assets/crate.webp?v=v13.0.0')]);
+  img('assets/finds.webp?v=v13.0.0').then(im => shore.setSheet(im)).catch(() => {});
   drifters.setSprites({ bottle, crate });
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
@@ -746,19 +758,20 @@ modeBtn.addEventListener('click', () => { unlock(); setMode(MODES[(MODES.indexOf
 // 설정 창(톱니바퀴): 시계 초 표시 · 표기
 const settings = document.getElementById('settings'), setBtn = document.getElementById('setBtn');
 const openSettings = open => { settings.hidden = !open; setBtn.setAttribute('aria-expanded', String(open)); if (open) settings.querySelector('input').focus(); };
-const mapOpen = id => !MAPS[id].unlock || col.has(MAPS[id].unlock);
+const mapOpen = id => { const m = MAPS[id]; return !m.unlock || col.has(m.unlock) || (m.steps > 0 && focus.total >= m.steps); };
 function paintModeMenu() {
   for (const r of settings.querySelectorAll('input[name="map"]')) {
     const open = mapOpen(r.value);
     r.checked = r.value === mapId; r.disabled = !open;
     r.parentElement.classList.toggle('locked', !open);
-    r.nextElementSibling.textContent = open ? MAPS[r.value].name : '상자 속';
-    r.parentElement.title = open ? '' : '물에서 떠내려오는 상자를 열면 갈 수 있어요';
+    const m = MAPS[r.value];
+    r.nextElementSibling.textContent = open ? m.name : m.steps ? `${n0(Math.max(0, m.steps - focus.total))}보 더` : '상자 속';
+    r.parentElement.title = open ? '' : `${m.name}: ${m.steps ? `걸음이 ${n0(m.steps)}보 쌓이거나(켜 두기 1분 10보 · 집중 1분 100보) ` : ''}물에서 떠내려오는 상자를 열면 갈 수 있어요`;
   }
   for (const r of settings.querySelectorAll('input[name="fmt"]')) r.checked = r.value === clockOpt.fmt;
   document.getElementById('optSec').checked = clockOpt.sec;
 }
-setBtn.addEventListener('click', () => { unlock(); paintCollection(); openSettings(settings.hidden); });
+setBtn.addEventListener('click', () => { unlock(); paintCollection(); paintModeMenu(); openSettings(settings.hidden); });
 
 // ── v10 떠내려온 것 열기 · 카드 · 모은 것 ──
 const foundEl = document.getElementById('found'), foundWear = document.getElementById('foundWear');
@@ -811,7 +824,50 @@ foundWear.addEventListener('click', () => {
 document.getElementById('foundClose').addEventListener('click', () => { foundEl.hidden = true; });
 foundEl.addEventListener('click', e => { if (e.target === foundEl) foundEl.hidden = true; });
 window.addEventListener('keydown', e => { if (e.key === 'Escape' && !foundEl.hidden) foundEl.hidden = true; });
+// ── v13 물가 줍기 ──
+function pickUp(d) {
+  shore.take(d);
+  const fresh = finds.add(d.f.id), u = beach.u;
+  const C = d.f.r >= 2 ? ['#fff6c9', '#ffd98a', '#ffffff', '#c9f4ff'] : ['#ffffff', '#fff6dc'];
+  for (let i = 0; i < (fresh ? 14 : 7); i++) { const a = Math.random() * 6.28, sp = (40 + Math.random() * 80) * u; sparks.push({ x: d.x, y: d.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 50 * u, r: (1.5 + Math.random() * 2) * u, c: C[i % C.length], age: 0, life: 0.6 + Math.random() * 0.4 }); }
+  if (fresh) sound.found(d.x); else sound.peck(d.x);
+  const n = finds.n[d.f.id];
+  toast(fresh ? `새로 주웠어요 · ${d.f.name} (${RARITY[d.f.r]}) · 도감 ${finds.kinds} / ${FINDS.length}` : `${d.f.name} ×${n}`, fresh ? 2600 : 1300);
+  if (!settings.hidden) paintCollection();
+}
+// 걸음이 쌓여 장소가 열리면 한 번 알린다
+let openMaps = null;
+function checkMapSteps() {
+  const now = MAP_IDS.filter(id => mapOpen(id));
+  if (!openMaps) { openMaps = new Set(now); return; }
+  for (const id of now) if (!openMaps.has(id)) { openMaps.add(id); toast(`${MAPS[id].name}까지 걸어왔어요 — 설정에서 갈 수 있어요`, 3200); paintModeMenu(); }
+}
+function paintFinds() {
+  const grid = document.getElementById('findGrid');
+  document.getElementById('findTitle').textContent = `주운 것 ${finds.kinds} / ${FINDS.length}`;
+  grid.textContent = '';
+  for (const f of FINDS) {
+    const b = document.createElement('button'); b.type = 'button';
+    const n = finds.n[f.id] || 0;
+    if (!n) {
+      b.className = 'locked'; b.textContent = '?';
+      const hint = f.hint || RARITY[f.r];
+      b.setAttribute('aria-label', `아직 못 주움 · ${hint}`); b.title = hint;
+      b.addEventListener('click', () => toast(`? · ${hint}`, 2200));
+    } else {
+      const sp = document.createElement('i'); sp.className = 'find';
+      sp.style.backgroundPosition = `${(f.cell % 4) * 100 / 3}% ${Math.floor(f.cell / 4) * 100 / 3}%`;
+      b.append(sp);
+      if (n > 1) { const c = document.createElement('span'); c.className = 'cnt'; c.textContent = n; b.append(c); }
+      b.classList.toggle('rare', f.r >= 2);
+      b.setAttribute('aria-label', `${f.name} · ${RARITY[f.r]} · ${n}개`); b.title = `${f.name} · ${RARITY[f.r]}`;
+      b.addEventListener('click', () => toast(`${f.name} · ${RARITY[f.r]} · ${n}개`, 2000));
+    }
+    grid.append(b);
+  }
+}
 function paintCollection() {
+  paintFinds();
   const grid = document.getElementById('colGrid');
   document.getElementById('colTitle').textContent = `모은 것 ${col.count} / ${ITEMS.length}`;
   grid.textContent = '';
@@ -857,4 +913,4 @@ paintWeather();
 const firstWrite = () => { if (!plate) { setTimeout(firstWrite, 300); return; } if (phase === 'idle' && !current && mode === 'free') write(FIRST); };
 setTimeout(firstWrite, 700);
 
-window.__kiwi = { focus, completeFocus, get phase() { return phase; }, get kiwis() { return kiwis; }, get jobs() { return jobs; }, get current() { return current; }, beach, clouds, atmos, sound, get plate() { return plate; }, drifters, col, openDrift, get notes() { return notes; }, submit, setView, toWorld };
+window.__kiwi = { focus, completeFocus, shore, finds, pickUp, get phase() { return phase; }, get kiwis() { return kiwis; }, get jobs() { return jobs; }, get current() { return current; }, beach, clouds, atmos, sound, get plate() { return plate; }, drifters, col, openDrift, get notes() { return notes; }, submit, setView, toWorld };

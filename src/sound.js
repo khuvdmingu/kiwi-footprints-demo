@@ -9,7 +9,7 @@
 //  믹서 값(소리 켜기·음악·환경음·효과음·발자국 음악)은 기기에 기억한다.
 //  브라우저는 사용자 동작 안에서만 소리를 열 수 있어서 unlock() 을 그때 부른다. 탭을 숨기면 멈춘다.
 
-import { Music } from './music.js?v=v12.0.1';
+import { Music } from './music.js?v=v13.0.0';
 
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 const MIX_KEY = 'kiwi-footprints.mix';
