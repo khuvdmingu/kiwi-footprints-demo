@@ -214,6 +214,12 @@ body.typing #caption, body.info-open #caption { opacity: 0; }
 #mixer input[type="range"] { flex: 1; min-width: 0; accent-color: var(--sand); }
 #mixer input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--sand); }
 #mixer input:focus-visible { outline: 2px solid rgb(var(--ink)); outline-offset: 2px; }
+#mixer h3 { margin: 12px 0 6px; padding-top: 10px; border-top: 1px solid var(--panel-line); font-size: 12.5px; font-weight: 600; opacity: 0.75; }
+#mixer .packs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+#mixer .packs button { padding: 7px 2px; border-radius: 9px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; word-break: keep-all; }
+#mixer .packs button[aria-pressed="true"] { background: var(--sand); color: #2a2016; border-color: transparent; }
+#mixer .packs button:disabled { opacity: 0.4; cursor: default; }
+#found .art i.find { display: block; width: 150px; height: 150px; margin: 0 auto; background: url('assets/finds.webp') 33.333% 0 / 400% 400% no-repeat; }
 #mixer .hint { margin: 6px 0 2px; font-size: 12px; line-height: 1.5; opacity: 0.7; word-break: keep-all; }
 
 #info { position: fixed; inset: 0; z-index: 30; display: flex; padding: 24px 20px; overflow: auto; background: rgba(20, 47, 73, 0.72); }
