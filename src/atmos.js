@@ -6,7 +6,7 @@
 //        구름 양·흐름 속도·파도 높이는 셰이더/해변에 넘기고, 빗줄기·물방울 고리·눈송이·나뭇잎·안개·반딧불이·야광은 여기서 #fx 캔버스에 그린다.
 //        눈은 시간이 지날수록 땅(셰이더 uSnow)과 나무에 쌓이고, 그치면 천천히 녹는다.
 
-import { clamp, lerp } from './util.js?v=v16.2.0';
+import { clamp, lerp } from './util.js?v=v16.2.1';
 
 export const WEATHERS = ['clear', 'cloudy', 'rain', 'snow', 'fog', 'wind'];
 export const WEATHER_NAME = { clear: '맑음', cloudy: '흐림', rain: '비', snow: '눈', fog: '안개', wind: '바람' };
@@ -113,7 +113,10 @@ export class Atmos {
     this.wisps = this.wisps.filter(w => w.age < w.life);
     // 밤: 반딧불이(풀밭 가장자리 둘레) · 야광 플랑크톤(물가)
     const glowOK = this.night * (1 - this.v.rain) * (1 - this.v.snow);
-    const nFly = Math.round(glowOK * 16);
+    // 그림을 아직 읽기 전(첫 프레임)에는 숲 줄이 없어 위치가 NaN이 된다 — 그때는 만들지 않고, 혹시 깨진 것은 버린다
+    const laid = !!(beach.grassC && beach.W > 0 && isFinite(beach.bushY) && isFinite(beach.shoreY));
+    const nFly = laid ? Math.round(glowOK * 16) : 0;
+    this.flies = this.flies.filter(f => isFinite(f.x) && isFinite(f.y));
     while (this.flies.length < nFly) {
       const x = Math.random() * W;
       this.flies.push({ x, y: beach.grass(x) + (Math.random() - 0.3) * 120 * u, ph: Math.random() * 6.28, vx: 0, vy: 0 });
@@ -124,7 +127,7 @@ export class Atmos {
       fl.vx *= 0.97; fl.vy *= 0.97;
       fl.x = clamp(fl.x + fl.vx * dt, 0, W); fl.y = clamp(fl.y + fl.vy * dt, beach.bushY - 90 * u, beach.shoreY - 40 * u);
     }
-    if (glowOK > 0.3 && Math.random() < dt * 30 * glowOK) {
+    if (laid && glowOK > 0.3 && Math.random() < dt * 30 * glowOK) {
       const x = Math.random() * W;
       this.plankton.push({ x, y: beach.edge(x) + Math.random() * 14 * u, age: 0, life: 1 + Math.random() * 1.5 });
     }
