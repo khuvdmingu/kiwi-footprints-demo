@@ -15,7 +15,7 @@ const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
-  const [img, dry, sea] = await Promise.all([load(name + '.webp?v=v16.2.3'), load(name + '-dry.webp?v=v16.2.3'), load(name + '-sea.webp?v=v16.2.3')]);
+  const [img, dry, sea] = await Promise.all([load(name + '.webp?v=v16.2.4'), load(name + '-dry.webp?v=v16.2.4'), load(name + '-sea.webp?v=v16.2.4')]);
   const p = new Plate(img, dry, sea, opts);
   p.name = name;
   return p;
@@ -63,7 +63,12 @@ export class Plate {
     // 전체 중앙값에서 화면 높이의 10% 넘게 벗어난 칸(가장자리 바위·통나무를 물로 읽은 곳)은 버리고 가까운 정상 칸으로 메운다
     const M = [...shore].sort((p, q) => p - q)[aw >> 1], okS = shore.map(v => Math.abs(v - M) <= ah * 0.1);
     for (let x = 0; x < aw; x++) if (!okS[x]) { let l = x, r = x; while (l >= 0 && !okS[l]) l--; while (r < aw && !okS[r]) r++; shore[x] = l < 0 ? (r < aw ? shore[r] : M) : r >= aw ? shore[l] : shore[l] + (shore[r] - shore[l]) * (x - l) / (r - l); }
-    const shoreS = box(box(median(shore, 12), 10), 10);
+    // 좁고 깊은 골 지우기 (v16.2.4): 물가 거품 띠 사이 틈에서 한 줄 아래 거품을 물가로 읽어 선이 V자로 뚝 떨어지던 곳.
+    //  물이 그 선을 따라 V자로 파였다. 1차원 열기(아래로 튄 값 → 이웃 최솟값 → 최댓값)로, 너비 6%보다 좁은 골만 메운다.
+    //  넓은 만·곶 모양은 그대로 남는다.
+    const R6 = Math.round(aw * 0.03), win = (a, f) => a.map((_, x) => { let v = a[x]; for (let k = Math.max(0, x - R6); k <= Math.min(aw - 1, x + R6); k++) v = f(v, a[k]); return v; });
+    const shoreO = win(win(shore, Math.min), Math.max);
+    const shoreS = box(box(median(shoreO, 12), 10), 10);
     // ② 숲 줄: 물가선에서 위로 올라가며 모래·흙이 끝나는 곳 (햇살 받은 잎을 모래로 읽어도 위쪽이라 상관없다)
     for (let x = 0; x < aw; x++) {
       let f = 0, cnt = 0;

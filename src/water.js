@@ -84,9 +84,13 @@ void main() {
       // 물러난 물이 남긴 레이스 거품 한 줄 (물이 멀어질수록 옅어진다)
       float gap = e - w;
       float laceK = (1. - smoothstep(12. * u, 80. * u, gap)) * smoothstep(1. * u, 6. * u, gap);
-      if (laceK > 0. && abs(p.y - w - 3. * u) < 2.2 * u) {
-        float lace = (1. - smoothstep(0., 2.2 * u, abs(p.y - w - 3. * u))) * smoothstep(.4, .6, vnoise(vec2(p.x / (5. * u), w / (9. * u))));
-        land = mix(land, vec3(1., .99, .96), lace * laceK * .85);
+      if (laceK > 0. && abs(p.y - w - 3. * u) < 6. * u) {
+        // 선 하나가 아니라 거품 알갱이가 모인 띠: 줄이 살짝 출렁이고, 굵기가 들쭉날쭉하고, 알갱이 사이가 비친다
+        float ly = w + 3. * u + (vnoise(vec2(p.x / (18. * u), 7.1)) - .5) * 4. * u;
+        float hw = (.8 + 1.8 * vnoise(vec2(p.x / (7. * u), 2.3))) * u;
+        float band = 1. - smoothstep(hw * .4, hw, abs(p.y - ly));
+        float bub = smoothstep(.42, .62, vnoise(vec2(p.x / (2.6 * u), (p.y - ly) / (2.6 * u) + w / (9. * u))));
+        land = mix(land, vec3(1., .99, .96), band * bub * laceK * .75);
       }
     }
 
@@ -244,7 +248,15 @@ export class WaterGL {
 
   draw(beach, { snow = 0, night = 0, rain = 0 } = {}) {
     const gl = this.gl, { W, H } = this, P = this.plate, m = P.map;
-    const step = W / (N - 1), wet = beach.wet, wc = wet.length;
+    const step = W / (N - 1), wc = beach.wet.length;
+    // 젖은 줄을 옆 칸과 이어 부드럽게 (v16.2.4) — 칸마다 "가장 높이 왔던 곳"을 따로 기억하고 똑같은 속도로 말라서,
+    // 파도 마루 사이마다 뾰족한 V자 골이 생기고 그 위의 거품 줄이 지그재그가 됐다. 5칸 상자 흐림 세 번 ≈ 둥근 흐림.
+    const wet = (this.wetS ||= new Float32Array(wc)), tmp = (this.wetT ||= new Float32Array(wc));
+    wet.set(beach.wet);
+    for (let pass = 0; pass < 3; pass++) {
+      for (let i = 0; i < wc; i++) { let a = 0; for (let k = -2; k <= 2; k++) a += wet[Math.min(wc - 1, Math.max(0, i + k))]; tmp[i] = a / 5; }
+      wet.set(tmp);
+    }
     for (let i = 0; i < N; i++) {
       const x = i * step, wf = (x / W) * (wc - 1), wi = Math.min(wc - 2, Math.floor(wf)), wt = wf - wi;
       const sh = P.shore(x), ok = v => (Number.isFinite(v) ? v / H : sh / H);
