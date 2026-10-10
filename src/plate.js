@@ -15,7 +15,7 @@ const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
-  const [img, dry, sea] = await Promise.all([load(name + '.webp?v=v17.0.1'), load(name + '-dry.webp?v=v17.0.1'), load(name + '-sea.webp?v=v17.0.1')]);
+  const [img, dry, sea] = await Promise.all([load(name + '.webp?v=v17.0.2'), load(name + '-dry.webp?v=v17.0.2'), load(name + '-sea.webp?v=v17.0.2')]);
   const p = new Plate(img, dry, sea, opts);
   p.name = name; p.base = base;
   return p;
@@ -236,7 +236,7 @@ export class Plate {
     if (this.opts.art === false) return Promise.resolve(null);   // 시간대 그림 판이 없는 장소: 코드 빛만
     const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = rej; im.src = this.base + src; });
     this.sets ||= {}; this._sets ||= {};
-    return (this._sets[kind] ||= Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v17.0.1`)))
+    return (this._sets[kind] ||= Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v17.0.2`)))
       .then(([img, dry, sea]) => (this.sets[kind] = { img, dry, sea }))
       .catch(() => null));
   }
