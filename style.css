@@ -244,3 +244,5 @@ body.ready #boot { opacity: 0; visibility: hidden; }
 }
 /* 휴대폰: 알림이 위 버튼 줄을 가리지 않게 그 아래로 (집중 알약과 같은 자리) */
 @media (max-width: 560px) { #toast { top: calc(max(14px, env(safe-area-inset-top)) + 50px); max-width: calc(100vw - 40px); text-align: center; word-break: keep-all; } }
+/* 소리 창이 길어져서 (곡 · 발자국 소리 · 자연 배경) 화면보다 길면 안에서 스크롤 */
+#mixer { max-height: calc(100dvh - 90px); overflow-y: auto; }

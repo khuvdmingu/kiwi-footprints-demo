@@ -9,11 +9,11 @@
 //  믹서 값(소리 켜기·음악·환경음·효과음·발자국 음악)은 기기에 기억한다.
 //  브라우저는 사용자 동작 안에서만 소리를 열 수 있어서 unlock() 을 그때 부른다. 탭을 숨기면 멈춘다.
 
-import { Music } from './music.js?v=v14.0.0';
+import { Music } from './music.js?v=v15.0.0';
 
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 const MIX_KEY = 'kiwi-footprints.mix';
-const DEFAULT_MIX = { on: true, music: 0.55, amb: 0.8, sfx: 0.85, steps: true, stepPack: 'sand', nature: 'none' };   // v14 발자국 소리 · 자연 배경 (물에서 떠내려온 소라로 얻는다)
+const DEFAULT_MIX = { on: true, music: 0.55, amb: 0.8, sfx: 0.85, steps: true, stepPack: 'sand', nature: 'none', song: 'auto' };   // v14 발자국 소리 · 자연 배경 (물에서 떠내려온 소라로 얻는다)
 
 export class Sound {
   constructor({ enabled = true } = {}) {
@@ -26,6 +26,7 @@ export class Sound {
     this.last = {};
     this.stage = { W: 1, top: 0, bottom: 1 };
     this.music = new Music(this);
+    this.music.setSong(this.mix.song === 'auto' ? null : this.mix.song);   // v15 고른 곡
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', () => {
         if (!this.ctx) return;
@@ -269,6 +270,8 @@ export class Sound {
       this.noise(0.12, 1300, 0.7, 0.025, 0.01, 'bandpass', p);
     }
   }
+  // v15 곡 고르기 ('auto' = 시간 따라)
+  setSong(id) { this.mix.song = id; this.saveMix(); this.music.setSong(id === 'auto' ? null : id); }
   // 들어 보기: 발자국 네 번
   previewStep(pk) {
     if (!this.ready()) return;
