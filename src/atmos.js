@@ -6,7 +6,7 @@
 //        구름 양·흐름 속도·파도 높이는 셰이더/해변에 넘기고, 빗줄기·물방울 고리·눈송이·나뭇잎·안개·반딧불이·야광은 여기서 #fx 캔버스에 그린다.
 //        눈은 시간이 지날수록 땅(셰이더 uSnow)과 나무에 쌓이고, 그치면 천천히 녹는다.
 
-import { clamp, lerp } from './util.js?v=v16.1.0';
+import { clamp, lerp } from './util.js?v=v16.2.0';
 
 export const WEATHERS = ['clear', 'cloudy', 'rain', 'snow', 'fog', 'wind'];
 export const WEATHER_NAME = { clear: '맑음', cloudy: '흐림', rain: '비', snow: '눈', fog: '안개', wind: '바람' };
@@ -41,9 +41,22 @@ export class Atmos {
     this.night = 0;
     this.tint = [255, 255, 255];
     this.drops = []; this.rings = []; this.flakes = []; this.leaves = []; this.fogs = []; this.flies = []; this.plankton = [];
+    this.holes = []; this.wisps = [];   // v16.2 안개 구멍 · 흩어지는 안개 조각
     this.t = 0;
   }
   setWeather(w) { this.weather = w; }
+  // v16.2 안개 뚫기: (x, y)에 둥근 구멍 — 퍽 하고 열렸다가(0.35초) 잠시 머물고(3.5초) 천천히 다시 찬다(5초). big = 누르기, 아니면 문지르기
+  punchFog(x, y, u, big = true) {
+    if (this.v.fog < 0.2) return false;
+    const R = (big ? 95 : 55) * u;
+    this.holes.push({ x, y, R, age: 0, hold: big ? 3.5 : 2.5 });
+    if (this.holes.length > 60) this.holes.shift();
+    for (let i = 0; i < (big ? 9 : 3); i++) {   // 밀려난 안개 조각이 바깥으로 흩어진다
+      const a = Math.random() * 6.28, sp = (big ? 90 : 50) * u * (0.6 + Math.random() * 0.8);
+      this.wisps.push({ x: x + Math.cos(a) * R * 0.4, y: y + Math.sin(a) * R * 0.4, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: (18 + Math.random() * 22) * u, age: 0, life: 0.9 + Math.random() * 0.6 });
+    }
+    return true;
+  }
   get cloud() { return this.v.cloud; }
   get windK() { return this.v.windK; }
 
@@ -93,6 +106,11 @@ export class Atmos {
     while (this.fogs.length < nFog) this.fogs.push({ x: Math.random() * W, y: Math.random() * H, r: (0.25 + Math.random() * 0.2) * Math.max(W, H), sp: (6 + Math.random() * 8) * u });
     if (this.fogs.length > nFog) this.fogs.length = nFog;
     for (const g of this.fogs) { g.x += g.sp * dt; if (g.x - g.r > W) g.x = -g.r; }
+    // 안개 구멍: 안개와 함께 조금 흘러가며 다시 찬다 · 흩어진 조각은 느려지며 옅어진다
+    for (const h of this.holes) { h.age += dt; h.x += 8 * u * dt; }
+    this.holes = this.holes.filter(h => h.age < h.hold + 5 && this.v.fog > 0.05);
+    for (const w of this.wisps) { w.age += dt; w.x += w.vx * dt; w.y += w.vy * dt; w.vx *= 0.94; w.vy *= 0.94; w.r *= 1 + dt * 0.8; }
+    this.wisps = this.wisps.filter(w => w.age < w.life);
     // 밤: 반딧불이(풀밭 가장자리 둘레) · 야광 플랑크톤(물가)
     const glowOK = this.night * (1 - this.v.rain) * (1 - this.v.snow);
     const nFly = Math.round(glowOK * 16);
@@ -127,16 +145,40 @@ export class Atmos {
     const u = beach.u, W = beach.W, H = beach.H;
     ctx.save();
     // 안개: 전체에 옅은 흰 막 + 흘러가는 덩어리
+    // v16.2: 안개만 따로(반 해상도) 그린 뒤 구멍을 뚫어 얹는다 — 같은 캔버스의 비·반딧불이까지 지우지 않게
     if (this.v.fog > 0.01) {
-      ctx.fillStyle = `rgba(236,238,240,${0.16 * this.v.fog})`;
-      ctx.fillRect(0, 0, W, H);
-      for (const g of this.fogs) {
-        const gr = ctx.createRadialGradient(g.x, g.y, 0, g.x, g.y, g.r);
+      const k = 0.5, fc = (this.fogCanvas ||= document.createElement('canvas'));
+      const fw = Math.ceil(W * k), fh = Math.ceil(H * k);
+      if (fc.width !== fw || fc.height !== fh) { fc.width = fw; fc.height = fh; }
+      const g = fc.getContext('2d');
+      g.setTransform(k, 0, 0, k, 0, 0); g.clearRect(0, 0, W, H);
+      g.fillStyle = `rgba(236,238,240,${0.16 * this.v.fog})`;
+      g.fillRect(0, 0, W, H);
+      for (const f of this.fogs) {
+        const gr = g.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r);
         gr.addColorStop(0, `rgba(240,242,244,${0.34 * this.v.fog})`);
         gr.addColorStop(1, 'rgba(240,242,244,0)');
-        ctx.fillStyle = gr;
-        ctx.fillRect(g.x - g.r, g.y - g.r, g.r * 2, g.r * 2);
+        g.fillStyle = gr;
+        g.fillRect(f.x - f.r, f.y - f.r, f.r * 2, f.r * 2);
       }
+      if (this.holes.length) {
+        g.globalCompositeOperation = 'destination-out';
+        for (const h of this.holes) {
+          const open = 1 - Math.pow(1 - Math.min(1, h.age / 0.35), 3);              // 퍽: 빠르게 열리고
+          const a = h.age < h.hold ? 1 : Math.max(0, 1 - (h.age - h.hold) / 5);   // 천천히 다시 찬다
+          const r = h.R * (0.3 + 0.7 * open) * (1 + 0.15 * (1 - a));
+          const gr = g.createRadialGradient(h.x, h.y, 0, h.x, h.y, r);
+          gr.addColorStop(0, `rgba(0,0,0,${0.95 * a})`); gr.addColorStop(0.55, `rgba(0,0,0,${0.8 * a})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
+          g.fillStyle = gr; g.beginPath(); g.arc(h.x, h.y, r, 0, 6.29); g.fill();
+        }
+        g.globalCompositeOperation = 'source-over';
+      }
+      for (const w of this.wisps) {
+        const a = (1 - w.age / w.life) * 0.4 * this.v.fog, gr = g.createRadialGradient(w.x, w.y, 0, w.x, w.y, w.r);
+        gr.addColorStop(0, `rgba(244,246,248,${a})`); gr.addColorStop(1, 'rgba(244,246,248,0)');
+        g.fillStyle = gr; g.beginPath(); g.arc(w.x, w.y, w.r, 0, 6.29); g.fill();
+      }
+      ctx.drawImage(fc, 0, 0, W, H);
     }
     // 빗줄기 · 물방울 고리
     if (this.drops.length || this.rings.length) {

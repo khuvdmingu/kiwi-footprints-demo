@@ -15,23 +15,23 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v16.1.0';
-import { Beach } from './beach.js?v=v16.1.0';
-import { Kiwi } from './kiwi.js?v=v16.1.0';
-import { Sound } from './sound.js?v=v16.1.0';
-import { loadPlate } from './plate.js?v=v16.1.0';
-import { MAPS, MAP_IDS } from './maps.js?v=v16.1.0';
-import { WaterGL } from './water.js?v=v16.1.0';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v16.1.0';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v16.1.0';
-import { Clouds } from './clouds.js?v=v16.1.0';
-import { Gulls } from './gulls.js?v=v16.1.0';
-import { Atmos, WEATHERS, WEATHER_NAME } from './atmos.js?v=v16.1.0';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v16.1.0';
-import { clamp, dist } from './util.js?v=v16.1.0';
-import { Focus, Awake, LENGTHS } from './focus.js?v=v16.1.0';
-import { UNLOCK_ALL } from './config.js?v=v16.1.0';
-import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v16.1.0';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v16.2.0';
+import { Beach } from './beach.js?v=v16.2.0';
+import { Kiwi } from './kiwi.js?v=v16.2.0';
+import { Sound } from './sound.js?v=v16.2.0';
+import { loadPlate } from './plate.js?v=v16.2.0';
+import { MAPS, MAP_IDS } from './maps.js?v=v16.2.0';
+import { WaterGL } from './water.js?v=v16.2.0';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v16.2.0';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v16.2.0';
+import { Clouds } from './clouds.js?v=v16.2.0';
+import { Gulls } from './gulls.js?v=v16.2.0';
+import { Atmos, WEATHERS, WEATHER_NAME } from './atmos.js?v=v16.2.0';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v16.2.0';
+import { clamp, dist } from './util.js?v=v16.2.0';
+import { Focus, Awake, LENGTHS } from './focus.js?v=v16.2.0';
+import { UNLOCK_ALL } from './config.js?v=v16.2.0';
+import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v16.2.0';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -740,6 +740,8 @@ document.getElementById('touch').addEventListener('pointerdown', e => {
   if (sh) { pickUp(sh); return; }
   const dr = drifters.hit(x, y, beach.u);
   if (dr) { openDrift(dr); return; }
+  // v16.2 안개 낀 날: 누른 자리가 뻥 뚫린다 (누른 채 문지르면 지나간 길도 닦인다)
+  if (atmos.punchFog(x, y, beach.u, true)) { sound.poof(x); fogWipe = { x, y }; return; }
   const cl = clouds.hit(x, y);
   if (cl) { clouds.scatter(cl, x, y); sound.poof(x); return; }
   const hit = kiwis.find(k => dist(k.x, k.y - k.k * 0.45, x, y) < k.k * 0.55);
@@ -750,14 +752,27 @@ document.getElementById('touch').addEventListener('pointerdown', e => {
   kw.digAt(x, y);
 });
 
+// 안개 문지르기: 누른 채로 움직이면 지나간 자리를 작은 구멍으로 잇는다
+let fogWipe = null;
+const touchEl = document.getElementById('touch');
+touchEl.addEventListener('pointermove', e => {
+  if (!fogWipe || !e.buttons && e.pointerType === 'mouse') return;
+  const [x, y] = toWorld(e.clientX, e.clientY), step = 22 * beach.u;
+  const d = dist(x, y, fogWipe.x, fogWipe.y);
+  if (d < step) return;
+  for (let i = 1; i <= Math.floor(d / step); i++) { const f = i * step / d; atmos.punchFog(fogWipe.x + (x - fogWipe.x) * f, fogWipe.y + (y - fogWipe.y) * f, beach.u, false); }
+  fogWipe = { x, y };
+});
+for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) touchEl.addEventListener(ev, () => { fogWipe = null; });
+
 let rt = null;
 window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => plate && resize(), 200); });
 
 // 그림 판·키위·갈매기 그림을 다 읽은 뒤 시작한다
 async function boot() {
   const img = src => new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp?v=v16.1.0'), img('assets/gull.webp?v=v16.1.0'), img('assets/bottle.webp?v=v16.1.0'), img('assets/crate.webp?v=v16.1.0')]);
-  img('assets/finds.webp?v=v16.1.0').then(im => {
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp?v=v16.2.0'), img('assets/gull.webp?v=v16.2.0'), img('assets/bottle.webp?v=v16.2.0'), img('assets/crate.webp?v=v16.2.0')]);
+  img('assets/finds.webp?v=v16.2.0').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
