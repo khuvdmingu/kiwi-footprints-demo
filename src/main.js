@@ -15,23 +15,23 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v16.2.1';
-import { Beach } from './beach.js?v=v16.2.1';
-import { Kiwi } from './kiwi.js?v=v16.2.1';
-import { Sound } from './sound.js?v=v16.2.1';
-import { loadPlate } from './plate.js?v=v16.2.1';
-import { MAPS, MAP_IDS } from './maps.js?v=v16.2.1';
-import { WaterGL } from './water.js?v=v16.2.1';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v16.2.1';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v16.2.1';
-import { Clouds } from './clouds.js?v=v16.2.1';
-import { Gulls } from './gulls.js?v=v16.2.1';
-import { Atmos, WEATHERS, WEATHER_NAME } from './atmos.js?v=v16.2.1';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v16.2.1';
-import { clamp, dist } from './util.js?v=v16.2.1';
-import { Focus, Awake, LENGTHS } from './focus.js?v=v16.2.1';
-import { UNLOCK_ALL } from './config.js?v=v16.2.1';
-import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v16.2.1';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v16.2.2';
+import { Beach } from './beach.js?v=v16.2.2';
+import { Kiwi } from './kiwi.js?v=v16.2.2';
+import { Sound } from './sound.js?v=v16.2.2';
+import { loadPlate } from './plate.js?v=v16.2.2';
+import { MAPS, MAP_IDS } from './maps.js?v=v16.2.2';
+import { WaterGL } from './water.js?v=v16.2.2';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v16.2.2';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v16.2.2';
+import { Clouds } from './clouds.js?v=v16.2.2';
+import { Gulls } from './gulls.js?v=v16.2.2';
+import { Atmos, WEATHERS, WEATHER_NAME } from './atmos.js?v=v16.2.2';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v16.2.2';
+import { clamp, dist } from './util.js?v=v16.2.2';
+import { Focus, Awake, LENGTHS } from './focus.js?v=v16.2.2';
+import { UNLOCK_ALL } from './config.js?v=v16.2.2';
+import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v16.2.2';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -140,8 +140,8 @@ function resize() {
   worldEl.style.width = W + 'px'; worldEl.style.height = H + 'px';
   plate.fit(W, H);
   beach.resize(W, H, dpr, plate);
-  water.resize(W, H, dpr);
-  plate.paintCanopy(canopyEl, dpr);
+  water.resize(W, H, artDpr());
+  plate.paintCanopy(canopyEl, artDpr());
   clouds.amount = atmos.cloud;   // 첫 화면부터 날씨에 맞는 구름 수
   clouds.resize(W, H, beach.u);
   gulls.resize(beach);
@@ -554,6 +554,7 @@ function stampSeconds(ss) {
   pts.forEach(([px, py, a], i) => beach.addSec(px, py, a, f, beach.t + 0.18 + (i / pts.length) * 0.3));
 }
 
+const layerBusy = { clouds: true, fx: true };
 function draw() {
   ctx.setTransform(stageScale, 0, 0, stageScale, 0, 0);
   ctx.clearRect(0, 0, W, H);
@@ -573,12 +574,22 @@ function draw() {
   drifters.draw(ctx, beach);
   for (const kw of order) kw.drawShadow(ctx);
   for (const kw of order) { kw.shade = plate.shadeAt(kw.x, kw.y - kw.k * 0.4); kw.draw(ctx); }
-  const cs = +cloudCanvas.dataset.scale || 1;
-  cctx.setTransform(cs, 0, 0, cs, 0, 0);
-  cctx.clearRect(0, 0, W, H);
-  clouds.draw(cctx);
+  // (최적화) 구름 층·효과 층은 맑은 날 대부분 비어 있다. 비어 있는 동안은 지우지도 그리지도 않는다
+  //  — 손대지 않은 캔버스는 브라우저가 다시 올리지 않아서 GPU 일이 준다. 비워지는 첫 프레임에 한 번만 지운다.
+  const cloudBusy = clouds.list.length > 0 || clouds.bits.length > 0;
+  if (cloudBusy || layerBusy.clouds) {
+    const cs = +cloudCanvas.dataset.scale || 1;
+    cctx.setTransform(cs, 0, 0, cs, 0, 0);
+    cctx.clearRect(0, 0, W, H);
+    if (cloudBusy) clouds.draw(cctx);
+  }
+  layerBusy.clouds = cloudBusy;
+  const fxBusy = gulls.list.length > 0 || sparks.length > 0 || leaves.length > 0 || notes.length > 0 || atmos.busy;
+  const fxWas = layerBusy.fx; layerBusy.fx = fxBusy;
+  if (!fxBusy && !fxWas) return;
   fctx.setTransform(stageScale, 0, 0, stageScale, 0, 0);
   fctx.clearRect(0, 0, W, H);
+  if (!fxBusy) return;
   gulls.draw(fctx, beach);
   for (const s of sparks) {
     const a = 1 - s.age / s.life, r = s.r * (0.6 + a * 0.6);
@@ -608,8 +619,28 @@ function draw() {
   }
 }
 
+// (최적화) 느린 기기: 3초 넘게 40fps 아래로 버벅이면 그림 층(물·숲 잎)의 해상도만 한 단계 낮춘다
+//  — 셰이더 일이 화면 픽셀 수에 비례해서 가장 크게 준다. 키위·글씨·발자국(stage 캔버스)은 그대로 선명하다.
+//  2 → 1.5 → 1.25 → 1. 다시 올리지는 않는다(오르내림 방지). 이 기기·이번 방문에만.
+let artScale = 0;   // 0 = 화면 해상도 그대로
+const artDpr = () => (artScale ? Math.min(artScale, dpr) : dpr);
+const perf = { ema: 1 / 60, slowFor: 0 };
+function watchPerf(gap) {
+  if (gap > 0.2 || !water || beach.t < 6) return;   // 숨김에서 돌아온 긴 틈 · 그림·소리를 읽는 첫 6초는 세지 않는다
+  perf.ema += (gap - perf.ema) * 0.05;
+  perf.slowFor = perf.ema > 1 / 40 ? perf.slowFor + gap : 0;
+  const cur = artDpr();
+  if (perf.slowFor > 3 && cur > 1) {
+    artScale = cur > 1.5 ? 1.5 : cur > 1.25 ? 1.25 : 1;
+    water.resize(W, H, artScale);
+    plate.paintCanopy(canopyEl, artScale);
+    perf.slowFor = 0;
+  }
+}
+
 let last = performance.now(), ready = false;
 function frame(now) {
+  watchPerf((now - last) / 1000);
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   // 한 프레임에서 오류가 나도 화면이 멈추지 않게 다음 프레임은 꼭 예약한다 (오류는 처음 한 번만 남긴다)
@@ -772,8 +803,8 @@ window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() =
 // 그림 판·키위·갈매기 그림을 다 읽은 뒤 시작한다
 async function boot() {
   const img = src => new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp?v=v16.2.1'), img('assets/gull.webp?v=v16.2.1'), img('assets/bottle.webp?v=v16.2.1'), img('assets/crate.webp?v=v16.2.1')]);
-  img('assets/finds.webp?v=v16.2.1').then(im => {
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp?v=v16.2.2'), img('assets/gull.webp?v=v16.2.2'), img('assets/bottle.webp?v=v16.2.2'), img('assets/crate.webp?v=v16.2.2')]);
+  img('assets/finds.webp?v=v16.2.2').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
@@ -1009,4 +1040,4 @@ paintWeather();
 const firstWrite = () => { if (!plate) { setTimeout(firstWrite, 300); return; } if (phase === 'idle' && !current && mode === 'free') write(FIRST); };
 setTimeout(firstWrite, 700);
 
-window.__kiwi = { setPack, paintPacks, focus, completeFocus, shore, finds, pickUp, paintCollection, get phase() { return phase; }, get kiwis() { return kiwis; }, get jobs() { return jobs; }, get current() { return current; }, beach, clouds, atmos, sound, get plate() { return plate; }, drifters, col, openDrift, get notes() { return notes; }, submit, setView, toWorld };
+window.__kiwi = { setPack, paintPacks, focus, completeFocus, shore, finds, pickUp, paintCollection, get phase() { return phase; }, get kiwis() { return kiwis; }, get jobs() { return jobs; }, get current() { return current; }, beach, get water() { return water; }, get artDpr() { return artDpr(); }, perf, clouds, atmos, sound, get plate() { return plate; }, drifters, col, openDrift, get notes() { return notes; }, submit, setView, toWorld };

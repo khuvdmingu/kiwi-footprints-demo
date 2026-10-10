@@ -65,27 +65,36 @@ void main() {
   float d = p.y - e;
 
   // ── 땅: 그려진 판, 그려진 해안선 아래는 물 뺀 모래 바닥 ──
-  vec3 land = textureLod(uPlate, uvOf(p), uLod).rgb;
-  if (p.y > s - 6. * u) land = mix(land, textureLod(uDry, uvOf(p), uLod).rgb, smoothstep(s - 4. * u, s + 8. * u, p.y));
-  if (uSnow > 0.) {
-    float k = smoothstep(.38, .7, fbm(p / (55. * u)) + uSnow * .9 - .42) * uSnow;
-    land = mix(land, vec3(.97, .96, .94), k * smoothstep(e - 2., e - 30. * u, p.y) * .92);
-  }
-  // 젖은 모래: 물이 닿았던 줄(w) 아래부터 물가까지 짙고 반들반들
-  // 마르는 중인 위쪽은 옅고, 물가로 갈수록 짙게 — 넓은 그라데이션 (각진 경계가 생기지 않게 경계선도 살짝 흔든다)
-  float wy = w + (fbm(vec2(p.x / (40. * u), 3.7)) - .5) * 24. * u;
-  float wetK = smoothstep(wy - 6. * u, wy + 150. * u, p.y) * (1. - smoothstep(e - 1., e + 1., p.y));
-  land = mix(land, land * vec3(.82, .79, .8) + vec3(.02, .03, .05), wetK * .8);
-  // 물러난 물이 남긴 레이스 거품 한 줄 (물이 멀어질수록 옅어진다)
-  float gap = e - w;
-  float laceK = (1. - smoothstep(12. * u, 80. * u, gap)) * smoothstep(1. * u, 6. * u, gap);
-  float lace = (1. - smoothstep(0., 2.2 * u, abs(p.y - w - 3. * u))) * smoothstep(.4, .6, vnoise(vec2(p.x / (5. * u), w / (9. * u))));
-  land = mix(land, vec3(1., .99, .96), lace * laceK * .85);
+  // (최적화) 깊은 물(d ≥ 1.2)에서는 땅 색이 섞이지 않는다 — 판 읽기·노이즈를 건너뛴다
+  vec3 land = vec3(0.);
+  if (d < 1.2) {
+    land = textureLod(uPlate, uvOf(p), uLod).rgb;
+    if (p.y > s - 6. * u) land = mix(land, textureLod(uDry, uvOf(p), uLod).rgb, smoothstep(s - 4. * u, s + 8. * u, p.y));
+    if (uSnow > 0.) {
+      float k = smoothstep(.38, .7, fbm(p / (55. * u)) + uSnow * .9 - .42) * uSnow;
+      land = mix(land, vec3(.97, .96, .94), k * smoothstep(e - 2., e - 30. * u, p.y) * .92);
+    }
+    // 젖은 모래: 물이 닿았던 줄(w) 아래부터 물가까지 짙고 반들반들
+    // 마르는 중인 위쪽은 옅고, 물가로 갈수록 짙게 — 넓은 그라데이션 (각진 경계가 생기지 않게 경계선도 살짝 흔든다)
+    // (최적화) 젖은 줄은 ±12u 흔들리므로 그 위 18u 보다 위쪽·물가 아래쪽은 값이 0 — 노이즈를 계산하지 않는다
+    if (p.y > w - 19. * u && p.y < e + 1.) {
+      float wy = w + (fbm(vec2(p.x / (40. * u), 3.7)) - .5) * 24. * u;
+      float wetK = smoothstep(wy - 6. * u, wy + 150. * u, p.y) * (1. - smoothstep(e - 1., e + 1., p.y));
+      land = mix(land, land * vec3(.82, .79, .8) + vec3(.02, .03, .05), wetK * .8);
+      // 물러난 물이 남긴 레이스 거품 한 줄 (물이 멀어질수록 옅어진다)
+      float gap = e - w;
+      float laceK = (1. - smoothstep(12. * u, 80. * u, gap)) * smoothstep(1. * u, 6. * u, gap);
+      if (laceK > 0. && abs(p.y - w - 3. * u) < 2.2 * u) {
+        float lace = (1. - smoothstep(0., 2.2 * u, abs(p.y - w - 3. * u))) * smoothstep(.4, .6, vnoise(vec2(p.x / (5. * u), w / (9. * u))));
+        land = mix(land, vec3(1., .99, .96), lace * laceK * .85);
+      }
+    }
 
-  // 비: 모래는 젖어 짙어지고 색이 조금 바랜다
-  if (uRain > 0.) {
-    float g = dot(land, vec3(.3, .59, .11));
-    land = mix(land, vec3(g), .22 * uRain) * (1. - .1 * uRain);
+    // 비: 모래는 젖어 짙어지고 색이 조금 바랜다
+    if (uRain > 0.) {
+      float g = dot(land, vec3(.3, .59, .11));
+      land = mix(land, vec3(g), .22 * uRain) * (1. - .1 * uRain);
+    }
   }
   vec3 col = land;
   if (d > -2.) {
@@ -110,7 +119,7 @@ void main() {
     float a1 = (1. + 3.5 * smoothstep(0., 260. * u, depth)) * u;
     vec2 dis = vec2(sin(q.y * .045 + uT * .75 + 1.5 * sin(q.x * .012 + uT * .3)),
                     cos(q.x * .03 - uT * .6 + 1.2 * sin(q.y * .02 - uT * .25))) * a1;
-    dis += (vec2(fbm(q * .008 + vec2(uT * .05, 0.)), fbm(q * .008 + vec2(5.2, uT * .04))) - .5) * 14. * u * smoothstep(60. * u, 420. * u, depth);
+    if (depth > 60. * u) dis += (vec2(fbm(q * .008 + vec2(uT * .05, 0.)), fbm(q * .008 + vec2(5.2, uT * .04))) - .5) * 14. * u * smoothstep(60. * u, 420. * u, depth);
     vec3 sea = big > 0. && big < 1. ? mix(textureLod(uSea, uvOf(vec2(p.x, yS) + dis), uLod).rgb, textureLod(uSea, uvOf(vec2(p.x, yI) + dis), uLod).rgb, big) : textureLod(uSea, uvOf(sp + dis), uLod).rgb;
     // 얕은 물 막: 그 줄의 물빛을 흐리게 펴고, 비친 모래·되돌아 흐르는 물결을 얹는다
     // 물 막은 물가 띠 안에서 차오르고 원래 바다 안쪽에서 빠진다 → 띠와 바다 사이의 "한 줄을 늘인" 자리는 늘 물 막에 가려진다
@@ -131,23 +140,31 @@ void main() {
     }
     // 얕은 물의 빛 그물
     float shallow = (1. - smoothstep(10. * u, 150. * u, depth)) * smoothstep(4. * u, 16. * u, depth);
-    float cw = web(q * .02 + dis / u * .02, uT * .45) * web(q * .027 + vec2(3.1, 7.7), uT * .55 + 2.);
-    sea += cw * .09 * shallow * (1. - uNight * .75) * vec3(.9, 1., .95);
+    if (shallow > 0.) {
+      float cw = web(q * .02 + dis / u * .02, uT * .45) * web(q * .027 + vec2(3.1, 7.7), uT * .55 + 2.);
+      sea += cw * .09 * shallow * (1. - uNight * .75) * vec3(.9, 1., .95);
+    }
     // 물가 거품 테두리 (끊기며 흐른다)
     float rim = 1. - smoothstep(0., (3.5 + uSurge * 5.) * u, depth);
-    float brk = smoothstep(.35, .62, fbm(vec2(p.x / (14. * u) - uT * .12, depth / (5. * u) - uT * .9)));
-    sea = mix(sea, vec3(1., .99, .96), rim * (.5 + .5 * brk) * .9);
+    if (rim > 0.) {
+      float brk = smoothstep(.35, .62, fbm(vec2(p.x / (14. * u) - uT * .12, depth / (5. * u) - uT * .9)));
+      sea = mix(sea, vec3(1., .99, .96), rim * (.5 + .5 * brk) * .9);
+    }
     // 큰 파도: 밀려오는 물보라 줄무늬
-    float streak = smoothstep(.56, .74, fbm(vec2(p.x / (20. * u), depth / (6. * u) - uT * 1.6)));
-    sea = mix(sea, vec3(1.), uSurge * (1. - smoothstep(0., 60. * u, depth)) * streak * .75);
+    if (uSurge > 0. && depth < 60. * u) {
+      float streak = smoothstep(.56, .74, fbm(vec2(p.x / (20. * u), depth / (6. * u) - uT * 1.6)));
+      sea = mix(sea, vec3(1.), uSurge * (1. - smoothstep(0., 60. * u, depth)) * streak * .75);
+    }
     // 반짝이는 햇빛
-    float cs = 15. * u;
-    vec2 g = floor(p / cs); float hs = h21(g);
-    vec2 c0 = (g + .5 + (vec2(h21(g + 3.1), h21(g + 7.7)) - .5) * .6) * cs;
-    float tw = pow(max(0., sin(uT * (1.1 + hs * 1.6) + hs * 40.)), 26.);
-    // 반짝임은 드문드문, 얕은 물~중간 물에서만 (그림 속 물방울 점과 겹치지 않게)
-    float zone = smoothstep(.45, .7, vnoise(p / (90. * u) + vec2(uT * .02, 0.)));
-    sea += (1. - smoothstep(0., 1.5 * u, length(p - c0))) * tw * step(.82, hs) * zone * smoothstep(12. * u, 50. * u, depth) * (1. - smoothstep(200. * u, 380. * u, depth)) * .9 * (1. - uNight) * (1. - uRain);
+    if (depth > 12. * u && depth < 380. * u && uNight < 1. && uRain < 1.) {   // (최적화) 반짝임이 0이 되는 곳은 건너뛴다
+      float cs = 15. * u;
+      vec2 g = floor(p / cs); float hs = h21(g);
+      vec2 c0 = (g + .5 + (vec2(h21(g + 3.1), h21(g + 7.7)) - .5) * .6) * cs;
+      float tw = pow(max(0., sin(uT * (1.1 + hs * 1.6) + hs * 40.)), 26.);
+      // 반짝임은 드문드문, 얕은 물~중간 물에서만 (그림 속 물방울 점과 겹치지 않게)
+      float zone = smoothstep(.45, .7, vnoise(p / (90. * u) + vec2(uT * .02, 0.)));
+      sea += (1. - smoothstep(0., 1.5 * u, length(p - c0))) * tw * step(.82, hs) * zone * smoothstep(12. * u, 50. * u, depth) * (1. - smoothstep(200. * u, 380. * u, depth)) * .9 * (1. - uNight) * (1. - uRain);
+    }
     // 비: 물 위 곳곳에 빗방울 파문이 번갈아 퍼진다 (칸마다 하나, 저마다 다른 박자)
     if (uRain > 0.) {
       float rs = 30. * u;

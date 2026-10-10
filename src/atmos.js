@@ -6,7 +6,7 @@
 //        구름 양·흐름 속도·파도 높이는 셰이더/해변에 넘기고, 빗줄기·물방울 고리·눈송이·나뭇잎·안개·반딧불이·야광은 여기서 #fx 캔버스에 그린다.
 //        눈은 시간이 지날수록 땅(셰이더 uSnow)과 나무에 쌓이고, 그치면 천천히 녹는다.
 
-import { clamp, lerp } from './util.js?v=v16.2.1';
+import { clamp, lerp } from './util.js?v=v16.2.2';
 
 export const WEATHERS = ['clear', 'cloudy', 'rain', 'snow', 'fog', 'wind'];
 export const WEATHER_NAME = { clear: '맑음', cloudy: '흐림', rain: '비', snow: '눈', fog: '안개', wind: '바람' };
@@ -141,6 +141,11 @@ export class Atmos {
     // 밤에는 가운데를 조금 밝게 (달빛)
     const lift = this.night * 0.18, [r2, g2, b2] = [r, g, b].map(v => Math.round(v + (255 - v) * lift));
     return `radial-gradient(ellipse 80% 70% at 55% 45%, rgb(${r2},${g2},${b2}), ${c})`;
+  }
+
+  // 이번 프레임에 그릴 것이 있는가 (없으면 #fx 층을 건드리지 않는다 — main.js)
+  get busy() {
+    return this.v.fog > 0.01 || this.drops.length || this.rings.length || this.flakes.length || this.leaves.length || this.flies.length || this.plankton.length || this.wisps.length;
   }
 
   // #fx 캔버스 (시간 빛 위에 그린다 — 빛나는 것들이 어둡게 눌리지 않게)
