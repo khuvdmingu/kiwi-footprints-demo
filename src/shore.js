@@ -5,7 +5,8 @@
 //  · 흔함 · 드묾 · 아주 드묾 · 전설. 아주 드묾 중 몇 개는 그때 그 화면에서만 나온다 (밤 · 비 · 해 질 녘 · 눈밭).
 //    조건이 맞을 때는 그 희귀품이 조금 더 자주 나온다 — "밤에 켜 두면 뭐가 나올까"가 켜 둘 이유가 된다.
 //  · 그림은 한 장(assets/finds.webp, 4×4 칸)에서 잘라 그린다.
-//  · 주운 개수는 이 기기에만 저장한다 (같은 것도 몇 개 주웠는지 센다 — 나중에 "조개 10개 → 목걸이" 같은 바꾸기용).
+//  · 주운 개수는 이 기기에만 저장한다 (같은 것도 몇 개 주웠는지 센다 — 바꾸기용, items.js 의 craft).
+//    바꾸면 개수는 줄지만 도감(본 적 있음 seen)은 그대로다.
 
 export const RARITY = ['흔함', '드묾', '아주 드묾', '전설'];
 const WEIGHT = [10, 4, 1.2, 0.3];
@@ -40,18 +41,23 @@ export function canFind(f, env) {
   return true;
 }
 
-// 주운 것: { id: 개수 }
+// 주운 것: n = { id: 지금 가진 개수 }, seen = 한 번이라도 주운 것 (도감)
 export class Finds {
   constructor(load, save) {
     this.save = save;
     let s = {};
     try { s = JSON.parse(load() || '{}'); } catch (e) { s = {}; }
-    this.n = {};
-    for (const f of FINDS) if (s[f.id] > 0) this.n[f.id] = s[f.id];
+    const n = s.n || s;   // v13.0 저장 형식({id: 개수})도 이어받는다
+    this.n = {}; this.seen = new Set((s.seen || []).filter(id => FIND[id]));
+    for (const f of FINDS) if (n[f.id] > 0) { this.n[f.id] = n[f.id]; this.seen.add(f.id); }
   }
-  add(id) { const fresh = !this.n[id]; this.n[id] = (this.n[id] || 0) + 1; this.save(JSON.stringify(this.n)); return fresh; }
-  has(id) { return !!this.n[id]; }
-  get kinds() { return Object.keys(this.n).length; }
+  store() { this.save(JSON.stringify({ n: this.n, seen: [...this.seen] })); }
+  add(id) { const fresh = !this.seen.has(id); this.n[id] = (this.n[id] || 0) + 1; this.seen.add(id); this.store(); return fresh; }
+  has(id) { return this.seen.has(id); }
+  count(id) { return this.n[id] || 0; }
+  enough(cost) { return Object.entries(cost).every(([id, c]) => this.count(id) >= c); }
+  spend(cost) { if (!this.enough(cost)) return false; for (const [id, c] of Object.entries(cost)) this.n[id] -= c; this.store(); return true; }
+  get kinds() { return this.seen.size; }
 }
 
 export class Shore {
