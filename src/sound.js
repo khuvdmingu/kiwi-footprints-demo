@@ -9,17 +9,21 @@
 //  믹서 값(소리 켜기·음악·환경음·효과음·발자국 음악)은 기기에 기억한다.
 //  브라우저는 사용자 동작 안에서만 소리를 열 수 있어서 unlock() 을 그때 부른다. 탭을 숨기면 멈춘다.
 
-import { Music } from './music.js?v=v15.1.0';
+import { Music } from './music.js?v=v15.2.0';
 
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 const MIX_KEY = 'kiwi-footprints.mix';
-const DEFAULT_MIX = { on: true, music: 0.55, amb: 0.8, sfx: 0.85, steps: true, stepPack: 'sand', nature: 'none', song: 'auto' };   // v14 발자국 소리 · 자연 배경 (물에서 떠내려온 소라로 얻는다)
+const DEFAULT_MIX = { on: true, music: 0.55, amb: 0.8, sfx: 0.85, steps: true, stepPack: 'music', nature: 'none', song: 'auto' };
+// v15.2 고르면 "대신" 나온다 (사용자: 덧대면 거슬린다) — 발자국: 'music'(발자국 음악, 기본) 대신 고른 소리 하나 · 곡: 시간 따라 음악 대신 그 곡 · 자연 배경: 기본(밤 귀뚜라미) 대신, 파도는 절반   // v14 발자국 소리 · 자연 배경 (물에서 떠내려온 소라로 얻는다)
 
 export class Sound {
   constructor({ enabled = true } = {}) {
     let mix = null;
     try { mix = JSON.parse(localStorage.getItem(MIX_KEY) || 'null'); } catch (e) { /* 저장소 없음 */ }
     this.mix = { ...DEFAULT_MIX, ...(mix || {}) };
+    // 예전 저장값 이어받기: 발자국 음악 켬/끔(steps) + 모래 → 'music' / 'sand'
+    if (mix && !mix.v152) { if (!mix.stepPack || mix.stepPack === 'sand') this.mix.stepPack = mix.steps === false ? 'sand' : 'music'; }
+    this.mix.v152 = true;
     if (!enabled) this.mix.on = false;
     this.ctx = null;
     this.idx = 3;
@@ -142,11 +146,12 @@ export class Sound {
     this.music.setMood(hour, weather);
     if (!this.ready()) return;
     const t = this.ctx.currentTime;
-    for (const s of this.sea) { s.g.gain.setTargetAtTime(0.14 + high * 0.24, t, 0.25); s.f.frequency.setTargetAtTime(330 + high * 900, t, 0.25); }
+    const duck = this.mix.nature !== 'none' ? 0.5 : 1;   // 자연 배경을 고르면 파도는 절반 (고른 소리가 앞으로)
+    for (const s of this.sea) { s.g.gain.setTargetAtTime((0.14 + high * 0.24) * duck, t, 0.25); s.f.frequency.setTargetAtTime(330 + high * 900, t, 0.25); }
     this.rainG.gain.setTargetAtTime(rain * 0.16, t, 0.5);
     this.windG.gain.setTargetAtTime(wind * 0.55, t, 0.5);
     // 밤 귀뚜라미: 여기저기서 짧은 찌르르 세 번
-    if (night > 0.5 && rain < 0.3 && this.gap('cricket', 0.5 + Math.random() * 1.2)) {
+    if (this.mix.nature === 'none' && night > 0.5 && rain < 0.3 && this.gap('cricket', 0.5 + Math.random() * 1.2)) {
       const f = 4100 + Math.random() * 500, pan = Math.random() * 2 - 1;
       for (let i = 0; i < 3; i++) {
         const o = this.ctx.createOscillator(), g = this.ctx.createGain(), w = t + i * 0.07;
@@ -239,9 +244,11 @@ export class Sound {
   // 글씨 획 위 발자국 하나 → 화음 안의 음. 위쪽일수록 높다. 너무 촘촘하면 건너뛴다. 소리가 났으면 true
   step(x, y) {
     if (!this.ready()) return false;
-    const pk = this.mix.stepPack || 'sand';
-    if (pk !== 'sand' && this.gap('tex', 0.09)) this.stepTex(pk, x);
-    if (!this.mix.steps) { if (pk === 'sand' && this.gap('pat', 0.08)) this.noise(0.04, 900 + Math.random() * 700, 1.2, 0.04, 0, 'bandpass', this.panOf(x)); return false; }
+    const pk = this.mix.stepPack || 'music';
+    if (pk !== 'music') {   // 고른 발자국 소리가 발자국 음악을 대신한다 (겹치지 않게)
+      if (this.gap('tex', 0.09)) { if (pk === 'sand') this.noise(0.04, 900 + Math.random() * 700, 1.2, 0.06, 0, 'bandpass', this.panOf(x)); else this.stepTex(pk, x); }
+      return false;
+    }
     if (!this.gap('step', 0.11)) return false;
     const { top, bottom } = this.stage;
     const k = 1 - Math.max(0, Math.min(1, (y - top) / Math.max(1, bottom - top)));
@@ -274,7 +281,7 @@ export class Sound {
   // 글씨가 아닌 걸음(서성이기·오가기): 고른 발자국 소리를 작게 (모래는 조용히)
   walkStep(x) {
     const pk = this.mix.stepPack;
-    if (!this.ready() || !pk || pk === 'sand' || !this.gap('walk', 0.16)) return;
+    if (!this.ready() || !pk || pk === 'sand' || pk === 'music' || !this.gap('walk', 0.16)) return;
     this.stepTex(pk, x, 0.45);
   }
   // v15 곡 고르기 ('auto' = 시간 따라)
@@ -282,7 +289,7 @@ export class Sound {
   // 들어 보기: 발자국 네 번
   previewStep(pk) {
     if (!this.ready()) return;
-    for (let i = 0; i < 4; i++) setTimeout(() => (pk === 'sand' ? this.noise(0.04, 900 + Math.random() * 700, 1.2, 0.05, 0, 'bandpass', 0) : this.stepTex(pk, this.stage.W * (0.4 + i * 0.07))), i * 260);
+    for (let i = 0; i < 4; i++) setTimeout(() => (pk === 'music' ? this.pluck(this.scaleNote(4 + i * 2), 0.085, 0, 1.1, 0, 'sfx', 0.35) : pk === 'sand' ? this.noise(0.04, 900 + Math.random() * 700, 1.2, 0.06, 0, 'bandpass', 0) : this.stepTex(pk, this.stage.W * (0.4 + i * 0.07))), i * 260);
   }
 
   // ── v14 자연 배경 ── 한 번에 하나. 바탕 소리(모닥불)는 노드를 만들고, 나머지는 매 프레임 가끔 소리를 낸다
