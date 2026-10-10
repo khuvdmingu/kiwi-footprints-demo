@@ -10,23 +10,23 @@
 
 export const ITEMS = [
   { id: 'letter1', kind: 'letter', box: 'bottle', title: '첫 번째 편지', text: '파도가 글씨를 가져가도, 쓰고 싶었던 마음은 모래 속에 남아요.' },
-  { id: 'hat', kind: 'wear', box: 'crate', name: '밀짚모자', img: 'kiwi-hat.webp?v=v15.0.0', note: '햇볕 좋은 날 산책용.' },
+  { id: 'hat', kind: 'wear', box: 'crate', name: '밀짚모자', img: 'kiwi-hat.webp?v=v15.1.0', note: '햇볕 좋은 날 산책용.' },
   { id: 'letter2', kind: 'letter', box: 'bottle', title: '두 번째 편지', text: '키위는 날지 못해서 천천히 걸어요. 천천히 가도 결국 도착해요.' },
-  { id: 'scarf', kind: 'wear', box: 'crate', name: '빨간 목도리', img: 'kiwi-scarf.webp?v=v15.0.0', note: '밤바람이 차가울 때.' },
+  { id: 'scarf', kind: 'wear', box: 'crate', name: '빨간 목도리', img: 'kiwi-scarf.webp?v=v15.1.0', note: '밤바람이 차가울 때.' },
   { id: 'letter3', kind: 'letter', box: 'bottle', title: '세 번째 편지', text: '작은 발자국도 모이면 글자가 돼요. 오늘 찍은 한 걸음도요.' },
-  { id: 'crown', kind: 'wear', box: 'crate', name: '꽃 화관', img: 'kiwi-crown.webp?v=v15.0.0', note: '숲 가장자리에서 엮었대요.' },
+  { id: 'crown', kind: 'wear', box: 'crate', name: '꽃 화관', img: 'kiwi-crown.webp?v=v15.1.0', note: '숲 가장자리에서 엮었대요.' },
   { id: 'letter4', kind: 'letter', box: 'bottle', title: '네 번째 편지', text: '지워진 자리는 다음 문장을 위한 빈 모래예요.' },
-  { id: 'glasses', kind: 'wear', box: 'crate', name: '동그란 안경', img: 'kiwi-glasses.webp?v=v15.0.0', note: '글씨를 더 반듯하게 쓰고 싶어서.' },
+  { id: 'glasses', kind: 'wear', box: 'crate', name: '동그란 안경', img: 'kiwi-glasses.webp?v=v15.1.0', note: '글씨를 더 반듯하게 쓰고 싶어서.' },
   { id: 'letter5', kind: 'letter', box: 'bottle', title: '다섯 번째 편지', text: '여기까지 걸어온 당신에게. — 키위 일동' },
-  { id: 'backpack', kind: 'wear', box: 'crate', name: '작은 배낭', img: 'kiwi-backpack.webp?v=v15.0.0', note: '다음 장소로 떠날 준비.' },
-  { id: 'map-snow', kind: 'map', box: 'crate', map: 'snow', name: '눈밭', img: 'snow-card.webp?v=v15.0.0', note: '눈 덮인 숲 아래 호숫가. 발자국이 또렷하게 남아요.' },
+  { id: 'backpack', kind: 'wear', box: 'crate', name: '작은 배낭', img: 'kiwi-backpack.webp?v=v15.1.0', note: '다음 장소로 떠날 준비.' },
+  { id: 'map-snow', kind: 'map', box: 'crate', map: 'snow', name: '눈밭', img: 'snow-card.webp?v=v15.1.0', note: '눈 덮인 숲 아래 호숫가. 발자국이 또렷하게 남아요.' },
   // v11.1 겨울 옷 (두 번째 묶음 — 눈밭을 연 뒤에 떠내려온다)
-  { id: 'beanie', kind: 'wear', box: 'crate', name: '방울 털모자', img: 'kiwi-beanie.webp?v=v15.0.0', note: '눈밭 산책 필수품.' },
-  { id: 'earmuffs', kind: 'wear', box: 'crate', name: '분홍 귀마개', img: 'kiwi-earmuffs.webp?v=v15.0.0', note: '호수 바람이 찰 때.' },
-  { id: 'sweater', kind: 'wear', box: 'crate', name: '눈꽃 스웨터', img: 'kiwi-sweater.webp?v=v15.0.0', note: '눈송이 무늬 두꺼운 니트.' },
-  { id: 'blanket', kind: 'wear', box: 'crate', name: '체크 담요', img: 'kiwi-blanket.webp?v=v15.0.0', note: '글씨 쓰다 쉬어 갈 때 두르는 망토.' },
-  { id: 'santa', kind: 'wear', box: 'crate', name: '산타 모자', img: 'kiwi-santa.webp?v=v15.0.0', note: '12월이 오면.' },
-  { id: 'vest', kind: 'wear', box: 'crate', name: '패딩 조끼', img: 'kiwi-vest.webp?v=v15.0.0', note: '털 깃이 달린 따뜻한 조끼.' },
+  { id: 'beanie', kind: 'wear', box: 'crate', name: '방울 털모자', img: 'kiwi-beanie.webp?v=v15.1.0', note: '눈밭 산책 필수품.' },
+  { id: 'earmuffs', kind: 'wear', box: 'crate', name: '분홍 귀마개', img: 'kiwi-earmuffs.webp?v=v15.1.0', note: '호수 바람이 찰 때.' },
+  { id: 'sweater', kind: 'wear', box: 'crate', name: '눈꽃 스웨터', img: 'kiwi-sweater.webp?v=v15.1.0', note: '눈송이 무늬 두꺼운 니트.' },
+  { id: 'blanket', kind: 'wear', box: 'crate', name: '체크 담요', img: 'kiwi-blanket.webp?v=v15.1.0', note: '글씨 쓰다 쉬어 갈 때 두르는 망토.' },
+  { id: 'santa', kind: 'wear', box: 'crate', name: '산타 모자', img: 'kiwi-santa.webp?v=v15.1.0', note: '12월이 오면.' },
+  { id: 'vest', kind: 'wear', box: 'crate', name: '패딩 조끼', img: 'kiwi-vest.webp?v=v15.1.0', note: '털 깃이 달린 따뜻한 조끼.' },
   // v14 소리 (소라 껍데기에 담겨 온다 — 켜 두기만 해도, 편지 다음 순서). group: step = 발자국 소리, nature = 자연 배경 (sound.js)
   { id: 's-snow', kind: 'sound', box: 'conch', group: 'step', pack: 'snow', name: '눈 밟는 소리', note: '발자국마다 뽀드득.' },
   { id: 'n-birds', kind: 'sound', box: 'conch', group: 'nature', pack: 'birds', name: '숲 새소리', note: '여기저기서 지저귀어요. 밤에는 잠들어요.' },
@@ -35,7 +35,7 @@ export const ITEMS = [
   { id: 's-gravel', kind: 'sound', box: 'conch', group: 'step', pack: 'gravel', name: '자갈 밟는 소리', note: '발자국마다 자박자박.' },
   { id: 'n-frogs', kind: 'sound', box: 'conch', group: 'nature', pack: 'frogs', name: '개구리 합창', note: '개굴개굴, 밤에 더 많이.' },
   { id: 's-splash', kind: 'sound', box: 'conch', group: 'step', pack: 'splash', name: '물웅덩이 소리', note: '발자국마다 찰박.' },
-  { id: 'n-whale', kind: 'sound', box: 'conch', group: 'nature', pack: 'whale', name: '먼 고래 노래', note: '아주 멀리서, 가끔.' },
+  { id: 'n-chime', kind: 'sound', box: 'conch', group: 'nature', pack: 'chime', name: '풍경 소리', note: '처마 끝 쇠 종이 바람에 딸랑.' },   // v15.1 고래 노래 대신 (사람 목소리 같다는 피드백)
   // v15 곡 (group music — music.js SONGS). 고르면 시간 따라 바뀌는 배경 음악 대신 그 곡이 계속 흐른다
   { id: 'm-tide', kind: 'sound', box: 'conch', group: 'music', pack: 'tide', name: '물결 오르골', note: '오르골이 물결처럼 오르내려요.' },
   { id: 'm-kalimba', kind: 'sound', box: 'conch', group: 'music', pack: 'kalimba', name: '느린 칼림바', note: '손가락으로 퉁기는 맑은 소리.' },
@@ -44,10 +44,10 @@ export const ITEMS = [
   { id: 'm-stars', kind: 'sound', box: 'conch', group: 'music', pack: 'stars', name: '별빛 유리', note: '유리 종이 반짝이는 짧은 선율.' },
   { id: 'm-forest', kind: 'sound', box: 'conch', group: 'music', pack: 'forest', name: '숲속 아침', note: '플루트가 부는 밝은 아침 선율.' },
   // v13.1 바꾸기: 물가에서 주운 것으로 만든다 (craft = 필요한 개수, shore.js 의 id). 떠내려오지 않는다
-  { id: 'necklace', kind: 'wear', name: '조개 목걸이', img: 'kiwi-necklace.webp?v=v15.0.0', note: '주운 조개를 꿰어 만들었어요.', craft: { scallop: 4, snail: 4 } },
-  { id: 'plume', kind: 'wear', name: '깃털 머리띠', img: 'kiwi-plume.webp?v=v15.0.0', note: '깃털과 유목을 엮었어요.', craft: { feather: 5, drift: 2 } },
-  { id: 'pendant', kind: 'wear', name: '바다 유리 펜던트', img: 'kiwi-pendant.webp?v=v15.0.0', note: '초록·파랑 바다 유리를 은실로 감았어요.', craft: { glassG: 4, glassB: 2 } },
-  { id: 'starpin', kind: 'wear', name: '불가사리 머리핀', img: 'kiwi-starpin.webp?v=v15.0.0', note: '하트 돌 구슬을 달았어요.', craft: { star: 2, heart: 1 } },
+  { id: 'necklace', kind: 'wear', name: '조개 목걸이', img: 'kiwi-necklace.webp?v=v15.1.0', note: '주운 조개를 꿰어 만들었어요.', craft: { scallop: 4, snail: 4 } },
+  { id: 'plume', kind: 'wear', name: '깃털 머리띠', img: 'kiwi-plume.webp?v=v15.1.0', note: '깃털과 유목을 엮었어요.', craft: { feather: 5, drift: 2 } },
+  { id: 'pendant', kind: 'wear', name: '바다 유리 펜던트', img: 'kiwi-pendant.webp?v=v15.1.0', note: '초록·파랑 바다 유리를 은실로 감았어요.', craft: { glassG: 4, glassB: 2 } },
+  { id: 'starpin', kind: 'wear', name: '불가사리 머리핀', img: 'kiwi-starpin.webp?v=v15.1.0', note: '하트 돌 구슬을 달았어요.', craft: { star: 2, heart: 1 } },
 ];
 export const ITEM = Object.fromEntries(ITEMS.map(it => [it.id, it]));
 

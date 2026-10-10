@@ -58,14 +58,14 @@ export class Music {
     if (!ctx || ctx.state !== 'running') return;
     if (this.next < ctx.currentTime) this.next = ctx.currentTime + 0.05;
     while (this.next < ctx.currentTime + 0.25) {
+      if (this.wantSong !== this.song) { this.song = this.wantSong; this.bar = 0; this.beat = 0; }   // v15.1 곡은 다음 박에 바로, 첫 마디부터
       this.play(this.next);
       const spb = 60 / this.m.bpm / 2;   // 8분음표 길이
       this.next += spb;
       this.beat = (this.beat + 1) % 8;
       if (this.beat === 0) {
         this.bar++;
-        if (this.wantSong !== this.song) { this.song = this.wantSong; this.bar = 0; }   // 곡은 다음 마디부터 처음으로
-        else if (!this.song && this.bar % 4 === 0 && this.want !== this.mood) this.mood = this.want;   // 진행이 한 바퀴 돈 뒤에 분위기 전환
+        if (!this.song && this.bar % 4 === 0 && this.want !== this.mood) this.mood = this.want;   // 진행이 한 바퀴 돈 뒤에 분위기 전환
       }
     }
   }

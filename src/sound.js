@@ -9,7 +9,7 @@
 //  믹서 값(소리 켜기·음악·환경음·효과음·발자국 음악)은 기기에 기억한다.
 //  브라우저는 사용자 동작 안에서만 소리를 열 수 있어서 unlock() 을 그때 부른다. 탭을 숨기면 멈춘다.
 
-import { Music } from './music.js?v=v15.0.0';
+import { Music } from './music.js?v=v15.1.0';
 
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 const MIX_KEY = 'kiwi-footprints.mix';
@@ -252,23 +252,30 @@ export class Sound {
   pat() {}
 
   // ── v14 발자국 소리 (질감) ── 전부 잡음·발진기 합성, 녹음 없음
-  stepTex(pk, x) {
-    const p = this.panOf(x), R = Math.random;
+  //  v15.1: 발자국 음악(칼림바)·파도에 묻혀 "바꿔도 안 바뀐다"(사용자) → 2.5배 키우고, 글씨가 아닌 걸음에도 작게 낸다(walkStep)
+  stepTex(pk, x, k = 1) {
+    const p = this.panOf(x), R = Math.random, v = 2.5 * k;
     if (pk === 'snow') {          // 뽀드득: 눌리는 눈 결정이 잘게 여러 번 바스러진다
-      for (let i = 0; i < 4; i++) this.noise(0.022, 1700 + R() * 2300, 2.5, 0.05 * (1 - i * 0.15), i * 0.017 + R() * 0.006, 'bandpass', p);
-      this.noise(0.07, 420, 0.8, 0.03, 0, 'lowpass', p);
+      for (let i = 0; i < 4; i++) this.noise(0.022, 1700 + R() * 2300, 1.6, 0.12 * v * (1 - i * 0.15), i * 0.017 + R() * 0.006, 'bandpass', p);
+      this.noise(0.07, 420, 0.8, 0.06 * v, 0, 'lowpass', p);
     } else if (pk === 'leaves') { // 바스락: 마른 잎이 높은 소리로 여러 번 부서진다
-      for (let i = 0; i < 6; i++) this.noise(0.025 + R() * 0.03, 3000 + R() * 4000, 1.4, 0.022, R() * 0.13, 'highpass', p);
+      for (let i = 0; i < 6; i++) this.noise(0.025 + R() * 0.03, 3000 + R() * 4000, 1.4, 0.022 * v, R() * 0.13, 'highpass', p);
     } else if (pk === 'gravel') { // 자박: 작은 돌끼리 딸깍 + 낮은 눌림
-      for (let i = 0; i < 4; i++) this.noise(0.012, 2400 + R() * 3600, 7, 0.07, R() * 0.05, 'bandpass', p);
-      this.noise(0.05, 260, 1, 0.035, 0, 'lowpass', p);
+      for (let i = 0; i < 4; i++) this.noise(0.014, 2400 + R() * 3600, 3.5, 0.16 * v, R() * 0.05, 'bandpass', p);
+      this.noise(0.05, 260, 1, 0.07 * v, 0, 'lowpass', p);
     } else if (pk === 'splash') { // 찰박: 물 한 방울 떨어지는 소리(내려가는 음) + 물 튀는 잡음
       const ctx = this.ctx, t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
       o.type = 'sine'; o.frequency.setValueAtTime(760 + R() * 200, t); o.frequency.exponentialRampToValueAtTime(240, t + 0.07);
-      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.05, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.05 * v, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
       o.connect(g); this.route(g, 'sfx', p, 0.2); o.start(t); o.stop(t + 0.1);
-      this.noise(0.12, 1300, 0.7, 0.025, 0.01, 'bandpass', p);
+      this.noise(0.12, 1300, 0.7, 0.025 * v, 0.01, 'bandpass', p);
     }
+  }
+  // 글씨가 아닌 걸음(서성이기·오가기): 고른 발자국 소리를 작게 (모래는 조용히)
+  walkStep(x) {
+    const pk = this.mix.stepPack;
+    if (!this.ready() || !pk || pk === 'sand' || !this.gap('walk', 0.16)) return;
+    this.stepTex(pk, x, 0.45);
   }
   // v15 곡 고르기 ('auto' = 시간 따라)
   setSong(id) { this.mix.song = id; this.saveMix(); this.music.setSong(id === 'auto' ? null : id); }
@@ -283,20 +290,21 @@ export class Sound {
     this.mix.nature = pk; this.saveMix();
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
+    for (const k of ['bird', 'crk', 'pop', 'frog', 'chime']) this.last[k] = 0;   // 고르자마자 첫 소리가 나게
     if (this.bed) { const b = this.bed; b.g.gain.setTargetAtTime(0, t, 0.4); setTimeout(() => { try { b.src.stop(); } catch (e) { /* 이미 멈춤 */ } }, 2500); this.bed = null; }
     if (pk === 'fire') {          // 모닥불 바탕: 낮게 웅웅거리는 불길
       const src = this.loop(this.brown, Math.random() * 2), f = this.ctx.createBiquadFilter(), g = this.ctx.createGain();
       f.type = 'lowpass'; f.frequency.value = 320; g.gain.value = 0;
       src.connect(f); f.connect(g); this.route(g, 'amb', 0.1, 0.1);
-      g.gain.setTargetAtTime(0.16, t, 0.8);
+      g.gain.setTargetAtTime(0.32, t, 0.3);
       this.bed = { src, g };
     }
   }
   natureTick(night) {
     const pk = this.mix.nature, R = Math.random, ctx = this.ctx, t = ctx.currentTime;
     if (pk === 'birds') {         // 숲 새: 두 음 휘파람 · 떨림 · 내려가는 울음 (밤에는 거의 잔다)
-      if (!this.gap('bird', 1.1 + R() * 3)) return;
-      const vel = 0.022 * (1 - night * 0.8), pan = R() * 1.6 - 0.8, kind = Math.floor(R() * 3);
+      if (!this.gap('bird', 0.6 + R() * 2)) return;
+      const vel = 0.1 * (1 - night * 0.8), pan = R() * 1.6 - 0.8, kind = Math.floor(R() * 3);
       const tone = (f0, f1, at, dur, v = vel) => {
         const o = ctx.createOscillator(), g = ctx.createGain();
         o.frequency.setValueAtTime(f0, at); o.frequency.exponentialRampToValueAtTime(f1, at + dur);
@@ -308,27 +316,29 @@ export class Sound {
       else if (kind === 1) { const n = 6 + Math.floor(R() * 5); for (let i = 0; i < n; i++) tone(b * 1.3, b * 1.22, t + i * 0.055, 0.04, vel * 0.8); }
       else tone(b * 1.5, b * 0.95, t, 0.28);
     } else if (pk === 'fire') {   // 타닥: 짧고 높은 딱 소리가 불규칙하게, 가끔 큰 톡
-      if (this.gap('crk', R() * 0.28)) this.noise(0.006 + R() * 0.012, 2500 + R() * 3500, 1, 0.03 + R() * 0.05, 0, 'highpass', R() * 0.4 - 0.2, 'amb');
-      if (this.gap('pop', 2.5 + R() * 6)) this.noise(0.035, 700 + R() * 300, 2, 0.07, 0, 'bandpass', R() * 0.4 - 0.2, 'amb');
+      if (this.gap('crk', R() * 0.28)) this.noise(0.006 + R() * 0.012, 2500 + R() * 3500, 1, 0.07 + R() * 0.1, 0, 'highpass', R() * 0.4 - 0.2, 'amb');
+      if (this.gap('pop', 2.5 + R() * 6)) this.noise(0.035, 700 + R() * 300, 2, 0.16, 0, 'bandpass', R() * 0.4 - 0.2, 'amb');
     } else if (pk === 'frogs') {  // 개굴: 낮은 톱니 소리를 짧게 끊어 여러 번 (밤에 더 많이)
       if (!this.gap('frog', (0.5 + R() * 1.6) / (0.6 + night * 0.8))) return;
       const o = ctx.createOscillator(), lp = ctx.createBiquadFilter(), g = ctx.createGain(), pan = R() * 1.8 - 0.9;
       o.type = 'sawtooth'; o.frequency.value = 130 + R() * 140; lp.type = 'lowpass'; lp.frequency.value = 900;
-      const n = 3 + Math.floor(R() * 4), v = 0.03 + R() * 0.02;
+      const n = 3 + Math.floor(R() * 4), v = 0.07 + R() * 0.04;
       g.gain.setValueAtTime(0, t);
       for (let i = 0; i < n; i++) { const w = t + i * 0.034; g.gain.setValueAtTime(0, w); g.gain.linearRampToValueAtTime(v, w + 0.008); g.gain.linearRampToValueAtTime(0, w + 0.026); }
       o.connect(lp); lp.connect(g); this.route(g, 'amb', pan, 0.25); o.start(t); o.stop(t + n * 0.034 + 0.05);
-    } else if (pk === 'whale') {  // 먼 고래: 아주 느리게 오르내리는 낮은 노래, 깊은 잔향
-      if (!this.gap('whale', 14 + R() * 16)) return;
-      const o = ctx.createOscillator(), o2 = ctx.createOscillator(), lp = ctx.createBiquadFilter(), g = ctx.createGain(), g2 = ctx.createGain();
-      const vib = ctx.createOscillator(), vg = ctx.createGain(); vib.frequency.value = 4.5; vg.gain.value = 5;
-      const f0 = 150 + R() * 60, peak = f0 * (2.2 + R() * 0.6), end = f0 * (1.2 + R() * 0.4), d1 = 1.6 + R(), d2 = 2 + R() * 1.5;
-      for (const [osc, k] of [[o, 1], [o2, 2]]) { osc.frequency.setValueAtTime(f0 * k, t); osc.frequency.linearRampToValueAtTime(peak * k, t + d1); osc.frequency.linearRampToValueAtTime(end * k, t + d1 + d2); vg.connect(osc.frequency); }
-      lp.type = 'lowpass'; lp.frequency.value = 1100;
-      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.05, t + 0.9); g.gain.setValueAtTime(0.05, t + d1 + d2 - 1); g.gain.exponentialRampToValueAtTime(0.0001, t + d1 + d2 + 0.3);
-      g2.gain.value = 0.25;
-      o.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); this.route(g, 'amb', R() * 1.2 - 0.6, 0.7);
-      vib.connect(vg); vib.start(t); o.start(t); o2.start(t); const end2 = t + d1 + d2 + 0.4; o.stop(end2); o2.stop(end2); vib.stop(end2);
+    } else if (pk === 'chime') {  // 풍경: 처마 끝 쇠 막대 종이 바람에 몇 개씩 부딪힌다 (지금 곡의 화음 음으로, 바람 불면 잦게)
+      if (!this.gap('chime', 0.7 + R() * 2.6)) return;
+      const ch = this.music.chord(), n = 1 + Math.floor(R() * 3), pan = R() * 1.2 - 0.6;
+      for (let i = 0; i < n; i++) {
+        const at = t + i * (0.08 + R() * 0.25), f = 440 * Math.pow(2, (ch[Math.floor(R() * ch.length)] + 24 + (R() < 0.3 ? 12 : 0) - 69) / 12), g = ctx.createGain();
+        g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(0.045, at + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, at + 4);
+        this.route(g, 'amb', pan + (R() - 0.5) * 0.3, 0.55);
+        for (const [mul, amp, dec] of [[1, 1, 4], [2.76, 0.35, 1.6], [5.4, 0.15, 0.7], [8.93, 0.06, 0.3]]) {   // 쇠막대의 어긋난 배음
+          const o = ctx.createOscillator(), og = ctx.createGain(); o.frequency.value = f * mul;
+          og.gain.setValueAtTime(amp, at); og.gain.exponentialRampToValueAtTime(0.0001, at + dec);
+          o.connect(og); og.connect(g); o.start(at); o.stop(at + dec + 0.05);
+        }
+      }
     }
   }
 
