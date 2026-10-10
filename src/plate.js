@@ -15,7 +15,7 @@ const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
-  const [img, dry, sea] = await Promise.all([load(name + '.webp?v=v16.6.0'), load(name + '-dry.webp?v=v16.6.0'), load(name + '-sea.webp?v=v16.6.0')]);
+  const [img, dry, sea] = await Promise.all([load(name + '.webp?v=v17.0.0'), load(name + '-dry.webp?v=v17.0.0'), load(name + '-sea.webp?v=v17.0.0')]);
   const p = new Plate(img, dry, sea, opts);
   p.name = name; p.base = base;
   return p;
@@ -133,7 +133,7 @@ export class Plate {
     const m = document.createElement('canvas'); m.width = mw; m.height = mh;
     const g = m.getContext('2d'); const d = g.createImageData(mw, mh);
     const y0 = Math.round(mh * (forestFrac + 0.08));
-    const bin = new Uint8Array(mw * mh);
+    const bin = new Uint8Array(mw * mh), hue = new Uint8Array(mw * mh);
     for (let y = y0; y < mh; y++) for (let x = 0; x < mw; x++) {
       const i = (y * mw + x) * 4;
       const diff = Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]);
@@ -148,7 +148,11 @@ export class Plate {
       const rocky = la < 120 || (Math.abs(a[i] - a[i + 2]) < 45 && la < 170);
       // 개울 돌(opts.stones): 물보다 밝은 회색 돌도 제자리에 — 빨강·초록·파랑이 고르고 거품만큼 하얗지는 않다
       const grey = this.opts.stones && Math.abs(a[i] - a[i + 1]) < 38 && Math.abs(a[i + 1] - a[i + 2]) < 38 && la > 60 && la < 215;
-      bin[y * mw + x] = !red && ((rocky && ((diff > 90 && lb - la > 20) || landRock)) || (grey && diff > 70)) ? 1 : 0;
+      // 이끼 낀 바위(opts.moss, v17 가을 호숫가): 회녹색 윗면은 물과 밝기가 같아 "더 어둡다"로는 못 찾는다.
+      //  대신 붉은 기: 바위는 빨강이 물(빨강 거의 0)보다 훨씬 크다. 거품(밝음)은 빼고 물가선 아래에서만.
+      const warm = this.opts.moss && y > shoreY && a[i] - b[i] > 50 && la < 170;
+      if (warm) hue[y * mw + x] = 1;
+      bin[y * mw + x] = !red && ((rocky && ((diff > 90 && lb - la > 20) || landRock)) || (grey && diff > 70) || (warm && diff > 90)) ? 1 : 0;
     }
     // 다듬기 (v16.2.3): 예전엔 네모 틀(9×9)로 깎았다 불려서 남은 조각이 전부 네모났다(물속 돌이 픽셀처럼 깨져 보임).
     //  ① 둥근 틀로 열기(흐림 + 문턱으로 깎고 불리기) — 가는 선(물결·거품 윤곽)·흩어진 점은 사라지고, 모서리는 둥글게 남는다
@@ -170,10 +174,10 @@ export class Plate {
     const seen = new Uint8Array(mw * mh), stack = new Int32Array(mw * mh), comp = new Int32Array(mw * mh);
     for (let j0 = yS * mw; j0 < mw * mh; j0++) {
       if (!opened[j0] || seen[j0]) continue;
-      let sp = 0, n = 0, x0 = mw, x1 = 0, yA = mh, yB = 0;
+      let sp = 0, n = 0, x0 = mw, x1 = 0, yA = mh, yB = 0, nh = 0;
       stack[sp++] = j0; seen[j0] = 1;
       while (sp) {
-        const j = stack[--sp]; comp[n++] = j;
+        const j = stack[--sp]; comp[n++] = j; nh += hue[j];
         const x = j % mw, y = (j - x) / mw;
         if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < yA) yA = y; if (y > yB) yB = y;
         if (x > 0 && opened[j - 1] && !seen[j - 1]) { seen[j - 1] = 1; stack[sp++] = j - 1; }
@@ -187,7 +191,9 @@ export class Plate {
       const cx = (x0 + x1) >> 1, sy = this.shoreP[Math.min(this.shoreP.length - 1, Math.floor(cx * this.shoreP.length / mw))] * mh / this.ph;
       const nearShore = Math.abs((yA + yB) / 2 - sy) < 90, thick = n / bw;
       const streak = bw > 30 && bw > bh * 2.2 && (thick < 9 || (nearShore && thick < 18));
-      if (tiny || streak) for (let k = 0; k < n; k++) opened[comp[k]] = 0;
+      // 이끼 바위 장소: 붉은 기가 거의 없는 덩어리 = 깊은 물속 어두운 그림자(바다 판에선 지워짐) — 반쪽만 잡혀 초승달로 보이니 통째로 버린다
+      const shade = this.opts.moss && nh < n * 0.15;
+      if (tiny || streak || shade) for (let k = 0; k < n; k++) opened[comp[k]] = 0;
     }
     for (let j = 0; j < mw * mh; j++) { d.data[j * 4] = d.data[j * 4 + 1] = d.data[j * 4 + 2] = 255; d.data[j * 4 + 3] = opened[j] * 255; }
     g.putImageData(d, 0, 0);
@@ -227,9 +233,10 @@ export class Plate {
   // 시간대 그림 한 벌 (v16.5 밤 · v16.6 노을·새벽): <이름>-<kind> · -dry-<kind> · -sea-<kind> — 낮 판과 같은 구도를 그 빛으로 다시 칠한 것.
   //  그 시간대가 다가올 때만 읽는다(낮에는 메모리를 쓰지 않는다). 없으면 null — 그때는 시간 빛만 쓴다.
   loadSet(kind) {
+    if (this.opts.art === false) return Promise.resolve(null);   // 시간대 그림 판이 없는 장소: 코드 빛만
     const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = rej; im.src = this.base + src; });
     this.sets ||= {}; this._sets ||= {};
-    return (this._sets[kind] ||= Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v16.6.0`)))
+    return (this._sets[kind] ||= Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v17.0.0`)))
       .then(([img, dry, sea]) => (this.sets[kind] = { img, dry, sea }))
       .catch(() => null));
   }

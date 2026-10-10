@@ -15,23 +15,24 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v16.6.0';
-import { Beach } from './beach.js?v=v16.6.0';
-import { Kiwi } from './kiwi.js?v=v16.6.0';
-import { Sound } from './sound.js?v=v16.6.0';
-import { loadPlate } from './plate.js?v=v16.6.0';
-import { MAPS, MAP_IDS } from './maps.js?v=v16.6.0';
-import { WaterGL } from './water.js?v=v16.6.0';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v16.6.0';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v16.6.0';
-import { Clouds } from './clouds.js?v=v16.6.0';
-import { Gulls } from './gulls.js?v=v16.6.0';
-import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v16.6.0';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v16.6.0';
-import { clamp, dist } from './util.js?v=v16.6.0';
-import { Focus, Awake, LENGTHS } from './focus.js?v=v16.6.0';
-import { UNLOCK_ALL } from './config.js?v=v16.6.0';
-import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v16.6.0';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v17.0.0';
+import { Beach } from './beach.js?v=v17.0.0';
+import { Kiwi } from './kiwi.js?v=v17.0.0';
+import { Sound } from './sound.js?v=v17.0.0';
+import { loadPlate } from './plate.js?v=v17.0.0';
+import { MAPS, MAP_IDS } from './maps.js?v=v17.0.0';
+import { WaterGL } from './water.js?v=v17.0.0';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v17.0.0';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v17.0.0';
+import { Leaves } from './leaves.js?v=v17.0.0';
+import { Clouds } from './clouds.js?v=v17.0.0';
+import { Gulls } from './gulls.js?v=v17.0.0';
+import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v17.0.0';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v17.0.0';
+import { clamp, dist } from './util.js?v=v17.0.0';
+import { Focus, Awake, LENGTHS } from './focus.js?v=v17.0.0';
+import { UNLOCK_ALL } from './config.js?v=v17.0.0';
+import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v17.0.0';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -56,7 +57,7 @@ const plates = {};
 // 장소: ?map= 이 기기에 저장된 값보다 먼저
 let mapId = MAP_IDS.includes(q.get('map')) ? q.get('map') : MAP_IDS.includes(saved('map')) ? saved('map') : 'beach';
 const plateFor = (w, h) => MAPS[mapId][w / h < 0.8 ? 'tall' : 'wide'];
-function getPlate(name) { const m = Object.values(MAPS).find(v => v.wide === name || v.tall === name) || {}; return (plates[name] ||= loadPlate('assets/', name, { stones: !!m.stones, shoreFrom: m.shoreFrom, ground: m.ground })); }
+function getPlate(name) { const m = Object.values(MAPS).find(v => v.wide === name || v.tall === name) || {}; return (plates[name] ||= loadPlate('assets/', name, { stones: !!m.stones, shoreFrom: m.shoreFrom, ground: m.ground, moss: !!m.moss, art: m.art !== false })); }
 const cloudCanvas = document.getElementById('clouds'), cctx = cloudCanvas.getContext('2d');
 const glowEl = document.getElementById('glow');
 const clouds = new Clouds();
@@ -138,6 +139,7 @@ let leaves = [];  // 키위가 덤불을 드나들 때 튀는 잎
 let sparks = [];  // 유리병·상자를 열 때 튀는 반짝이
 const col = new Collection(() => saved('items'), v => save('items', v), UNLOCK_ALL);
 const drifters = new Drifters();
+const floaters = new Leaves();   // 가을 호숫가: 물 위에 따로 떠다니는 단풍
 const focus = new Focus(saved, save);   // v12 집중 모드
 const awake = new Awake();
 let walker = null;
@@ -187,6 +189,7 @@ function resize() {
   clouds.resize(W, H, beach.u);
   gulls.resize(beach);
   drifters.reset();
+  floaters.reset(beach, !!MAPS[mapId].leaves);
   shore.reset();
   beach.prints = [];
   cam.x = W / 2; cam.y = H / 2;
@@ -562,6 +565,7 @@ function tick(dt) {
   }
   drifters.paused = focus.active;
   drifters.update(dt, beach, col, d => sound.arrive(d.x));
+  floaters.update(dt, beach, atmos.v.wind);
   focusTick();
   shore.update(dt, beach, { map: mapId, night: timeLight(hour).night, weather: atmos.weather, hour });
   { const nowMs = Date.now(); if (ambAt && !document.hidden && focus.ambient(nowMs - ambAt) && !focusPanel.hidden) paintFocus(); ambAt = nowMs; }
@@ -618,6 +622,7 @@ function draw() {
   }
   const order = kiwis.slice().sort((a, b) => a.y - b.y);
   shore.draw(ctx, beach, atmos.night);
+  floaters.draw(ctx, beach);
   drifters.draw(ctx, beach);
   for (const kw of order) kw.drawShadow(ctx);
   for (const kw of order) { kw.shade = plate.shadeAt(kw.x, kw.y - kw.k * 0.4); kw.draw(ctx); }
@@ -851,14 +856,15 @@ window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() =
 // 그림 판·키위·갈매기 그림을 다 읽은 뒤 시작한다
 async function boot() {
   const img = src => new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp?v=v16.6.0'), img('assets/gull.webp?v=v16.6.0'), img('assets/bottle.webp?v=v16.6.0'), img('assets/crate.webp?v=v16.6.0')]);
-  img('assets/finds.webp?v=v16.6.0').then(im => {
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp?v=v17.0.0'), img('assets/gull.webp?v=v17.0.0'), img('assets/bottle.webp?v=v17.0.0'), img('assets/crate.webp?v=v17.0.0')]);
+  img('assets/finds.webp?v=v17.0.0').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
     drifters.setSprites({ ...drifters.imgs, conch: c });
   }).catch(() => {});
   drifters.setSprites({ bottle, crate });
+  img('assets/leaves.webp?v=v17.0.0').then(im => floaters.setSheet(im)).catch(() => {});
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
   plate = p;

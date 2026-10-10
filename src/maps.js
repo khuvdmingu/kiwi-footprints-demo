@@ -25,5 +25,16 @@ export const MAPS = {
     unlock: 'map-snow',              // 물에서 떠내려온 상자를 열거나
     steps: 5000,                     // 걸음(켜 두기·집중)이 이만큼 쌓이면 고를 수 있다 (v13)
   },
+  fall: {
+    name: '가을 호숫가',               // 단풍·은행 숲 아래 옅은 모래 둑, 잔잔한 호수가 불어나 지운다 (v17, 그림은 Codex·ChatGPT 플랜)
+    wide: 'fall', tall: 'fall-tall',
+    gulls: false,
+    shoreFrom: 0.45,
+    leaves: true,                    // 물 위 단풍은 그림이 아니라 따로 떠다닌다 (leaves.js)
+    moss: true,                      // 이끼 낀 바위: 물과 밝기가 같아 붉은 기로 찾고, 붉은 기 없는 물속 그림자 덩어리는 버린다 (plate.js)
+    art: false,                      // 밤·노을·새벽 그림 판은 아직 없다 — 코드 빛만 (싸게 먼저, GRAPHICS.md §5)
+    unlock: 'map-fall',
+    steps: 20000,                    // 큰 걸음 목표: 눈밭(5,000) 다음
+  },
 };
 export const MAP_IDS = Object.keys(MAPS);
