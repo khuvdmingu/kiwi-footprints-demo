@@ -15,25 +15,25 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.2.0';
-import { Beach } from './beach.js?v=v18.2.0';
-import { Kiwi } from './kiwi.js?v=v18.2.0';
-import { Sound } from './sound.js?v=v18.2.0';
-import { loadPlate } from './plate.js?v=v18.2.0';
-import { MAPS, MAP_IDS } from './maps.js?v=v18.2.0';
-import { WaterGL } from './water.js?v=v18.2.0';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.2.0';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.2.0';
-import { Leaves } from './leaves.js?v=v18.2.0';
-import { Rake } from './zen.js?v=v18.2.0';
-import { Clouds } from './clouds.js?v=v18.2.0';
-import { Gulls } from './gulls.js?v=v18.2.0';
-import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.2.0';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.2.0';
-import { clamp, dist } from './util.js?v=v18.2.0';
-import { Focus, Awake, LENGTHS } from './focus.js?v=v18.2.0';
-import { UNLOCK_ALL } from './config.js?v=v18.2.0';
-import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.2.0';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.3.0';
+import { Beach } from './beach.js?v=v18.3.0';
+import { Kiwi } from './kiwi.js?v=v18.3.0';
+import { Sound } from './sound.js?v=v18.3.0';
+import { loadPlate } from './plate.js?v=v18.3.0';
+import { MAPS, MAP_IDS } from './maps.js?v=v18.3.0';
+import { WaterGL } from './water.js?v=v18.3.0';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.3.0';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.3.0';
+import { Leaves } from './leaves.js?v=v18.3.0';
+import { Rake } from './zen.js?v=v18.3.0';
+import { Clouds } from './clouds.js?v=v18.3.0';
+import { Gulls } from './gulls.js?v=v18.3.0';
+import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.3.0';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.3.0';
+import { clamp, dist } from './util.js?v=v18.3.0';
+import { Focus, Awake, LENGTHS } from './focus.js?v=v18.3.0';
+import { UNLOCK_ALL } from './config.js?v=v18.3.0';
+import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.3.0';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -58,7 +58,13 @@ const plates = {};
 // 장소: ?map= 이 기기에 저장된 값보다 먼저
 let mapId = MAP_IDS.includes(q.get('map')) ? q.get('map') : MAP_IDS.includes(saved('map')) ? saved('map') : 'beach';
 const plateFor = (w, h) => MAPS[mapId][w / h < 0.8 ? 'tall' : 'wide'];
-function getPlate(name) { const m = Object.values(MAPS).find(v => v.wide === name || v.tall === name) || {}; return (plates[name] ||= loadPlate('assets/', name, { stones: !!m.stones, shoreFrom: m.shoreFrom, ground: m.ground, moss: !!m.moss, art: m.art !== false, eraser: m.eraser, rest: m.rest })); }
+function getPlate(name) {
+  if (plates[name]) return plates[name];
+  const m = Object.values(MAPS).find(v => v.wide === name || v.tall === name) || {};
+  const pr = plates[name] = loadPlate('assets/', name, { stones: !!m.stones, shoreFrom: m.shoreFrom, ground: m.ground, moss: !!m.moss, art: m.art !== false, eraser: m.eraser, rest: m.rest });
+  pr.catch(() => { if (plates[name] === pr) delete plates[name]; });   // 못 읽었으면(오프라인 v18.3) 기억하지 않는다 — 다시 연결되면 다시 읽는다
+  return pr;
+}
 const cloudCanvas = document.getElementById('clouds'), cctx = cloudCanvas.getContext('2d');
 const glowEl = document.getElementById('glow');
 const clouds = new Clouds();
@@ -877,15 +883,25 @@ window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() =
 // 그림 판·키위·갈매기 그림을 다 읽은 뒤 시작한다
 async function boot() {
   const img = src => new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([getPlate(plateFor(innerWidth, innerHeight)), img('assets/kiwi.webp?v=v18.2.0'), img('assets/gull.webp?v=v18.2.0'), img('assets/bottle.webp?v=v18.2.0'), img('assets/crate.webp?v=v18.2.0')]);
-  img('assets/finds.webp?v=v18.2.0').then(im => {
+  // 홈 화면 앱(v18.3)을 인터넷 없이 열면 기기에 저장된 그림만 있다 — 고른 장소(화면 방향 → 반대 방향) → 바닷가
+  //  (그다음 기기에 남은 다른 장소) 읽히는 판으로 연다. 방향이 다른 판은 잘려 보일 뿐이고, 다시 연결되면 resize 가 맞는 판을 읽는다. 고른 장소는 저장한 그대로
+  const first = (async () => {
+    const side = innerWidth / innerHeight < 0.8 ? ['tall', 'wide'] : ['wide', 'tall'];
+    let err;
+    for (const id of new Set([mapId, 'beach', ...MAP_IDS])) for (const k of side) {
+      try { const p = await getPlate(MAPS[id][k]); if (mapId !== id) { mapId = id; paintModeMenu(); } return p; } catch (e) { err = e; }
+    }
+    throw err;
+  })();
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.3.0'), img('assets/gull.webp?v=v18.3.0'), img('assets/bottle.webp?v=v18.3.0'), img('assets/crate.webp?v=v18.3.0')]);
+  img('assets/finds.webp?v=v18.3.0').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
     drifters.setSprites({ ...drifters.imgs, conch: c });
   }).catch(() => {});
   drifters.setSprites({ bottle, crate });
-  img('assets/leaves.webp?v=v18.2.0').then(im => floaters.setSheet(im)).catch(() => {});
+  img('assets/leaves.webp?v=v18.3.0').then(im => floaters.setSheet(im)).catch(() => {});
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
   plate = p;
@@ -902,8 +918,13 @@ const nowHour = () => realHour();
 // 장소 바꾸기: 그 장소 그림 판을 읽고(처음 한 번) 화면을 다시 짠다 — resize 가 지금 글을 새 바닥에 다시 쓴다
 function setMap(id) {
   if (!MAPS[id] || id === mapId || !mapOpen(id)) return;
-  mapId = id; save('map', id); paintModeMenu(); toast(MAPS[id].name);
-  if (plate) resize();
+  // 그림 판을 먼저 읽고 옮긴다 (v18.3) — 인터넷 없이 아직 안 가 본 장소를 고르면 지금 자리에 그대로 둔다
+  const prev = mapId, n = setMap.n = (setMap.n || 0) + 1; mapId = id; const want = plateFor(innerWidth, innerHeight); mapId = prev;
+  getPlate(want).then(() => {
+    if (n !== setMap.n || mapId !== prev) return;   // 그새 다른 장소를 골랐으면 마지막 것만
+    mapId = id; save('map', id); paintModeMenu(); paintCollection(); toast(MAPS[id].name);
+    if (plate) resize();
+  }).catch(() => { if (n === setMap.n) { paintModeMenu(); toast('인터넷이 연결되면 갈 수 있어요', 2200); } });
 }
 function setMode(m, announce = true) {
   mode = m;
