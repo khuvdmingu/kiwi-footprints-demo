@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#1A5C91" />
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v18.4.0" />
+  <link rel="stylesheet" href="style.css?v=v18.5.0" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png" />
@@ -43,6 +43,9 @@
   </form>
 
   <div class="corner">
+    <button id="hideBtn" type="button" class="round" aria-pressed="false" aria-label="화면 정리 — 버튼·입력창 숨기기 (H 키)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><g class="ui-hide"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" /><circle cx="12" cy="12" r="2.6" /><path d="M4 20 20 4" /></g><g class="ui-show"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" /><circle cx="12" cy="12" r="2.6" /></g></svg>
+    </button>
     <button id="modeBtn" type="button" class="round" aria-label="글 모드 바꾸기" data-mode="free">
       <svg viewBox="0 0 24 24" aria-hidden="true"><g class="m-free"><path d="M4 20l4-1 11-11-3-3L5 16z" /><path d="M14 6l3 3" /></g><g class="m-clock"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></g><g class="m-quote"><path d="M5 17c0-4 1-7 5-9M14 17c0-4 1-7 5-9" /><path d="M5 17h4v-4H5zM14 17h4v-4h-4z" /></g><g class="m-word"><path d="M4 18 8 6l4 12M5.4 14h5.2" /><path d="M14 18v-7M14 14.5a2.5 2.5 0 1 0 5 0 2.5 2.5 0 1 0-5 0" /></g></svg>
     </button>
@@ -108,6 +111,19 @@
       </div>
     </div>
     <p class="hint">지금 시각이면 하루 동안 빛이 천천히 바뀌어요. 직접 고르면 그 빛·반딧불이·밤 소리가 그대로 머물러요 — 시계 글씨와 물가의 밤·해 질 녘 희귀품은 실제 시각을 따라요.</p>
+    <h2 class="sep">키위 수</h2>
+    <div class="seg five" role="radiogroup" aria-label="키위 수">
+      <label><input type="radio" name="kiwis" value="one" /><span>한 마리</span></label>
+      <label><input type="radio" name="kiwis" value="few" /><span>조금</span></label>
+      <label><input type="radio" name="kiwis" value="normal" /><span>보통</span></label>
+      <label><input type="radio" name="kiwis" value="many" /><span>많이</span></label>
+      <label><input type="radio" name="kiwis" value="custom" /><span>직접</span></label>
+    </div>
+    <div id="kiwiOpts">
+      <p id="kiwiNow" class="lightNow"></p>
+      <input id="kiwiN" type="range" min="1" max="30" step="1" aria-label="키위 수 직접 고르기" />
+    </div>
+    <p class="hint">보통은 글씨가 길수록 많이 나와요(획 2~3개에 한 마리, 최대 22). 조금은 최대 8마리라 천천히, 많이는 최대 30마리가 빨리 써요. 막대를 움직이면 그 수까지만 나와요. 줄이면 일 없는 키위부터 숲으로 돌아가요.</p>
     <h2 class="sep">시계</h2>
     <div id="clockOpts">
       <label class="row switch"><span>초 표시</span><input id="optSec" type="checkbox" /></label>
@@ -160,15 +176,16 @@
       <p>가끔 물 위로 편지가 든 유리병이 떠내려와요. 모래시계 버튼으로 집중을 시작해 이 화면을 끝까지 켜 두면, 키위 한 마리가 숲 가장자리를 오가며 걸음을 세고 끝나면 키위 옷·새 장소가 든 상자와 시작할 때 쓴 내 편지가 떠내려와요. 물가에 닿으면 눌러서 열어 보세요(설정 → 모은 것). 켜 두면 몇 분에 한 번 물가에 조개·바다 유리 같은 작은 것도 밀려와요 — 눌러서 주우면 「주운 것」 도감에 모여요(어떤 건 밤·비·해 질 녘·눈밭에서만). 모래를 누르면 근처 키위가 와서 콕, 키위를 누르면 깜짝, 빛안개(구름)를 누르면 흩어집니다. 안개 낀 날에는 누른 자리가 뻥 뚫리고, 누른 채 문지르면 안개가 닦여요.</p>
       <p>소리 버튼을 누르면 음악·파도·효과음 크기와 곡·발자국 소리·자연 배경을 고를 수 있어요(고르면 기본 소리 대신 나와요). 키위가 글씨를 밟으면 음이 나고, 배경 음악은 시간대와 날씨에 따라 바뀝니다.</p>
       <p>오른쪽 위 첫 버튼(M 키)은 글 모드입니다 — 직접 쓰기 · 시계(시·분이 바뀌면 바뀐 글자만 다시 씀. 톱니바퀴 설정에서 장소(바닷가 · 뉴질랜드 숲 · 상자에서 나오는 눈밭), 초 표시와 오전/오후 · AM/PM · 24시간을 고름) · 명언 · 단어장(다 쓰면 뜻이 드러납니다). 둘째 버튼(W 키)은 날씨 — 맑음 · 흐림 · 비 · 눈 · 안개 · 바람. 장면의 빛은 실제 시각을 따라 새벽·낮·노을·밤으로 바뀌고, 밤에는 반딧불이가 뜨고 키위가 더 많이 나옵니다(T 키로 3시간씩 미리보기). 오른쪽 위 버튼으로 시점을 바꿉니다(V 키) — 위에서 · 디오라마 · 따라가기.</p>
-      <p class="credits">키위 스핀오프 v18.4.0 · 2026-10-11<br />영감: <a href="https://flocking-hangul.doodlefingers.kr/" target="_blank" rel="noopener">Flocking Hangul</a>(doodlefingers). 배경·키위·갈매기 그림은 AI 이미지 생성(Higgsfield · 가을 호숫가·단풍·모래 정원은 ChatGPT)으로, 기본 소리는 Web Audio 합성으로 만들었습니다. <span id="audio-credits">모아서 받는 소리·곡은 CC0(퍼블릭 도메인) 녹음입니다 — 발자국·숲·모닥불·개구리: <a href="https://bigsoundbank.com/" target="_blank" rel="noopener">BigSoundBank</a>(Joseph Sardin) · 곡: <a href="https://opengameart.org/content/heavenly-loop" target="_blank" rel="noopener">Heavenly Loop</a>(isaiah658), <a href="https://opengameart.org/content/snow-theme" target="_blank" rel="noopener">Through the Snow</a>(Cleyton Kauffman), <a href="https://opengameart.org/content/contemplation-0" target="_blank" rel="noopener">Contemplation</a>(Joth).</span></p>
+      <p>설정(톱니바퀴)의 「키위 수」에서 한 마리 · 조금 · 보통 · 많이를 고르거나 막대로 1~30마리를 정할 수 있어요. 맨 앞 눈 버튼(H 키)을 누르면 버튼과 입력창이 숨고 그림만 남아요 — 화면을 누르면 다시 보이기 버튼이 잠깐 떠요.</p>
+      <p class="credits">키위 스핀오프 v18.5.0 · 2026-10-11<span id="audio-credits"></span></p>
       <button type="button" data-close>닫기</button>
     </div>
   </div>
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v18.4.0"></script>
-  <script type="module" src="src/credits.js?v=v18.4.0"></script>
+  <script type="module" src="src/main.js?v=v18.5.0"></script>
+  <script type="module" src="src/credits.js?v=v18.5.0"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.

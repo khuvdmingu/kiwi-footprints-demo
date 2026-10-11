@@ -15,25 +15,25 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.4.0';
-import { Beach } from './beach.js?v=v18.4.0';
-import { Kiwi } from './kiwi.js?v=v18.4.0';
-import { Sound } from './sound.js?v=v18.4.0';
-import { loadPlate } from './plate.js?v=v18.4.0';
-import { MAPS, MAP_IDS } from './maps.js?v=v18.4.0';
-import { WaterGL } from './water.js?v=v18.4.0';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.4.0';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.4.0';
-import { Leaves } from './leaves.js?v=v18.4.0';
-import { Rake } from './zen.js?v=v18.4.0';
-import { Clouds } from './clouds.js?v=v18.4.0';
-import { Gulls } from './gulls.js?v=v18.4.0';
-import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.4.0';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.4.0';
-import { clamp, dist } from './util.js?v=v18.4.0';
-import { Focus, Awake, LENGTHS } from './focus.js?v=v18.4.0';
-import { UNLOCK_ALL } from './config.js?v=v18.4.0';
-import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.4.0';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.5.0';
+import { Beach } from './beach.js?v=v18.5.0';
+import { Kiwi } from './kiwi.js?v=v18.5.0';
+import { Sound } from './sound.js?v=v18.5.0';
+import { loadPlate } from './plate.js?v=v18.5.0';
+import { MAPS, MAP_IDS } from './maps.js?v=v18.5.0';
+import { WaterGL } from './water.js?v=v18.5.0';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.5.0';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.5.0';
+import { Leaves } from './leaves.js?v=v18.5.0';
+import { Rake } from './zen.js?v=v18.5.0';
+import { Clouds } from './clouds.js?v=v18.5.0';
+import { Gulls } from './gulls.js?v=v18.5.0';
+import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.5.0';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.5.0';
+import { clamp, dist } from './util.js?v=v18.5.0';
+import { Focus, Awake, LENGTHS } from './focus.js?v=v18.5.0';
+import { UNLOCK_ALL } from './config.js?v=v18.5.0';
+import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.5.0';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -81,6 +81,30 @@ const clockOpt = (() => { try { return { sec: false, fmt: 'ko', ...JSON.parse(sa
 if (q.get('sec') != null) clockOpt.sec = q.get('sec') !== '0';
 if (CLOCK_FMTS.includes(q.get('ampm'))) clockOpt.fmt = q.get('ampm');
 if (!CLOCK_FMTS.includes(clockOpt.fmt)) clockOpt.fmt = 'ko';
+// 키위 수 (v18.5): 정성 단계(한 마리·조금·보통·많이) + 정량(직접 1~30마리).
+//  'normal' = v18.4까지의 규칙 그대로. 단계는 한 마리가 맡는 획 수(per)·상한(max)·시계 고쳐 쓰기 상한(clockMax)·
+//  쉬는 동안 머릿수(idle 낮/밤)만 바꾼다. 'custom' = 고른 수가 상한 — 획이 더 적으면 획 수만큼, 쉴 때는 낮 2·밤 4를 넘지 않게.
+//  최소 머릿수(새 글 3·시계 2)도 상한을 넘지 않는다. 주소 ?kiwis=one|few|normal|many|숫자 가 저장값보다 먼저
+const CROWD = {
+  one:    { per: 1e9, max: 1,  clockMax: 1,  idle: [1, 1] },
+  few:    { per: 5,   max: 8,  clockMax: 5,  idle: [1, 2] },
+  normal: { per: 2.5, max: 22, clockMax: 10, idle: [2, 4] },
+  many:   { per: 1.5, max: 30, clockMax: 14, idle: [3, 6] },
+};
+const CROWD_N = [1, 30];
+let crowdId = 'normal', crowdN = 6;
+{
+  const pick = v => {
+    if (CROWD[v] || v === 'custom') return (crowdId = v), true;
+    if (v != null && v !== '' && !isNaN(+v)) return (crowdId = 'custom'), (crowdN = clamp(Math.round(+v), ...CROWD_N)), true;
+    return false;
+  };
+  if (!isNaN(+saved('kiwisN')) && saved('kiwisN')) crowdN = clamp(Math.round(+saved('kiwisN')), ...CROWD_N);
+  pick(q.get('kiwis')) || pick(saved('kiwis'));
+}
+const crowd = () => crowdId === 'custom'
+  ? { per: 1, max: crowdN, clockMax: crowdN, idle: [Math.min(2, crowdN), Math.min(4, crowdN)] }
+  : CROWD[crowdId];
 // 예전 '시계 · 초' 모드(clocksec)는 시계 + 초 켜기로 옮긴다
 const modeIn = m => (m === 'clocksec' ? ((clockOpt.sec = true), 'clock') : m);
 let mode = MODES.includes(modeIn(q.get('mode'))) ? modeIn(q.get('mode')) : MODES.includes(modeIn(saved('mode'))) ? modeIn(saved('mode')) : 'free';
@@ -251,7 +275,7 @@ function write(text, m = null) {
   //  누른 자리를 파러 가는 키위(after 'dig')는 그대로 둔다
   for (const k of kiwis) if (!k.focus && !k.gone && !k.job && (k.state === 'idle' || (k.state === 'wander' && k.after !== 'dig'))) k.state = 'free';
   const active = kiwis.filter(k => !k.gone && k.state !== 'flee').length;
-  const need = clamp(Math.ceil(jobs.length / 2.5), 3, 22) - active;
+  const need = clamp(Math.ceil(jobs.length / crowd().per), Math.min(3, crowd().max), crowd().max) - active;
   for (let i = 0; i < need; i++) spawnQ.push(beach.t + (i * 0.3) / Math.sqrt(SPEED));
   sound.call(0.4, W / 2);
 }
@@ -322,7 +346,7 @@ function patch(text) {
   current = text; meta = null;
   phase = 'writing';
   const active = kiwis.filter(k => !k.gone && k.state !== 'flee').length, todo = jobs.filter(j => !j.done).length;
-  const need = clamp(Math.ceil(todo / 2.5), 2, 10) - active;
+  const need = clamp(Math.ceil(todo / crowd().per), Math.min(2, crowd().clockMax), crowd().clockMax) - active;
   for (let i = 0; i < need; i++) spawnQ.push(beach.t + (i * 0.4) / Math.sqrt(SPEED));
   sound.call(0.2, W / 2);
 }
@@ -580,8 +604,13 @@ function tick(dt) {
     if (isClock(mode) ? clockText(hour, clockOpt.fmt) !== lastClock && beach.t > 1 : phase === 'idle' && beach.t > 1.5) submit(...nextAuto(hour));
   }
 
+  // 키위 수를 줄였을 때: 상한보다 많으면 일감 없는 키위부터 조용히 숲으로 돌아간다 (쓰는 중인 키위는 마저 쓴다)
+  let extra = kiwis.filter(k => !k.gone && k.state !== 'flee' && !k.focus).length - crowd().max;
   for (const kw of kiwis) {
     if (kw.focus) patrol(kw);
+    else if (extra > 0 && !kw.gone && !kw.job && !kw.busy && kw.after !== 'dig' && ['free', 'wander', 'idle'].includes(kw.state)) {
+      kw.flee(beach.grass(kw.x) - 50 * beach.u); kw.alertT = 0; extra--;
+    }
     else if (kw.state === 'free' && phase !== 'writing') loiter(kw);
     kw.update(dt, world);
     // 숲 덤불을 드나들 때: 가장자리 근처에서 서서히 보였다 사라지고, 잎이 살짝 흔들려 튄다
@@ -608,7 +637,7 @@ function tick(dt) {
 
   if (phase === 'idle' && !beach.surging && beach.t > nextAmbient) {
     nextAmbient = beach.t + 4 + Math.random() * 6;
-    if (kiwis.length < (atmos.night > 0.5 ? 4 : 2)) spawn();   // 키위는 야행성 — 밤에 더 많이 나온다
+    if (kiwis.length < crowd().idle[atmos.night > 0.5 ? 1 : 0]) spawn();   // 키위는 야행성 — 밤에 더 많이 나온다
   }
   // 시계 · 초: 매초 모래에 초 두 자리가 찍히고 앞 숫자는 스르르 지워진다
   if (secAnchor && (phase === 'writing' || phase === 'hold') && !pending) {
@@ -900,15 +929,15 @@ async function boot() {
     }
     throw err;
   })();
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.4.0'), img('assets/gull.webp?v=v18.4.0'), img('assets/bottle.webp?v=v18.4.0'), img('assets/crate.webp?v=v18.4.0')]);
-  img('assets/finds.webp?v=v18.4.0').then(im => {
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.5.0'), img('assets/gull.webp?v=v18.5.0'), img('assets/bottle.webp?v=v18.5.0'), img('assets/crate.webp?v=v18.5.0')]);
+  img('assets/finds.webp?v=v18.5.0').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
     drifters.setSprites({ ...drifters.imgs, conch: c });
   }).catch(() => {});
   drifters.setSprites({ bottle, crate });
-  img('assets/leaves.webp?v=v18.4.0').then(im => floaters.setSheet(im)).catch(() => {});
+  img('assets/leaves.webp?v=v18.5.0').then(im => floaters.setSheet(im)).catch(() => {});
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
   plate = p;
@@ -957,7 +986,28 @@ function paintModeMenu() {
   }
   for (const r of settings.querySelectorAll('input[name="fmt"]')) r.checked = r.value === clockOpt.fmt;
   document.getElementById('optSec').checked = clockOpt.sec;
+  paintCrowd();
 }
+// 키위 수 — 단계를 고르면 슬라이더가 그 단계의 상한을 보여 주고, 슬라이더를 움직이면 '직접'이 된다
+const crowdRange = document.getElementById('kiwiN'), crowdNow = document.getElementById('kiwiNow');
+function paintCrowd() {
+  for (const r of settings.querySelectorAll('input[name="kiwis"]')) r.checked = r.value === crowdId;
+  const n = crowd().max;
+  if (document.activeElement !== crowdRange) crowdRange.value = String(n);
+  crowdNow.textContent = crowdId === 'custom' ? `${n}마리까지` : crowdId === 'one' ? '한 마리가 다 써요' : `글 길이에 따라 · 최대 ${n}마리`;
+}
+// 쓰는 중에 늘렸으면 남은 획에 맞춰 더 부른다 (줄였으면 update 가 남는 키위를 숲으로 돌려보낸다)
+function setCrowd(id, n) {
+  if (!CROWD[id] && id !== 'custom') return;
+  crowdId = id; save('kiwis', id);
+  if (n != null) { crowdN = clamp(Math.round(n), ...CROWD_N); save('kiwisN', String(crowdN)); }
+  paintCrowd();
+  if (phase !== 'writing') return;
+  const active = kiwis.filter(k => !k.gone && k.state !== 'flee').length, todo = jobs.filter(j => !j.done).length;
+  const need = clamp(Math.ceil(todo / crowd().per), Math.min(1, todo), crowd().max) - active;
+  for (let i = 0; i < need; i++) spawnQ.push(beach.t + (i * 0.3) / Math.sqrt(SPEED));
+}
+crowdRange.addEventListener('input', () => setCrowd('custom', +crowdRange.value));
 setBtn.addEventListener('click', () => { unlock(); paintCollection(); paintModeMenu(); paintLight(); openSettings(settings.hidden); });
 
 // ── 시간대 ──
@@ -1143,6 +1193,8 @@ function paintCollection() {
 settings.addEventListener('change', e => {
   const t = e.target;
   if (t.name === 'map') { setMap(t.value); return; }
+  if (t.name === 'kiwis') { setCrowd(t.value); return; }
+  if (t.id === 'kiwiN') return;
   if (t.name === 'fmt') clockOpt.fmt = t.value;
   if (t.id === 'optSec') clockOpt.sec = t.checked;
   save('clock', JSON.stringify(clockOpt));
@@ -1153,6 +1205,38 @@ settings.addEventListener('change', e => {
 document.addEventListener('pointerdown', e => { if (!settings.hidden && !settings.contains(e.target) && !setBtn.contains(e.target)) openSettings(false); });
 window.addEventListener('keydown', e => { if (e.key === 'Escape' && !settings.hidden) { openSettings(false); setBtn.focus(); } });
 paintMode(); paintModeMenu();
+
+// ── 화면 정리 (v18.5): 버튼·입력창·창·알림을 숨기고 그림만 ──
+//  다시 보이기 버튼은 숨어 있다가 화면을 누르거나 마우스를 움직이면 2.5초 동안 오른쪽 위에 희미하게 뜬다.
+//  H 키로 켜고 끄고, Esc 로 끈다. 저장하지 않는다(다음에 열면 보통 화면) — 주소 ?ui=0 이면 정리된 채로 시작
+const hideBtn = document.getElementById('hideBtn');
+let peekTimer = 0;
+function peek() {
+  if (!document.body.classList.contains('clean')) return;
+  document.body.classList.add('peek');
+  clearTimeout(peekTimer);
+  peekTimer = setTimeout(() => document.body.classList.remove('peek'), 2500);
+}
+function setClean(on) {
+  document.body.classList.toggle('clean', on);
+  hideBtn.setAttribute('aria-pressed', String(on));
+  hideBtn.setAttribute('aria-label', on ? '버튼·입력창 다시 보이기 (H 키)' : '화면 정리 — 버튼·입력창 숨기기 (H 키)');
+  if (on) {
+    openSettings(false); openMixer(false); openFocusPanel(false); openInfo(false);
+    if (document.activeElement && document.activeElement !== hideBtn) document.activeElement.blur();
+    peek();
+  } else { document.body.classList.remove('peek'); clearTimeout(peekTimer); }
+}
+hideBtn.addEventListener('click', () => setClean(!document.body.classList.contains('clean')));
+window.addEventListener('pointerdown', peek, true);
+window.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') peek(); });
+window.addEventListener('keydown', e => {
+  if (e.target.matches && e.target.matches('input[type="text"], textarea')) return;
+  if (e.key === 'h' || e.key === 'H' || e.key === 'ㅗ') setClean(!document.body.classList.contains('clean'));
+  else if (e.key === 'Escape' && document.body.classList.contains('clean')) setClean(false);
+  else peek();
+});
+if (q.get('ui') === '0') setClean(true);
 { const st = focus.resolveStale(); paintFocus(); if (st) setTimeout(() => toast(`지난 집중은 화면을 떠나서 멈췄어요 · ${n0(st.steps)}보`, 3200), 1500); }
 const paintWeather = () => { weatherBtn.dataset.weather = atmos.weather; weatherBtn.setAttribute('aria-label', `날씨: ${WEATHER_NAME[atmos.weather]} (바꾸기)`); };
 weatherBtn.addEventListener('click', () => {
@@ -1165,4 +1249,4 @@ paintWeather();
 const firstWrite = () => { if (!plate) { setTimeout(firstWrite, 300); return; } if (phase === 'idle' && !current && mode === 'free') write(FIRST); };
 setTimeout(firstWrite, 700);
 
-window.__kiwi = { setPack, paintPacks, focus, completeFocus, shore, finds, pickUp, paintCollection, get phase() { return phase; }, get kiwis() { return kiwis; }, get jobs() { return jobs; }, get current() { return current; }, beach, get water() { return water; }, art, artAt, get light() { return { mode: lightMode, pick: lightPick, shown: lightShown }; }, setLight, get artDpr() { return artDpr(); }, perf, clouds, atmos, sound, get plate() { return plate; }, drifters, col, openDrift, get notes() { return notes; }, submit, setView, toWorld };
+window.__kiwi = { setPack, setCrowd, get crowd() { return { id: crowdId, n: crowdN, ...crowd() }; }, paintPacks, focus, completeFocus, shore, finds, pickUp, paintCollection, get phase() { return phase; }, get kiwis() { return kiwis; }, get jobs() { return jobs; }, get current() { return current; }, beach, get water() { return water; }, art, artAt, get light() { return { mode: lightMode, pick: lightPick, shown: lightShown }; }, setLight, get artDpr() { return artDpr(); }, perf, clouds, atmos, sound, get plate() { return plate; }, drifters, col, openDrift, get notes() { return notes; }, submit, setView, toWorld };

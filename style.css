@@ -78,6 +78,14 @@ body.info-open #say { opacity: 0; pointer-events: none; }
 .corner { position: fixed; z-index: 20; top: max(14px, env(safe-area-inset-top)); right: max(14px, env(safe-area-inset-right)); display: flex; gap: 8px;
   opacity: 0.82; transition: opacity var(--t-fast) var(--ease); }
 .corner:hover, .corner:focus-within { opacity: 1; }
+/* 화면 정리(v18.5): 그림만 남긴다 — 다시 보이기 버튼은 누르거나 움직일 때만 잠깐 희미하게 (글 모드 캡션·열어 본 카드는 그대로) */
+#hideBtn .ui-show, body.clean #hideBtn .ui-hide { display: none; }
+body.clean #hideBtn .ui-show { display: inline; }
+body.clean .corner > :not(#hideBtn), body.clean #say, body.clean #toast, body.clean #focusHud,
+body.clean #settings, body.clean #mixer, body.clean #focusPanel, body.clean #info { display: none !important; }
+body.clean .corner { opacity: 0; pointer-events: none; transition: opacity 0.6s var(--ease); }
+body.clean.peek .corner, body.clean .corner:focus-within { opacity: 0.55; pointer-events: auto; }
+body.clean .corner:hover { opacity: 0.9; }
 .round { width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 1px solid var(--panel-line); background: var(--panel); color: rgb(var(--ink));
   cursor: pointer; display: grid; place-items: center; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease); }
@@ -161,6 +169,11 @@ body.typing #caption, body.info-open #caption { opacity: 0; }
 #settings .seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
 #settings .seg span { display: block; text-align: center; padding: 9px 4px; border-radius: 10px; border: 1px solid var(--panel-line); font-weight: 500; white-space: nowrap; }
 #settings .seg.three span { padding: 7px 2px; font-size: 13px; }
+#settings .seg.five { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+#settings .seg.five span { padding: 7px 0; font-size: 12.5px; }
+#kiwiOpts { margin-top: 8px; }
+#kiwiOpts .lightNow { margin: 0 0 4px; font-weight: 500; font-variant-numeric: tabular-nums; }
+#kiwiOpts input[type="range"] { width: 100%; margin: 4px 0 4px; accent-color: var(--sand); }
 #settings .seg input:checked + span { background: var(--sand); color: #2a2016; border-color: transparent; }
 #settings .seg input:focus-visible + span { outline: 2px solid rgb(var(--ink)); outline-offset: 2px; }
 #clockOpts { padding: 0 2px; }
