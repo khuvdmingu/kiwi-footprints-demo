@@ -6,7 +6,7 @@
 //        구름 양·흐름 속도·파도 높이는 셰이더/해변에 넘기고, 빗줄기·물방울 고리·눈송이·나뭇잎·안개·반딧불이·야광은 여기서 #fx 캔버스에 그린다.
 //        눈은 시간이 지날수록 땅(셰이더 uSnow)과 나무에 쌓이고, 그치면 천천히 녹는다.
 
-import { clamp, lerp } from './util.js?v=v18.5.3';
+import { clamp, lerp } from './util.js?v=v18.5.4';
 
 export const WEATHERS = ['clear', 'cloudy', 'rain', 'snow', 'fog', 'wind'];
 export const WEATHER_NAME = { clear: '맑음', cloudy: '흐림', rain: '비', snow: '눈', fog: '안개', wind: '바람' };
@@ -152,14 +152,18 @@ export class Atmos {
 
   // n·w: 밤 · 노을/새벽 그림이 섞인 정도 — 그림이 이미 그 빛이라 그만큼 시간 빛을 옅게 씌운다
   //  (밤은 35%만 옅게 — 한밤은 그래도 더 어둡게 누른다 · 노을/새벽은 75% 옅게 — 색이 두 번 겹치지 않게)
-  tintCSS(n = 0, w = 0) {
+  //  모양: 가로 75% · 세로 62% 타원, 중심 (55%, 45%), 색 [가운데, 55% 지점, 가장자리] — tintStops 가 색, main.js paintTint 가 그린다
+  tintStops(n = 0, w = 0) {
     const k = 1 - 0.35 * n - 0.75 * w;
-    const [r, g, b] = this.tint.map(c => Math.round(255 - (255 - c) * k));
-    const c = `rgb(${r},${g},${b})`;
+    const c = this.tint.map(v => Math.round(255 - (255 - v) * k));
     // 밤에는 가운데를 밝게 (달빛 웅덩이) — 한밤일수록 가장자리는 더 어둡고 글씨 쓰는 가운데는 읽힐 만큼 남는다
-    const lift = this.night * 0.3, [r2, g2, b2] = [r, g, b].map(v => Math.round(v + (255 - v) * lift));
-    const mid = [r, g, b].map((v, i) => Math.round((v + [r2, g2, b2][i]) / 2));
-    return `radial-gradient(ellipse 75% 62% at 55% 45%, rgb(${r2},${g2},${b2}), rgb(${mid}) 55%, ${c})`;
+    const lift = this.night * 0.3, c2 = c.map(v => Math.round(v + (255 - v) * lift));
+    const mid = c.map((v, i) => Math.round((v + c2[i]) / 2));
+    return [c2, mid, c];
+  }
+  tintCSS(n = 0, w = 0) {
+    const [c2, mid, c] = this.tintStops(n, w);
+    return `radial-gradient(ellipse 75% 62% at 55% 45%, rgb(${c2}), rgb(${mid}) 55%, rgb(${c}))`;
   }
 
   // 이번 프레임에 그릴 것이 있는가 (없으면 #fx 층을 건드리지 않는다 — main.js)

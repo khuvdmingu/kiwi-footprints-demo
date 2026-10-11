@@ -15,25 +15,25 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.5.3';
-import { Beach } from './beach.js?v=v18.5.3';
-import { Kiwi } from './kiwi.js?v=v18.5.3';
-import { Sound } from './sound.js?v=v18.5.3';
-import { loadPlate } from './plate.js?v=v18.5.3';
-import { MAPS, MAP_IDS } from './maps.js?v=v18.5.3';
-import { WaterGL } from './water.js?v=v18.5.3';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.5.3';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.5.3';
-import { Leaves } from './leaves.js?v=v18.5.3';
-import { Rake } from './zen.js?v=v18.5.3';
-import { Clouds } from './clouds.js?v=v18.5.3';
-import { Gulls } from './gulls.js?v=v18.5.3';
-import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.5.3';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.5.3';
-import { clamp, dist } from './util.js?v=v18.5.3';
-import { Focus, Awake, LENGTHS } from './focus.js?v=v18.5.3';
-import { UNLOCK_ALL } from './config.js?v=v18.5.3';
-import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.5.3';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.5.4';
+import { Beach } from './beach.js?v=v18.5.4';
+import { Kiwi } from './kiwi.js?v=v18.5.4';
+import { Sound } from './sound.js?v=v18.5.4';
+import { loadPlate } from './plate.js?v=v18.5.4';
+import { MAPS, MAP_IDS } from './maps.js?v=v18.5.4';
+import { WaterGL } from './water.js?v=v18.5.4';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.5.4';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.5.4';
+import { Leaves } from './leaves.js?v=v18.5.4';
+import { Rake } from './zen.js?v=v18.5.4';
+import { Clouds } from './clouds.js?v=v18.5.4';
+import { Gulls } from './gulls.js?v=v18.5.4';
+import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.5.4';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.5.4';
+import { clamp, dist } from './util.js?v=v18.5.4';
+import { Focus, Awake, LENGTHS } from './focus.js?v=v18.5.4';
+import { UNLOCK_ALL } from './config.js?v=v18.5.4';
+import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.5.4';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -74,6 +74,22 @@ const sound = new Sound({ enabled: q.get('sound') !== '0' });
 const fxCanvas = document.getElementById('fx');
 const fctx = fxCanvas.getContext('2d');
 const tintEl = document.getElementById('tint');
+// 시간 빛(#tint, 곱하기)은 작은 캔버스에 그려 늘린다 (v18.5.4). CSS 그라데이션이던 때는 핀치로 확대하면 브라우저가 새 배율로
+//  사각형 타일마다 다시 그렸고, 아직 못 그린 타일 자리만 어둡게 안 덮여 밤에 밝은 사각형이 깜빡였다(낮엔 거의 흰색이라 안 보임).
+//  캔버스는 한 장짜리 그림이라 확대해도 다시 그리지 않는다. 부드러운 그라데이션이라 가로 160칸이면 충분
+let tintKey = '';
+function paintTint() {
+  const stops = atmos.tintStops(art.n, art.w), tw = 160, th = Math.max(1, Math.round(160 * H / Math.max(1, W)));
+  const key = stops.join('|') + '|' + th;
+  if (key === tintKey) return;
+  tintKey = key;
+  if (tintEl.width !== tw || tintEl.height !== th) { tintEl.width = tw; tintEl.height = th; }
+  const c = tintEl.getContext('2d'), cx = tw * 0.55, cy = th * 0.45, rx = tw * 0.75, ry = th * 0.62;
+  c.setTransform(rx, 0, 0, ry, cx, cy);   // 원을 가로 rx · 세로 ry 타원으로
+  const g = c.createRadialGradient(0, 0, 0, 0, 0, 1);
+  g.addColorStop(0, `rgb(${stops[0]})`); g.addColorStop(0.55, `rgb(${stops[1]})`); g.addColorStop(1, `rgb(${stops[2]})`);
+  c.fillStyle = g; c.fillRect(-cx / rx, -cy / ry, tw / rx, th / ry);
+}
 const captionEl = document.getElementById('caption');
 const atmos = new Atmos(q.get('weather') || saved('weather') || 'clear');
 // 시계 선택지: 초 표시 · 표기(오전/오후 · AM/PM · 24시간). 주소 ?sec=1 · ?ampm=ko|en|24 가 기기에 저장된 값보다 먼저
@@ -572,7 +588,7 @@ function tick(dt) {
   sound.update({ high: clamp((beach.shoreY - beach.lvl) / (beach.H * 0.3), 0, 1), rain: atmos.v.rain, wind: Math.max(atmos.v.wind, atmos.v.rain * 0.3), night: atmos.night, hour: lightShown, weather: atmos.weather });
   if (beach.t - tintAt > 0.25) {
     tintAt = beach.t;
-    tintEl.style.background = atmos.tintCSS(art.n, art.w);
+    paintTint();
     glowEl.style.opacity = String(Math.max(0.15, 1 - atmos.night * 0.85));   // 골든아워 빛은 밤엔 거의 사라진다
     document.body.classList.toggle('snowy', beach.snow > 0.3);
     if (lightMode === 'auto' && !settings.hidden) paintLight();
@@ -970,15 +986,15 @@ async function boot() {
     }
     throw err;
   })();
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.5.3'), img('assets/gull.webp?v=v18.5.3'), img('assets/bottle.webp?v=v18.5.3'), img('assets/crate.webp?v=v18.5.3')]);
-  img('assets/finds.webp?v=v18.5.3').then(im => {
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.5.4'), img('assets/gull.webp?v=v18.5.4'), img('assets/bottle.webp?v=v18.5.4'), img('assets/crate.webp?v=v18.5.4')]);
+  img('assets/finds.webp?v=v18.5.4').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
     drifters.setSprites({ ...drifters.imgs, conch: c });
   }).catch(() => {});
   drifters.setSprites({ bottle, crate });
-  img('assets/leaves.webp?v=v18.5.3').then(im => floaters.setSheet(im)).catch(() => {});
+  img('assets/leaves.webp?v=v18.5.4').then(im => floaters.setSheet(im)).catch(() => {});
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
   plate = p;
