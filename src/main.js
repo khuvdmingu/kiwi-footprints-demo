@@ -15,25 +15,25 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.5.2';
-import { Beach } from './beach.js?v=v18.5.2';
-import { Kiwi } from './kiwi.js?v=v18.5.2';
-import { Sound } from './sound.js?v=v18.5.2';
-import { loadPlate } from './plate.js?v=v18.5.2';
-import { MAPS, MAP_IDS } from './maps.js?v=v18.5.2';
-import { WaterGL } from './water.js?v=v18.5.2';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.5.2';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.5.2';
-import { Leaves } from './leaves.js?v=v18.5.2';
-import { Rake } from './zen.js?v=v18.5.2';
-import { Clouds } from './clouds.js?v=v18.5.2';
-import { Gulls } from './gulls.js?v=v18.5.2';
-import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.5.2';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.5.2';
-import { clamp, dist } from './util.js?v=v18.5.2';
-import { Focus, Awake, LENGTHS } from './focus.js?v=v18.5.2';
-import { UNLOCK_ALL } from './config.js?v=v18.5.2';
-import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.5.2';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.5.3';
+import { Beach } from './beach.js?v=v18.5.3';
+import { Kiwi } from './kiwi.js?v=v18.5.3';
+import { Sound } from './sound.js?v=v18.5.3';
+import { loadPlate } from './plate.js?v=v18.5.3';
+import { MAPS, MAP_IDS } from './maps.js?v=v18.5.3';
+import { WaterGL } from './water.js?v=v18.5.3';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.5.3';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.5.3';
+import { Leaves } from './leaves.js?v=v18.5.3';
+import { Rake } from './zen.js?v=v18.5.3';
+import { Clouds } from './clouds.js?v=v18.5.3';
+import { Gulls } from './gulls.js?v=v18.5.3';
+import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.5.3';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.5.3';
+import { clamp, dist } from './util.js?v=v18.5.3';
+import { Focus, Awake, LENGTHS } from './focus.js?v=v18.5.3';
+import { UNLOCK_ALL } from './config.js?v=v18.5.3';
+import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.5.3';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -742,6 +742,8 @@ const artDpr = () => (artScale ? Math.min(artScale, dpr) : dpr);
 const perf = { ema: 1 / 60, slowFor: 0 };
 function watchPerf(gap) {
   if (gap > 0.2 || !water || beach.t < 6) return;   // 숨김에서 돌아온 긴 틈 · 그림·소리를 읽는 첫 6초는 세지 않는다
+  // 손가락으로 핀치·끌기 하는 동안 느려지는 건 기기 탓이 아니다 — 세지 않는다(해상도를 낮추며 층을 다시 만들면 번쩍인다, v18.5.3)
+  if (gesturing()) { perf.slowFor = 0; return; }
   perf.ema += (gap - perf.ema) * 0.05;
   perf.slowFor = perf.ema > 1 / 40 ? perf.slowFor + gap : 0;
   const cur = artDpr();
@@ -919,18 +921,35 @@ touchEl.addEventListener('pointermove', e => {
 for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) touchEl.addEventListener(ev, () => { fogWipe = null; });
 // v18.5.1 핀치 확대·축소 복구: 확대된 동안은 한 손가락으로 화면을 옮길 수 있게(CSS body.zoomed), 1배로 돌아오면 다시 안개 문지르기
 const pinched = () => !!window.visualViewport && window.visualViewport.scale > 1.02;
-// v18.5.2 핀치 깜빡임: 폰은 핀치하는 동안 resize 를 계속 보내고(확대 중엔 innerWidth 도 바뀐다), resize() 는 캔버스를 비우고
-//  발자국까지 지운 뒤 다시 쓴다 → 화면 전체가 깜빡였다. 확대 중에는 다시 만들지 않고, 실제 화면 크기·픽셀 밀도가 바뀌었을 때만 다시 만든다
-let rt = null;
+// v18.5.2~3 핀치 깜빡임: 폰은 핀치하는 동안 resize 를 계속 보내고(확대 중엔 innerWidth 도 바뀐다), resize() 는 캔버스를 비우고
+//  발자국까지 지운 뒤 다시 쓴다 → 화면 전체가 깜빡였다. 손가락이 닿아 있거나 확대된 동안(제스처 중)에는 다시 만들지 않고,
+//  손을 뗀 뒤 실제 화면 크기(2px 넘게)·픽셀 밀도가 바뀌었을 때만 한 번 다시 만든다.
+//  손가락 수는 touch 이벤트로 센다 — 핀치가 시작되면 브라우저가 pointercancel 을 보내 pointer 로는 0 이 된다
+let touching = 0;
+for (const ev of ['touchstart', 'touchend', 'touchcancel']) window.addEventListener(ev, e => {
+  touching = e.touches.length;
+  if (!touching) maybeResize();
+}, { passive: true, capture: true });
+const gesturing = () => touching > 0 || pinched();
+let rt = null, resizes = 0;
 function maybeResize() {
   clearTimeout(rt);
   rt = setTimeout(() => {
-    if (!plate || pinched()) return;
-    if (window.innerWidth === W && window.innerHeight === H && Math.min(window.devicePixelRatio || 1, 2) === dpr) return;
+    if (!plate || gesturing()) return;   // 손을 떼거나 1배로 돌아올 때 다시 불린다
+    const near = (a, b) => Math.abs(a - b) <= 2;
+    if (near(window.innerWidth, W) && near(window.innerHeight, H) && Math.min(window.devicePixelRatio || 1, 2) === dpr) return;
+    resizes++;
     resize();
-  }, 200);
+  }, 250);
 }
 window.addEventListener('resize', maybeResize);
+// ?diag — 폰에서 깜빡임 원인 보기: 화면을 다시 만든 횟수 · 그림 층 해상도 · 확대 배율 · 닿은 손가락 · 화면 크기
+if (q.has('diag')) {
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99;font:12px/1.35 ui-monospace,monospace;color:#fff;background:#000a;padding:4px 7px;border-radius:6px;pointer-events:none';
+  document.body.append(el);
+  setInterval(() => { el.textContent = `다시 만듦 ${resizes} · 그림 ${artDpr().toFixed(2)}/${dpr} · 확대 ${(window.visualViewport?.scale || 1).toFixed(2)} · 손가락 ${touching} · ${innerWidth}×${innerHeight}`; }, 200);
+}
 if (window.visualViewport) {
   const vv = window.visualViewport;
   // 1배로 돌아왔을 때 확대 중에 건너뛴 화면 회전 등이 있었으면 그때 맞춘다 (같은 크기면 아무것도 안 함)
@@ -951,15 +970,15 @@ async function boot() {
     }
     throw err;
   })();
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.5.2'), img('assets/gull.webp?v=v18.5.2'), img('assets/bottle.webp?v=v18.5.2'), img('assets/crate.webp?v=v18.5.2')]);
-  img('assets/finds.webp?v=v18.5.2').then(im => {
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.5.3'), img('assets/gull.webp?v=v18.5.3'), img('assets/bottle.webp?v=v18.5.3'), img('assets/crate.webp?v=v18.5.3')]);
+  img('assets/finds.webp?v=v18.5.3').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
     drifters.setSprites({ ...drifters.imgs, conch: c });
   }).catch(() => {});
   drifters.setSprites({ bottle, crate });
-  img('assets/leaves.webp?v=v18.5.2').then(im => floaters.setSheet(im)).catch(() => {});
+  img('assets/leaves.webp?v=v18.5.3').then(im => floaters.setSheet(im)).catch(() => {});
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
   plate = p;
