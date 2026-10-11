@@ -9,13 +9,13 @@
 //  믹서 값(소리 켜기·음악·환경음·효과음·발자국 음악)은 기기에 기억한다.
 //  브라우저는 사용자 동작 안에서만 소리를 열 수 있어서 unlock() 을 그때 부른다. 탭을 숨기면 멈춘다.
 
-import { Music } from './music.js?v=v18.3.3';
+import { Music } from './music.js?v=v18.4.0';
 
-// v16 아이템 소리·곡은 오픈소스 녹음 (전부 CC0 — 출처는 docs/v8-assets.md · 작품 설명). assets/audio/ 에서 처음 고를 때 받는다
+// v16 아이템 소리·곡은 오픈소스 녹음 — 목록·출처는 카탈로그 한 곳 (src/tracks/index.js). assets/audio/ 에서 처음 고를 때 받는다
+//  STEP_SAMPLES: 0.5초 칸마다 한 걸음 · NATURE_LOOPS: 끝과 처음을 겹쳐 이음매 없이 도는 고리 · SONG_TRACKS: 곡 고리
+import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, TRACK } from './tracks/index.js?v=v18.4.0';
+export { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS };
 const AUDIO = 'assets/audio/';
-export const STEP_SAMPLES = { snow: 'steps-snow.mp3', leaves: 'steps-leaves.mp3', gravel: 'steps-gravel.mp3' };   // 0.5초 칸마다 한 걸음
-export const NATURE_LOOPS = { birds: 'amb-forest.mp3', fire: 'amb-fire.mp3', frogs: 'amb-frogs.mp3' };          // 끝과 처음을 겹쳐 이음매 없이 도는 고리
-export const SONG_TRACKS = { heavenly: 'song-heavenly.mp3', snowtrack: 'song-snow.mp3', contemplation: 'song-contemplation.mp3' };
 
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 const MIX_KEY = 'kiwi-footprints.mix';
@@ -336,7 +336,7 @@ export class Sound {
     const file = SONG_TRACKS[id];
     this.music.silent = !!file;               // 녹음 곡이 흐르는 동안 생성 음악은 쉰다 (화음 진행은 계속 — 발자국 음악용)
     this.music.setSong(file || id === 'auto' ? null : id);
-    this.playLoop('track', file, 'music', 0.36);   // 생성 음악과 비슷한 크기로
+    this.playLoop('track', file, 'music', TRACK[`song:${id}`]?.level ?? 0.36);   // 생성 음악과 비슷한 크기로 (곡마다 카탈로그 level)
   }
   // 고리 하나(배경 소리 bed · 곡 track): 바꾸면 이전 것은 천천히 줄이고 새 것은 천천히 키운다
   playLoop(slot, file, bus, level) {
@@ -372,7 +372,7 @@ export class Sound {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
     for (const k of ['bird', 'crk', 'pop', 'frog', 'chime']) this.last[k] = 0;   // 고르자마자 첫 소리가 나게
-    this.playLoop('bed', NATURE_LOOPS[pk], 'amb', pk === 'birds' ? 0.9 : 0.6);   // 숲 녹음은 조용해서 조금 크게
+    this.playLoop('bed', NATURE_LOOPS[pk], 'amb', TRACK[`nature:${pk}`]?.level ?? 0.6);   // 크기는 카탈로그 level (숲 녹음은 조용해서 0.9)
   }
   natureTick(night) {
     const pk = this.mix.nature, R = Math.random, ctx = this.ctx, t = ctx.currentTime;
