@@ -16,7 +16,7 @@ const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
   // 물 없는 장소(opts.rest — 젠 가든 v18): 물 뺀 판·바위 지운 판이 없다 → 같은 판 한 장을 세 자리에 쓴다
-  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v18.3.2').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v18.3.2'), load(name + '-dry.webp?v=v18.3.2'), load(name + '-sea.webp?v=v18.3.2')]);
+  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v18.3.3').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v18.3.3'), load(name + '-dry.webp?v=v18.3.3'), load(name + '-sea.webp?v=v18.3.3')]);
   const p = new Plate(img, dry, sea, opts);
   p.name = name; p.base = base;
   return p;
@@ -232,7 +232,14 @@ export class Plate {
     const { s, ox, oy } = this.map;
     const ax = Math.round(((x - ox) / s) * this.aw / this.pw), ay = Math.round(((y - oy) / s) * this.ah / this.ph);
     if (ax < 0 || ay < 0 || ax >= this.aw || ay >= this.ah) return 1;
-    return Math.min(1, Math.max(0.6, this.lum[ay * this.aw + ax] / this.sandLum));
+    // 한 점이 아니라 키위 몸통만 한 칸(분석 해상도 ±6)의 평균 (v18.3.3) — 한 점만 읽으면 모래 정원 갈퀴 줄(밝은 턱·어두운 홈)과
+    //  잎 그림자 얼룩을 지날 때마다 키위가 밝았다 어두웠다 반짝였다
+    let sum = 0, n = 0;
+    for (let dy = -6; dy <= 6; dy += 2) for (let dx = -6; dx <= 6; dx += 2) {
+      const qx = ax + dx, qy = ay + dy;
+      if (qx >= 0 && qy >= 0 && qx < this.aw && qy < this.ah) { sum += this.lum[qy * this.aw + qx]; n++; }
+    }
+    return Math.min(1, Math.max(0.6, sum / n / this.sandLum));
   }
 
   // 키위 위에 덮을 숲 잎 그림 (화면 해상도로 한 번 그린다)
@@ -242,7 +249,7 @@ export class Plate {
     if (this.opts.art === false) return Promise.resolve(null);   // 시간대 그림 판이 없는 장소: 코드 빛만
     const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = rej; im.src = this.base + src; });
     this.sets ||= {}; this._sets ||= {};
-    return (this._sets[kind] ||= Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v18.3.2`)))
+    return (this._sets[kind] ||= Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v18.3.3`)))
       .then(([img, dry, sea]) => (this.sets[kind] = { img, dry, sea }))
       .catch(() => null));
   }
