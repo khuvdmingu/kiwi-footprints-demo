@@ -16,7 +16,7 @@ const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
   // 물 없는 장소(opts.rest — 젠 가든 v18): 물 뺀 판·바위 지운 판이 없다 → 같은 판 한 장을 세 자리에 쓴다
-  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v18.1.2').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v18.1.2'), load(name + '-dry.webp?v=v18.1.2'), load(name + '-sea.webp?v=v18.1.2')]);
+  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v18.2.0').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v18.2.0'), load(name + '-dry.webp?v=v18.2.0'), load(name + '-sea.webp?v=v18.2.0')]);
   const p = new Plate(img, dry, sea, opts);
   p.name = name; p.base = base;
   return p;
@@ -242,7 +242,7 @@ export class Plate {
     if (this.opts.art === false) return Promise.resolve(null);   // 시간대 그림 판이 없는 장소: 코드 빛만
     const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = rej; im.src = this.base + src; });
     this.sets ||= {}; this._sets ||= {};
-    return (this._sets[kind] ||= Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v18.1.2`)))
+    return (this._sets[kind] ||= Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v18.2.0`)))
       .then(([img, dry, sea]) => (this.sets[kind] = { img, dry, sea }))
       .catch(() => null));
   }
