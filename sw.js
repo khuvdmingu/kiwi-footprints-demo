@@ -3,7 +3,7 @@
 //  - 나머지(모듈·그림·소리): 저장본 먼저, 없으면 받아서 저장 → 그림 23MB를 한꺼번에 받지 않고 본 것만 쌓인다.
 //  - 저장 이름에 버전이 들어간다. 새 버전이 켜지면 옛 저장분은 통째로 지운다.
 //    VERSION 은 tools/deploy-demo.sh 가 배포 버전(예: v18.0.0)으로 바꿔 넣는다.
-const VERSION = 'v18.3.1';
+const VERSION = 'v18.3.2';
 const CACHE = 'kiwi-footprints-' + VERSION;
 
 self.addEventListener('install', e => {
@@ -31,7 +31,10 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (!mine(req)) return;
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then(res => store(req, res))
+    // GitHub Pages 는 첫 화면을 길에서 최대 10분 붙잡고 있어(브라우저·CDN 캐시) 새 버전을 올려도 옛 화면이 열렸다 (v18.3.2)
+    //  → 매번 꼬리표를 붙여 서버에서 새로 받는다. 첫 화면 한 장(약 15KB)뿐이라 부담이 없다
+    const u = new URL(req.url); u.searchParams.set('_sw', Date.now());
+    e.respondWith(fetch(u, { cache: 'no-store', credentials: 'same-origin' }).then(res => store(req, res))
       .catch(async () => (await caches.match(req, { ignoreSearch: true })) || caches.match('./index.html')));
     return;
   }
