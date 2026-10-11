@@ -28,7 +28,10 @@ body { position: fixed; inset: 0; background: linear-gradient(#24563A 0 30%, #1A
 /* (v18.3.1) 그림 층을 늘 각자의 합성 층으로 — 비었다 찼다 하는 층(구름·효과)이 층 묶음을 바꾸면 그 위 섞기 층(#tint 곱하기 · #glow soft-light)이
    한 프레임 다른 바탕과 섞여 화면 전체가 반짝였다 */
 #world > canvas, #world #tint, #world #glow { will-change: transform; }
-#touch { position: fixed; inset: 0; z-index: 2; cursor: pointer; touch-action: none; }   /* v16.2 끌기(안개 문지르기)를 브라우저가 화면 이동으로 가져가지 않게 */
+/* 한 손가락 끌기(안개 문지르기)는 앱이, 두 손가락 핀치(확대·축소)는 브라우저가 — v16.2 의 none 이 핀치까지 막았다(v18.5.1 복구).
+   확대된 동안(body.zoomed)은 v16.1 까지처럼 한 손가락으로 화면을 옮길 수 있게 manipulation */
+#touch { position: fixed; inset: 0; z-index: 2; cursor: pointer; touch-action: pinch-zoom; }
+body.zoomed #touch { touch-action: manipulation; }
 
 /* 바람에 아주 약하게: 덩어리마다 주기·시작이 달라 한꺼번에 움직이지 않는다 */
 .sway { transform-box: fill-box; transform-origin: 50% 100%; animation: sway var(--d, 8s) var(--delay, 0s) ease-in-out infinite alternate; }
