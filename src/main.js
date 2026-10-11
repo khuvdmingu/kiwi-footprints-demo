@@ -15,25 +15,25 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.3.0';
-import { Beach } from './beach.js?v=v18.3.0';
-import { Kiwi } from './kiwi.js?v=v18.3.0';
-import { Sound } from './sound.js?v=v18.3.0';
-import { loadPlate } from './plate.js?v=v18.3.0';
-import { MAPS, MAP_IDS } from './maps.js?v=v18.3.0';
-import { WaterGL } from './water.js?v=v18.3.0';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.3.0';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.3.0';
-import { Leaves } from './leaves.js?v=v18.3.0';
-import { Rake } from './zen.js?v=v18.3.0';
-import { Clouds } from './clouds.js?v=v18.3.0';
-import { Gulls } from './gulls.js?v=v18.3.0';
-import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.3.0';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.3.0';
-import { clamp, dist } from './util.js?v=v18.3.0';
-import { Focus, Awake, LENGTHS } from './focus.js?v=v18.3.0';
-import { UNLOCK_ALL } from './config.js?v=v18.3.0';
-import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.3.0';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.3.1';
+import { Beach } from './beach.js?v=v18.3.1';
+import { Kiwi } from './kiwi.js?v=v18.3.1';
+import { Sound } from './sound.js?v=v18.3.1';
+import { loadPlate } from './plate.js?v=v18.3.1';
+import { MAPS, MAP_IDS } from './maps.js?v=v18.3.1';
+import { WaterGL } from './water.js?v=v18.3.1';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.3.1';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.3.1';
+import { Leaves } from './leaves.js?v=v18.3.1';
+import { Rake } from './zen.js?v=v18.3.1';
+import { Clouds } from './clouds.js?v=v18.3.1';
+import { Gulls } from './gulls.js?v=v18.3.1';
+import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.3.1';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.3.1';
+import { clamp, dist } from './util.js?v=v18.3.1';
+import { Focus, Awake, LENGTHS } from './focus.js?v=v18.3.1';
+import { UNLOCK_ALL } from './config.js?v=v18.3.1';
+import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.3.1';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -653,6 +653,22 @@ function draw() {
   drifters.draw(ctx, beach);
   for (const kw of order) kw.drawShadow(ctx);
   for (const kw of order) { kw.shade = plate.shadeAt(kw.x, kw.y - kw.k * 0.4); kw.draw(ctx); }
+  // 발자국 음: 작은 ♪ 가 흔들리며 떠올라 사라진다.
+  //  (v18.3.1) 매 프레임 다시 그리는 이 층(stage)에 그린다 — 효과 층(fx)에 그리면 걸음마다 그 층이 비었다·찼다를 오가고,
+  //  그때 브라우저가 층을 다시 묶으면서 위의 금빛 덧칠(#glow, soft-light)이 화면 전체를 순간 밝게 만들었다
+  if (notes.length) {
+    notes = notes.filter(n => beach.t - n.t < 1.3);
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.font = `${Math.round(S * 0.16)}px sans-serif`;
+    for (const n of notes) {
+      const a = beach.t - n.t, k = a / 1.3;
+      ctx.globalAlpha = (1 - k) * 0.75;
+      ctx.fillStyle = atmos.night > 0.5 ? '#f3f0c8' : '#7b5b3e';
+      ctx.fillText('♪', n.x + Math.sin(a * 5) * S * 0.04 * n.d, n.y - S * 0.12 - a * S * 0.35);
+    }
+    ctx.restore();
+  }
   // (최적화) 구름 층·효과 층은 맑은 날 대부분 비어 있다. 비어 있는 동안은 지우지도 그리지도 않는다
   //  — 손대지 않은 캔버스는 브라우저가 다시 올리지 않아서 GPU 일이 준다. 비워지는 첫 프레임에 한 번만 지운다.
   const cloudBusy = clouds.list.length > 0 || clouds.bits.length > 0;
@@ -663,7 +679,7 @@ function draw() {
     if (cloudBusy) clouds.draw(cctx);
   }
   layerBusy.clouds = cloudBusy;
-  const fxBusy = gulls.list.length > 0 || sparks.length > 0 || leaves.length > 0 || notes.length > 0 || atmos.busy;
+  const fxBusy = gulls.list.length > 0 || sparks.length > 0 || leaves.length > 0 || atmos.busy;
   const fxWas = layerBusy.fx; layerBusy.fx = fxBusy;
   if (!fxBusy && !fxWas) return;
   fctx.setTransform(stageScale, 0, 0, stageScale, 0, 0);
@@ -682,20 +698,6 @@ function draw() {
     fctx.fillStyle = l.c; fctx.beginPath(); fctx.ellipse(0, 0, l.s, l.s * 0.45, 0, 0, 6.29); fctx.fill(); fctx.restore();
   }
   atmos.draw(fctx, beach);
-  // 발자국 음: 작은 ♪ 가 흔들리며 떠올라 사라진다
-  if (notes.length) {
-    notes = notes.filter(n => beach.t - n.t < 1.3);
-    fctx.save();
-    fctx.textAlign = 'center';
-    fctx.font = `${Math.round(S * 0.16)}px sans-serif`;
-    for (const n of notes) {
-      const a = beach.t - n.t, k = a / 1.3;
-      fctx.globalAlpha = (1 - k) * 0.75;
-      fctx.fillStyle = atmos.night > 0.5 ? '#f3f0c8' : '#7b5b3e';
-      fctx.fillText('♪', n.x + Math.sin(a * 5) * S * 0.04 * n.d, n.y - S * 0.12 - a * S * 0.35);
-    }
-    fctx.restore();
-  }
 }
 
 // (최적화) 느린 기기: 3초 넘게 40fps 아래로 버벅이면 그림 층(물·숲 잎)의 해상도만 한 단계 낮춘다
@@ -893,15 +895,15 @@ async function boot() {
     }
     throw err;
   })();
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.3.0'), img('assets/gull.webp?v=v18.3.0'), img('assets/bottle.webp?v=v18.3.0'), img('assets/crate.webp?v=v18.3.0')]);
-  img('assets/finds.webp?v=v18.3.0').then(im => {
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.3.1'), img('assets/gull.webp?v=v18.3.1'), img('assets/bottle.webp?v=v18.3.1'), img('assets/crate.webp?v=v18.3.1')]);
+  img('assets/finds.webp?v=v18.3.1').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
     drifters.setSprites({ ...drifters.imgs, conch: c });
   }).catch(() => {});
   drifters.setSprites({ bottle, crate });
-  img('assets/leaves.webp?v=v18.3.0').then(im => floaters.setSheet(im)).catch(() => {});
+  img('assets/leaves.webp?v=v18.3.1').then(im => floaters.setSheet(im)).catch(() => {});
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
   plate = p;
