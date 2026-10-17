@@ -380,3 +380,45 @@ body.ready #boot { opacity: 0; visibility: hidden; }
 #picker svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 body.clean #picker { display: none !important; }
 @media (prefers-reduced-motion: reduce) { #picker { animation: none; } }
+
+/* v19 집중 기록 달력 — 날마다 발자국 도장 */
+#focusPanel { max-height: calc(100dvh - max(14px, env(safe-area-inset-top)) - 70px); overflow-y: auto; overscroll-behavior: contain; }
+#focusPanel .cal { margin: 10px 2px 0; padding-top: 8px; border-top: 1px solid var(--panel-line); }
+#focusPanel .cal button { display: grid; width: auto; padding: 0; border-radius: 8px; font-weight: 500; }
+#focusPanel .calHead { display: grid; grid-template-columns: 30px 1fr 30px; align-items: center; margin-bottom: 4px; }
+#focusPanel .calHead b { text-align: center; font-size: 13px; font-weight: 600; opacity: 0.85; }
+#focusPanel .calHead button { height: 28px; place-items: center; border-color: transparent; background: none; font-size: 18px; line-height: 1; }
+#focusPanel .calHead button:disabled { opacity: 0.25; cursor: default; }
+#focusPanel .calDow, #focusPanel .calGrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+#focusPanel .calDow span { text-align: center; font-size: 10.5px; opacity: 0.5; padding-bottom: 2px; }
+#focusPanel .calGrid .day { position: relative; aspect-ratio: 1; place-items: center; border: 1px solid transparent; background: rgba(255, 255, 255, 0.04); }
+#focusPanel .calGrid .day .n { position: absolute; left: 3px; top: 1px; font-size: 9.5px; opacity: 0.55; font-variant-numeric: tabular-nums; }
+#focusPanel .calGrid .day svg { width: 74%; height: 74%; margin-top: 10%; fill: none; stroke: var(--sand); stroke-width: 2.6; stroke-linecap: round; }
+#focusPanel .calGrid .day.try svg { opacity: 0.38; }
+#focusPanel .calGrid .day.done { background: rgba(232, 151, 46, 0.18); }
+#focusPanel .calGrid .day i { width: 5px; height: 5px; border-radius: 50%; background: var(--sand); opacity: 0.45; margin-top: 8%; }
+#focusPanel .calGrid .day em { position: absolute; right: 2px; bottom: 1px; font-style: normal; font-size: 9.5px; font-weight: 700; color: #e8972e; }
+#focusPanel .calGrid .day.today { border-color: rgba(var(--ink), 0.55); }
+#focusPanel .calGrid .day.pick { border-color: var(--sand); }
+#focusPanel .calGrid .day:disabled { opacity: 0.35; cursor: default; }
+#focusPanel .cal .note { margin: 6px 2px 0; font-size: 12px; line-height: 1.5; opacity: 0.75; word-break: keep-all; min-height: 1.5em; }
+
+/* v19 벽시계: 밤엔 어둡게 (누르는 건 그대로 아래로 지나간다) */
+#dim { position: fixed; inset: 0; z-index: 7; background: #000; opacity: 0; pointer-events: none; transition: opacity 3s var(--ease); }
+
+/* v19 나의 키위 무리 */
+.flock { display: grid; gap: 5px; margin: 4px 2px 0; max-height: 236px; overflow-y: auto; }
+.flock .mate { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; grid-template-rows: auto auto; column-gap: 8px; align-items: center;
+  padding: 4px 6px 4px 4px; border-radius: 10px; border: 1px solid var(--panel-line); }
+.flock .mate img { grid-row: span 2; width: 36px; height: 36px; object-fit: contain; }
+.flock .mate input { min-width: 0; padding: 3px 6px; border-radius: 7px; border: 1px solid transparent; background: none; color: inherit; font: inherit; font-weight: 600; font-size: 14px; }
+.flock .mate input:hover, .flock .mate input:focus { border-color: var(--panel-line); background: rgba(255, 255, 255, 0.08); outline: none; }
+.flock .mate .days { font-size: 11.5px; opacity: 0.6; font-variant-numeric: tabular-nums; }
+.flock .mate select { grid-column: 2 / span 2; min-width: 0; padding: 3px 6px; border-radius: 7px; border: 1px solid var(--panel-line);
+  background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; font-size: 12.5px; }
+.flock .mate select option { color: #1d2a36; }
+
+/* v19 다녀간 손님 */
+.colgrid.guests button.guest canvas.gfoot { position: absolute; inset: 4% 4% 22%; width: 92%; height: 74%; }
+.colgrid.guests button .nm { position: absolute; left: 0; right: 0; bottom: 2px; font-size: 10px; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; }
+.colgrid.guests button .cnt { bottom: auto; top: 1px; }

@@ -3,12 +3,13 @@
 //  · 해안선 식 edge(x) = 그려진 해안선 − 파도 높이 + 잔물결 → water.js 가 같은 값으로 바다를 움직인다
 //  · 숲 가장자리 식 grass(x) = 그려진 숲 가장자리
 //  · 큰 파도: surge(y) — 오르기 · 머물기 · 빠지기. 물이 지나간 자리는 한동안 젖어 있다(wet)
-//  · 발자국: 'deep' 글씨 획 · 'faint' 오가는 길(곧 사라짐) · 'hole' 부리 자국
+//  · 발자국: 'deep' 글씨 획 · 'faint' 오가는 길(곧 사라짐) · 'hole' 부리 자국 · 'guest' 다녀간 동물(v19, p.shape — guests.js)
 //  · 지우개(v18): 물가선 edge(x) 는 "발자국을 지우는 경계선"이다. 물이 아닌 장소(eraser 'rake' — 젠 가든)에서는
 //    같은 줄이 잔물결·밀물 없이 가만히 있고, 지우기는 zen.js 가 발자국에 직접 표시한다(p.erase — 다시 긋는 갈퀴 줄)
 
-import { clamp, easeOut, easeInOut } from './util.js?v=v18.9.0';
-import { PAL } from './tokens.js?v=v18.9.0';
+import { clamp, easeOut, easeInOut } from './util.js?v=v19.0.0';
+import { PAL } from './tokens.js?v=v19.0.0';
+import { addGuestFoot } from './guests.js?v=v19.0.0';
 
 const RISE = 1.5, HOLD = 0.5, FALL = 3.2;
 const FAINT = 0.22, FAINT_LIFE = 2.2;
@@ -130,10 +131,11 @@ export class Beach {
   drawPrints(ctx) {
     const groups = new Map();
     for (const p of this.prints) {
-      const k = p.kind + Math.round(p.alpha * 8);
+      const k = p.kind + (p.shape ? p.shape + Math.round(p.f) : '') + Math.round(p.alpha * 8);
       if (!groups.has(k)) groups.set(k, { kind: p.kind, alpha: Math.round(p.alpha * 8) / 8, f: p.f, path: new Path2D() });
       const g = groups.get(k);
       if (p.kind === 'hole') { g.path.moveTo(p.x + p.f * 0.3, p.y); g.path.ellipse(p.x, p.y, p.f * 0.3, p.f * 0.22, 0, 0, Math.PI * 2); }
+      else if (p.kind === 'guest') addGuestFoot(g.path, p.shape, p.x, p.y, p.a, p.f);
       else addFoot(g.path, p.x, p.y, p.a, p.f);
     }
     ctx.save();

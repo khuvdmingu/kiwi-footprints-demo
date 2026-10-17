@@ -9,13 +9,15 @@
 //  · 시간은 rAF(beach.t)가 아니라 실제 시계(Date.now)로 잰다 — 화면이 숨으면 rAF 는 멈추니까.
 //  · 기록은 이 기기에만 저장한다 (localStorage). 진행 중인 집중도 저장해 두어서,
 //    탭을 닫거나 새로 고친 뒤 열면 "떠났다"로 처리하고 마지막으로 확인한 때까지 걸음을 쳐 준다.
+//  · v19: 날마다 기록(log)을 남긴다 — 집중 걸음·분·횟수·끝까지 한 횟수·켜 두기 걸음. 집중 창의 발자국 달력이 읽는다.
 
 export const STEPS_PER_MIN = 100;
 export const IDLE_STEPS_PER_MIN = 10;   // v13 켜 두기만 해도 (집중의 1/10)
 export const GRACE = 10;   // 초: 이 안에 돌아오면 이어서
 export const LENGTHS = [15, 25, 50];
+const KEEP_DAYS = 800;   // 날마다 기록은 2년 남짓만 (그보다 오래된 날은 지운다)
 
-const today = (now = Date.now()) => { const d = new Date(now); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
+export const today = (now = Date.now()) => { const d = new Date(now); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
 
 export class Focus {
   constructor(load, save) {
@@ -28,12 +30,22 @@ export class Focus {
     this.done = s.done || 0;              // 끝까지 한 횟수
     this.idle = s.idle || 0;              // 그중 켜 두기로 쌓은 걸음
     this.idleMs = 0;
+    this.log = s.log && typeof s.log === 'object' ? s.log : {};   // v19 { 'Y-M-D': { s 집중 걸음, m 분, n 횟수, d 끝까지, i 켜 두기 걸음 } }
     this.len = LENGTHS.includes(s.len) ? s.len : 25;   // 마지막에 고른 길이
     this.run = null;                      // 진행 중: { start, dur(ms), letter, away, beat }
     try { this.stale = JSON.parse(load('focusRun') || 'null'); } catch (e) { this.stale = null; }
   }
   store() {
-    this.save('focus', JSON.stringify({ total: this.total, day: this.day, todaySteps: this.todaySteps, done: this.done, len: this.len, idle: this.idle }));
+    this.save('focus', JSON.stringify({ total: this.total, day: this.day, todaySteps: this.todaySteps, done: this.done, len: this.len, idle: this.idle, log: this.log }));
+  }
+  // 그날 기록 (없으면 만든다). 오래된 날은 여기서 정리한다
+  dayLog(key = today()) {
+    if (!this.log[key]) {
+      this.log[key] = { s: 0, m: 0, n: 0, d: 0, i: 0 };
+      const keys = Object.keys(this.log);
+      if (keys.length > KEEP_DAYS) { const cut = Date.now() - KEEP_DAYS * 864e5; for (const k of keys) { const [y, mo, d] = k.split('-').map(Number); if (new Date(y, mo - 1, d).getTime() < cut) delete this.log[k]; } }
+    }
+    return this.log[key];
   }
   storeRun() { this.save('focusRun', this.run ? JSON.stringify(this.run) : ''); }
 
@@ -54,8 +66,10 @@ export class Focus {
     const ms = Math.max(0, Math.min(r.dur, until - r.start)), steps = this.stepsOf(ms);
     if (this.day !== today()) { this.day = today(); this.todaySteps = 0; }
     this.total += steps; this.todaySteps += steps;
+    // 기록은 시작한 날에 남긴다 (자정을 넘겨 끝나도)
+    const L = this.dayLog(today(r.start)); L.s += steps; L.m += Math.round(ms / 60000); L.n++;
     this.run = null; this.storeRun(); this.store();
-    return { steps, min: Math.round(ms / 60000), full: ms >= r.dur, letter: r.letter };
+    return { steps, min: Math.round(ms / 60000), full: ms >= r.dur, letter: r.letter, start: r.start };
   }
   // 켜 두기: 화면이 보이는 동안의 시간(ms)을 받아 6초마다 1보 (10보/분). 걸음이 늘면 true
   ambient(ms) {
@@ -65,10 +79,10 @@ export class Focus {
     if (this.idleMs < per) return false;
     const n = Math.floor(this.idleMs / per); this.idleMs -= n * per;
     if (this.day !== today()) { this.day = today(); this.todaySteps = 0; }
-    this.total += n; this.todaySteps += n; this.idle += n; this.store();
+    this.total += n; this.todaySteps += n; this.idle += n; this.dayLog().i += n; this.store();
     return true;
   }
-  complete(now = Date.now()) { const out = this.finish(now); if (out) { this.done++; this.store(); } return out; }
+  complete(now = Date.now()) { const out = this.finish(now); if (out) { this.done++; this.dayLog(today(out.start)).d++; this.store(); } return out; }
 
   // 매 프레임: 끝났는가? (가끔 마지막 확인 시각을 저장 — 탭이 닫혀도 여기까지는 걸은 것으로)
   tick(now = Date.now()) {
