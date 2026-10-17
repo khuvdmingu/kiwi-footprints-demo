@@ -8,7 +8,8 @@
 //
 //  항목 모양
 //   id      소리 창에서 고르는 키 (mix.song · mix.nature · mix.stepPack 에 저장된다 — 바꾸면 저장값이 끊긴다)
-//   kind    'song' 곡(고리) · 'nature' 자연 배경(고리) · 'step' 발자국(0.5초 칸 묶음)
+//   kind    'song' 곡(고리) · 'nature' 자연 배경(고리) · 'step' 발자국(0.5초 칸 묶음) · 'fx' 한 번 치는 소리(콕·반짝·줍기, v18.7)
+//   natural 'step' 에만: 소리 창 「자연스러운 소리」 칸 이름 (있으면 처음부터 고를 수 있다)
 //   file    assets/audio/ 안의 파일
 //   level   재생 크기 (song 기본 0.36 · nature 0.6)
 //   item    { id, name, note } 소라로 받는 아이템. items.js 에 같은 id 가 이미 있으면 그쪽을 쓴다
@@ -16,10 +17,11 @@
 //           — 지금은 기록만. 나중에 "시간·날씨 따라 녹음 곡 돌리기(라디오)"가 이걸로 고른다
 //   credit  { title, author, source, url, license }   license 는 LICENSES 중 하나
 
-import cc0v16 from './cc0-v16.js?v=v18.6.2';
-import oga202610 from './oga-2026-10.js?v=v18.6.2';
+import cc0v16 from './cc0-v16.js?v=v18.7.0';
+import oga202610 from './oga-2026-10.js?v=v18.7.0';
+import fs202610 from './fs-2026-10.js?v=v18.7.0';
 
-export const PACKS = [cc0v16, oga202610];
+export const PACKS = [cc0v16, oga202610, fs202610];
 
 // 쓸 수 있는 라이선스. attribution: 작품 설명에 이름을 꼭 적어야 하는가 (크레딧은 카탈로그에서 저절로 만든다)
 //  NC(비영리)·ND(변경 금지)·YouTube 전용·"개별 배포 금지" 조건이 붙은 것은 넣지 않는다 — 앱 안에 파일째 들어가고 손질(고리·음량)을 하기 때문
@@ -31,7 +33,7 @@ export const LICENSES = {
   OWN: { name: '직접 만듦', attribution: false },   // 직접 연주·녹음, 또는 상업 이용권이 있는 AI 생성(어느 서비스·플랜인지 credit.source 에)
 };
 
-const LEVEL = { song: 0.36, nature: 0.6, step: 1 };
+const LEVEL = { song: 0.36, nature: 0.6, step: 1, fx: 1 };
 
 export const TRACKS = PACKS.flatMap(p => p.tracks.map(t => ({ level: LEVEL[t.kind], tags: [], moods: [], weather: [], ...t, pack: p.id })));
 
@@ -39,6 +41,9 @@ const mapOf = kind => Object.fromEntries(TRACKS.filter(t => t.kind === kind).map
 export const SONG_TRACKS = mapOf('song');
 export const NATURE_LOOPS = mapOf('nature');
 export const STEP_SAMPLES = mapOf('step');
+export const FX_SAMPLES = mapOf('fx');
+// v18.7 「자연스러운 소리」 칸: 녹음 발자국 중 이름이 있는 것
+export const NATURAL_STEPS = TRACKS.filter(t => t.kind === 'step' && t.natural).map(t => ({ pack: t.id, name: t.natural }));
 export const TRACK = Object.fromEntries(TRACKS.map(t => [`${t.kind}:${t.id}`, t]));
 
 // 소라 아이템으로 바꾸기 (items.js 가 손으로 적은 것 뒤에 붙인다)
@@ -55,7 +60,7 @@ export function checkTracks(fileExists = null) {
   const bad = [], seen = new Set(), items = new Set();
   for (const t of TRACKS) {
     const at = `${t.pack}/${t.id}`;
-    if (!['song', 'nature', 'step'].includes(t.kind)) bad.push(`${at}: kind '${t.kind}'`);
+    if (!['song', 'nature', 'step', 'fx'].includes(t.kind)) bad.push(`${at}: kind '${t.kind}'`);
     if (!/^[a-z0-9-]+$/.test(t.id)) bad.push(`${at}: id 는 영문 소문자·숫자·-`);
     if (seen.has(`${t.kind}:${t.id}`)) bad.push(`${at}: 같은 kind 에 id 중복`);
     seen.add(`${t.kind}:${t.id}`);

@@ -10,8 +10,8 @@
 //      그림을 처음 읽을 때 알파를 훑어 부리 끝·몸 바닥을 찾아 크기·콕 각도를 맞춘다 (setKiwiSprite).
 //  (x, y) = 발이 땅에 닿는 점. k = 몸 크기 단위 (꼬리 −0.41k ~ 부리 끝 +0.8k, 머리 꼭대기 −0.86k)
 
-import { angleDiff, clamp, dist, Path } from './util.js?v=v18.6.2';
-import { PAL as T, LIGHT } from './tokens.js?v=v18.6.2';
+import { angleDiff, clamp, dist, Path } from './util.js?v=v18.7.0';
+import { PAL as T, LIGHT } from './tokens.js?v=v18.7.0';
 
 let ID = 0;
 export let REACH = 0.8;             // 몸을 숙였을 때 부리 끝이 땅에 닿는 가로 거리 (k 배수) — 그림에서 다시 잰다
@@ -127,7 +127,7 @@ export class Kiwi {
       W.beach.addPrint(px, py, this.a, W.foot, kind, kind === 'deep' && this.job ? this.job.item : undefined);
       // 글씨 획 위 발자국은 음 하나 (v5 발자국 음악) — 소리가 났으면 작은 ♪ 를 띄운다
       if (kind === 'deep' && W.sound.step(px, py) && W.onNote) W.onNote(px, py);
-      else if (kind === 'faint' && W.sound.walkStep) W.sound.walkStep(px);   // v15.1 걷는 발자국에도 고른 소리를 작게
+      else if (kind === 'faint' && W.sound.walkStep) W.sound.walkStep(px, this.state === 'flee');   // v15.1 걷는 발자국에도 고른 소리를 작게 · v18.7 도망은 종종걸음
     }
   }
 
