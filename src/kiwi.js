@@ -10,8 +10,8 @@
 //      그림을 처음 읽을 때 알파를 훑어 부리 끝·몸 바닥을 찾아 크기·콕 각도를 맞춘다 (setKiwiSprite).
 //  (x, y) = 발이 땅에 닿는 점. k = 몸 크기 단위 (꼬리 −0.41k ~ 부리 끝 +0.8k, 머리 꼭대기 −0.86k)
 
-import { angleDiff, clamp, dist, Path } from './util.js?v=v19.2.0';
-import { PAL as T, LIGHT } from './tokens.js?v=v19.2.0';
+import { angleDiff, clamp, dist, Path } from './util.js?v=v20.0.0';
+import { PAL as T, LIGHT } from './tokens.js?v=v20.0.0';
 
 let ID = 0;
 export let REACH = 0.8;             // 몸을 숙였을 때 부리 끝이 땅에 닿는 가로 거리 (k 배수) — 그림에서 다시 잰다
@@ -46,6 +46,19 @@ export function setKiwiSprite(img) {
   REACH = HIP[0] + bx * Math.cos(PECK_TILT) - by * Math.sin(PECK_TILT);
 }
 
+// v20 잠든 몸 그림 (assets/kiwi-sleep.webp — 같은 키위 그림을 편집해 눈을 감기고 고개를 숙인 것). 다리 없이 땅에 앉는다
+let SLEEP = null;
+export function setKiwiSleep(img) {
+  const w = img.naturalWidth, h = img.naturalHeight;
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0);
+  const a = g.getImageData(0, 0, w, h).data, on = (x, y) => a[(y * w + x) * 4 + 3] > 60;
+  let x0 = w, x1 = 0, y1 = 0;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (on(x, y)) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y > y1) y1 = y; }
+  const sc = 1.16 / Math.max(1, x1 - x0), xm = x0 + (x1 - x0) * 0.4;   // 꼬리~부리 끝 = 1.16k (깨어 있을 때보다 살짝 웅크림), 몸 가운데쯤이 발 자리
+  SLEEP = { img, x: -xm * sc, y: 0.03 - y1 * sc, w: w * sc, h: h * sc };
+}
+
 export class Kiwi {
   constructor(x, y, a, k) {
     Object.assign(this, { x, y, a, k });
@@ -72,6 +85,11 @@ export class Kiwi {
     this.hop0 = -9; this.hops = 0;
     this.blinkAt = 1 + Math.random() * 3;
   }
+
+  // v20 잠들기 · 깨기 (자리를 오래 비우면 하나둘 웅크려 잔다 — main.js)
+  sleep() { if (this.job || this.focus) return; this.state = 'sleep'; this.v = 0; this.sleptAt = this.clock; this.wakeAt = null; }
+  wake(delay = 0) { if (this.state === 'sleep') this.wakeAt = this.clock + delay; }
+  get asleep() { return this.state === 'sleep'; }
 
   get busy() { return this.state === 'write' || this.state === 'peck' || (this.state === 'go' && this.job); }
 
@@ -208,6 +226,14 @@ export class Kiwi {
         break;
       }
 
+      case 'sleep':
+        this.v = 0;
+        if (this.wakeAt != null && this.clock >= this.wakeAt) {
+          this.wakeAt = null; this.state = 'idle'; this.timer = 0.5 + Math.random() * 1.2; this.hop(1);
+          if (this.onWake) { const f = this.onWake; this.onWake = null; f(this); }
+        }
+        break;
+
       case 'idle':
         this.v *= Math.pow(0.02, dt);
         this.timer -= dt;
@@ -251,6 +277,7 @@ export class Kiwi {
     if (this.vis === 0) return;
     ctx.globalAlpha = this.vis ?? 1;   // 숲 덤불 속에서는 안 보이다가 가장자리를 나서며 서서히 드러난다
     if (this.shade != null && this.shade < 0.97) ctx.filter = `brightness(${this.shade.toFixed(2)})`;
+    if (this.state === 'sleep' && SLEEP) { this.drawSleep(ctx, k); return; }
     const st = moving ? Math.sin(this.phase) : 0;
     const bob = moving ? Math.abs(st) * 0.035 * k : Math.sin(this.clock * 2.2 + this.id) * 0.006 * k;
     ctx.save();
@@ -289,6 +316,33 @@ export class Kiwi {
     ctx.filter = 'none';
     if (this.alertT > 0 && this.alertT <= 0.9) this.drawAlert(ctx, k, Math.max(1, k * 0.032));
     if (this.hops > 1 && this.clock - this.hop0 < this.hops * HOP + 0.6) this.drawNotes(ctx, k);
+    ctx.globalAlpha = 1;
+  }
+
+  // 잠든 키위: 다리 없이 앉아서 숨 쉬듯 부풀었다 가라앉고, 머리 위로 z 가 천천히 떠오른다
+  drawSleep(ctx, k) {
+    const e = this.clock - (this.sleptAt ?? 0), sit = Math.min(1, e / 0.45);
+    const breath = Math.sin(this.clock * 1.6 + this.id) * 0.018;
+    ctx.save();
+    ctx.translate(this.x, this.y - this.hopY());
+    ctx.scale(this.face, 1 + breath + (1 - sit) * 0.08);
+    ctx.drawImage(SLEEP.img, SLEEP.x * k, SLEEP.y * k, SLEEP.w * k, SLEEP.h * k);
+    ctx.restore();
+    ctx.filter = 'none';
+    // z z
+    if (e > 1.2) {
+      ctx.save();
+      ctx.fillStyle = '#fff8ea'; ctx.strokeStyle = 'rgba(70, 48, 28, 0.45)'; ctx.lineWidth = Math.max(1, k * 0.022); ctx.lineJoin = 'round';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      for (let i = 0; i < 2; i++) {
+        const t = ((this.clock * 0.38 + i * 0.5 + this.id * 0.13) % 1);
+        ctx.globalAlpha = (this.vis ?? 1) * Math.sin(Math.PI * t) * 0.85;
+        ctx.font = `600 ${Math.round((0.16 + t * 0.1) * k)}px ui-rounded, system-ui, sans-serif`;
+        ctx.strokeText('z', this.x + this.face * (0.32 + t * 0.22) * k, this.y - (0.78 + t * 0.55) * k);
+        ctx.fillText('z', this.x + this.face * (0.32 + t * 0.22) * k, this.y - (0.78 + t * 0.55) * k);
+      }
+      ctx.restore();
+    }
     ctx.globalAlpha = 1;
   }
 

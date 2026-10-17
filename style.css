@@ -438,3 +438,24 @@ i.gpic { display: block; background: url('assets/guests.webp') 0 0 / 400% 300% n
 #found .art .paper { white-space: pre-line; }
 .colgrid.guests button .nm { position: absolute; left: 0; right: 0; bottom: 2px; font-size: 10px; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; }
 .colgrid.guests button .cnt { bottom: auto; top: 1px; }
+
+/* ── v20 집중 사진 · 돌아오는 병 ── */
+#found .art .paper.mine { background: repeating-linear-gradient(transparent 0 27px, #e8c9a0 27px 28px) content-box, #fdf1df; box-shadow: inset 0 0 0 1px #e9cfa6, 0 2px 6px rgba(80, 50, 20, 0.12); position: relative; }
+#found .art .paper.mine::after { content: ''; position: absolute; right: -7px; top: -9px; width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #d4554a, #9c2b25 70%); box-shadow: 0 1px 2px rgba(60, 10, 0, 0.35); }
+#found .art .paper.cheer { white-space: pre-line; background: repeating-linear-gradient(transparent 0 27px, #c9dccd 27px 28px) content-box, #f3f8f1; box-shadow: inset 0 0 0 1px #cfe0d1, 0 2px 6px rgba(30, 60, 40, 0.1); }
+#found .art:has(img.photo) { position: relative; padding-top: 6px; }
+#found .art:has(img.photo)::before { content: ''; position: absolute; left: 50%; top: -12px; width: 92px; height: 30px; transform: translateX(-50%) rotate(-3deg); background: url('assets/tape.webp') center / 100% 100% no-repeat; opacity: 0.92; z-index: 1; }
+#found .art img.photo { display: block; width: 100%; height: auto; max-height: 52vh; object-fit: contain; padding: 7px 7px 7px; background: #fffdf7; border-radius: 3px; transform: rotate(-1deg); box-shadow: 0 3px 12px rgba(40, 30, 10, 0.22); box-sizing: border-box; }
+.shots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 10px; margin: 12px 2px 4px; }
+.shots .shot { position: relative; display: grid; gap: 4px; padding: 6px 6px 5px; border: 0; border-radius: 3px; background: #fbf6ea; color: #4a3826; cursor: pointer; text-align: left;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28); transform: rotate(-1.2deg); transition: transform 0.25s var(--ease, ease); font: inherit; }
+.shots .shot:nth-child(2n) { transform: rotate(1.3deg); }
+.shots .shot:hover, .shots .shot:focus-visible { transform: rotate(0) translateY(-2px); }
+.shots .shot::before { content: ''; position: absolute; left: 50%; top: -9px; width: 54px; height: 18px; transform: translateX(-50%) rotate(-4deg); background: url('assets/tape.webp') center / 100% 100% no-repeat; opacity: 0.9; }
+.shots .shot img { width: 100%; aspect-ratio: 16 / 11; object-fit: cover; border-radius: 1px; display: block; }
+.shots .shot span { font-size: 12px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shots .shotEmpty { grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; font-size: 13px; line-height: 1.45; opacity: 0.9; }
+.shots .shotEmpty img { width: 44px; height: auto; flex: none; transform: rotate(-12deg); }
+body.shutter::after { content: ''; position: fixed; inset: 0; z-index: 30; background: #fffdf5; pointer-events: none; animation: shutter 0.6s ease-out forwards; }
+@keyframes shutter { from { opacity: 0.85; } to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { body.shutter::after { animation-duration: 0.01s; } }
