@@ -15,25 +15,25 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.6.0';
-import { Beach } from './beach.js?v=v18.6.0';
-import { Kiwi } from './kiwi.js?v=v18.6.0';
-import { Sound, SONG_TRACKS } from './sound.js?v=v18.6.0';
-import { loadPlate } from './plate.js?v=v18.6.0';
-import { MAPS, MAP_IDS } from './maps.js?v=v18.6.0';
-import { WaterGL, FlatWater } from './water.js?v=v18.6.0';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.6.0';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.6.0';
-import { Leaves } from './leaves.js?v=v18.6.0';
-import { Rake } from './zen.js?v=v18.6.0';
-import { Clouds } from './clouds.js?v=v18.6.0';
-import { Gulls } from './gulls.js?v=v18.6.0';
-import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.6.0';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.6.0';
-import { clamp, dist } from './util.js?v=v18.6.0';
-import { Focus, Awake, LENGTHS } from './focus.js?v=v18.6.0';
-import { UNLOCK_ALL } from './config.js?v=v18.6.0';
-import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.6.0';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.6.1';
+import { Beach } from './beach.js?v=v18.6.1';
+import { Kiwi } from './kiwi.js?v=v18.6.1';
+import { Sound, SONG_TRACKS } from './sound.js?v=v18.6.1';
+import { loadPlate } from './plate.js?v=v18.6.1';
+import { MAPS, MAP_IDS } from './maps.js?v=v18.6.1';
+import { WaterGL, FlatWater } from './water.js?v=v18.6.1';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.6.1';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.6.1';
+import { Leaves } from './leaves.js?v=v18.6.1';
+import { Rake } from './zen.js?v=v18.6.1';
+import { Clouds } from './clouds.js?v=v18.6.1';
+import { Gulls } from './gulls.js?v=v18.6.1';
+import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.6.1';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.6.1';
+import { clamp, dist } from './util.js?v=v18.6.1';
+import { Focus, Awake, LENGTHS } from './focus.js?v=v18.6.1';
+import { UNLOCK_ALL } from './config.js?v=v18.6.1';
+import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.6.1';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -465,8 +465,12 @@ function paintFocus() {
     document.getElementById('focusLeft').textContent = left; document.getElementById('focusSteps').textContent = st;
   }
   for (const r of focusPanel.querySelectorAll('input[name="flen"]')) r.checked = Number(r.value) === focus.len;
-  document.getElementById('focusStats').textContent = focus.total || focus.done
-    ? `오늘 ${n0(focus.todaySteps)}보 · 지금까지 ${n0(focus.total)}보 (약 ${km(focus.total)}km) · 끝까지 ${focus.done}번` : '';
+  // 걸음 기록은 칸 세 개로 (v18.6.1) — 한 줄에 이어 쓰면 숫자가 섞여 읽혔다
+  const stats = document.getElementById('focusStats'); stats.textContent = '';
+  if (focus.total || focus.done) for (const [v, l] of [[n0(focus.todaySteps) + '보', '오늘'], [n0(focus.total) + '보', `지금까지 ${km(focus.total)}km`], [focus.done + '번', '끝까지 한 집중']]) {
+    const c = document.createElement('div'), b = document.createElement('b'), sp = document.createElement('span');
+    b.textContent = v; sp.textContent = l; c.append(b, sp); stats.append(c);
+  }
 }
 function startFocus() {
   const ta = document.getElementById('focusLetter');
@@ -792,6 +796,8 @@ const soundBtn = document.getElementById('soundBtn');
 const viewBtn = document.getElementById('viewBtn');
 const infoBtn = document.getElementById('infoBtn');
 const info = document.getElementById('info');
+// 작품 설명의 버튼 목록에 실제 버튼 그림을 그대로 옮겨 쓴다 (v18.6.1) — 그림이 바뀌어도 설명이 따라간다
+for (const i of info.querySelectorAll('[data-icon]')) { const svg = document.getElementById(i.dataset.icon)?.querySelector('svg'); if (!svg) continue; const c = svg.cloneNode(true); c.querySelectorAll(':scope > g[class]').forEach((g, k) => k && g.remove()); i.append(c); }   // 글 모드·날씨는 그림 여러 벌 중 첫 번째만
 const toastEl = document.getElementById('toast');
 const modeBtn = document.getElementById('modeBtn');
 const weatherBtn = document.getElementById('weatherBtn');
@@ -1012,15 +1018,15 @@ async function boot() {
     }
     throw err;
   })();
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.6.0'), img('assets/gull.webp?v=v18.6.0'), img('assets/bottle.webp?v=v18.6.0'), img('assets/crate.webp?v=v18.6.0')]);
-  img('assets/finds.webp?v=v18.6.0').then(im => {
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.6.1'), img('assets/gull.webp?v=v18.6.1'), img('assets/bottle.webp?v=v18.6.1'), img('assets/crate.webp?v=v18.6.1')]);
+  img('assets/finds.webp?v=v18.6.1').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
     drifters.setSprites({ ...drifters.imgs, conch: c });
   }).catch(() => {});
   drifters.setSprites({ bottle, crate });
-  img('assets/leaves.webp?v=v18.6.0').then(im => floaters.setSheet(im)).catch(() => {});
+  img('assets/leaves.webp?v=v18.6.1').then(im => floaters.setSheet(im)).catch(() => {});
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
   plate = p;
@@ -1281,7 +1287,7 @@ function paintCollection() {
   const ll = document.getElementById('letterList'); ll.textContent = '';
   for (const it of letters) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'letter';
-    const im = document.createElement('img'); im.src = 'assets/bottle.webp?v=v18.6.0'; im.alt = '';
+    const im = document.createElement('img'); im.src = 'assets/bottle.webp?v=v18.6.1'; im.alt = '';
     const tx = document.createElement('span'); tx.className = 'tx';
     const t = document.createElement('b'), q = document.createElement('span');
     if (col.owns(it.id)) {

@@ -320,3 +320,34 @@ body.ready #boot { opacity: 0; visibility: hidden; }
 #mixer { width: min(300px, calc(100vw - 28px)); }
 #songPacks { grid-template-columns: repeat(2, 1fr); }
 #mixer .packs button { display: grid; place-items: center; min-height: 34px; }
+
+/* ── v18.6.1 집중 창 · 작품 설명 정리 ── */
+#focusPanel .note { margin: -2px 4px 10px; font-size: 12px; line-height: 1.5; opacity: 0.65; word-break: keep-all; }
+#focusPanel .rules { list-style: none; margin: 12px 0 0; padding: 10px 0 0; border-top: 1px solid var(--panel-line); display: grid; gap: 6px; }
+#focusPanel .rules li { display: grid; grid-template-columns: 44px 1fr; gap: 8px; align-items: baseline; font-size: 12.5px; line-height: 1.45; word-break: keep-all; }
+#focusPanel .rules b { font-size: 11.5px; font-weight: 700; color: var(--sand); }
+#focusPanel .rules span { opacity: 0.8; }
+#focusPanel .busy .big { margin: 6px 4px 0; font-size: 34px; font-weight: 600; line-height: 1.1; text-align: center; letter-spacing: 0.02em; }
+#focusPanel .busy .sub { margin: 2px 4px 12px; text-align: center; font-size: 13px; opacity: 0.75; font-variant-numeric: tabular-nums; }
+#focusPanel .busy .note { margin: 10px 4px 0; text-align: center; }
+#focusPanel .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 12px 0 0; padding: 10px 0 0; border-top: 1px solid var(--panel-line); opacity: 1; font-size: inherit; }
+#focusPanel .stats:empty { display: none; }
+#focusPanel .stats div { display: grid; gap: 2px; padding: 8px 6px; border-radius: 10px; background: rgba(255, 255, 255, 0.06); text-align: center; }
+#focusPanel .stats b { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+#focusPanel .stats span { font-size: 10.5px; opacity: 0.7; line-height: 1.3; word-break: keep-all; }
+
+#info h2 { margin: 22px 0 8px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--sand); }
+#info ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+#info .keys li { display: grid; grid-template-columns: 30px 64px 1fr auto; gap: 10px; align-items: center; padding: 6px 10px 6px 6px; border-radius: 12px; background: rgba(255, 255, 255, 0.06); line-height: 1.4; }
+#info .keys i { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--panel-line); }
+#info .keys i svg { width: 16px; height: 16px; }
+#info .keys b { font-size: 13.5px; font-weight: 600; }
+#info .keys span { font-size: 13px; color: rgba(var(--ink), 0.8); }
+#info kbd { font: 600 11px var(--font); padding: 2px 6px; border-radius: 5px; border: 1px solid var(--panel-line); opacity: 0.7; }
+#info .plain li { position: relative; padding-left: 16px; font-size: 14px; line-height: 1.6; color: rgba(var(--ink), 0.85); }
+#info .plain li::before { content: ''; position: absolute; left: 3px; top: 0.7em; width: 5px; height: 5px; border-radius: 50%; background: var(--sand); }
+#info .small { margin-top: 18px; font-size: 13px; color: rgba(var(--ink), 0.65); }
+@media (max-width: 420px) { #info .keys li { grid-template-columns: 30px 1fr auto; } #info .keys span { grid-column: 2 / 4; grid-row: 2; } #info .keys li { row-gap: 2px; } }
+@media (max-width: 420px) { #info .keys i { grid-row: 1 / 3; } #info .keys kbd { grid-column: 3; grid-row: 1; justify-self: end; } }
+#info { background: rgba(16, 40, 64, 0.94); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+#info .keys i svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
