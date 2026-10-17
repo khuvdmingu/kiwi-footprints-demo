@@ -9,11 +9,11 @@
 //  믹서 값(소리 켜기·음악·환경음·효과음·발자국 음악)은 기기에 기억한다.
 //  브라우저는 사용자 동작 안에서만 소리를 열 수 있어서 unlock() 을 그때 부른다. 탭을 숨기면 멈춘다.
 
-import { Music } from './music.js?v=v20.0.0';
+import { Music } from './music.js?v=v20.1.0';
 
 // v16 아이템 소리·곡은 오픈소스 녹음 — 목록·출처는 카탈로그 한 곳 (src/tracks/index.js). assets/audio/ 에서 처음 고를 때 받는다
 //  STEP_SAMPLES: 0.5초 칸마다 한 걸음 · NATURE_LOOPS: 끝과 처음을 겹쳐 이음매 없이 도는 고리 · SONG_TRACKS: 곡 고리
-import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v20.0.0';
+import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v20.1.0';
 export { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, NATURAL_STEPS };
 const AUDIO = 'assets/audio/';
 
@@ -83,7 +83,7 @@ export class Sound {
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -16; comp.ratio.value = 3;
     comp.connect(ctx.destination);
-    this.master = ctx.createGain(); this.master.gain.value = 0.9; this.master.connect(comp);
+    this.master = ctx.createGain(); this.master.gain.value = this.hush === 'all' ? 0 : 0.9; this.master.connect(comp);
     this.bus = {};
     for (const b of ['music', 'amb', 'sfx']) { const g = ctx.createGain(); g.gain.value = this.mix[b]; g.connect(this.master); this.bus[b] = g; }
     // 잔향: 양쪽 채널에 따로 감쇠하는 잡음으로 충격 응답을 만든다
@@ -146,7 +146,14 @@ export class Sound {
   }
 
   // 소리 하나를 좌우 위치 → 버스(+ 잔향)로 보낸다
+  // v20.1 집중 중 소리: null 그대로 · 'events' 사건 소리(발자국 음·콕·울음·합창·종 — sfx 묶음)만 끔 · 'all' 전부 끔
+  //  잔향 보내기가 묶음을 거치지 않아서 묶음 크기를 0 으로 두는 대신 여기서 아예 잇지 않는다
+  setHush(m) {
+    this.hush = m || null;
+    if (this.master) this.master.gain.setTargetAtTime(this.hush === 'all' ? 0 : 0.9, this.ctx.currentTime, 0.4);
+  }
   route(node, bus = 'sfx', pan = 0, rev = 0.25) {
+    if (this.hush && bus === 'sfx') return;
     const p = this.ctx.createStereoPanner();
     p.pan.value = Math.max(-1, Math.min(1, pan));
     node.connect(p); p.connect(this.bus[bus]);

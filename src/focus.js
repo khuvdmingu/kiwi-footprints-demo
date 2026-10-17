@@ -15,6 +15,8 @@ export const STEPS_PER_MIN = 100;
 export const IDLE_STEPS_PER_MIN = 10;   // v13 켜 두기만 해도 (집중의 1/10)
 export const GRACE = 10;   // 초: 이 안에 돌아오면 이어서
 export const LENGTHS = [15, 25, 50];
+export const CUSTOM = [5, 180];   // v20.1 직접 정하기: 5분 단위 (5분 아래는 선물 상자를 연달아 받는 걸 막으려고 둔 하한)
+export const HUSH = ['events', 'all', 'off'];   // v20.1 집중 중 소리: 배경 소리만(기본) · 조용히 · 그대로
 const KEEP_DAYS = 800;   // 날마다 기록은 2년 남짓만 (그보다 오래된 날은 지운다)
 
 export const today = (now = Date.now()) => { const d = new Date(now); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
@@ -31,12 +33,15 @@ export class Focus {
     this.idle = s.idle || 0;              // 그중 켜 두기로 쌓은 걸음
     this.idleMs = 0;
     this.log = s.log && typeof s.log === 'object' ? s.log : {};   // v19 { 'Y-M-D': { s 집중 걸음, m 분, n 횟수, d 끝까지, i 켜 두기 걸음 } }
-    this.len = LENGTHS.includes(s.len) ? s.len : 25;   // 마지막에 고른 길이
+    this.custom = Number.isFinite(s.custom) ? Math.min(CUSTOM[1], Math.max(CUSTOM[0], s.custom)) : 40;   // 직접 정한 길이 (마지막 값)
+    this.useCustom = !!s.useCustom;      // 「직접」을 골랐나 (직접 값이 15·25·50 과 같아도 직접으로 남게)
+    this.len = this.useCustom ? this.custom : LENGTHS.includes(s.len) ? s.len : 25;   // 마지막에 고른 길이
+    this.hush = HUSH.includes(s.hush) ? s.hush : 'events';
     this.run = null;                      // 진행 중: { start, dur(ms), letter, away, beat }
     try { this.stale = JSON.parse(load('focusRun') || 'null'); } catch (e) { this.stale = null; }
   }
   store() {
-    this.save('focus', JSON.stringify({ total: this.total, day: this.day, todaySteps: this.todaySteps, done: this.done, len: this.len, idle: this.idle, log: this.log }));
+    this.save('focus', JSON.stringify({ total: this.total, day: this.day, todaySteps: this.todaySteps, done: this.done, len: this.len, custom: this.custom, useCustom: this.useCustom, hush: this.hush, idle: this.idle, log: this.log }));
   }
   // 그날 기록 (없으면 만든다). 오래된 날은 여기서 정리한다
   dayLog(key = today()) {

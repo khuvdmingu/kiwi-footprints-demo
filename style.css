@@ -146,6 +146,14 @@ body.typing #caption, body.info-open #caption { opacity: 0; }
 #focusPanel[hidden], #focusPanel [hidden] { display: none; }
 #focusPanel h2 { margin: 2px 4px 8px; font-size: 13px; font-weight: 600; opacity: 0.75; }
 #focusPanel .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+#focusPanel .seg.four { grid-template-columns: repeat(4, 1fr); }
+#focusPanel h2.sub { margin: 12px 4px 6px; }
+#focusPanel .fcustom { display: grid; grid-template-columns: 40px 1fr 40px; gap: 6px; margin-top: 6px; align-items: center; }
+#focusPanel .fcustom[hidden] { display: none; }
+#focusPanel .fcustom button { height: 38px; border-radius: 10px; border: 1px solid var(--panel-line); background: transparent; color: inherit; font: 600 18px/1 var(--font); cursor: pointer; }
+#focusPanel .fcustom label { display: flex; align-items: baseline; justify-content: center; gap: 4px; }
+#focusPanel .fcustom input { width: 4.2em; text-align: center; padding: 7px 4px; border-radius: 10px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.08); color: inherit; font: 600 18px/1.2 var(--font); -moz-appearance: textfield; }
+#focusPanel .fcustom input::-webkit-inner-spin-button, #focusPanel .fcustom input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 #focusPanel .seg label { position: relative; }
 #focusPanel .seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
 #focusPanel .seg span { display: block; text-align: center; padding: 9px 4px; border-radius: 10px; border: 1px solid var(--panel-line); font-weight: 500; }
