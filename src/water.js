@@ -315,3 +315,31 @@ export class WaterGL {
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
 }
+
+// 3D 그래픽(WebGL2)을 못 쓰는 기기용 대체 (v18.5.5) — 물결 없이 그림 판만 2D 로 그린다.
+//  WaterGL 과 같은 이름의 메서드를 갖고 있어 main.js 는 어느 쪽인지 몰라도 된다. 시간대 그림 칸(N·W)은 쓰지 않는다
+export class FlatWater {
+  constructor(canvas) {
+    this.cv = canvas; this.g = canvas.getContext('2d'); this.slots = {}; this.flat = true;
+    if (!this.g) throw new Error('2D 캔버스 없음');
+  }
+  setPlate(plate) { if (this.plate !== plate) { this.plate = plate; this.drawn = null; } }
+  setSet() {}
+  drop() {}
+  has() { return false; }
+  resize(W, H, dpr) {
+    this.W = W; this.H = H; this.dpr = Math.min(dpr, 2);
+    this.cv.width = Math.round(W * this.dpr); this.cv.height = Math.round(H * this.dpr);
+    this.cv.style.width = W + 'px'; this.cv.style.height = H + 'px';
+    this.drawn = null;
+  }
+  draw() {
+    const P = this.plate, m = P && P.map;
+    if (!m || this.drawn === m) return;   // 그림이 안 움직이므로 판·크기가 바뀔 때만 다시 그린다
+    const g = this.g;
+    g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    g.fillStyle = '#1A5C91'; g.fillRect(0, 0, this.W, this.H);
+    g.drawImage(P.img, m.ox, m.oy, P.pw * m.s, P.ph * m.s);
+    this.drawn = m;
+  }
+}

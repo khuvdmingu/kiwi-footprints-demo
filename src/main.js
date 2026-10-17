@@ -15,25 +15,25 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.5.4';
-import { Beach } from './beach.js?v=v18.5.4';
-import { Kiwi } from './kiwi.js?v=v18.5.4';
-import { Sound } from './sound.js?v=v18.5.4';
-import { loadPlate } from './plate.js?v=v18.5.4';
-import { MAPS, MAP_IDS } from './maps.js?v=v18.5.4';
-import { WaterGL } from './water.js?v=v18.5.4';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.5.4';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.5.4';
-import { Leaves } from './leaves.js?v=v18.5.4';
-import { Rake } from './zen.js?v=v18.5.4';
-import { Clouds } from './clouds.js?v=v18.5.4';
-import { Gulls } from './gulls.js?v=v18.5.4';
-import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.5.4';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.5.4';
-import { clamp, dist } from './util.js?v=v18.5.4';
-import { Focus, Awake, LENGTHS } from './focus.js?v=v18.5.4';
-import { UNLOCK_ALL } from './config.js?v=v18.5.4';
-import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.5.4';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.5.5';
+import { Beach } from './beach.js?v=v18.5.5';
+import { Kiwi } from './kiwi.js?v=v18.5.5';
+import { Sound } from './sound.js?v=v18.5.5';
+import { loadPlate } from './plate.js?v=v18.5.5';
+import { MAPS, MAP_IDS } from './maps.js?v=v18.5.5';
+import { WaterGL, FlatWater } from './water.js?v=v18.5.5';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.5.5';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.5.5';
+import { Leaves } from './leaves.js?v=v18.5.5';
+import { Rake } from './zen.js?v=v18.5.5';
+import { Clouds } from './clouds.js?v=v18.5.5';
+import { Gulls } from './gulls.js?v=v18.5.5';
+import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.5.5';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.5.5';
+import { clamp, dist } from './util.js?v=v18.5.5';
+import { Focus, Awake, LENGTHS } from './focus.js?v=v18.5.5';
+import { UNLOCK_ALL } from './config.js?v=v18.5.5';
+import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.5.5';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -48,7 +48,8 @@ const VIEW_NAME = { top: '위에서', diorama: '디오라마', follow: '따라�
 const worldEl = document.getElementById('world');
 const canvas = document.getElementById('stage');
 const ctx = canvas.getContext('2d');
-const plateEl = document.getElementById('plate'), canopyEl = document.getElementById('canopy'), canopyNEl = document.getElementById('canopyN'), canopyWEl = document.getElementById('canopyW');
+let plateEl = document.getElementById('plate');
+const canopyEl = document.getElementById('canopy'), canopyNEl = document.getElementById('canopyN'), canopyWEl = document.getElementById('canopyW');
 let plate = null, water = null;
 // 판 두 벌: 가로 화면은 plate*, 세로로 긴 화면(휴대폰)은 tall* — 처음 필요할 때 읽어 둔다
 // 기기 저장값 읽기·쓰기 — 장소·글 모드·시계 설정이 시작하자마자 쓰므로 맨 먼저 둔다
@@ -986,26 +987,43 @@ async function boot() {
     }
     throw err;
   })();
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.5.4'), img('assets/gull.webp?v=v18.5.4'), img('assets/bottle.webp?v=v18.5.4'), img('assets/crate.webp?v=v18.5.4')]);
-  img('assets/finds.webp?v=v18.5.4').then(im => {
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.5.5'), img('assets/gull.webp?v=v18.5.5'), img('assets/bottle.webp?v=v18.5.5'), img('assets/crate.webp?v=v18.5.5')]);
+  img('assets/finds.webp?v=v18.5.5').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
     drifters.setSprites({ ...drifters.imgs, conch: c });
   }).catch(() => {});
   drifters.setSprites({ bottle, crate });
-  img('assets/leaves.webp?v=v18.5.4').then(im => floaters.setSheet(im)).catch(() => {});
+  img('assets/leaves.webp?v=v18.5.5').then(im => floaters.setSheet(im)).catch(() => {});
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
   plate = p;
-  water = new WaterGL(plateEl);
-  water.setPlate(plate);
+  // 3D 그래픽(WebGL2)이 안 되거나 셰이더가 이 기기 GPU 에서 안 만들어지면 그림만 그리는 2D 로 (v18.5.5) — 물결은 없어도 키위·글씨는 그대로
+  try { if (q.get('gl') === '0') throw new Error('?gl=0 (2D 시험)'); water = new WaterGL(plateEl); water.setPlate(plate); }
+  catch (e) { console.warn('3D 그래픽을 못 써서 2D 로 그립니다:', e); useFlat(); }
+  // 메모리가 모자라면(아이패드 등) 브라우저가 3D 그래픽을 도중에 빼앗아 간다 — 그때도 2D 로 넘어간다
+  plateEl.addEventListener('webglcontextlost', e => { e.preventDefault(); console.warn('3D 그래픽이 끊겨 2D 로 바꿉니다'); useFlat(); resize(); });
   setKiwiSprite(kiwiImg);
   gulls.setSprite(gullImg);
   resize();
   requestAnimationFrame(frame);
   }
-boot();
+// 3D 를 쓰던 캔버스에서는 2D 를 얻을 수 없어서 같은 자리에 새 캔버스를 끼운다
+function useFlat() {
+  if (water && water.flat) return;
+  const c = plateEl.cloneNode(false);
+  plateEl.replaceWith(c); plateEl = c;
+  water = new FlatWater(c); water.setPlate(plate);
+}
+// 시작하다 실패하면 짙은 파란 가림막만 남아 "접속이 안 되는" 것처럼 보였다 (v18.5.5) — 이유를 화면에 적는다
+boot().catch(e => {
+  console.error(e);
+  const el = document.getElementById('boot');
+  el.classList.add('failed');
+  el.innerHTML = '<p>이 기기에서 바닷가를 열지 못했어요.</p><p class="why"></p><p><a href="./?sw=0">저장본 지우고 다시 열기</a></p>';
+  el.querySelector('.why').textContent = '이유: ' + (e && e.message || e);
+});
 const paintMode = () => { modeBtn.dataset.mode = mode; modeBtn.setAttribute('aria-label', `글 모드: ${MODE_NAME[mode]} (바꾸기)`); };
 const nowHour = () => realHour();
 // 장소 바꾸기: 그 장소 그림 판을 읽고(처음 한 번) 화면을 다시 짠다 — resize 가 지금 글을 새 바닥에 다시 쓴다
