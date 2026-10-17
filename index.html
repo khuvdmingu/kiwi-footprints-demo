@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#1A5C91" />
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v19.1.0" />
+  <link rel="stylesheet" href="style.css?v=v19.2.0" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png" />
@@ -116,6 +116,7 @@
       <button type="button" role="tab" data-tab="scene" aria-selected="true">풍경</button>
       <button type="button" role="tab" data-tab="write" aria-selected="false">글씨</button>
       <button type="button" role="tab" data-tab="bag" aria-selected="false">모은 것</button>
+      <button type="button" role="tab" data-tab="test" aria-selected="false">테스트</button>
     </div>
     <section class="pane" data-pane="scene" role="tabpanel" aria-label="풍경">
     <h2>장소</h2>
@@ -166,6 +167,30 @@
       <label class="row switch"><span>벽시계로 켜 두기</span><input id="optWall" type="checkbox" /></label>
       <p class="hint">세워 두고 쓰는 시계예요. 화면이 꺼지지 않고 버튼은 숨어요(누르면 잠깐 보여요). 밤 10시~아침 6시엔 어둡게, 글씨 자리는 한 시간마다 조금씩 옮겨요. 충전하면서 두세요.</p>
     </div>
+    </section>
+    <section class="pane" data-pane="test" role="tabpanel" aria-label="테스트" hidden id="tunePane">
+    <p class="hint top">테스트 기간에만 보이는 탭이에요. 바꾼 값은 이 기기에만 저장돼요.</p>
+    <h2>손님</h2>
+    <div class="trow"><span>비우면 손님이 오는 시간</span><output id="tAwayV"></output></div>
+    <input id="tAway" type="range" min="0" max="60" step="1" aria-label="비우면 손님이 오는 시간(분)" />
+    <div class="trow"><span>켜 둔 채로도 손님</span><select id="tAuto" aria-label="켜 둔 채로도 손님 오는 간격"><option value="0">끔</option><option value="1">1분마다</option><option value="3">3분마다</option><option value="5">5분마다</option><option value="15">15분마다</option><option value="30">30분마다</option></select></div>
+    <div class="trow"><span>한 번에 오는 수</span><select id="tGuestN" aria-label="한 번에 오는 손님 수"><option value="0">비운 시간 따라</option><option value="1">1마리</option><option value="2">2마리</option><option value="3">3마리</option></select></div>
+    <div class="tbtns"><button type="button" data-act="guestNow">지금 손님 부르기</button><button type="button" data-act="notesClear">쪽지 치우기</button><button type="button" data-act="lettersReset">편지 처음부터</button></div>
+    <h2 class="sep">나의 키위 무리</h2>
+    <div class="tbtns"><button type="button" data-act="mateAdd">새 키위 들이기</button><button type="button" data-act="flockReset">무리 비우기</button></div>
+    <h2 class="sep">떠내려오는 것 · 물가</h2>
+    <div class="trow"><span>유리병·소라 간격</span><select id="tDrift" aria-label="유리병·소라 간격"><option value="20">20초</option><option value="60">1분</option><option value="120">2분</option><option value="180">3분 (기본)</option><option value="300">5분</option></select></div>
+    <div class="trow"><span>물가 줍기 간격</span><select id="tFind" aria-label="물가 줍기 간격"><option value="20">20초</option><option value="60">1분</option><option value="120">2분</option><option value="180">3분 (기본)</option><option value="300">5분</option></select></div>
+    <div class="tbtns"><button type="button" data-act="driftNow">지금 띄우기</button><button type="button" data-act="findNow">지금 밀려오기</button></div>
+    <h2 class="sep">집중 · 걸음</h2>
+    <div class="tbtns"><button type="button" data-act="focus1">1분 집중 시작</button><button type="button" data-act="focusDone">집중 바로 끝내기</button><button type="button" data-act="steps">걸음 +1,000보</button></div>
+    <h2 class="sep">키위 · 화면</h2>
+    <div class="trow"><span>걷는 속도</span><output id="tSpeedV"></output></div>
+    <input id="tSpeed" type="range" min="0.5" max="4" step="0.25" aria-label="키위 걷는 속도" />
+    <label class="trow"><span>벽시계 밤 어둡게 미리 보기</span><input id="tDim" type="checkbox" /></label>
+    <h2 class="sep">기록</h2>
+    <div class="tbtns"><button type="button" data-act="defaults">조절값 기본으로</button><button type="button" data-act="wipe" class="warn">테스트 기록 지우기</button></div>
+    <p class="hint">기록 지우기는 무리 · 손님 방명록 · 편지 · 집중 기록을 지워요. 모은 아이템과 설정은 그대로예요.</p>
     </section>
     <section class="pane" data-pane="bag" role="tabpanel" aria-label="모은 것" hidden>
     <p id="colTitle" class="bagSum"></p>
@@ -266,15 +291,15 @@
         <li>모은 것은 설정 → 「모은 것」에서 다시 보고 입히고 골라요</li>
       </ul>
       <p class="small">빛은 실제 시각을 따라 새벽 · 낮 · 노을 · 밤으로 바뀌고, 밤엔 반딧불이가 떠요(T 키로 3시간씩 미리 보기). 장소: 바닷가 · 뉴질랜드 숲 · 눈밭 · 가을 호숫가 · 모래 정원.</p>
-      <p class="credits">키위 스핀오프 v19.1 · 2026-10-18<span id="audio-credits"></span></p>
+      <p class="credits">키위 스핀오프 v19.2 · 2026-10-18<span id="audio-credits"></span></p>
       <button type="button" data-close>닫기</button>
     </div>
   </div>
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v19.1.0"></script>
-  <script type="module" src="src/credits.js?v=v19.1.0"></script>
+  <script type="module" src="src/main.js?v=v19.2.0"></script>
+  <script type="module" src="src/credits.js?v=v19.2.0"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.

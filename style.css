@@ -403,6 +403,19 @@ body.clean #picker { display: none !important; }
 #focusPanel .calGrid .day:disabled { opacity: 0.35; cursor: default; }
 #focusPanel .cal .note { margin: 6px 2px 0; font-size: 12px; line-height: 1.5; opacity: 0.75; word-break: keep-all; min-height: 1.5em; }
 
+/* v19.2 테스트 탭 */
+#tunePane .hint.top { margin: 0 2px 10px; }
+#tunePane .trow { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 34px; margin: 0 2px; }
+#tunePane .trow span { font-weight: 500; }
+#tunePane .trow output { font-variant-numeric: tabular-nums; opacity: 0.8; font-size: 13px; }
+#tunePane input[type="range"] { width: 100%; margin: 0 0 6px; }
+#tunePane select { padding: 4px 6px; border-radius: 8px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.08); color: inherit; font: inherit; font-size: 13px; }
+#tunePane select option { color: #1d2a36; }
+#tunePane .tbtns { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 2px 2px; }
+#tunePane .tbtns button { padding: 7px 12px; border-radius: 999px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.08); color: inherit; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+#tunePane .tbtns button:hover { background: rgba(255, 255, 255, 0.16); }
+#tunePane .tbtns button.warn { border-color: rgba(255, 170, 140, 0.6); color: #ffd2c2; }
+
 /* v19 벽시계: 밤엔 어둡게 (누르는 건 그대로 아래로 지나간다) */
 #dim { position: fixed; inset: 0; z-index: 7; background: #000; opacity: 0; pointer-events: none; transition: opacity 3s var(--ease); }
 

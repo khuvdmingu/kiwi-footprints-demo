@@ -62,7 +62,7 @@ export class Finds {
 }
 
 export class Shore {
-  constructor() { this.list = []; this.nextAt = 25; this.sheet = null; }
+  constructor() { this.list = []; this.nextAt = 25; this.sheet = null; this.gap = 180; }   // gap = 평균 초 (테스트 탭, v19.2)
   setSheet(img) { this.sheet = img; }
   reset() { this.list = []; }
 
@@ -78,7 +78,7 @@ export class Shore {
   update(dt, beach, env) {
     const { W, u, t } = beach;
     if (t > this.nextAt && this.list.length < 3 && !beach.surging && this.sheet) {
-      this.nextAt = t + 120 + Math.random() * 120;
+      this.nextAt = t + this.gap * (0.67 + Math.random() * 0.66);
       const f = this.pick(env);
       let x = W * (0.1 + Math.random() * 0.8);
       for (let k = 0; k < 6 && this.list.some(o => Math.abs(o.x - x) < 70 * u); k++) x = W * (0.1 + Math.random() * 0.8);

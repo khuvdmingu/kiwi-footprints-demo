@@ -30,7 +30,8 @@ const rnd = (a, b) => a + Math.random() * (b - a);
 const pick = a => a[Math.floor(Math.random() * a.length)];
 
 // 비운 시간(분) → 몇 마리
-export function guestCount(min) { return min < AWAY_MIN ? 0 : min < 120 ? 1 : min < 480 ? 2 : 3; }
+//  t = 테스트 조절값(v19.2): awayMin 기준 분 · guestN 한 번에 오는 수(0 = 비운 시간에 따라)
+export function guestCount(min, t = {}) { if (min < (t.awayMin ?? AWAY_MIN)) return 0; if (t.guestN) return t.guestN; return min < 120 ? 1 : min < 480 ? 2 : 3; }
 
 // 발자국 한 개를 path 에 더한다 (x, y = 발자국 가운데, a = 가는 방향, f = 크기). 점은 길이 0 짜리 선(둥근 끝)으로 찍힌다
 export function addGuestFoot(path, shape, x, y, a, f) {
