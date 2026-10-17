@@ -5,20 +5,25 @@
 //  · 동물마다 발자국 모양과 걸음새가 다르다 — 갈매기·오리(물갈퀴) · 게(옆걸음 점) · 여우·고양이(한 줄로 곧게) ·
 //    토끼(네 점이 묶인 깡충) · 사슴(갈라진 발굽) · 참새(두 발 모아 콩콩) · 웨카(키위를 닮은 새 발). 그림 파일 없이 선으로 그린다.
 //  · 다녀간 손님은 「모은 것」 손님 방명록에 쌓인다 (이 기기에만 저장).
+//  · v19.1: 손님은 편지를 남긴다 — 동물마다 3통, 아직 안 읽은 편지가 있으면 지나간 길 가운데에 쪽지(잎으로 묶은 편지 ·
+//    두루마리 단 조약돌)를 두고 간다. 누르면 그 동물 그림과 편지 카드. 안 읽은 쪽지는 저장돼서 다시 열어도 그 자리 근처에 있다.
+//    그림: assets/guests.webp (4×3 격자 — 동물 10 + 쪽지 2, Higgsfield Nano Banana Pro 2k + 배경 제거, docs/GRAPHICS-PROMPTS.md)
 
 export const GUESTS = {
-  gull: { name: '갈매기', shape: 'web', maps: ['beach'], size: 1.15, gait: 'bird', from: 'land' },
-  crab: { name: '게', shape: 'crab', maps: ['beach'], size: 0.8, gait: 'crab', from: 'water' },
-  weka: { name: '웨카', shape: 'bird', maps: ['nz'], size: 1.1, gait: 'bird', from: 'forest' },
-  hedgehog: { name: '고슴도치', shape: 'paw', maps: ['nz', 'fall'], size: 0.6, gait: 'trot', from: 'forest' },
-  duck: { name: '청둥오리', shape: 'web', maps: ['nz', 'fall'], size: 1.1, gait: 'bird', from: 'water' },
-  fox: { name: '여우', shape: 'paw', maps: ['snow'], size: 0.95, gait: 'line', from: 'forest' },
-  rabbit: { name: '산토끼', shape: 'hop', maps: ['snow', 'fall'], size: 0.85, gait: 'hop', from: 'forest' },
-  deer: { name: '사슴', shape: 'hoof', maps: ['snow', 'fall'], size: 1.2, gait: 'trot', from: 'forest' },
-  sparrow: { name: '참새', shape: 'pair', maps: ['zen', 'snow'], size: 0.55, gait: 'hopbird', from: 'land' },
-  cat: { name: '고양이', shape: 'paw', maps: ['zen', 'beach'], size: 0.8, gait: 'line', from: 'forest' },
+  gull: { name: '갈매기', shape: 'web', maps: ['beach'], size: 1.15, gait: 'bird', from: 'land', cell: 0, note: 'pebble', letters: ['모래 위에 글씨가 있길래 내려앉아 봤어요. 읽을 줄은 모르지만, 예쁜 모양이었어요.', '오늘 바다는 조금 짰어요. 늘 짜지만요. 당신 쪽은 어땠나요?', '높이 날면 키위들 발자국이 별자리처럼 보여요. 다음에도 위에서 볼게요.'] },
+  crab: { name: '게', shape: 'crab', maps: ['beach'], size: 0.8, gait: 'crab', from: 'water', cell: 1, note: 'pebble', letters: ['옆으로 걷다 보니 여기까지 왔어요. 앞으로 가는 것만 길은 아니더라고요.', '파도가 오기 전에 얼른 다녀갔어요. 바쁜 날엔 옆걸음도 괜찮아요.', '모래 속 작은 구멍이 우리 집이에요. 놀러 오면 집게로 인사할게요.'] },
+  weka: { name: '웨카', shape: 'bird', maps: ['nz'], size: 1.1, gait: 'bird', from: 'forest', cell: 2, note: 'leaf', letters: ['키위네 먼 친척 웨카예요. 우리도 날지 못하지만 걷는 건 자신 있어요.', '반짝이는 걸 보면 그만 가져가고 싶어져요. 이번엔 꾹 참고 편지만 두고 가요.', '숲 냄새가 좋은 날이었어요. 당신도 잠깐 창문을 열어 봐요.'] },
+  hedgehog: { name: '고슴도치', shape: 'paw', maps: ['nz', 'fall'], size: 0.6, gait: 'trot', from: 'forest', cell: 3, note: 'leaf', letters: ['천천히 왔다가 천천히 가요. 가시는 무섭게 생겼지만 마음은 동글동글해요.', '낙엽 밑에서 한숨 잤어요. 쉬는 것도 일이라고 키위가 그러던데요.', '몸을 동그랗게 말면 걱정도 작아져요. 한번 해 보세요.'] },
+  duck: { name: '청둥오리', shape: 'web', maps: ['nz', 'fall'], size: 1.1, gait: 'bird', from: 'water', cell: 4, note: 'pebble', letters: ['잠깐 쉬어 갔어요. 물 위에선 느긋해 보여도 발은 바쁘게 젓고 있답니다.', '비 오는 날이 제일 좋아요. 당신이 싫어하는 날에도 누군가는 신나 있어요.', '아기 오리들에게 줄 맞춰 걷는 법을 가르치는 중이에요. 키위들 글씨 줄이 부러워요.'] },
+  fox: { name: '여우', shape: 'paw', maps: ['snow'], size: 0.95, gait: 'line', from: 'forest', cell: 5, note: 'leaf', letters: ['발자국을 한 줄로 곧게 찍는 게 여우의 자랑이에요. 당신의 오늘도 곧았기를.', '눈 아래에서 들리는 작은 소리에 오래 귀 기울였어요. 조용한 것도 많은 걸 말해요.', '꼬리를 이불처럼 덮고 자면 따뜻해요. 오늘 밤 당신도 따뜻하게.'] },
+  rabbit: { name: '산토끼', shape: 'hop', maps: ['snow', 'fall'], size: 0.85, gait: 'hop', from: 'forest', cell: 6, note: 'leaf', letters: ['깡충깡충, 너무 신나서 발자국이 엉망이에요. 그래도 즐거웠어요!', '귀를 세우면 먼 데 소리까지 들려요. 당신을 부르는 소리도 들렸어요.', '당근은 없었지만 바람이 달았어요. 다음엔 같이 뛰어요.'] },
+  deer: { name: '사슴', shape: 'hoof', maps: ['snow', 'fall'], size: 1.2, gait: 'trot', from: 'forest', cell: 7, note: 'leaf', letters: ['조심조심 걸어왔어요. 큰 소리가 나면 달아나지만, 여기는 조용해서 좋아요.', '아침 안개 속을 걸으면 세상이 잠깐 멈춘 것 같아요. 당신의 아침도 그랬기를.', '뿔이 자라는 데는 시간이 걸린대요. 서두르지 않아도 돼요.'] },
+  sparrow: { name: '참새', shape: 'pair', maps: ['zen', 'snow'], size: 0.55, gait: 'hopbird', from: 'land', cell: 8, note: 'pebble', letters: ['갈퀴 줄 위로 콩콩 뛰어 봤어요. 정원지기 몰래요.', '작은 부스러기 하나로도 하루가 행복해요. 오늘 당신의 부스러기는 뭐였나요?', '친구들이랑 수다 떨다 늦었어요. 짹짹, 또 올게요.'] },
+  cat: { name: '고양이', shape: 'paw', maps: ['zen', 'beach'], size: 0.8, gait: 'line', from: 'forest', cell: 9, note: 'leaf', letters: ['여긴 내 자리예요. …라고 하고 싶지만 당신 자리이기도 하니까 반씩 나눠요.', '햇볕 드는 자리에서 실컷 자고 갔어요. 당신도 오늘은 좀 늘어져도 돼요.', '키위들이 쓴 글씨를 꾹꾹 밟고 싶었지만 참았어요. 칭찬해 줘요.'] },
 };
 export const GUEST_IDS = Object.keys(GUESTS);
+export const NOTE_CELL = { leaf: 10, pebble: 11 };   // guests.webp 격자 칸: 잎으로 묶은 편지 · 두루마리 단 조약돌
+export const LETTER_TOTAL = GUEST_IDS.reduce((n, id) => n + GUESTS[id].letters.length, 0);
 export const AWAY_MIN = 15;   // 분: 이보다 짧게 비우면 아무도 안 온다
 
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -105,7 +110,7 @@ export function leaveTracks(beach, id, foot) {
     else if (g.gait === 'crab') add(p.x, p.y, p.a + Math.PI / 2);   // 몸은 옆을 보고 옆으로 간다
     else add(p.x, p.y, p.a);   // 토끼·참새: 묶음 하나가 한 번 뜀
   });
-  return pts.length;
+  return pts;
 }
 
 // 손님 방명록 (이 기기에만)
@@ -116,8 +121,15 @@ export class Guestbook {
     try { s = JSON.parse(load() || '{}'); } catch (e) { s = {}; }
     this.count = s.count && typeof s.count === 'object' ? s.count : {};
     this.first = s.first && typeof s.first === 'object' ? s.first : {};   // 처음 온 날
+    this.read = s.read && typeof s.read === 'object' ? s.read : {};       // 동물마다 읽은 편지 수
+    this.pending = Array.isArray(s.pending) ? s.pending.filter(p => GUESTS[p.id] && p.n < GUESTS[p.id].letters.length) : [];   // 모래 위에 놓인 안 읽은 쪽지 { id, n, rx, ry }
   }
-  store() { this.save(JSON.stringify({ count: this.count, first: this.first })); }
+  store() { this.save(JSON.stringify({ count: this.count, first: this.first, read: this.read, pending: this.pending })); }
+  // 이 동물이 다음에 남길 편지 번호 (다 남겼으면 -1)
+  nextLetter(id) { const n = (this.read[id] || 0) + this.pending.filter(p => p.id === id).length; return n < GUESTS[id].letters.length ? n : -1; }
+  leave(id, rx, ry) { const n = this.nextLetter(id); if (n < 0) return null; const p = { id, n, rx, ry }; this.pending.push(p); this.store(); return p; }
+  open(p) { this.pending = this.pending.filter(o => o !== p); this.read[p.id] = Math.max(this.read[p.id] || 0, p.n + 1); this.store(); }
+  get lettersRead() { return GUEST_IDS.reduce((n, id) => n + Math.min(this.read[id] || 0, GUESTS[id].letters.length), 0); }
   add(id, day) { this.count[id] = (this.count[id] || 0) + 1; this.first[id] ??= day; this.store(); }
   get kinds() { return GUEST_IDS.filter(id => this.count[id]).length; }
 }
