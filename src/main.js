@@ -5,9 +5,10 @@
 //   → #clouds Canvas(빛안개·긴 그림자) → #tint(시간 빛) → #fx(갈매기·비·눈·반딧불이·♪) → #glow(골든아워) · #grain(그레인)
 //   세 층을 #world 하나로 묶어 카메라(시점)를 CSS 변환으로 건다.
 // 시점: top 위에서 내려다보기 · diorama 비스듬히 기울인 미니어처(위아래 흐림) · follow 쓰는 키위를 따라 확대
+//       · scope 쌍안경(멀리서 키위 한 마리를 몰래 따라봄) · text 글자 보기(쓰는 문장을 화면에 맞춤) · breeze 바람결(천천히 흘러가는 풍경)
 // 흐름: 문장 확정 → (앞 글씨가 있으면) 큰 파도 + 키위들 "!" 하고 숲으로 도망 → 물이 빠지면 숲에서 걸어 나와 획을 맡아 쓴다
 //       → 다 쓰면 폴짝폴짝 → 잠시 뒤 파도. 비어 있을 땐 한두 마리가 산책한다.
-// 주소 옵션: ?text= · ?seed= · ?speed= · ?hold= · ?sound=0 · ?view=top|diorama|follow · ?debug
+// 주소 옵션: ?text= · ?seed= · ?speed= · ?hold= · ?sound=0 · ?view=top|diorama|follow|scope|text|breeze · ?debug
 //           ?mode=free|clock|quote|word · ?weather=clear|cloudy|rain|snow|fog|wind · ?hour=0~24 (시간 빛 미리보기)
 // v4.1: 시간 빛(실제 시각)·날씨(atmos.js) — 층 위에 #tint(곱하기) 와 #fx(비·눈·안개·반딧불이) 를 더 얹는다.
 //       글 모드: 직접 쓰기 · 시계(매 분 지금 시각) · 명언 · 단어장(content.js). 다 쓰면 뜻·출처 캡션이 드러난다.
@@ -15,25 +16,25 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.8.0';
-import { Beach } from './beach.js?v=v18.8.0';
-import { Kiwi } from './kiwi.js?v=v18.8.0';
-import { Sound, SONG_TRACKS } from './sound.js?v=v18.8.0';
-import { loadPlate } from './plate.js?v=v18.8.0';
-import { MAPS, MAP_IDS } from './maps.js?v=v18.8.0';
-import { WaterGL, FlatWater } from './water.js?v=v18.8.0';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.8.0';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.8.0';
-import { Leaves } from './leaves.js?v=v18.8.0';
-import { Rake } from './zen.js?v=v18.8.0';
-import { Clouds } from './clouds.js?v=v18.8.0';
-import { Gulls } from './gulls.js?v=v18.8.0';
-import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.8.0';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.8.0';
-import { clamp, dist } from './util.js?v=v18.8.0';
-import { Focus, Awake, LENGTHS } from './focus.js?v=v18.8.0';
-import { UNLOCK_ALL } from './config.js?v=v18.8.0';
-import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.8.0';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.9.0';
+import { Beach } from './beach.js?v=v18.9.0';
+import { Kiwi } from './kiwi.js?v=v18.9.0';
+import { Sound, SONG_TRACKS } from './sound.js?v=v18.9.0';
+import { loadPlate } from './plate.js?v=v18.9.0';
+import { MAPS, MAP_IDS } from './maps.js?v=v18.9.0';
+import { WaterGL, FlatWater } from './water.js?v=v18.9.0';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.9.0';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.9.0';
+import { Leaves } from './leaves.js?v=v18.9.0';
+import { Rake } from './zen.js?v=v18.9.0';
+import { Clouds } from './clouds.js?v=v18.9.0';
+import { Gulls } from './gulls.js?v=v18.9.0';
+import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.9.0';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.9.0';
+import { clamp, dist } from './util.js?v=v18.9.0';
+import { Focus, Awake, LENGTHS } from './focus.js?v=v18.9.0';
+import { UNLOCK_ALL } from './config.js?v=v18.9.0';
+import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.9.0';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -42,8 +43,8 @@ const SPEED = clamp(num('speed', 1), 0.25, 6);
 const HOLD = Math.max(1, num('hold', 9));
 const DEBUG = q.has('debug');
 const FIRST = q.get('text') || '안녕 키위';
-const VIEWS = ['top', 'diorama', 'follow'];
-const VIEW_NAME = { top: '위에서', diorama: '디오라마', follow: '따라가기' };
+const VIEWS = ['top', 'diorama', 'follow', 'scope', 'text', 'breeze'];
+const VIEW_NAME = { top: '위에서', diorama: '디오라마', follow: '따라가기', scope: '쌍안경', text: '글자 보기', breeze: '바람결' };
 // 위에 뜨는 카드(편지 등)·고르기 창 안을 누른 것은 아래 창의 "바깥을 누름"이 아니다 (v18.6.2)
 const onTop = t => !!(t && t.closest && t.closest('#found, #picker'));
 
@@ -77,6 +78,7 @@ const sound = new Sound({ enabled: q.get('sound') !== '0' });
 const fxCanvas = document.getElementById('fx');
 const fctx = fxCanvas.getContext('2d');
 const tintEl = document.getElementById('tint');
+const scopeEl = document.getElementById('scope');
 // 시간 빛(#tint, 곱하기)은 작은 캔버스에 그려 늘린다 (v18.5.4). CSS 그라데이션이던 때는 핀치로 확대하면 브라우저가 새 배율로
 //  사각형 타일마다 다시 그렸고, 아직 못 그린 타일 자리만 어둡게 안 덮여 밤에 밝은 사각형이 깜빡였다(낮엔 거의 흰색이라 안 보임).
 //  캔버스는 한 장짜리 그림이라 확대해도 다시 그리지 않는다. 부드러운 그라데이션이라 가로 160칸이면 충분
@@ -182,7 +184,7 @@ let holdUntil = 0, washAt = 0, pending = null, current = '';
 let S = 100, box = null, nextAmbient = 2;
 let stageScale = 1;
 let view = VIEWS.includes(q.get('view')) ? q.get('view') : 'top';
-const cam = { x: 0, y: 0, z: 1 };
+const cam = { x: 0, y: 0, z: 1, t: 0, peek: null, peekUntil: 0 };
 const world = { beach, sound, kiwis, stride: 8, foot: 5, speed: 100, writeSpeed: 60, k: 30 };
 let notes = [];   // 발자국 음이 날 때 떠오르는 ♪
 let leaves = [];  // 키위가 덤불을 드나들 때 튀는 잎
@@ -247,7 +249,9 @@ function resize() {
   shore.reset();
   beach.prints = [];
   cam.x = W / 2; cam.y = H / 2;
+  if (view === 'scope') paintScope();
   sizeFor(clamp(Math.min(W, H) * 0.14, 44, 150));
+  kiwis = kiwis.filter(k => Number.isFinite(k.x) && Number.isFinite(k.y));   // 크기 0 인 창에서 먼저 태어난 키위는 위치가 NaN — 버린다 (숲에서 다시 나온다)
   if (current) { kiwis.forEach(k => { k.job = null; if (k.state !== 'flee') k.state = 'free'; }); write(current); }
 }
 
@@ -538,6 +542,37 @@ window.addEventListener('pagehide', () => focus.hidden());
 // ── 카메라 ──
 function updateCamera(dt) {
   let tx = W / 2, ty = H / 2, tz = 1;
+  let ease = 2.5, tilt = 0;
+  cam.t += dt;
+  if (view === 'scope') {
+    // 쌍안경: 아무 키위나 한 마리를 몇 초씩 몰래 본다 (덤불 속에서 쉬는 키위도). 다른 키위로 옮길 땐 찾듯이 천천히, 손이 살짝 떨린다.
+    const pool = kiwis.filter(k => !k.gone);
+    if (pool.length && (!pool.includes(cam.peek) || cam.t > cam.peekUntil)) {
+      const others = pool.length > 1 ? pool.filter(k => k !== cam.peek) : pool;
+      cam.peek = others[Math.floor(Math.random() * others.length)]; cam.peekUntil = cam.t + 8 + Math.random() * 7;
+    }
+    tz = 2.6; ease = 1.3;
+    if (cam.peek && pool.length) { tx = cam.peek.x; ty = cam.peek.y - cam.peek.k * 0.4; }
+    else { tx = W * (0.5 + 0.3 * Math.sin(cam.t * 0.05)); ty = (beach.bushY ?? H * 0.3) + ((beach.shoreY ?? H * 0.7) - (beach.bushY ?? H * 0.3)) * 0.35; }   // 아무도 없으면 숲 가장자리를 훑는다
+    const sh = 3 / tz;   // 손떨림 (화면에서 몇 px)
+    tx += sh * (Math.sin(cam.t * 1.7) + 0.6 * Math.sin(cam.t * 4.3 + 1)); ty += sh * (Math.sin(cam.t * 1.3 + 2) + 0.6 * Math.sin(cam.t * 3.7));
+  } else if (view === 'text') {
+    // 글자 보기: 쓰는 문장 전체가 화면에 꽉 차게. 문장이 없으면 원래 크기로.
+    if (box) {
+      const bw = box.x1 - box.x0, bh = box.y1 - box.y0;
+      tz = clamp(Math.min(W / (bw * 1.18 + S), H / (bh * 1.35 + S * 1.2)), 1, 2.6);
+      tx = (box.x0 + box.x1) / 2; ty = (box.y0 + box.y1) / 2;
+    }
+    ease = 1.4;
+  } else if (view === 'breeze') {
+    // 바람결: 살짝 확대한 채로 풍경 위를 아주 천천히 떠다닌다. 확대·기울기도 숨 쉬듯.
+    tz = 1.32 + 0.08 * Math.sin(cam.t * 0.041);
+    const hw = W / (2 * tz), hh = H / (2 * tz);
+    tx = W / 2 + (W / 2 - hw) * Math.sin(cam.t * 0.027);
+    ty = H / 2 + (H / 2 - hh) * Math.sin(cam.t * 0.019 + 1.3);
+    tilt = 7 + 5 * Math.sin(cam.t * 0.033 + 0.5);   // 2~12도
+    ease = 1;
+  }
   if (view === 'follow') {
     const busy = kiwis.filter(k => k.state === 'write' || k.state === 'peck');
     const pool = busy.length ? busy : kiwis.filter(k => !k.gone && k.state !== 'flee');
@@ -546,7 +581,9 @@ function updateCamera(dt) {
       tz = 2.1; tx = cam.target.x; ty = cam.target.y - cam.target.k * 0.4;
     } else if (box) { tz = 1.4; tx = (box.x0 + box.x1) / 2; ty = (box.y0 + box.y1) / 2; }
   }
-  const f = Math.min(1, dt * 2.5);
+  const f = Math.min(1, dt * ease);
+  if (!Number.isFinite(tx) || !Number.isFinite(ty)) { tx = W / 2; ty = H / 2; }
+  if (!Number.isFinite(cam.x) || !Number.isFinite(cam.y)) { cam.x = W / 2; cam.y = H / 2; }
   cam.z += (tz - cam.z) * f;
   const hw = W / (2 * cam.z), hh = H / (2 * cam.z);
   cam.x += (clamp(tx, hw, W - hw) - cam.x) * f;
@@ -559,6 +596,11 @@ function updateCamera(dt) {
     const sn = Math.sin(th), cs = Math.cos(th);
     const s = 1.03 * Math.max(d / (d * cs - piv * sn), d / (d - piv * sn));
     worldEl.style.transform = `translate(${W / 2}px, ${piv}px) perspective(${d}px) rotateX(20deg) scale(${s}) translate(${-W / 2}px, ${-piv}px)`;
+  } else if (view === 'breeze') {
+    // 기울인 만큼 위쪽이 작아지므로 디오라마와 같은 식으로 덮는 배율을 더 곱한다. 가운데(cam)를 기울기 축에 둔다.
+    const th = (tilt * Math.PI) / 180, d = Math.max(W, H) * 1.1, sn = Math.sin(th), cs = Math.cos(th), piv = H / 2;
+    const k = 1.02 * Math.max(d / (d * cs - piv * sn), d / (d - piv * sn));
+    worldEl.style.transform = `translate(${W / 2}px, ${H / 2}px) perspective(${d}px) rotateX(${tilt}deg) scale(${cam.z * k}) translate(${-cam.x}px, ${-cam.y}px)`;
   } else worldEl.style.transform = `translate(${W / 2}px, ${H / 2}px) scale(${cam.z}) translate(${-cam.x}px, ${-cam.y}px)`;
 }
 
@@ -572,9 +614,29 @@ function toWorld(sx, sy) {
   return [(c1 * b2 - c2 * b1) / det, (a1 * c2 - a2 * c1) / det];
 }
 
+// 쌍안경 가림막: 가로 화면은 동그란 렌즈 두 개, 세로 화면은 하나. 부드러운 가장자리라 1/4 해상도 캔버스를 늘려 쓴다
+// (CSS 그라데이션은 핀치 확대 때 타일마다 다시 그려져 깜빡인다 — v18.5.4 #tint 와 같은 이유).
+function paintScope() {
+  const q = 4, w = Math.max(1, Math.round(W / q)), h = Math.max(1, Math.round(H / q));
+  scopeEl.width = w; scopeEl.height = h;
+  const c = scopeEl.getContext('2d');
+  c.fillStyle = 'rgba(6, 10, 14, 0.96)'; c.fillRect(0, 0, w, h);
+  const two = W > H * 1.05, r = two ? Math.min(h * 0.46, w * 0.3) : Math.min(w * 0.47, h * 0.36);
+  const cs = two ? [[w / 2 - r * 0.66, h / 2], [w / 2 + r * 0.66, h / 2]] : [[w / 2, h / 2]];
+  c.globalCompositeOperation = 'destination-out';
+  for (const [x, y] of cs) {
+    const g = c.createRadialGradient(x, y, r * 0.8, x, y, r);
+    g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(0.7, 'rgba(0,0,0,0.75)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
+    c.beginPath(); c.arc(x, y, r * 0.8, 0, Math.PI * 2); c.fillStyle = '#000'; c.fill();
+  }
+  c.globalCompositeOperation = 'source-over';
+}
+
 function setView(v, announce = true) {
   view = v;
   document.body.dataset.view = v;
+  if (v === 'scope') paintScope();
   viewBtn.setAttribute('aria-label', `시점: ${VIEW_NAME[v]} (고르기)`);
   if (announce) toast(VIEW_NAME[v]);
 }
@@ -905,6 +967,10 @@ function paintPacks() {
     let part = null;
     for (const it of [...PACK_BASE[group], ...ITEMS.filter(i => i.kind === 'sound' && i.group === group)]) {
       // 곡은 묶음별로 작은 제목 (v18.6) — 20곡이 한 덩어리로 섞여 있었다
+      if (group === 'step' && it.id) {   // 악기 소리는 종류별 작은 제목 (v18.8)
+        const p = /^s-i-/.test(it.id) ? '악기' : /^s-[pc]-/.test(it.id) ? '톡·뽁' : '바닥 악기';
+        if (p !== part) { part = p; const h = document.createElement('p'); h.className = 'part'; h.textContent = p; box.append(h); }
+      }
       if (group === 'music') {
         const p = !it.id ? '기본' : SONG_TRACKS[it.pack] ? '가져온 곡' : '직접 만든 곡';
         if (p !== part) { part = p; const h = document.createElement('p'); h.className = 'part'; h.textContent = p; box.append(h); }
@@ -921,6 +987,8 @@ function paintPacks() {
 }
 // 저장된 고름이 이제 없는 소리면 기본으로 (저장값을 지웠을 때 등)
 { const own = (g, p) => PACK_BASE[g].some(b => b.pack === p) || ITEMS.some(i => i.kind === 'sound' && i.group === g && i.pack === p && col.owns(i.id));
+  if (!own('natstep', sound.mix.natStep)) sound.setMix({ natStep: 'place' });
+  if (!own('find', sound.mix.findPack)) sound.setMix({ findPack: 'base' });
   if (!own('step', sound.mix.stepPack)) sound.setMix({ stepPack: 'music' });
   if (!VOICES.some(v => v.id === sound.mix.voice)) sound.setMix({ voice: 'inst' });
   if (!own('nature', sound.mix.nature)) sound.mix.nature = 'none';
@@ -933,7 +1001,7 @@ for (const k of ['music', 'amb', 'sfx']) {
 document.addEventListener('pointerdown', e => { if (!mixer.hidden && !onTop(e.target) && !mixer.contains(e.target) && !soundBtn.contains(e.target)) openMixer(false); });
 window.addEventListener('keydown', e => { if (e.key === 'Escape' && foundEl.hidden && !mixer.hidden) { openMixer(false); soundBtn.focus(); } });
 paintSoundBtn();
-viewBtn.addEventListener('click', () => openPicker(viewBtn, '시점', VIEWS.map(v => ({ id: v, name: VIEW_NAME[v] })), view, v => setView(v)));
+viewBtn.addEventListener('click', () => openPicker(viewBtn, '시점', VIEWS.map(v => ({ id: v, name: VIEW_NAME[v], g: 'v-' + v })), view, v => setView(v)));
 setView(view, false);
 
 const openInfo = open => {
@@ -965,10 +1033,6 @@ document.getElementById('touch').addEventListener('pointerdown', e => {
   const sh = shore.hit(x, y, beach.u);
   if (sh) { pickUp(sh); return; }
   const dr = drifters.hit(x, y, beach.u);
-      if (group === 'step' && it.id) {   // 악기 소리는 종류별 작은 제목 (v18.8)
-        const p = /^s-i-/.test(it.id) ? '악기' : /^s-[pc]-/.test(it.id) ? '톡·뽁' : '바닥 악기';
-        if (p !== part) { part = p; const h = document.createElement('p'); h.className = 'part'; h.textContent = p; box.append(h); }
-      }
   if (dr) { openDrift(dr); return; }
   // v16.2 안개 낀 날: 누른 자리가 뻥 뚫린다 (누른 채 문지르면 지나간 길도 닦인다)
   if (atmos.punchFog(x, y, beach.u, true)) { sound.poof(x); fogWipe = { x, y }; return; }
@@ -985,8 +1049,6 @@ document.getElementById('touch').addEventListener('pointerdown', e => {
 // 안개 문지르기: 누른 채로 움직이면 지나간 자리를 작은 구멍으로 잇는다
 let fogWipe = null;
 const touchEl = document.getElementById('touch');
-  if (!own('natstep', sound.mix.natStep)) sound.setMix({ natStep: 'place' });
-  if (!own('find', sound.mix.findPack)) sound.setMix({ findPack: 'base' });
 touchEl.addEventListener('pointermove', e => {
   if (!fogWipe || !e.buttons && e.pointerType === 'mouse') return;
   const [x, y] = toWorld(e.clientX, e.clientY), step = 22 * beach.u;
@@ -1047,15 +1109,15 @@ async function boot() {
     }
     throw err;
   })();
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.8.0'), img('assets/gull.webp?v=v18.8.0'), img('assets/bottle.webp?v=v18.8.0'), img('assets/crate.webp?v=v18.8.0')]);
-  img('assets/finds.webp?v=v18.8.0').then(im => {
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.9.0'), img('assets/gull.webp?v=v18.9.0'), img('assets/bottle.webp?v=v18.9.0'), img('assets/crate.webp?v=v18.9.0')]);
+  img('assets/finds.webp?v=v18.9.0').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
     drifters.setSprites({ ...drifters.imgs, conch: c });
   }).catch(() => {});
   drifters.setSprites({ bottle, crate });
-  img('assets/leaves.webp?v=v18.8.0').then(im => floaters.setSheet(im)).catch(() => {});
+  img('assets/leaves.webp?v=v18.9.0').then(im => floaters.setSheet(im)).catch(() => {});
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
   plate = p;
@@ -1319,7 +1381,7 @@ function paintCollection() {
   const ll = document.getElementById('letterList'); ll.textContent = '';
   for (const it of letters) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'letter';
-    const im = document.createElement('img'); im.src = 'assets/bottle.webp?v=v18.8.0'; im.alt = '';
+    const im = document.createElement('img'); im.src = 'assets/bottle.webp?v=v18.9.0'; im.alt = '';
     const tx = document.createElement('span'); tx.className = 'tx';
     const t = document.createElement('b'), q = document.createElement('span');
     if (col.owns(it.id)) {

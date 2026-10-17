@@ -60,6 +60,10 @@ body.snowy #world .forest { filter: saturate(0.35) brightness(1.55) contrast(0.8
 .tilt.top { top: 0; height: 30vh; -webkit-mask-image: linear-gradient(#000, transparent); mask-image: linear-gradient(#000, transparent); }
 .tilt.bottom { bottom: 0; height: 22vh; -webkit-mask-image: linear-gradient(transparent, #000); mask-image: linear-gradient(transparent, #000); }
 body[data-view="diorama"] .tilt { opacity: 1; }
+body[data-view="breeze"] .tilt { opacity: 0.55; }
+/* 쌍안경 가림막 (1/4 해상도 캔버스를 화면 크기로 늘림) */
+#scope { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 4; pointer-events: none; opacity: 0; transition: opacity var(--t-slow) var(--ease); }
+body[data-view="scope"] #scope { opacity: 1; }
 
 /* ── UI ── */
 #veil { position: fixed; left: 0; right: 0; bottom: 0; height: 30vh; z-index: 4; pointer-events: none; opacity: 0;
@@ -99,7 +103,9 @@ body.clean .corner:hover { opacity: 0.9; }
 #soundBtn .mute { display: none; }
 #soundBtn[data-on="0"] .wave { display: none; }
 #soundBtn[data-on="0"] .mute { display: inline; }
-#modeBtn g, #weatherBtn g { display: none; }
+#modeBtn g, #weatherBtn g, #viewBtn g { display: none; }
+body[data-view="top"] #viewBtn .v-top, body[data-view="diorama"] #viewBtn .v-diorama, body[data-view="follow"] #viewBtn .v-follow,
+body[data-view="scope"] #viewBtn .v-scope, body[data-view="text"] #viewBtn .v-text, body[data-view="breeze"] #viewBtn .v-breeze { display: inline; }
 #modeBtn[data-mode="free"] .m-free, #modeBtn[data-mode="clock"] .m-clock, #modeBtn[data-mode="quote"] .m-quote, #modeBtn[data-mode="word"] .m-word { display: inline; }
 #weatherBtn[data-weather="clear"] .w-clear, #weatherBtn[data-weather="cloudy"] .w-cloudy, #weatherBtn[data-weather="rain"] .w-rain,
 #weatherBtn[data-weather="snow"] .w-snow, #weatherBtn[data-weather="fog"] .w-fog, #weatherBtn[data-weather="wind"] .w-wind { display: inline; }
@@ -277,7 +283,7 @@ body.ready #boot { opacity: 0; visibility: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
   .sway, #grain { animation: none; }
-  #toast, #veil, .tilt, #boot, #caption { transition: none; }
+  #toast, #veil, .tilt, #scope, #boot, #caption { transition: none; }
 }
 /* 휴대폰: 알림이 위 버튼 줄을 가리지 않게 그 아래로 (집중 알약과 같은 자리) */
 @media (max-width: 560px) { #toast { top: calc(max(14px, env(safe-area-inset-top)) + 50px); max-width: calc(100vw - 40px); text-align: center; word-break: keep-all; } }
