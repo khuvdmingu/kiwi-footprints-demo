@@ -9,19 +9,22 @@
 //  믹서 값(소리 켜기·음악·환경음·효과음·발자국 음악)은 기기에 기억한다.
 //  브라우저는 사용자 동작 안에서만 소리를 열 수 있어서 unlock() 을 그때 부른다. 탭을 숨기면 멈춘다.
 
-import { Music } from './music.js?v=v18.7.0';
+import { Music } from './music.js?v=v18.8.0';
 
 // v16 아이템 소리·곡은 오픈소스 녹음 — 목록·출처는 카탈로그 한 곳 (src/tracks/index.js). assets/audio/ 에서 처음 고를 때 받는다
 //  STEP_SAMPLES: 0.5초 칸마다 한 걸음 · NATURE_LOOPS: 끝과 처음을 겹쳐 이음매 없이 도는 고리 · SONG_TRACKS: 곡 고리
-import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, TRACK } from './tracks/index.js?v=v18.7.0';
+import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v18.8.0';
 export { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, NATURAL_STEPS };
 const AUDIO = 'assets/audio/';
 
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 const MIX_KEY = 'kiwi-footprints.mix';
-const DEFAULT_MIX = { on: true, music: 0.55, amb: 0.8, sfx: 0.85, steps: true, stepPack: 'music', nature: 'none', song: 'auto', voice: 'inst', natStep: 'place' };
+const DEFAULT_MIX = { on: true, music: 0.55, amb: 0.8, sfx: 0.85, steps: true, stepPack: 'music', nature: 'none', song: 'auto', voice: 'inst', natStep: 'place', findPack: 'base' };
 // v18.7 키위 소리 두 갈래 (사용자 2026-10-17): voice 'inst' = 악기 소리(발자국 음악·바닥별 악기·나무 콕, 지금까지 그대로)
 //  · 'natural' = 자연스러운 소리(녹음 — 걷기·종종걸음·콕). natStep 'place' 면 장소를 따라 바뀐다
+//  v18.8 (사용자 2026-10-18 "기본도 남기고, 다른 소리는 아이템 모으듯이"): 기본은 그대로, 녹음·악기·반짝 녹음은 소라로 모은다
+//   stepPack 에 악기 소리 id(KIWI_VOICES — 칼림바·마림바·뽁…)도 온다 · findPack 'base'(합성 종) / 'sparkle'(녹음)
+//   ownNat = 모은 자연 녹음(main.js 가 넣는다) — 「장소 따라」인데 그 장소 녹음을 아직 못 모았으면 기본 소리
 export const PLACE_SOUND = {
   beach: { step: 'sand', peck: 'peck-sand' }, nz: { step: 'mud', peck: 'peck-mud' }, snow: { step: 'snowwalk', peck: 'peck-crunch' },
   fall: { step: 'dryleaves', peck: 'peck-crunch' }, zen: { step: 'zengravel', peck: 'peck-sand' },
@@ -42,7 +45,8 @@ export class Sound {
     this.idx = 3;
     this.last = {};
     this.stage = { W: 1, top: 0, bottom: 1 };
-    this.place = 'beach';   // 지금 장소 (main.js 가 바꾼다) — 「장소 따라」 자연 소리용
+    this.place = 'beach';
+    this.ownNat = null;     // 모은 자연 녹음 id 묶음 (null = 전부)   // 지금 장소 (main.js 가 바꾼다) — 「장소 따라」 자연 소리용
     this.music = new Music(this);
     this.music.setSong(this.mix.song === 'auto' || SONG_TRACKS[this.mix.song] ? null : this.mix.song);   // v15 고른 곡
     this.music.silent = !!SONG_TRACKS[this.mix.song];   // v16 녹음 곡이면 생성 음악은 쉰다
@@ -277,6 +281,7 @@ export class Sound {
     const k = 1 - Math.max(0, Math.min(1, (y - top) / Math.max(1, bottom - top)));
     const n = this.scaleNote(Math.round(k * 7) + 3), pan = this.panOf(x);
     if (pk === 'music') { this.pluck(n, 0.085, 0, 1.1, pan, 'sfx', 0.35); return true; }
+    if (KIWI_VOICES[pk]) { if (!this.voice(pk, n, x)) this.pluck(n, 0.085, 0, 1.1, pan, 'sfx', 0.35); return true; }   // v18.8 모은 악기 소리 (못 받았으면 칼림바)
     // v16.1 발자국 소리도 음악처럼: 같은 규칙(화음 안, 위쪽 획일수록 높은 음)으로 바닥에 어울리는 악기가 울리고, 녹음 질감은 밑에 작게
     this.stepVoice(pk, n, pan);
     if (pk !== 'splash' && this.gap('tex', 0.09)) this.stepTex(pk, x, 0.55);
@@ -340,9 +345,25 @@ export class Sound {
     }
   }
   // 글씨가 아닌 걸음(서성이기·오가기): 고른 발자국 소리를 작게 (모래는 조용히)
-  get natural() { return this.mix.voice === 'natural'; }
+  get natural() { return this.mix.voice === 'natural' && !!this.natPack(); }
   // 자연스러운 소리에서 지금 쓰는 발자국 녹음 (장소 따라 / 직접 고른 것)
-  natPack() { const n = this.mix.natStep; return n && n !== 'place' && STEP_SAMPLES[n] ? n : (PLACE_SOUND[this.place] || PLACE_SOUND.beach).step; }
+  natPack() {
+    const n = this.mix.natStep, own = id => !this.ownNat || this.ownNat.has(id);
+    if (n && n !== 'place' && STEP_SAMPLES[n]) return own(n) ? n : null;
+    const p = (PLACE_SOUND[this.place] || PLACE_SOUND.beach).step;
+    return own(p) ? p : null;   // 그 장소 녹음을 아직 못 모았으면 기본 소리
+  }
+  // v18.8 악기 소리 한 번: 음이 있는 악기는 화음의 음 n 으로 높낮이를 옮기고, 없는 것은 조금씩만 바꾼다
+  voice(id, n, x, vel = 1) {
+    const v = KIWI_VOICES[id];
+    if (!v) return false;
+    // 같은 음이름은 두고 옥타브만 접어 샘플 음 ±8반음 안에서 울린다 (너무 늘리면 찍찍·웅웅 소리가 된다)
+    let d = n + 12 * (v.oct || 0) - v.midi;
+    while (d > 8) d -= 12;
+    while (d < -8) d += 12;
+    const rate = v.pitched ? Math.pow(2, d / 12) : 0.9 + Math.random() * 0.25;
+    return this.fx(id, x, 0.5 * vel, rate);
+  }
   // 한 번 치는 녹음 (콕·반짝·줍기). 아직 못 받았으면 받기 시작하고 false — 부르는 쪽이 합성 소리로 대신한다
   fx(id, x, vel = 0.5, rate = 1, fade = 0) {
     const file = FX_SAMPLES[id], b = file && this.got && this.got[file];
@@ -362,6 +383,7 @@ export class Sound {
       return;
     }
     const pk = this.mix.stepPack;
+    if (KIWI_VOICES[pk]) { if (KIWI_VOICES[pk].walk && this.ready() && this.gap('walk', 0.16)) this.voice(pk, this.scaleNote(5), x, 0.4); return; }   // 뽁·톡은 어슬렁 걸음에도 작게, 음 있는 악기는 글씨에서만
     if (!this.ready() || !pk || pk === 'sand' || pk === 'music' || !this.gap('walk', 0.16)) return;
     this.stepTex(pk, x, 0.45);
   }
@@ -392,7 +414,8 @@ export class Sound {
   // 들어 보기: 발자국 네 번
   previewStep(pk) {
     if (!this.ready()) return;
-    if (this.natural) {   // 자연스러운 소리: 걸음 다섯 번 + 콕 한 번
+    if (KIWI_VOICES[pk]) this.loadBuf(KIWI_VOICES[pk].file);
+    if (this.mix.voice === 'natural' && this.natPack()) {   // 자연스러운 소리: 걸음 다섯 번 + 콕 한 번
       const st = pk === 'place' || !STEP_SAMPLES[pk] ? this.natPack() : pk;
       this.loadBuf(STEP_SAMPLES[st]).then(() => {
         for (let i = 0; i < 5; i++) setTimeout(() => this.stepTex(st, this.stage.W / 2, 1.1), i * 160);
@@ -404,6 +427,7 @@ export class Sound {
     for (let i = 0; i < 4; i++) setTimeout(() => {
       const n = this.scaleNote(4 + i * 2);
       if (pk === 'music') this.pluck(n, 0.085, 0, 1.1, 0, 'sfx', 0.35);
+      else if (KIWI_VOICES[pk]) { this.voice(pk, n, this.stage.W / 2); if (i === 3) setTimeout(() => this.peck(), 300); }
       else if (pk === 'sand') this.noise(0.04, 900 + Math.random() * 700, 1.2, 0.06, 0, 'bandpass', 0);
       else { this.stepVoice(pk, n, 0); if (pk !== 'splash') this.stepTex(pk, this.stage.W / 2, 0.55); }
     }, i * 260);
@@ -438,9 +462,8 @@ export class Sound {
   peck(x = this.stage.W / 2) {
     if (!this.ready() || !this.gap('peck', 0.05)) return;
     if (this.natural) {   // v18.7 바닥을 콕 — 고른 바닥(장소 따라면 장소)의 녹음
-      const n = this.mix.natStep, id = n && n !== 'place' && PECK_OF[n] ? PECK_OF[n] : (PLACE_SOUND[this.place] || PLACE_SOUND.beach).peck;
-      if (this.fx(id, x, 0.42, 0.9 + Math.random() * 0.25)) return;
-    }
+      if (this.fx(PECK_OF[this.natPack()], x, 0.42, 0.9 + Math.random() * 0.25)) return;
+    } else if (KIWI_VOICES[this.mix.stepPack] && this.voice(this.mix.stepPack, this.scaleNote(8) + 12, x, 0.8)) return;   // v18.8 악기 소리는 콕도 그 악기로
     this.wood(this.scaleNote(8) + 12, 0.09, this.panOf(x));
   }
 
@@ -507,13 +530,14 @@ export class Sound {
     if (!this.ready()) return;
     const t = this.ctx.currentTime, p = this.panOf(x);
     this.foundN = (this.foundN || 0) + 1;
-    const rec = this.fx(this.foundN % 2 ? 'sparkle' : 'glow', x, 0.32, 1, 1.6);
+    const rec = this.mix.findPack === 'sparkle' && this.fx(this.foundN % 2 ? 'sparkle' : 'glow', x, 0.32, 1, 1.6);   // v18.8 반짝 녹음은 모아서 고른 경우만
     if (!rec) this.noise(0.25, 2400, 1.2, 0.06, 0, 'bandpass', p);
     [0, 2, 4, 7, 9].forEach((d, i) => this.bell(this.scaleNote(4 + d) + 12, rec ? 0.035 : 0.07, t + 0.05 + i * 0.07, p));
   }
   // v18.7 물가에서 줍기: 처음 줍는 희귀품 = 드러남 · 처음 = 유리병 플링 · 또 주움 = 동전 톡 (못 받았으면 found/peck 로)
   pick(x, fresh, rare) {
     if (!this.ready()) return;
+    if (this.mix.findPack !== 'sparkle') { if (fresh) this.found(x); else this.peck(x); return; }   // 기본: 예전 그대로
     if (fresh && rare && this.fx('reveal', x, 0.4, 1, 1.8)) { const t = this.ctx.currentTime; [0, 2, 4, 7].forEach((d, i) => this.bell(this.scaleNote(5 + d) + 12, 0.03, t + 0.3 + i * 0.09, this.panOf(x))); return; }
     if (this.fx(fresh ? 'pickup' : 'coin', x, fresh ? 0.45 : 0.32, 0.95 + Math.random() * 0.1)) { if (fresh && !rare) { const t = this.ctx.currentTime; this.bell(this.scaleNote(9) + 12, 0.035, t + 0.08, this.panOf(x)); } return; }
     if (fresh) this.found(x); else this.peck(x);

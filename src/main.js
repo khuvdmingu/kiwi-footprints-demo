@@ -15,25 +15,25 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.7.0';
-import { Beach } from './beach.js?v=v18.7.0';
-import { Kiwi } from './kiwi.js?v=v18.7.0';
-import { Sound, SONG_TRACKS, NATURAL_STEPS } from './sound.js?v=v18.7.0';
-import { loadPlate } from './plate.js?v=v18.7.0';
-import { MAPS, MAP_IDS } from './maps.js?v=v18.7.0';
-import { WaterGL, FlatWater } from './water.js?v=v18.7.0';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.7.0';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.7.0';
-import { Leaves } from './leaves.js?v=v18.7.0';
-import { Rake } from './zen.js?v=v18.7.0';
-import { Clouds } from './clouds.js?v=v18.7.0';
-import { Gulls } from './gulls.js?v=v18.7.0';
-import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.7.0';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.7.0';
-import { clamp, dist } from './util.js?v=v18.7.0';
-import { Focus, Awake, LENGTHS } from './focus.js?v=v18.7.0';
-import { UNLOCK_ALL } from './config.js?v=v18.7.0';
-import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.7.0';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.8.0';
+import { Beach } from './beach.js?v=v18.8.0';
+import { Kiwi } from './kiwi.js?v=v18.8.0';
+import { Sound, SONG_TRACKS } from './sound.js?v=v18.8.0';
+import { loadPlate } from './plate.js?v=v18.8.0';
+import { MAPS, MAP_IDS } from './maps.js?v=v18.8.0';
+import { WaterGL, FlatWater } from './water.js?v=v18.8.0';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.8.0';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.8.0';
+import { Leaves } from './leaves.js?v=v18.8.0';
+import { Rake } from './zen.js?v=v18.8.0';
+import { Clouds } from './clouds.js?v=v18.8.0';
+import { Gulls } from './gulls.js?v=v18.8.0';
+import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.8.0';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.8.0';
+import { clamp, dist } from './util.js?v=v18.8.0';
+import { Focus, Awake, LENGTHS } from './focus.js?v=v18.8.0';
+import { UNLOCK_ALL } from './config.js?v=v18.8.0';
+import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.8.0';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -869,16 +869,19 @@ mixOn.checked = sound.on;
 mixOn.addEventListener('change', () => { sound.setOn(mixOn.checked); paintSoundBtn(); });
 // v14 발자국 소리 · 자연 배경: 모은 소리만 고를 수 있다 (못 모은 건 ?)
 // 맨 앞 칸 = 기본. 다른 칸을 고르면 기본 대신 그 소리가 나온다 (겹치지 않는다)
-const PACK_BASE = { step: [{ pack: 'music', name: '발자국 음악' }, { pack: 'sand', name: '모래' }], nature: [{ pack: 'none', name: '기본' }], music: [{ pack: 'auto', name: '시간 따라 바뀌는 음악' }] };
-const PACK_KEY = { step: 'stepPack', nature: 'nature', music: 'song' }, PACK_BOX = { step: 'stepPacks', nature: 'naturePacks', music: 'songPacks' };
+const PACK_BASE = { step: [{ pack: 'music', name: '발자국 음악' }, { pack: 'sand', name: '모래' }], nature: [{ pack: 'none', name: '기본' }], music: [{ pack: 'auto', name: '시간 따라 바뀌는 음악' }], find: [{ pack: 'base', name: '기본 종소리' }], natstep: [{ pack: 'place', name: '장소 따라' }] };
+const PACK_KEY = { step: 'stepPack', nature: 'nature', music: 'song', find: 'findPack', natstep: 'natStep' }, PACK_BOX = { step: 'stepPacks', nature: 'naturePacks', music: 'songPacks', find: 'findPacks' };
 const GROUP_NAME = { step: '발자국 소리', nature: '자연 배경', music: '곡' };
 const curPack = g => sound.mix[PACK_KEY[g]];
 // v18.7 키위 소리 두 갈래: 악기 소리(지금까지의 발자국 음악·바닥 악기) / 자연스러운 소리(녹음 — 걷기·콕·도망, 장소 따라 기본)
 const VOICES = [{ id: 'inst', name: '악기 소리' }, { id: 'natural', name: '자연스러운 소리' }];
-const STEP_HINT = { inst: '키위가 글씨를 밟을 때 칼림바 대신 그 바닥의 악기로 울려요. 콕은 나무 소리.', natural: '걷기·콕을 실제 녹음으로. 「장소 따라」는 해변 모래 · 숲 진흙 · 눈길 · 마른 잎 · 자갈로 바뀌고, 도망칠 땐 종종걸음.' };
-const NAT_BASE = [{ pack: 'place', name: '장소 따라' }, ...NATURAL_STEPS];
+const STEP_HINT = { inst: '글씨를 밟을 때마다 화음 안의 음으로 울려요. 모은 악기를 고르면 콕도 그 악기로.', natural: '걷기·콕을 실제 녹음으로, 도망칠 땐 종종걸음. 「장소 따라」는 모은 녹음 중 그 장소 것을 쓰고, 아직 없으면 기본 소리.' };
+// v18.8 자연 녹음·반짝 녹음도 소라로 모은다 — 엔진이 「장소 따라」에서 모은 것만 쓰게 알려 준다
+const natItem = Object.fromEntries(ITEMS.filter(i => i.group === 'natstep').map(i => [i.pack, i.id]));
+sound.ownNat = { has: pack => !natItem[pack] || col.owns(natItem[pack]) };
 function setPack(group, pack, preview = true) {
-  if (group === 'step' && sound.natural) { sound.setMix({ natStep: pack }); if (preview) sound.previewStep(pack); }
+  if (group === 'natstep') { sound.setMix({ natStep: pack }); if (preview) sound.previewStep(pack); }
+  else if (group === 'find') { sound.setMix({ findPack: pack }); if (preview) sound.found(sound.stage.W / 2); }
   else if (group === 'step') { sound.setMix({ stepPack: pack }); if (preview) sound.previewStep(pack); }
   else if (group === 'music') sound.setSong(pack);
   else sound.setNature(pack);
@@ -893,12 +896,14 @@ function paintPacks() {
     b.addEventListener('click', () => { unlock(); sound.setMix({ voice: v.id }); paintPacks(); sound.previewStep(v.id === 'natural' ? sound.mix.natStep : sound.mix.stepPack); });
     vbox.append(b);
   }
-  document.getElementById('stepHint').textContent = STEP_HINT[sound.natural ? 'natural' : 'inst'];
-  for (const group of ['music', 'step', 'nature']) {
-    const box = document.getElementById(PACK_BOX[group]), nat = group === 'step' && sound.natural, cur = nat ? sound.mix.natStep : curPack(group);
+  const natural = sound.mix.voice === 'natural';
+  document.getElementById('stepHint').textContent = STEP_HINT[natural ? 'natural' : 'inst'];
+  for (const g of ['music', 'step', 'nature', 'find']) {
+    const group = g === 'step' && natural ? 'natstep' : g;   // 발자국 칸은 고른 갈래의 목록
+    const box = document.getElementById(PACK_BOX[g]), cur = curPack(group);
     box.textContent = '';
     let part = null;
-    for (const it of nat ? NAT_BASE : [...PACK_BASE[group], ...ITEMS.filter(i => i.kind === 'sound' && i.group === group)]) {
+    for (const it of [...PACK_BASE[group], ...ITEMS.filter(i => i.kind === 'sound' && i.group === group)]) {
       // 곡은 묶음별로 작은 제목 (v18.6) — 20곡이 한 덩어리로 섞여 있었다
       if (group === 'music') {
         const p = !it.id ? '기본' : SONG_TRACKS[it.pack] ? '가져온 곡' : '직접 만든 곡';
@@ -917,7 +922,6 @@ function paintPacks() {
 // 저장된 고름이 이제 없는 소리면 기본으로 (저장값을 지웠을 때 등)
 { const own = (g, p) => PACK_BASE[g].some(b => b.pack === p) || ITEMS.some(i => i.kind === 'sound' && i.group === g && i.pack === p && col.owns(i.id));
   if (!own('step', sound.mix.stepPack)) sound.setMix({ stepPack: 'music' });
-  if (!NAT_BASE.some(b => b.pack === sound.mix.natStep)) sound.setMix({ natStep: 'place' });
   if (!VOICES.some(v => v.id === sound.mix.voice)) sound.setMix({ voice: 'inst' });
   if (!own('nature', sound.mix.nature)) sound.mix.nature = 'none';
   if (!own('music', sound.mix.song)) sound.setSong('auto'); }
@@ -961,6 +965,10 @@ document.getElementById('touch').addEventListener('pointerdown', e => {
   const sh = shore.hit(x, y, beach.u);
   if (sh) { pickUp(sh); return; }
   const dr = drifters.hit(x, y, beach.u);
+      if (group === 'step' && it.id) {   // 악기 소리는 종류별 작은 제목 (v18.8)
+        const p = /^s-i-/.test(it.id) ? '악기' : /^s-[pc]-/.test(it.id) ? '톡·뽁' : '바닥 악기';
+        if (p !== part) { part = p; const h = document.createElement('p'); h.className = 'part'; h.textContent = p; box.append(h); }
+      }
   if (dr) { openDrift(dr); return; }
   // v16.2 안개 낀 날: 누른 자리가 뻥 뚫린다 (누른 채 문지르면 지나간 길도 닦인다)
   if (atmos.punchFog(x, y, beach.u, true)) { sound.poof(x); fogWipe = { x, y }; return; }
@@ -977,6 +985,8 @@ document.getElementById('touch').addEventListener('pointerdown', e => {
 // 안개 문지르기: 누른 채로 움직이면 지나간 자리를 작은 구멍으로 잇는다
 let fogWipe = null;
 const touchEl = document.getElementById('touch');
+  if (!own('natstep', sound.mix.natStep)) sound.setMix({ natStep: 'place' });
+  if (!own('find', sound.mix.findPack)) sound.setMix({ findPack: 'base' });
 touchEl.addEventListener('pointermove', e => {
   if (!fogWipe || !e.buttons && e.pointerType === 'mouse') return;
   const [x, y] = toWorld(e.clientX, e.clientY), step = 22 * beach.u;
@@ -1037,15 +1047,15 @@ async function boot() {
     }
     throw err;
   })();
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.7.0'), img('assets/gull.webp?v=v18.7.0'), img('assets/bottle.webp?v=v18.7.0'), img('assets/crate.webp?v=v18.7.0')]);
-  img('assets/finds.webp?v=v18.7.0').then(im => {
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.8.0'), img('assets/gull.webp?v=v18.8.0'), img('assets/bottle.webp?v=v18.8.0'), img('assets/crate.webp?v=v18.8.0')]);
+  img('assets/finds.webp?v=v18.8.0').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
     drifters.setSprites({ ...drifters.imgs, conch: c });
   }).catch(() => {});
   drifters.setSprites({ bottle, crate });
-  img('assets/leaves.webp?v=v18.7.0').then(im => floaters.setSheet(im)).catch(() => {});
+  img('assets/leaves.webp?v=v18.8.0').then(im => floaters.setSheet(im)).catch(() => {});
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
   plate = p;
@@ -1309,7 +1319,7 @@ function paintCollection() {
   const ll = document.getElementById('letterList'); ll.textContent = '';
   for (const it of letters) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'letter';
-    const im = document.createElement('img'); im.src = 'assets/bottle.webp?v=v18.7.0'; im.alt = '';
+    const im = document.createElement('img'); im.src = 'assets/bottle.webp?v=v18.8.0'; im.alt = '';
     const tx = document.createElement('span'); tx.className = 'tx';
     const t = document.createElement('b'), q = document.createElement('span');
     if (col.owns(it.id)) {
@@ -1442,4 +1452,4 @@ paintWeather();
 const firstWrite = () => { if (!plate) { setTimeout(firstWrite, 300); return; } if (phase === 'idle' && !current && mode === 'free') write(FIRST); };
 setTimeout(firstWrite, 700);
 
-window.__kiwi = { setPack, setCrowd, get crowd() { return { id: crowdId, n: crowdN, ...crowd() }; }, paintPacks, focus, completeFocus, shore, finds, pickUp, paintCollection, get phase() { return phase; }, get kiwis() { return kiwis; }, get jobs() { return jobs; }, get current() { return current; }, beach, get water() { return water; }, art, artAt, get light() { return { mode: lightMode, pick: lightPick, shown: lightShown }; }, setLight, get artDpr() { return artDpr(); }, perf, clouds, atmos, sound, get plate() { return plate; }, drifters, col, openDrift, get notes() { return notes; }, submit, setView, toWorld };
+window.__kiwi = { setPack, setCrowd, get crowd() { return { id: crowdId, n: crowdN, ...crowd() }; }, paintPacks, focus, completeFocus, shore, finds, pickUp, paintCollection, get phase() { return phase; }, get kiwis() { return kiwis; }, get jobs() { return jobs; }, get current() { return current; }, beach, get water() { return water; }, art, artAt, get light() { return { mode: lightMode, pick: lightPick, shown: lightShown }; }, setLight, get artDpr() { return artDpr(); }, perf, clouds, atmos, sound, get plate() { return plate; }, drifters, col, openDrift, get notes() { return notes; }, submit, setView, toWorld, cam };
