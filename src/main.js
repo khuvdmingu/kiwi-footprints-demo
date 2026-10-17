@@ -15,25 +15,25 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.5.5';
-import { Beach } from './beach.js?v=v18.5.5';
-import { Kiwi } from './kiwi.js?v=v18.5.5';
-import { Sound } from './sound.js?v=v18.5.5';
-import { loadPlate } from './plate.js?v=v18.5.5';
-import { MAPS, MAP_IDS } from './maps.js?v=v18.5.5';
-import { WaterGL, FlatWater } from './water.js?v=v18.5.5';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.5.5';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.5.5';
-import { Leaves } from './leaves.js?v=v18.5.5';
-import { Rake } from './zen.js?v=v18.5.5';
-import { Clouds } from './clouds.js?v=v18.5.5';
-import { Gulls } from './gulls.js?v=v18.5.5';
-import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.5.5';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.5.5';
-import { clamp, dist } from './util.js?v=v18.5.5';
-import { Focus, Awake, LENGTHS } from './focus.js?v=v18.5.5';
-import { UNLOCK_ALL } from './config.js?v=v18.5.5';
-import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.5.5';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.6.0';
+import { Beach } from './beach.js?v=v18.6.0';
+import { Kiwi } from './kiwi.js?v=v18.6.0';
+import { Sound, SONG_TRACKS } from './sound.js?v=v18.6.0';
+import { loadPlate } from './plate.js?v=v18.6.0';
+import { MAPS, MAP_IDS } from './maps.js?v=v18.6.0';
+import { WaterGL, FlatWater } from './water.js?v=v18.6.0';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.6.0';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.6.0';
+import { Leaves } from './leaves.js?v=v18.6.0';
+import { Rake } from './zen.js?v=v18.6.0';
+import { Clouds } from './clouds.js?v=v18.6.0';
+import { Gulls } from './gulls.js?v=v18.6.0';
+import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.6.0';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.6.0';
+import { clamp, dist } from './util.js?v=v18.6.0';
+import { Focus, Awake, LENGTHS } from './focus.js?v=v18.6.0';
+import { UNLOCK_ALL } from './config.js?v=v18.6.0';
+import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.6.0';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -830,10 +830,29 @@ const paintSoundBtn = () => {
   soundBtn.dataset.on = sound.on ? '1' : '0';
 };
 const mixer = document.getElementById('mixer');
+// 창 안의 탭 (v18.6): 설정은 풍경 · 글씨 · 모은 것, 소리 창은 크기 · 곡 · 발자국·배경 — 한 줄로 길게 섞여 있던 것을 나눴다
+function wireTabs(panel, key) {
+  const tabs = [...panel.querySelectorAll('[role="tab"]')];
+  const show = name => {
+    if (!tabs.some(t => t.dataset.tab === name)) name = tabs[0].dataset.tab;
+    for (const t of tabs) { const on = t.dataset.tab === name; t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1; }
+    for (const p of panel.querySelectorAll('.pane')) p.hidden = p.dataset.pane !== name;
+    panel.scrollTop = 0; save('tab.' + key, name);
+  };
+  for (const t of tabs) t.addEventListener('click', () => show(t.dataset.tab));
+  panel.querySelector('[role="tablist"]').addEventListener('keydown', e => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const i = tabs.findIndex(t => t.getAttribute('aria-selected') === 'true'), n = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+    show(n.dataset.tab); n.focus(); e.preventDefault();
+  });
+  show(saved('tab.' + key) || tabs[0].dataset.tab);
+  return show;
+}
+const mixerTab = wireTabs(mixer, 'mixer');
 const openMixer = open => {
   mixer.hidden = !open;
   soundBtn.setAttribute('aria-expanded', String(open));
-  if (open) mixer.querySelector('input').focus();
+  if (open) mixer.querySelector('[role="tab"][aria-selected="true"]').focus();
 };
 soundBtn.addEventListener('click', () => { unlock(); paintPacks(); openMixer(mixer.hidden); });
 const mixOn = document.getElementById('mixOn');
@@ -841,7 +860,7 @@ mixOn.checked = sound.on;
 mixOn.addEventListener('change', () => { sound.setOn(mixOn.checked); paintSoundBtn(); });
 // v14 발자국 소리 · 자연 배경: 모은 소리만 고를 수 있다 (못 모은 건 ?)
 // 맨 앞 칸 = 기본. 다른 칸을 고르면 기본 대신 그 소리가 나온다 (겹치지 않는다)
-const PACK_BASE = { step: [{ pack: 'music', name: '발자국 음악' }, { pack: 'sand', name: '모래' }], nature: [{ pack: 'none', name: '기본' }], music: [{ pack: 'auto', name: '기본(시간 따라)' }] };
+const PACK_BASE = { step: [{ pack: 'music', name: '발자국 음악' }, { pack: 'sand', name: '모래' }], nature: [{ pack: 'none', name: '기본' }], music: [{ pack: 'auto', name: '시간 따라 바뀌는 음악' }] };
 const PACK_KEY = { step: 'stepPack', nature: 'nature', music: 'song' }, PACK_BOX = { step: 'stepPacks', nature: 'naturePacks', music: 'songPacks' };
 const GROUP_NAME = { step: '발자국 소리', nature: '자연 배경', music: '곡' };
 const curPack = g => sound.mix[PACK_KEY[g]];
@@ -855,7 +874,13 @@ function paintPacks() {
   for (const group of ['music', 'step', 'nature']) {
     const box = document.getElementById(PACK_BOX[group]), cur = curPack(group);
     box.textContent = '';
+    let part = null;
     for (const it of [...PACK_BASE[group], ...ITEMS.filter(i => i.kind === 'sound' && i.group === group)]) {
+      // 곡은 묶음별로 작은 제목 (v18.6) — 20곡이 한 덩어리로 섞여 있었다
+      if (group === 'music') {
+        const p = !it.id ? '기본' : SONG_TRACKS[it.pack] ? '가져온 곡' : '직접 만든 곡';
+        if (p !== part) { part = p; const h = document.createElement('p'); h.className = 'part'; h.textContent = p; box.append(h); }
+      }
       const b = document.createElement('button'); b.type = 'button';
       const own = !it.id || col.owns(it.id);
       b.textContent = own ? it.name : '?'; b.disabled = !own;
@@ -987,15 +1012,15 @@ async function boot() {
     }
     throw err;
   })();
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.5.5'), img('assets/gull.webp?v=v18.5.5'), img('assets/bottle.webp?v=v18.5.5'), img('assets/crate.webp?v=v18.5.5')]);
-  img('assets/finds.webp?v=v18.5.5').then(im => {
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.6.0'), img('assets/gull.webp?v=v18.6.0'), img('assets/bottle.webp?v=v18.6.0'), img('assets/crate.webp?v=v18.6.0')]);
+  img('assets/finds.webp?v=v18.6.0').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
     drifters.setSprites({ ...drifters.imgs, conch: c });
   }).catch(() => {});
   drifters.setSprites({ bottle, crate });
-  img('assets/leaves.webp?v=v18.5.5').then(im => floaters.setSheet(im)).catch(() => {});
+  img('assets/leaves.webp?v=v18.6.0').then(im => floaters.setSheet(im)).catch(() => {});
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
   plate = p;
@@ -1048,7 +1073,8 @@ function setMode(m, announce = true) {
 modeBtn.addEventListener('click', () => { unlock(); setMode(MODES[(MODES.indexOf(mode) + 1) % MODES.length]); });
 // 설정 창(톱니바퀴): 시계 초 표시 · 표기
 const settings = document.getElementById('settings'), setBtn = document.getElementById('setBtn');
-const openSettings = open => { settings.hidden = !open; setBtn.setAttribute('aria-expanded', String(open)); if (open) settings.querySelector('input').focus(); };
+const settingsTab = wireTabs(settings, 'settings');
+const openSettings = open => { settings.hidden = !open; setBtn.setAttribute('aria-expanded', String(open)); if (open) settings.querySelector('[role="tab"][aria-selected="true"]').focus(); };
 const mapOpen = id => { const m = MAPS[id]; return !m.unlock || col.owns(m.unlock) || (m.steps > 0 && focus.total >= m.steps); };
 function paintModeMenu() {
   for (const r of settings.querySelectorAll('input[name="map"]')) {
@@ -1131,7 +1157,8 @@ function showFound(it, fresh = false) {
     foundWear.hidden = true;
   } else if (it.kind === 'letter') {
     const p = document.createElement('div'); p.className = 'paper'; p.textContent = it.text; art.append(p);
-    title.textContent = (fresh ? '유리병 속 ' : '') + it.title; body.textContent = `${col.count} / ${ITEMS.length} 모음`;
+    const letters = ITEMS.filter(i => i.kind === 'letter');
+    title.textContent = (fresh ? '유리병 속 ' : '') + it.title; body.textContent = `모은 편지 ${letters.filter(i => col.owns(i.id)).length} / ${letters.length}`;
     foundWear.hidden = true;
   } else if (it.kind === 'sound') {
     const sp = document.createElement('i'); sp.className = 'find'; art.append(sp);
@@ -1239,32 +1266,54 @@ function paintCraft() {
 function paintCollection() {
   paintFinds();
   paintCraft();
-  const grid = document.getElementById('colGrid');
-  document.getElementById('colTitle').textContent = `모은 것 ${col.count} / ${ITEMS.length}${UNLOCK_ALL ? ' · 테스트: 모두 열림' : ''}`;
-  grid.textContent = '';
-  for (const it of ITEMS) {
-    const b = document.createElement('button'); b.type = 'button';
-    if (!col.owns(it.id)) { b.className = 'locked'; b.textContent = '?'; b.setAttribute('aria-label', '아직 못 찾음'); b.disabled = true; }
-    else if (it.kind === 'letter') { b.textContent = '✉'; b.setAttribute('aria-label', it.title + ' 다시 읽기'); b.addEventListener('click', () => showFound(it)); }
-    else if (it.kind === 'sound') {
-      const on = curPack(it.group) === it.pack;
-      b.textContent = it.group === 'step' ? '👣' : it.group === 'music' ? '♫' : '♪'; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on));
-      b.setAttribute('aria-label', `${it.name} ${on ? '끄기' : '틀기'}`); b.title = it.name;
-      b.addEventListener('click', () => { unlock(); setPack(it.group, on ? PACK_BASE[it.group][0].pack : it.pack); toast(on ? `${it.name} 끔` : it.name, 1500); paintCollection(); });
-    }
-    else if (it.kind === 'map') {
-      const im = document.createElement('img'); im.src = 'assets/' + it.img; im.alt = ''; b.append(im); b.classList.add('place');
-      b.classList.toggle('on', mapId === it.map); b.setAttribute('aria-label', it.name + ' 가 보기');
-      b.addEventListener('click', () => { setMap(it.map); paintCollection(); });
-    }
-    else {
-      const im = document.createElement('img'); im.src = 'assets/' + it.img; im.alt = ''; b.append(im);
-      b.classList.toggle('on', col.wearing(it.id)); b.setAttribute('aria-pressed', String(col.wearing(it.id))); b.setAttribute('aria-label', it.name + (col.wearing(it.id) ? ' 벗기기' : ' 입히기'));
-      b.addEventListener('click', () => setWear(it.id, !col.wearing(it.id)));
-    }
-    grid.append(b);
+  // 종류별로 나눠 그린다 (v18.6) — 편지·옷·장소·곡·발자국 소리가 한 칸 격자에 섞여 있었다. 소리는 소리 창에서만 고른다
+  const of = k => ITEMS.filter(it => it.kind === k), owned = list => list.filter(it => col.owns(it.id)).length;
+  const letters = of('letter'), wears = of('wear'), places = of('map'), sounds = of('sound');
+  document.getElementById('colTitle').textContent = `전체 ${col.count} / ${ITEMS.length}${UNLOCK_ALL ? ' · 테스트: 모두 열림' : ''}`;
+  document.getElementById('letterTitle').textContent = `편지 ${owned(letters)} / ${letters.length}`;
+  document.getElementById('wearTitle').textContent = `옷 ${owned(wears)} / ${wears.length}`;
+  document.getElementById('placeTitle').textContent = `장소 ${owned(places)} / ${places.length}`;
+  document.getElementById('soundTitle').textContent = `소리 ${owned(sounds)} / ${sounds.length}`;
+  const groups = ['music', 'step', 'nature'].map(g => { const l = sounds.filter(i => i.group === g); return `${GROUP_NAME[g]} ${owned(l)}/${l.length}`; });
+  document.getElementById('soundSum').textContent = groups.join(' · ');
+  const locked = () => { const b = document.createElement('button'); b.type = 'button'; b.className = 'locked'; b.textContent = '?'; b.disabled = true; b.setAttribute('aria-label', '아직 못 찾음'); return b; };
+  // 편지: 유리병 그림 + 제목 + 첫 구절
+  const ll = document.getElementById('letterList'); ll.textContent = '';
+  for (const it of letters) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'letter';
+    const im = document.createElement('img'); im.src = 'assets/bottle.webp?v=v18.6.0'; im.alt = '';
+    const tx = document.createElement('span'); tx.className = 'tx';
+    const t = document.createElement('b'), q = document.createElement('span');
+    if (col.owns(it.id)) {
+      t.textContent = it.title; q.textContent = it.text;
+      b.setAttribute('aria-label', it.title + ' 다시 읽기'); b.addEventListener('click', () => showFound(it));
+    } else { t.textContent = '아직 못 받은 편지'; q.textContent = '물 위로 유리병이 떠내려오면 눌러 보세요'; b.disabled = true; b.classList.add('locked'); }
+    tx.append(t, q); b.append(im, tx); ll.append(b);
+  }
+  // 옷: 누르면 입히기 · 벗기기
+  const wg = document.getElementById('wearGrid'); wg.textContent = '';
+  for (const it of wears) {
+    if (!col.owns(it.id)) { wg.append(locked()); continue; }
+    const b = document.createElement('button'); b.type = 'button'; b.title = it.name;
+    const im = document.createElement('img'); im.src = 'assets/' + it.img; im.alt = ''; b.append(im);
+    b.classList.toggle('on', col.wearing(it.id)); b.setAttribute('aria-pressed', String(col.wearing(it.id))); b.setAttribute('aria-label', it.name + (col.wearing(it.id) ? ' 벗기기' : ' 입히기'));
+    b.addEventListener('click', () => setWear(it.id, !col.wearing(it.id)));
+    wg.append(b);
+  }
+  // 장소: 그림 카드 + 이름, 누르면 가 보기
+  const pg = document.getElementById('placeGrid'); pg.textContent = '';
+  for (const it of places) {
+    if (!col.owns(it.id)) { pg.append(locked()); continue; }
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'place';
+    const im = document.createElement('img'); im.src = 'assets/' + it.img; im.alt = '';
+    const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = it.name;
+    b.append(im, nm);
+    b.classList.toggle('on', mapId === it.map); b.setAttribute('aria-label', it.name + ' 가 보기');
+    b.addEventListener('click', () => { setMap(it.map); paintCollection(); });
+    pg.append(b);
   }
 }
+document.getElementById('toMixer').addEventListener('click', () => { openSettings(false); paintPacks(); mixerTab('song'); openMixer(true); });
 settings.addEventListener('change', e => {
   const t = e.target;
   if (t.name === 'map') { setMap(t.value); return; }

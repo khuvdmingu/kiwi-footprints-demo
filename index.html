@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#1A5C91" />
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v18.5.5" />
+  <link rel="stylesheet" href="style.css?v=v18.6.0" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png" />
@@ -90,6 +90,12 @@
     <p id="focusStats" class="stats"></p>
   </div>
   <div id="settings" role="dialog" aria-label="설정" hidden>
+    <div class="tabs" role="tablist" aria-label="설정 묶음">
+      <button type="button" role="tab" data-tab="scene" aria-selected="true">풍경</button>
+      <button type="button" role="tab" data-tab="write" aria-selected="false">글씨</button>
+      <button type="button" role="tab" data-tab="bag" aria-selected="false">모은 것</button>
+    </div>
+    <section class="pane" data-pane="scene" role="tabpanel" aria-label="풍경">
     <h2>장소</h2>
     <div class="seg three" role="radiogroup" aria-label="장소">
       <label><input type="radio" name="map" value="beach" /><span>바닷가</span></label>
@@ -110,8 +116,10 @@
         <button type="button" data-h="5.5">새벽</button><button type="button" data-h="7.5">아침</button><button type="button" data-h="12">한낮</button><button type="button" data-h="18.4">노을</button><button type="button" data-h="19.6">저녁</button><button type="button" data-h="21.5">밤</button><button type="button" data-h="1">한밤</button>
       </div>
     </div>
-    <p class="hint">지금 시각이면 하루 동안 빛이 천천히 바뀌어요. 직접 고르면 그 빛·반딧불이·밤 소리가 그대로 머물러요 — 시계 글씨와 물가의 밤·해 질 녘 희귀품은 실제 시각을 따라요.</p>
-    <h2 class="sep">키위 수</h2>
+    <p class="hint">지금 시각이면 하루 동안 빛이 천천히 바뀌어요. 직접 고르면 그 빛이 그대로 머물러요.</p>
+    </section>
+    <section class="pane" data-pane="write" role="tabpanel" aria-label="글씨" hidden>
+    <h2>키위 수</h2>
     <div class="seg five" role="radiogroup" aria-label="키위 수">
       <label><input type="radio" name="kiwis" value="one" /><span>한 마리</span></label>
       <label><input type="radio" name="kiwis" value="few" /><span>조금</span></label>
@@ -123,7 +131,7 @@
       <p id="kiwiNow" class="lightNow"></p>
       <input id="kiwiN" type="range" min="1" max="30" step="1" aria-label="키위 수 직접 고르기" />
     </div>
-    <p class="hint">보통은 글씨가 길수록 많이 나와요(획 2~3개에 한 마리, 최대 22). 조금은 최대 8마리라 천천히, 많이는 최대 30마리가 빨리 써요. 막대를 움직이면 그 수까지만 나와요. 줄이면 일 없는 키위부터 숲으로 돌아가요.</p>
+    <p class="hint">보통은 글씨가 길수록 많이 나와요(최대 22마리). 조금은 천천히, 많이는 빨리 써요.</p>
     <h2 class="sep">시계</h2>
     <div id="clockOpts">
       <label class="row switch"><span>초 표시</span><input id="optSec" type="checkbox" /></label>
@@ -132,16 +140,27 @@
         <label><input type="radio" name="fmt" value="en" /><span>AM/PM</span></label>
         <label><input type="radio" name="fmt" value="24" /><span>24시간</span></label>
       </div>
-      <p class="hint">글 모드 버튼으로 시계를 고르면 보여요. 시·분이 바뀌면 바뀐 글자만 모래가 덮고 키위가 다시 써요. 초는 모래에 매초 찍혀요.</p>
+      <p class="hint">글 모드 버튼으로 시계를 고르면 보여요. 시·분이 바뀌면 바뀐 글자만 다시 써요.</p>
     </div>
+    </section>
+    <section class="pane" data-pane="bag" role="tabpanel" aria-label="모은 것" hidden>
+    <p id="colTitle" class="bagSum"></p>
+    <h2 id="letterTitle">편지</h2>
+    <div id="letterList" class="letters"></div>
+    <h2 class="sep" id="wearTitle">옷</h2>
+    <div id="wearGrid" class="colgrid"></div>
+    <p class="hint">눌러서 입히기 · 벗기기</p>
+    <h2 class="sep" id="placeTitle">장소</h2>
+    <div id="placeGrid" class="colgrid places"></div>
+    <h2 class="sep" id="soundTitle">소리</h2>
+    <div class="soundSum"><span id="soundSum"></span><button id="toMixer" type="button">소리 창 열기</button></div>
     <h2 class="sep" id="findTitle">주운 것</h2>
     <div id="findGrid" class="colgrid finds"></div>
-    <p class="hint">켜 두면 몇 분에 한 번 물가에 작은 것이 밀려와요. 눌러서 주우세요 — 큰 파도가 오면 쓸려 가요. 어떤 건 밤 · 비 · 해 질 녘 · 눈밭에서만.</p>
+    <p class="hint">켜 두면 몇 분에 한 번 물가에 작은 것이 밀려와요. 어떤 건 밤 · 비 · 해 질 녘 · 눈밭에서만.</p>
     <h2 class="sub">바꾸기</h2>
     <div id="craftList"></div>
-    <h2 class="sep" id="colTitle">모은 것</h2>
-    <div id="colGrid" class="colgrid"></div>
-    <p class="hint">물 위로 유리병이나 상자가 떠내려오면 눌러서 열어 보세요. 옷은 눌러서 입히기 · 벗기기, 장소는 눌러서 가 보기.</p>
+    <p class="hint">물 위로 유리병 · 상자 · 소라가 떠내려오면 눌러서 열어 보세요.</p>
+    </section>
   </div>
   <div id="found" role="dialog" aria-modal="true" aria-labelledby="foundTitle" hidden>
     <div class="card">
@@ -152,18 +171,30 @@
     </div>
   </div>
   <div id="mixer" role="dialog" aria-label="소리 설정" hidden>
+    <div class="tabs" role="tablist" aria-label="소리 묶음">
+      <button type="button" role="tab" data-tab="vol" aria-selected="true">크기</button>
+      <button type="button" role="tab" data-tab="song" aria-selected="false">곡</button>
+      <button type="button" role="tab" data-tab="bed" aria-selected="false">발자국·배경</button>
+    </div>
+    <section class="pane" data-pane="vol" role="tabpanel" aria-label="크기">
     <label class="row switch"><span>소리</span><input id="mixOn" type="checkbox" /></label>
     <label class="row"><span>음악</span><input id="mix-music" type="range" min="0" max="100" step="1" /></label>
     <label class="row"><span>파도·날씨</span><input id="mix-amb" type="range" min="0" max="100" step="1" /></label>
     <label class="row"><span>효과음</span><input id="mix-sfx" type="range" min="0" max="100" step="1" /></label>
-    <p class="hint">아래에서 고르면 기본 소리 <b>대신</b> 나와요 — 곡은 배경 음악 대신, 발자국 소리는 칼림바 대신 그 바닥의 악기로(눈 = 얼음 종 · 낙엽 = 나무 마림바 · 자갈 = 돌 실로폰 · 물웅덩이 = 물방울, 위쪽 획일수록 높은 음), 자연 배경은 밤 벌레 소리 대신(파도는 작게).</p>
-    <h3>곡</h3>
+    </section>
+    <section class="pane" data-pane="song" role="tabpanel" aria-label="곡" hidden>
+    <p class="hint top">고르면 시간 따라 바뀌는 기본 음악 <b>대신</b> 흘러요.</p>
     <div id="songPacks" class="packs"></div>
+    </section>
+    <section class="pane" data-pane="bed" role="tabpanel" aria-label="발자국 소리와 자연 배경" hidden>
     <h3>발자국 소리</h3>
+    <p class="hint top">키위가 글씨를 밟을 때 칼림바 대신 그 바닥의 악기로 울려요.</p>
     <div id="stepPacks" class="packs"></div>
     <h3>자연 배경</h3>
+    <p class="hint top">밤 벌레 소리 대신 흘러요(파도는 작게).</p>
     <div id="naturePacks" class="packs"></div>
-    <p class="hint">켜 두면 편지 다음으로 소라 껍데기가 떠내려와요 — 열면 새 소리나 곡이 들어 있어요.</p>
+    </section>
+    <p class="hint foot">못 모은 소리는 ? — 켜 두면 소라 껍데기가 떠내려와요.</p>
   </div>
   <div id="toast" role="status" aria-live="polite"></div>
   <div id="caption" aria-live="polite"><div class="main"></div><div class="sub"></div></div>
@@ -177,15 +208,15 @@
       <p>소리 버튼을 누르면 음악·파도·효과음 크기와 곡·발자국 소리·자연 배경을 고를 수 있어요(고르면 기본 소리 대신 나와요). 키위가 글씨를 밟으면 음이 나고, 배경 음악은 시간대와 날씨에 따라 바뀝니다.</p>
       <p>오른쪽 위 첫 버튼(M 키)은 글 모드입니다 — 직접 쓰기 · 시계(시·분이 바뀌면 바뀐 글자만 다시 씀. 톱니바퀴 설정에서 장소(바닷가 · 뉴질랜드 숲 · 상자에서 나오는 눈밭), 초 표시와 오전/오후 · AM/PM · 24시간을 고름) · 명언 · 단어장(다 쓰면 뜻이 드러납니다). 둘째 버튼(W 키)은 날씨 — 맑음 · 흐림 · 비 · 눈 · 안개 · 바람. 장면의 빛은 실제 시각을 따라 새벽·낮·노을·밤으로 바뀌고, 밤에는 반딧불이가 뜨고 키위가 더 많이 나옵니다(T 키로 3시간씩 미리보기). 오른쪽 위 버튼으로 시점을 바꿉니다(V 키) — 위에서 · 디오라마 · 따라가기.</p>
       <p>설정(톱니바퀴)의 「키위 수」에서 한 마리 · 조금 · 보통 · 많이를 고르거나 막대로 1~30마리를 정할 수 있어요. 맨 앞 눈 버튼(H 키)을 누르면 버튼과 입력창이 숨고 그림만 남아요 — 화면을 누르면 다시 보이기 버튼이 잠깐 떠요.</p>
-      <p class="credits">키위 스핀오프 v18.5.5 · 2026-10-17<span id="audio-credits"></span></p>
+      <p class="credits">키위 스핀오프 v18.6.0 · 2026-10-17<span id="audio-credits"></span></p>
       <button type="button" data-close>닫기</button>
     </div>
   </div>
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v18.5.5"></script>
-  <script type="module" src="src/credits.js?v=v18.5.5"></script>
+  <script type="module" src="src/main.js?v=v18.6.0"></script>
+  <script type="module" src="src/credits.js?v=v18.6.0"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.
