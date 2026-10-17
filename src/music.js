@@ -28,7 +28,7 @@ export const SONGS = {
     prog: [[0, 4, 7, 14], [-2, 2, 5, 12], [-7, -3, 0, 7], [0, 4, 7, 12]] },                     // 믹솔리디아 I · bVII · IV · I
   forest: { name: '숲속 아침', key: 65, bpm: 76, density: 0.5, bright: 3000, lead: 'flute', pad: 'soft', bass: 'two', play: 'motif', motif: [0, -1, 1, 2, -1, 1, 0, -1],
     prog: [[0, 4, 7, 12], [4, 7, 11, 16], [5, 9, 12, 17], [7, 11, 14, 19], [0, 4, 7, 12], [-3, 0, 4, 9], [2, 5, 9, 14], [7, 11, 14, 17]] },   // I · iii · IV · V · I · vi · ii · V7
-  // v18 앰비언트 6곡 (2026-10-11, 직접 짬 — 후보 듣기 tools/audition.html 에서 고른 뒤 아이템으로 올린다)
+  // v18 앰비언트 6곡 (2026-10-11, 직접 짬 — 후보 듣기 kiwi-sound-lab/pages/audition.html 에서 고른 뒤 아이템으로 올린다)
   //  새 재료: chordBars 화음 하나를 N마디 끈다 · drone 진행 내내 깔리는 근음+5도 · pad 'swell' 아주 천천히 부풀고 다음 화음과 겹친다
   //          lead 'shimmer' 높은 사인 두 개가 맥놀이하며 오래 남는다 · play 'sparse' 5음 음계에서 드물게, 가끔 두 음
   mist: { name: '새벽 물안개', key: 62, bpm: 40, density: 0.22, bright: 1600, lead: 'glass', pad: 'swell', bass: 'none', drone: true, chordBars: 2, play: 'sparse',

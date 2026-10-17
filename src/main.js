@@ -15,25 +15,25 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.6.1';
-import { Beach } from './beach.js?v=v18.6.1';
-import { Kiwi } from './kiwi.js?v=v18.6.1';
-import { Sound, SONG_TRACKS } from './sound.js?v=v18.6.1';
-import { loadPlate } from './plate.js?v=v18.6.1';
-import { MAPS, MAP_IDS } from './maps.js?v=v18.6.1';
-import { WaterGL, FlatWater } from './water.js?v=v18.6.1';
-import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.6.1';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.6.1';
-import { Leaves } from './leaves.js?v=v18.6.1';
-import { Rake } from './zen.js?v=v18.6.1';
-import { Clouds } from './clouds.js?v=v18.6.1';
-import { Gulls } from './gulls.js?v=v18.6.1';
-import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.6.1';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.6.1';
-import { clamp, dist } from './util.js?v=v18.6.1';
-import { Focus, Awake, LENGTHS } from './focus.js?v=v18.6.1';
-import { UNLOCK_ALL } from './config.js?v=v18.6.1';
-import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.6.1';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v18.6.2';
+import { Beach } from './beach.js?v=v18.6.2';
+import { Kiwi } from './kiwi.js?v=v18.6.2';
+import { Sound, SONG_TRACKS } from './sound.js?v=v18.6.2';
+import { loadPlate } from './plate.js?v=v18.6.2';
+import { MAPS, MAP_IDS } from './maps.js?v=v18.6.2';
+import { WaterGL, FlatWater } from './water.js?v=v18.6.2';
+import { setKiwiSprite, setKiwiSkins } from './kiwi.js?v=v18.6.2';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v18.6.2';
+import { Leaves } from './leaves.js?v=v18.6.2';
+import { Rake } from './zen.js?v=v18.6.2';
+import { Clouds } from './clouds.js?v=v18.6.2';
+import { Gulls } from './gulls.js?v=v18.6.2';
+import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v18.6.2';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v18.6.2';
+import { clamp, dist } from './util.js?v=v18.6.2';
+import { Focus, Awake, LENGTHS } from './focus.js?v=v18.6.2';
+import { UNLOCK_ALL } from './config.js?v=v18.6.2';
+import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v18.6.2';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -44,6 +44,8 @@ const DEBUG = q.has('debug');
 const FIRST = q.get('text') || '안녕 키위';
 const VIEWS = ['top', 'diorama', 'follow'];
 const VIEW_NAME = { top: '위에서', diorama: '디오라마', follow: '따라가기' };
+// 위에 뜨는 카드(편지 등)·고르기 창 안을 누른 것은 아래 창의 "바깥을 누름"이 아니다 (v18.6.2)
+const onTop = t => !!(t && t.closest && t.closest('#found, #picker'));
 
 const worldEl = document.getElementById('world');
 const canvas = document.getElementById('stage');
@@ -521,8 +523,8 @@ focusHud.addEventListener('click', () => openFocusPanel(focusPanel.hidden));
 focusPanel.addEventListener('change', e => { if (e.target.name === 'flen') { focus.len = Number(e.target.value); focus.store(); } });
 document.getElementById('focusStart').addEventListener('click', () => { unlock(); startFocus(); });
 document.getElementById('focusStop').addEventListener('click', () => { openFocusPanel(false); endFocus(focus.finish(Date.now()), '집중을 멈췄어요'); });
-document.addEventListener('pointerdown', e => { if (!focusPanel.hidden && !focusPanel.contains(e.target) && !focusBtn.contains(e.target) && !focusHud.contains(e.target)) openFocusPanel(false); });
-window.addEventListener('keydown', e => { if (e.key === 'Escape' && !focusPanel.hidden) { openFocusPanel(false); focusBtn.focus(); } });
+document.addEventListener('pointerdown', e => { if (!focusPanel.hidden && !onTop(e.target) && !focusPanel.contains(e.target) && !focusBtn.contains(e.target) && !focusHud.contains(e.target)) openFocusPanel(false); });
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && foundEl.hidden && !focusPanel.hidden) { openFocusPanel(false); focusBtn.focus(); } });
 // 화면을 떠났다 돌아오면: 10초 안이면 이어서, 넘으면 멈춤 (떠난 때까지 걸은 것만 친다)
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { focus.hidden(); return; }
@@ -573,7 +575,7 @@ function toWorld(sx, sy) {
 function setView(v, announce = true) {
   view = v;
   document.body.dataset.view = v;
-  viewBtn.setAttribute('aria-label', `시점: ${VIEW_NAME[v]} (바꾸기)`);
+  viewBtn.setAttribute('aria-label', `시점: ${VIEW_NAME[v]} (고르기)`);
   if (announce) toast(VIEW_NAME[v]);
 }
 
@@ -907,10 +909,10 @@ for (const k of ['music', 'amb', 'sfx']) {
   el.value = Math.round(sound.mix[k] * 100);
   el.addEventListener('input', () => sound.setMix({ [k]: el.value / 100 }));
 }
-document.addEventListener('pointerdown', e => { if (!mixer.hidden && !mixer.contains(e.target) && !soundBtn.contains(e.target)) openMixer(false); });
-window.addEventListener('keydown', e => { if (e.key === 'Escape' && !mixer.hidden) { openMixer(false); soundBtn.focus(); } });
+document.addEventListener('pointerdown', e => { if (!mixer.hidden && !onTop(e.target) && !mixer.contains(e.target) && !soundBtn.contains(e.target)) openMixer(false); });
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && foundEl.hidden && !mixer.hidden) { openMixer(false); soundBtn.focus(); } });
 paintSoundBtn();
-viewBtn.addEventListener('click', () => setView(VIEWS[(VIEWS.indexOf(view) + 1) % VIEWS.length]));
+viewBtn.addEventListener('click', () => openPicker(viewBtn, '시점', VIEWS.map(v => ({ id: v, name: VIEW_NAME[v] })), view, v => setView(v)));
 setView(view, false);
 
 const openInfo = open => {
@@ -924,9 +926,9 @@ info.addEventListener('click', e => { if (e.target === info || e.target.closest(
 window.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !info.hidden) openInfo(false);
   if (e.target.matches && e.target.matches('input[type="text"], textarea')) return;
-  if (e.key === 'v') viewBtn.click();
-  if (e.key === 'm') modeBtn.click();
-  if (e.key === 'w') weatherBtn.click();
+  if (e.key === 'v') setView(VIEWS[(VIEWS.indexOf(view) + 1) % VIEWS.length]);
+  if (e.key === 'm') { unlock(); setMode(MODES[(MODES.indexOf(mode) + 1) % MODES.length]); }
+  if (e.key === 'w') pickWeather(WEATHERS[(WEATHERS.indexOf(atmos.weather) + 1) % WEATHERS.length]);
   if (e.key === 't') { hourShift = (hourShift + 3) % 24; toast(`시간 미리보기 +${hourShift}시간`); }
 });
 
@@ -1018,15 +1020,15 @@ async function boot() {
     }
     throw err;
   })();
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.6.1'), img('assets/gull.webp?v=v18.6.1'), img('assets/bottle.webp?v=v18.6.1'), img('assets/crate.webp?v=v18.6.1')]);
-  img('assets/finds.webp?v=v18.6.1').then(im => {
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v18.6.2'), img('assets/gull.webp?v=v18.6.2'), img('assets/bottle.webp?v=v18.6.2'), img('assets/crate.webp?v=v18.6.2')]);
+  img('assets/finds.webp?v=v18.6.2').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
     drifters.setSprites({ ...drifters.imgs, conch: c });
   }).catch(() => {});
   drifters.setSprites({ bottle, crate });
-  img('assets/leaves.webp?v=v18.6.1').then(im => floaters.setSheet(im)).catch(() => {});
+  img('assets/leaves.webp?v=v18.6.2').then(im => floaters.setSheet(im)).catch(() => {});
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
   plate = p;
@@ -1055,7 +1057,7 @@ boot().catch(e => {
   el.innerHTML = '<p>이 기기에서 바닷가를 열지 못했어요.</p><p class="why"></p><p><a href="./?sw=0">저장본 지우고 다시 열기</a></p>';
   el.querySelector('.why').textContent = '이유: ' + (e && e.message || e);
 });
-const paintMode = () => { modeBtn.dataset.mode = mode; modeBtn.setAttribute('aria-label', `글 모드: ${MODE_NAME[mode]} (바꾸기)`); };
+const paintMode = () => { modeBtn.dataset.mode = mode; modeBtn.setAttribute('aria-label', `글 모드: ${MODE_NAME[mode]} (고르기)`); };
 const nowHour = () => realHour();
 // 장소 바꾸기: 그 장소 그림 판을 읽고(처음 한 번) 화면을 다시 짠다 — resize 가 지금 글을 새 바닥에 다시 쓴다
 function setMap(id) {
@@ -1075,8 +1077,8 @@ function setMode(m, announce = true) {
   if (mode !== 'free') submit(...nextAuto(nowHour()));
   else showCaption(null);
 }
-// 글 모드 버튼: 누르면 바로 다음 모드로 (M 키도 같다)
-modeBtn.addEventListener('click', () => { unlock(); setMode(MODES[(MODES.indexOf(mode) + 1) % MODES.length]); });
+// 글 모드 버튼: 누르면 고르기 창 (v18.6.2 — M 키는 그대로 다음 모드로)
+modeBtn.addEventListener('click', () => { unlock(); openPicker(modeBtn, '글 모드', MODES.map(m => ({ id: m, name: MODE_NAME[m], g: 'm-' + m })), mode, m => { if (m !== mode) setMode(m); }); });
 // 설정 창(톱니바퀴): 시계 초 표시 · 표기
 const settings = document.getElementById('settings'), setBtn = document.getElementById('setBtn');
 const settingsTab = wireTabs(settings, 'settings');
@@ -1180,6 +1182,7 @@ function showFound(it, fresh = false) {
     title.textContent = (fresh ? (it.craft ? '새로 만든 ' : '상자 속 ') : '') + it.name; body.textContent = `${it.note} · ${col.count} / ${ITEMS.length} 모음`;
     foundWear.hidden = false; foundWear.textContent = col.wearing(it.id) ? '벗기기' : '입혀 보기';
   }
+  foundBack = document.activeElement;
   foundEl.hidden = false; foundEl.querySelector('button:not([hidden])').focus();
 }
 function setWear(id, on) {
@@ -1194,9 +1197,11 @@ foundWear.addEventListener('click', () => {
   else if (foundItem) setWear(foundItem.id, !col.wearing(foundItem.id));
   foundEl.hidden = true;
 });
-document.getElementById('foundClose').addEventListener('click', () => { foundEl.hidden = true; });
-foundEl.addEventListener('click', e => { if (e.target === foundEl) foundEl.hidden = true; });
-window.addEventListener('keydown', e => { if (e.key === 'Escape' && !foundEl.hidden) foundEl.hidden = true; });
+let foundBack = null;
+function closeFound() { foundEl.hidden = true; if (foundBack && foundBack.isConnected && foundBack.offsetParent) foundBack.focus(); foundBack = null; }
+document.getElementById('foundClose').addEventListener('click', closeFound);
+foundEl.addEventListener('click', e => { if (e.target === foundEl) closeFound(); });
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && !foundEl.hidden) { closeFound(); e.stopImmediatePropagation(); } }, true);
 // ── v13 물가 줍기 ──
 function pickUp(d) {
   shore.take(d);
@@ -1287,7 +1292,7 @@ function paintCollection() {
   const ll = document.getElementById('letterList'); ll.textContent = '';
   for (const it of letters) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'letter';
-    const im = document.createElement('img'); im.src = 'assets/bottle.webp?v=v18.6.1'; im.alt = '';
+    const im = document.createElement('img'); im.src = 'assets/bottle.webp?v=v18.6.2'; im.alt = '';
     const tx = document.createElement('span'); tx.className = 'tx';
     const t = document.createElement('b'), q = document.createElement('span');
     if (col.owns(it.id)) {
@@ -1332,8 +1337,8 @@ settings.addEventListener('change', e => {
   // 시계라면 바뀐 표기·초 자리에 맞춰 다시 쓴다 (같은 폭이면 바뀐 글자만, 아니면 파도로 지우고)
   if (mode === 'clock') { lastClock = null; submit(...nextAuto(nowHour())); }
 });
-document.addEventListener('pointerdown', e => { if (!settings.hidden && !settings.contains(e.target) && !setBtn.contains(e.target)) openSettings(false); });
-window.addEventListener('keydown', e => { if (e.key === 'Escape' && !settings.hidden) { openSettings(false); setBtn.focus(); } });
+document.addEventListener('pointerdown', e => { if (!settings.hidden && !onTop(e.target) && !settings.contains(e.target) && !setBtn.contains(e.target)) openSettings(false); });
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && foundEl.hidden && !settings.hidden) { openSettings(false); setBtn.focus(); } });
 paintMode(); paintModeMenu();
 
 // ── 화면 정리 (v18.5): 버튼·입력창·창·알림을 숨기고 그림만 ──
@@ -1368,11 +1373,52 @@ window.addEventListener('keydown', e => {
 });
 if (q.get('ui') === '0') setClean(true);
 { const st = focus.resolveStale(); paintFocus(); if (st) setTimeout(() => toast(`지난 집중은 화면을 떠나서 멈췄어요 · ${n0(st.steps)}보`, 3200), 1500); }
-const paintWeather = () => { weatherBtn.dataset.weather = atmos.weather; weatherBtn.setAttribute('aria-label', `날씨: ${WEATHER_NAME[atmos.weather]} (바꾸기)`); };
-weatherBtn.addEventListener('click', () => {
-  atmos.setWeather(WEATHERS[(WEATHERS.indexOf(atmos.weather) + 1) % WEATHERS.length]);
-  save('weather', atmos.weather); paintWeather(); toast(WEATHER_NAME[atmos.weather]);
-});
+const paintWeather = () => { weatherBtn.dataset.weather = atmos.weather; weatherBtn.setAttribute('aria-label', `날씨: ${WEATHER_NAME[atmos.weather]} (고르기)`); };
+function pickWeather(w) { atmos.setWeather(w); save('weather', atmos.weather); paintWeather(); toast(WEATHER_NAME[atmos.weather]); }
+weatherBtn.addEventListener('click', () => openPicker(weatherBtn, '날씨', WEATHERS.map(w => ({ id: w, name: WEATHER_NAME[w], g: 'w-' + w })), atmos.weather, w => { if (w !== atmos.weather) pickWeather(w); }));
+
+// ── 고르기 창 (v18.6.2): 버튼 바로 아래에 뜨고, 고르면 닫힌다. 같은 버튼을 다시 누르거나 바깥을 누르면 닫힘 ──
+const picker = document.getElementById('picker');
+let pickerFor = null;
+function closePicker(back = false) {
+  if (picker.hidden) return;
+  picker.hidden = true;
+  if (pickerFor) { pickerFor.setAttribute('aria-expanded', 'false'); if (back) pickerFor.focus(); }
+  pickerFor = null;
+}
+function openPicker(btn, title, opts, cur, onPick) {
+  if (pickerFor === btn) { closePicker(); return; }
+  closePicker();
+  openSettings(false); openMixer(false); openFocusPanel(false);
+  picker.textContent = '';
+  picker.setAttribute('aria-label', title + ' 고르기');
+  const h = document.createElement('p'); h.className = 'ttl'; h.textContent = title; picker.append(h);
+  const grid = document.createElement('div'); grid.className = 'opts' + (opts.length > 4 ? ' three' : opts.length === 4 ? ' two' : ' three'); picker.append(grid);
+  const svg = btn.querySelector('svg');
+  for (const o of opts) {
+    const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-pressed', String(o.id === cur));
+    if (svg) {
+      const c = svg.cloneNode(true);
+      // 그림 여러 벌을 담은 버튼(글 모드·날씨)은 그 선택지의 그림만 남긴다
+      if (o.g) c.querySelectorAll(':scope > g[class]').forEach(g => { if (!g.classList.contains(o.g)) g.remove(); else g.style.display = 'inline'; });
+      b.append(c);
+    }
+    const t = document.createElement('span'); t.textContent = o.name; b.append(t);
+    b.addEventListener('click', () => { onPick(o.id); closePicker(true); });
+    grid.append(b);
+  }
+  // 버튼 아래, 화면 안쪽으로
+  const r = btn.getBoundingClientRect();
+  picker.hidden = false;
+  const w = picker.offsetWidth, left = clamp(r.left + r.width / 2 - w / 2, 10, innerWidth - w - 10);
+  picker.style.left = left + 'px'; picker.style.top = (r.bottom + 10) + 'px';
+  picker.style.setProperty('--arrow', (r.left + r.width / 2 - left) + 'px');
+  pickerFor = btn; btn.setAttribute('aria-expanded', 'true');
+  (grid.querySelector('[aria-pressed="true"]') || grid.querySelector('button')).focus();
+}
+document.addEventListener('pointerdown', e => { if (!picker.hidden && !picker.contains(e.target) && !(pickerFor && pickerFor.contains(e.target))) closePicker(); });
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && !picker.hidden) closePicker(true); });
+addEventListener('resize', () => closePicker());
 paintWeather();
 
 // 첫 문장: 그림을 다 읽은 뒤에만 (느린 연결에서 그림보다 먼저 쓰려다 오류가 나지 않게)
