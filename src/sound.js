@@ -9,11 +9,11 @@
 //  믹서 값(소리 켜기·음악·환경음·효과음·발자국 음악)은 기기에 기억한다.
 //  브라우저는 사용자 동작 안에서만 소리를 열 수 있어서 unlock() 을 그때 부른다. 탭을 숨기면 멈춘다.
 
-import { Music } from './music.js?v=v24.4.4';
+import { Music } from './music.js?v=v24.5.0';
 
 // v16 아이템 소리·곡은 오픈소스 녹음 — 목록·출처는 카탈로그 한 곳 (src/tracks/index.js). assets/audio/ 에서 처음 고를 때 받는다
 //  STEP_SAMPLES: 0.5초 칸마다 한 걸음 · NATURE_LOOPS: 끝과 처음을 겹쳐 이음매 없이 도는 고리 · SONG_TRACKS: 곡 고리
-import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v24.4.4';
+import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v24.5.0';
 export { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, NATURAL_STEPS };
 const AUDIO = 'assets/audio/';
 
@@ -324,8 +324,9 @@ export class Sound {
   loadBuf(file) {
     this.bufs ||= {}; this.got ||= {};
     if (!this.bufs[file] && this.ctx) {
-      this.bufs[file] = fetch(AUDIO + file).then(r => r.arrayBuffer())
-        .then(a => new Promise((res, rej) => this.ctx.decodeAudioData(a, res, rej)))
+      // audioBase: 게임 밖 페이지(작업장 듣기 페이지)는 다른 경로에서 연다 · 못 읽으면 조용히 null (2026-10-18)
+      this.bufs[file] = fetch((this.audioBase || AUDIO) + file).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+        .then(a => this.ctx.decodeAudioData(a))
         .then(b => (this.got[file] = b)).catch(() => null);
     }
     return this.bufs[file] || Promise.resolve(null);

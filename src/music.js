@@ -43,6 +43,43 @@ export const SONGS = {
     prog: [[0, 4, 7, 11], [-5, -1, 2, 7], [-3, 0, 4, 7], [-7, -3, 0, 4]] },                       // Imaj7 · V · vi · IV — 높은 음역, 아주 느리게
   dusk: { name: '노을 물결', key: 65, bpm: 52, density: 0.5, bright: 2100, lead: 'pluck', pad: 'swell', bass: 'two', chordBars: 1, play: 'arp', arp: [0, 1, 2, 3, 2, 1, -1, -1],
     prog: [[0, 4, 7, 11], [-3, 0, 4, 7], [2, 5, 9, 12], [-5, -1, 2, 5]] },                        // Imaj7 · vi7 · ii7 · V7 — 칼림바가 느리게 오르내림
+  // 2026-10-18 유플로리아풍 샘플 (사용자 "딱 유플로리아 스타일"). 아이템 아님 — 작업장 저장소 곡 듣기 페이지에서 고른 뒤 올린다
+  //  작곡가 Brian Grainger 인터뷰(Higher Plain Music 2011)에서 밝힌 방식을 엔진으로 옮김:
+  //   몇 음짜리 짧은 주제를 오래 되풀이 · 그 주제를 느리게/거꾸로/옥타브 바꿔 변주 · 칠 때마다 몇 음은 옥타브가 바뀜 ·
+  //   리버브·딜레이는 질감용 · 선율보다 반복과 긴 길이, 효과음이 들어갈 자리를 남김
+  //  새 재료: play 'theme' + theme(16칸, 근음에서 반음, −1 쉼) · themeBars 주제 한 번에 몇 마디 · echo 딜레이 메아리 수 ·
+  //          air 공기 질감(걸러 낸 잡음이 진행 한 바퀴에 걸쳐 숨 쉬듯) · lead 'crystal' 맑고 짧은 결정 소리
+  //   변주 순서(주제 한 번마다): 원형 → 한 옥타브 위 → 거꾸로 → 반 박자로 느리게 → 원형 … (themeVar 로 바꿀 수 있음)
+  'eu-meander': { name: '굽이 씨앗길', key: 62, bpm: 68, density: 1, bright: 2400, lead: 'crystal', pad: 'swell', bass: 'none', drone: true, air: 0.5, chordBars: 4, play: 'theme', echo: 2,
+    theme: [0, -1, 7, -1, 9, -1, 4, -1, -1, -1, 2, -1, 7, -1, -1, -1], themeBars: 2,
+    prog: [[0, 4, 7, 14], [-5, 2, 7, 11], [-3, 0, 4, 14], [-7, -3, 2, 7]] },                   // Iadd9 · V/9 · vi(add9) · IVadd9 — 주제는 5음 음계라 어느 화음에도 맞음
+  'eu-open': { name: '열린 하늘', key: 57, bpm: 56, density: 1, bright: 1800, lead: 'shimmer', pad: 'swell', bass: 'none', drone: true, air: 0.8, chordBars: 4, play: 'theme', echo: 3,
+    theme: [12, -1, -1, -1, 7, -1, -1, -1, 10, -1, -1, -1, -1, -1, -1, -1], themeBars: 2,
+    prog: [[0, 3, 7, 14], [-4, 0, 3, 10], [-2, 2, 5, 14], [0, 7, 10, 15]] },                   // i(add9) · bVI7 · bVII(add9) · i 열린 화음 — 넓고 차분하게, 세 음만
+  'eu-grove': { name: '씨앗 정원', key: 64, bpm: 80, density: 1, bright: 2800, lead: 'pluck', pad: 'soft', bass: 'one', air: 0.3, chordBars: 2, play: 'theme', echo: 2,
+    theme: [0, 4, 7, 9, 7, 4, -1, -1, 2, 4, 9, -1, 7, -1, -1, -1], themeBars: 2,
+    prog: [[0, 4, 7, 11], [-3, 0, 4, 7], [-7, -3, 0, 4], [-5, -1, 2, 7]] },                    // Imaj7 · vi7 · IV · V — 조금 밝게, 칼림바 같은 퉁김
+  'eu-drift': { name: '떠도는 섬', key: 60, bpm: 60, density: 1, bright: 2000, lead: 'bell', pad: 'swell', bass: 'none', drone: true, air: 1, chordBars: 8, play: 'theme', echo: 3, themeVar: [0, 2, 0, 3],
+    theme: [7, -1, 9, -1, 12, -1, -1, -1, 9, -1, -1, -1, 4, -1, -1, -1], themeBars: 2,
+    prog: [[0, 7, 14, 16], [-3, 4, 9, 14]] },                                                   // 두 화음만 아주 길게 — 반복과 길이로 (PS판처럼 미니멀)
+  // 2026-10-18 (2) 화음만 — 사용자 "띵띵 소리 없이 느린 화음 위주로도. 띵띵은 키위가 낼 수 있으니까"
+  //  lead 없음(play 'none'): 위에서 울리는 음은 키위 발자국 음악에 맡긴다. 새 pad 'bloom' = 살짝 어긋난 톱니 여럿이
+  //  화음마다 필터가 천천히 열렸다 닫히며 피어난다(아래 사인 한 옥타브로 바닥을 받침). 화음 하나를 4~8마디 끌어 아주 느리게
+  'eu-bloom': { name: '피어나는 화음', key: 62, bpm: 52, density: 0, bright: 2200, pad: 'bloom', bass: 'none', drone: true, air: 0.6, chordBars: 4, play: 'none',
+    prog: [[0, 4, 7, 11, 14], [2, 6, 9, 14, 16], [-3, 4, 7, 11, 14], [-7, 0, 4, 9, 14]] },     // Imaj9 · II(리디아) · vi9 · IVmaj9
+  'eu-tide': { name: '느린 물결 화음', key: 57, bpm: 46, density: 0, bright: 1700, pad: 'bloom', bass: 'one', air: 0.9, chordBars: 4, play: 'none',
+    prog: [[0, 3, 7, 10, 14], [-4, 0, 3, 7, 10], [-7, -3, 0, 3, 7], [-2, 2, 5, 9, 12]] },     // i9 · bVImaj7 · iv7 · bVII — 단조, 물결처럼
+  'eu-field': { name: '구름 위 들판', key: 65, bpm: 48, density: 0, bright: 2600, pad: 'swell', bass: 'none', drone: true, air: 0.4, chordBars: 8, play: 'none',
+    prog: [[0, 7, 14, 16, 19], [-5, 2, 7, 14, 16], [-3, 4, 9, 12, 16]] },                      // 열린 화음 세 개만, 하나에 8마디 — 가장 정적
+  // 2026-10-18 (3) 포근한 선율 — 사용자가 좋다고 한 「시간 따라 바뀌는 기본 음악」·「어디까지 했더라」·「기다림」 결
+  //  기본 음악처럼 부드러운 패드 + 1·3박 베이스 위에, 곡마다 정한 짧은 선율(motif)이 화음을 따라 되풀이된다.
+  //  리드는 키위 발자국(칼림바)과 겹치지 않게 피아노·플루트·유리 쪽으로
+  'cozy-wait': { name: '기다리는 오후', key: 60, bpm: 64, density: 1, bright: 2200, lead: 'rhodes', pad: 'soft', bass: 'two', play: 'motif', motif: [2, -1, 1, -1, 0, -1, 1, 3],
+    prog: [[0, 4, 7, 11], [-3, 0, 4, 7], [-7, -3, 0, 4], [-5, -1, 2, 5], [0, 4, 7, 11], [-3, 0, 4, 7], [2, 5, 9, 12], [-5, -1, 2, 7]] },   // Imaj7 · vi7 · IVmaj7 · V7 · … ii7 · Vsus — 피아노가 천천히 묻고 답함
+  'cozy-where': { name: '어디쯤이었지', key: 65, bpm: 78, density: 1, bright: 2600, lead: 'flute', pad: 'tri', bass: 'two', play: 'motif', motif: [0, 1, 2, -1, 1, -1, -1, -1],
+    prog: [[0, 4, 7, 12], [-5, -1, 2, 7], [-3, 0, 4, 9], [-7, -3, 0, 5]] },                                                   // I · V · vi · IV — 짧고 가벼운 고리, 플루트가 세 음을 묻는다
+  'cozy-tea': { name: '찻잔 위 김', key: 62, bpm: 58, density: 1, bright: 1900, lead: 'glass', pad: 'soft', bass: 'one', play: 'motif', motif: [3, -1, -1, 2, -1, -1, 1, -1],
+    prog: [[0, 4, 7, 14], [-3, 0, 4, 11], [-7, -3, 0, 7], [-5, -1, 2, 9], [0, 4, 7, 14], [2, 5, 9, 12], [-7, -3, 0, 7], [-5, 0, 2, 7]] },   // Iadd9 · vi7 · IVadd9 · V6 · … · Vsus4 — 느린 유리 소리 세 음
 };
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 
@@ -108,11 +145,23 @@ export class Music {
     const cb = m.chordBars || 1, root = this.key + m.prog[this.ci() % m.prog.length][0];
     if (this.beat === 0 && this.bar % cb === 0) this.pad(chord, t, spb * 8 * cb, bright, m.pad);
     if (m.drone && this.beat === 0 && this.bar % (cb * m.prog.length) === 0) this.drone(this.key, t, spb * 8 * cb * m.prog.length, bright);
+    if (m.air && this.beat === 0 && this.bar % (cb * m.prog.length) === 0) this.air(t, spb * 8 * cb * m.prog.length, m.air);
     if (m.bass !== 'none' && (this.beat === 0 || (this.beat === 4 && m.bass !== 'one'))) this.bass(root - 24, t, spb * (m.bass === 'one' ? 7 : 3.5));
     let density = m.density * (w === 'rain' ? 0.6 : w === 'drizzle' ? 0.8 : w === 'wind' ? 0.5 : w === 'snow' ? 1.2 : 1);
     if (this.beat % 2 === 1) density *= 0.55;   // 뒷박은 드물게
     const up = 12 + (w === 'snow' ? 12 : 0);
-    if (m.play === 'motif') {
+    if (m.play === 'theme') {
+      // 주제: 16칸(8분음표)짜리 짧은 선율을 되풀이하며 한 번마다 변주한다. 칠 때마다 가끔 옥타브가 바뀌고, 메아리가 뒤따른다
+      const tb = m.themeBars || 2, step = (this.bar % tb) * 8 + this.beat, L = m.theme.length;
+      const v = (m.themeVar || [0, 1, 2, 3])[Math.floor(this.bar / tb) % (m.themeVar || [0, 1, 2, 3]).length];
+      const k = v === 2 ? m.theme[(L - 1 - step % L + L) % L] : v === 3 ? (step % 2 ? -1 : m.theme[Math.floor(step / 2) % L]) : m.theme[step % L];
+      if (k >= 0 && k !== undefined) {
+        const n = this.key + k + up + (v === 1 ? 12 : 0) + (Math.random() < 0.22 ? (Math.random() < 0.5 ? 12 : -12) : 0);
+        const pan = Math.sin(this.bar * 0.7 + this.beat) * 0.5;
+        this.voice(m.lead, n, t, pan);
+        for (let e = 1; e <= (m.echo || 0); e++) this.voice(m.lead, n, t + spb * 3 * e, e % 2 ? -pan - 0.2 : pan, Math.pow(0.42, e));   // 점8분 딜레이 메아리
+      }
+    } else if (m.play === 'motif') {
       // 곡의 선율: 박마다 정해진 화음 음(−1 = 쉼), 가끔 한 옥타브 위로
       const k = m.motif[this.beat];
       if (k >= 0 && Math.random() < 0.85) this.voice(m.lead, chord[k % chord.length] + up + (this.bar % 4 === 3 && Math.random() < 0.4 ? 12 : 0), t, (this.beat / 7 - 0.5) * 0.8);
@@ -132,10 +181,10 @@ export class Music {
   }
 
   // 리드 악기 하나 (t = 절대 시각)
-  voice(kind, n, t, pan) {
+  voice(kind, n, t, pan, vol = 1) {   // vol: 메아리처럼 작게 칠 때 (2026-10-18)
     const s = this.s, ctx = s.ctx;
-    if (kind === 'pluck') { s.pluck(n, 0.1, Math.max(0, t - ctx.currentTime), 1.6, pan, this.out(), 0.35); return; }
-    if (kind === 'bell' || !kind) { s.bell(n, 0.06 + Math.random() * 0.03, t, pan, this.out()); return; }
+    if (kind === 'pluck') { s.pluck(n, 0.1 * vol, Math.max(0, t - ctx.currentTime), 1.6, pan, this.out(), 0.35); return; }
+    if (kind === 'bell' || !kind) { s.bell(n, (0.06 + Math.random() * 0.03) * vol, t, pan, this.out()); return; }
     const f = hz(n), g = ctx.createGain(), parts = [];
     if (kind === 'rhodes') {        // 로즈: 둥근 기음 + 금방 사라지는 쇳소리(높은 배음)
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.07, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 2.8);
@@ -146,6 +195,9 @@ export class Music {
     } else if (kind === 'shimmer') {  // 반짝임: 아주 높은 사인 두 개가 살짝 어긋나 맥놀이, 천천히 피었다 오래 남는다
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.035, t + 0.4); g.gain.exponentialRampToValueAtTime(0.0001, t + 6);
       parts.push([1, 1, 'sine', 6], [1.003, 0.8, 'sine', 6], [2, 0.12, 'sine', 2.5]);
+    } else if (kind === 'crystal') {  // 결정: 맑은 기음 + 한 옥타브 위 + 아주 높은 반짝 배음, 짧게 울리고 잔향으로 번진다 (유플로리아풍)
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.055, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + 2.2);
+      parts.push([1, 1, 'sine', 2.2], [2, 0.35, 'sine', 0.9], [4.02, 0.12, 'sine', 0.35], [6.98, 0.04, 'sine', 0.12]);
     } else if (kind === 'flute') {  // 플루트: 천천히 불고 살짝 떨림, 숨소리
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.08, t + 0.09); g.gain.setValueAtTime(0.08, t + 0.5); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
       parts.push([1, 1, 'sine', 1.1], [2, 0.12, 'sine', 1.1]);
@@ -153,7 +205,8 @@ export class Music {
       const bg = ctx.createGain(); bg.gain.setValueAtTime(0, t); bg.gain.linearRampToValueAtTime(0.012, t + 0.06); bg.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
       nb.connect(bf); bf.connect(bg); bg.connect(g); nb.start(t, Math.random() * 0.5); nb.stop(t + 0.55);
     }
-    s.route(g, this.out(), pan, kind === 'shimmer' ? 0.9 : 0.5);
+    if (vol !== 1) { const vg = ctx.createGain(); vg.gain.value = vol; g.connect(vg); s.route(vg, this.out(), pan, 0.7); }
+    else s.route(g, this.out(), pan, kind === 'shimmer' || kind === 'crystal' ? 0.9 : 0.5);
     let vib = null;
     if (kind === 'flute') { vib = ctx.createOscillator(); vib.frequency.value = 5; const vg = ctx.createGain(); vg.gain.value = f * 0.004; vib.connect(vg); vib.vg = vg; vib.start(t + 0.15); vib.stop(t + 1.2); }
     for (const [mul, amp, type, dec] of parts) {
@@ -167,6 +220,7 @@ export class Music {
 
   pad(notes, t, dur, bright, kind = 'tri') {
     const ctx = this.s.ctx;
+    if (kind === 'bloom') return this.bloom(notes, t, dur, bright);
     const g = ctx.createGain(), f = ctx.createBiquadFilter();
     f.type = 'lowpass'; f.frequency.value = kind === 'warm' ? bright * 0.6 : bright; f.Q.value = 0.4;
     const lvl = kind === 'warm' ? 0.03 : kind === 'soft' ? 0.06 : kind === 'swell' ? 0.05 : 0.05, att = kind === 'soft' ? 0.5 : kind === 'swell' ? 0.45 : 0.35;
@@ -186,6 +240,28 @@ export class Music {
     }
   }
 
+  // 피어나는 패드 (2026-10-18): 음마다 살짝 어긋난 톱니 셋 → 저역 필터가 화음 길이에 걸쳐 열렸다 닫힌다 → 다음 화음과 길게 겹침.
+  //  맨 아래 음은 한 옥타브 아래 사인으로 받친다. 높은 음일수록 작게 (위쪽 띵 소리는 키위 몫이라 위를 비운다)
+  bloom(notes, t, dur, bright) {
+    const ctx = this.s.ctx, g = ctx.createGain(), f = ctx.createBiquadFilter(), tail = dur * 0.45;
+    f.type = 'lowpass'; f.Q.value = 0.6;
+    f.frequency.setValueAtTime(bright * 0.18, t); f.frequency.linearRampToValueAtTime(bright * 0.55, t + dur * 0.55); f.frequency.linearRampToValueAtTime(bright * 0.2, t + dur + tail);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.045, t + dur * 0.4); g.gain.setValueAtTime(0.045, t + dur * 0.75); g.gain.linearRampToValueAtTime(0, t + dur + tail);
+    f.connect(g); this.s.route(g, this.out(), 0, 0.85);
+    const lo = Math.min(...notes);
+    notes.forEach((n, i) => {
+      for (const det of [-9, 0, 9]) {
+        const o = ctx.createOscillator(), og = ctx.createGain();
+        o.type = 'sawtooth'; o.frequency.value = hz(n); o.detune.value = det + (Math.random() - 0.5) * 4;
+        og.gain.value = 0.11 / (1 + i * 0.35);
+        o.connect(og); og.connect(f); o.start(t); o.stop(t + dur + tail + 0.1);
+      }
+    });
+    const sub = ctx.createOscillator(), sg = ctx.createGain();
+    sub.type = 'sine'; sub.frequency.value = hz(lo - 12); sg.gain.value = 0.35;
+    sub.connect(sg); sg.connect(f); sub.start(t); sub.stop(t + dur + tail + 0.1);
+  }
+
   // 드론: 진행 한 바퀴 내내 근음 + 5도가 아주 낮게 깔리고, 필터가 천천히 열렸다 닫힌다
   drone(key, t, dur, bright) {
     const ctx = this.s.ctx, g = ctx.createGain(), f = ctx.createBiquadFilter();
@@ -199,6 +275,17 @@ export class Music {
       const og = ctx.createGain(); og.gain.value = n === key - 17 ? 0.5 : 0.7;
       o.connect(og); og.connect(f); o.start(t); o.stop(t + dur + 4.2);
     }
+  }
+
+  // 공기 질감: 걸러 낸 갈색 잡음이 진행 한 바퀴에 걸쳐 숨 쉬듯 부풀고, 필터 중심이 천천히 오르내린다 (amt 0~1)
+  air(t, dur, amt = 0.5) {
+    const ctx = this.s.ctx, src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    src.buffer = this.s.brown; src.loop = true;
+    f.type = 'bandpass'; f.Q.value = 1.2;
+    f.frequency.setValueAtTime(500, t); f.frequency.linearRampToValueAtTime(1400, t + dur * 0.5); f.frequency.linearRampToValueAtTime(500, t + dur);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.03 * amt, t + dur * 0.4); g.gain.linearRampToValueAtTime(0.012 * amt, t + dur * 0.8); g.gain.linearRampToValueAtTime(0, t + dur + 3);
+    src.connect(f); f.connect(g); this.s.route(g, this.out(), Math.sin(t) * 0.4, 0.9);
+    src.start(t, Math.random() * 2); src.stop(t + dur + 3.2);
   }
 
   bass(n, t, dur) {
