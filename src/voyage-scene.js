@@ -6,13 +6,14 @@
 //  사건(voyage.js 의 kind)을 받으면 12초쯤 그 장면을 보여 준다. snapshot() 은 같은 장면을 사진 한 장으로 다시 그린다
 //  (화면을 꺼 두었던 사이의 사건도 일기 사진을 남길 수 있게).
 
-import { SeaGL } from './voyage-water.js?v=v25.1.0';
+import { SeaGL } from './voyage-water.js?v=v25.2.0';
 
 export const SPEED = 0.05;   // 배가 가는 빠르기: 1초에 화면 짧은 변의 5% (물·잔물결·지나가는 것이 모두 이 빠르기로 흐른다)
 const WATER_SCALE = 0.75;     // 물은 화면보다 성기게 그린다 (배터리·발열 — 물결은 흐려도 티가 안 난다)
-const CREW = ['up', 'left', 'right', 'sleep', 'sky', 'wave'];   // voyage-crew.webp 3×2: 앞 보기 · 왼쪽 · 오른쪽 · 잠 · 하늘 보기 · 손 흔들기
+const CREW = ['up', 'left', 'right', 'sleep', 'sky', 'wave'];
+const CREW_AX = { up: 0.42, left: 0.62, right: 0.4, sleep: 0.5, sky: 0.42, wave: 0.42 };   // 자세마다 몸통 가운데의 가로 위치(부리·날개 빼고)   // voyage-crew.webp 3×2: 앞 보기 · 왼쪽 · 오른쪽 · 잠 · 하늘 보기 · 손 흔들기
 // 넓은 배: 돛대 자리(배 높이 비율, 위로) · 돛 꼭지의 가로 위치(돛 그림 폭 비율) · 키위 자리 [x(배 폭 비율), y(배 높이 비율)]
-const MAST_Y = 0.42, SAIL_STEM_X = 0.5;
+const MAST_Y = 0.41, SAIL_STEM_X = 0.5;
 const WIDE_SEATS = [[-0.19, -0.04], [0.19, -0.04], [0, 0.26]];   // 가운데 의자 둘 · 뒷의자 하나
 const CELLS = ['boat', 'whale', 'tail', 'seabird', 'lighthouse', 'island'];   // 3×2 순서
 export const PLAY_SECS = 12;
@@ -24,15 +25,19 @@ export class VoyageScene {
   constructor(canvas) {
     this.cv = canvas; this.cx = canvas.getContext('2d');
     this.ready = false; this.t = 0; this.play = null; this.W = 0; this.H = 0; this.dpr = 1;
-    this.water = new SeaGL(); this.travel = 0;
+    // 물은 자기 캔버스에 화면으로 바로 그린다(배 장면 캔버스 바로 아래). 매 프레임 2D 로 복사하면 일부 브라우저에서
+    // 새·옛 프레임이 띠처럼 섞이거나 검은 칸이 보였다 → 복사는 일기 사진을 찍을 때만 (사진용 물은 따로 하나)
+    this.water = new SeaGL(); this.travel = 0; this.photoWater = null;
+    if (this.water.ok) { const w = this.water.cv; w.id = 'voyageSea'; w.setAttribute('aria-hidden', 'true'); canvas.parentNode.insertBefore(w, canvas); }
     this.rain = Array.from({ length: 90 }, () => ({ x: Math.random(), y: Math.random(), v: 0.8 + Math.random() * 0.6 }));
   }
   async load(base = 'assets/') {
-    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v25.1.0', 'sea-tall.webp?v=v25.1.0', 'voyage-sprites.webp?v=v25.1.0', 'kiwi.webp?v=v25.1.0', 'kiwi-sleep.webp?v=v25.1.0', 'umbrellas.webp?v=v25.1.0', 'sea-night.webp?v=v25.1.0', 'sea-tall-night.webp?v=v25.1.0', 'voyage-crew.webp?v=v25.1.0', 'voyage-boat.webp?v=v25.1.0', 'voyage-sail.webp?v=v25.1.0'].map(f => img(base + f).catch(() => null)));
+    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v25.2.0', 'sea-tall.webp?v=v25.2.0', 'voyage-sprites.webp?v=v25.2.0', 'kiwi.webp?v=v25.2.0', 'kiwi-sleep.webp?v=v25.2.0', 'umbrellas.webp?v=v25.2.0', 'sea-night.webp?v=v25.2.0', 'sea-tall-night.webp?v=v25.2.0', 'voyage-crew.webp?v=v25.2.0', 'voyage-boat.webp?v=v25.2.0', 'voyage-sail.webp?v=v25.2.0'].map(f => img(base + f).catch(() => null)));
     if (!sea || !sheet) throw new Error('voyage art');
     Object.assign(this, { sea, tall: tall || sea, sheet, kiwi, sleep, umb, seaN, tallN: tallN || seaN, crewSheet });
     this.cells = cellBoxes(sheet, CELLS);
     this.crewCells = crewSheet ? cellBoxes(crewSheet, CREW) : null;
+    if (this.crewCells) this.crewRef = this.crewCells.right.h;   // 배율 기준: 옆을 보고 앉은 키위의 높이
     // 넓은 배 + 따로 흔들리는 잎 돛 (둘 다 있어야 쓴다 — 아니면 예전 한 장짜리 배)
     if (hull && sail) Object.assign(this, { hull, sail, hullBox: cellBoxes(hull, ['h'], 1, 1).h, sailBox: cellBoxes(sail, ['s'], 1, 1).s });
     this.ready = true;
@@ -52,7 +57,7 @@ export class VoyageScene {
     for (const r of this.rain) { r.y += dt * r.v; if (r.y > 1) { r.y = 0; r.x = Math.random(); } }
     if (!this.ready || !this.W) return;
     const c = this.cx; c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    this.paint(c, this.W, this.H, this.t, st, this.play);
+    this.paint(c, this.W, this.H, this.t, st, this.play, true);
   }
   // 사건 한가운데를 사진 한 장으로 (화면에 안 보였던 사건도)
   snapshot(kind, st, w = 1600, h = 900) {
@@ -66,15 +71,17 @@ export class VoyageScene {
     return new Promise(ok => cv.toBlob(b => ok(b), 'image/webp', 0.86));
   }
 
-  paint(c, W, H, t, st, play) {
+  paint(c, W, H, t, st, play, screen = false) {
     const tallView = H > W, sea = tallView ? this.tall : this.sea, seaN = tallView ? this.tallN : this.seaN, u = Math.min(W, H), n = night(st.hour ?? 12);
     const bx = W / 2 + Math.sin(t * 0.37) * u * 0.006, by = H * (tallView ? 0.6 : 0.58) + Math.sin(t * 1.3) * u * 0.004, bh = u * (tallView ? 0.42 : 0.4);
     const wide = !!this.hullBox, bhh = wide ? bh * 0.78 : bh;   // 넓은 배는 조금 짧게
     const bwGuess = wide ? bhh * this.hullBox.w / this.hullBox.h : this.cells.boat ? bh * this.cells.boat.w / this.cells.boat.h : bh * 0.45;
     // 바다: 물 셰이더가 배 뒤로 흘려 보낸다 (안 되면 정지 그림)
     const q = this.waterScale ?? WATER_SCALE, gw = Math.max(2, Math.round(W * q)), gh = Math.max(2, Math.round(H * q));
-    const gl = this.water.ok && this.water.render(sea, gw, gh, { time: t, travel: travelOf(this, t), boat: [bx * q, by * q], boatSize: [bwGuess * q, bhh * q], night: n, nightImg: seaN });
-    if (gl) { c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high'; c.drawImage(gl, 0, 0, W, H); }
+    const sea3 = screen ? this.water : (this.photoWater ||= new SeaGL());
+    const gl = sea3.ok && sea3.render(sea, gw, gh, { time: t, travel: travelOf(this, t), boat: [bx * q, by * q], boatSize: [bwGuess * q, bhh * q], night: n, nightImg: seaN });
+    if (gl && screen) { gl.style.width = W + 'px'; gl.style.height = H + 'px'; c.clearRect(0, 0, W, H); }   // 화면: 물은 아래 캔버스, 여기는 투명
+    else if (gl) { c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high'; c.drawImage(gl, 0, 0, W, H); }   // 사진: 한 번 복사
     else { const k = Math.max(W / sea.width, H / sea.height) * 1.1, sw = sea.width * k, sh = sea.height * k; c.drawImage(sea, (W - sw) / 2, (H - sh) / 2, sw, sh); }
     // 떠나온 섬(처음)과 닿을 섬(끝) — 바닷길 양 끝
     //  물과 같은 빠르기로: 떠나온 섬은 배 뒤로 멀어지고, 닿을 섬은 남은 시간만큼 위에서 다가온다
@@ -118,14 +125,25 @@ export class VoyageScene {
     c.drawImage(this.sheet, b.x, b.y, b.w, b.h, -w / 2, -h / 2, w, h); c.restore();
     return w;
   }
-  // 잎 돛: 뱃머리 돛대에 꼭지를 매고 배 앞쪽 오른편으로 펼친다. 바람 따라 흔들리고 부푼다 (바람·비 날씨엔 더 크게)
+  // 잎 돛: 진짜 돛처럼 — 꼭지를 돛대에 매고 잎맥을 붐 삼아 배 뒤쪽 옆으로 펼친다(순풍에 붐을 내민 모양).
+  //  위에서 비스듬히 본 천처럼 폭을 좁히고, 바람을 받아 부풀었다 줄었다 한다. 붐 끝에서 고물로 줄 하나.
   sailSway(c, bw, bh, st, t) {
-    const sb = this.sailBox, wind = st.weather === 'wind' || st.weather === 'blossom' ? 1.9 : st.weather === 'rain' ? 1.5 : 1;
-    const a = Math.PI * 1.17 + wind * (0.09 * Math.sin(t * 0.9) + 0.04 * Math.sin(t * 2.3 + 1.1) + 0.015 * Math.sin(t * 6.1));
-    const lh = bh * 0.74, lw = lh * sb.w / sb.h, puff = 1 + wind * 0.05 * Math.sin(t * 1.7 + 0.4);
-    c.save(); c.translate(0, -bh * MAST_Y); c.rotate(a); c.scale(puff, 1);
+    const sb = this.sailBox, wind = st.weather === 'wind' || st.weather === 'blossom' ? 1.8 : st.weather === 'rain' ? 1.4 : 1;
+    const mx = 0, my = -bh * MAST_Y;
+    const a = -0.62 + wind * (0.05 * Math.sin(t * 0.7) + 0.025 * Math.sin(t * 1.9 + 1.1));   // 0 = 바로 뒤, 음수 = 오른쪽으로
+    const lh = bh * 0.95, lw = lh * sb.w / sb.h, belly = 0.5 + wind * 0.08 * (0.6 + 0.4 * Math.sin(t * 1.3)) + 0.03 * Math.sin(t * 4.1);
+    // 붐 끝 → 고물로 줄
+    const ex = mx - Math.sin(a) * lh * 0.92, ey = my + Math.cos(a) * lh * 0.92;
+    c.strokeStyle = 'rgba(70,50,30,0.55)'; c.lineWidth = Math.max(1, bh * 0.006);
+    c.beginPath(); c.moveTo(ex, ey); c.quadraticCurveTo((ex + 0) / 2 + bw * 0.05, (ey + bh * 0.46) / 2 + bh * 0.04, bw * 0.12, bh * 0.44); c.stroke();
+    c.save(); c.translate(mx, my); c.rotate(a);
+    c.scale(belly, 1);   // 비스듬히 본 천 — 바람에 부푼 만큼 넓어 보인다
+    c.translate(lw * 0.18, 0);   // 잎이 붐(잎맥)의 바람 아래쪽으로 불룩하게
     c.drawImage(this.sail, sb.x, sb.y, sb.w, sb.h, -lw * SAIL_STEM_X, -lh * 0.02, lw, lh);
     c.restore();
+    // 돛대 (잎 위로 살짝 보이게)
+    c.fillStyle = '#6b4a2e'; c.beginPath(); c.arc(mx, my, bw * 0.045, 0, Math.PI * 2); c.fill();
+    c.fillStyle = 'rgba(255,230,190,0.5)'; c.beginPath(); c.arc(mx - bw * 0.012, my - bw * 0.012, bw * 0.018, 0, Math.PI * 2); c.fill();
   }
   crew(c, bw, bh, st, play, t) {
     const n = Math.max(1, Math.min(3, st.crew || 3));
@@ -138,10 +156,11 @@ export class VoyageScene {
       else if (k === 'seabird' || k === 'lighthouse') pose = (k === 'seabird' ? -side : side) > 0 ? 'right' : 'left';
       else if (k === 'meteor') pose = 'sky';
       else if (k === 'doze' && i === n - 1) pose = 'sleep';
-      const b = this.crewCells[pose] || this.crewCells.up, h = kh * (pose === 'sleep' ? 0.9 : 1), w = h * b.w / b.h;
+      // 여섯 자세는 원본에서 같은 크기로 그려졌다 → 같은 배율로, 몸 아래 가운데를 앉는 자리에 맞춘다 (부리·날개 때문에 크기가 달라 보이지 않게)
+      const b = this.crewCells[pose] || this.crewCells.up, k2 = kh / this.crewRef, w = b.w * k2, h = b.h * k2, ax = CREW_AX[pose] ?? 0.5;
       const [x, y] = this.hullBox ? WIDE_SEATS[i].map((v, j) => v * (j ? bh : bw)) : [-bw * 0.13 + (i % 2 ? bw * 0.06 : 0), -bh * 0.25 + i * bh * 0.2];
       const hop = pose === 'sleep' ? 0 : Math.max(0, Math.sin(t * 1.7 + i * 2.1)) * kh * 0.035;
-      c.drawImage(this.crewSheet, b.x, b.y, b.w, b.h, x - w / 2, y - h / 2 - hop, w, h);
+      c.drawImage(this.crewSheet, b.x, b.y, b.w, b.h, x - w * ax, y + kh * 0.42 - h - hop, w, h);
       if (pose === 'sleep') { c.fillStyle = 'rgba(255,255,255,0.9)'; c.font = `600 ${Math.round(kh * 0.32)}px sans-serif`; const z = (t * 0.6) % 1; c.globalAlpha = 1 - z; c.fillText('z', x + w * 0.35, y - h * 0.5 - z * kh * 0.6); c.globalAlpha = 1; }
     }
     this.leafOver(c, bw, bh, play);

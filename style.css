@@ -639,6 +639,8 @@ body.drowse #focusHud { opacity: 0.22; transition: opacity 4s var(--ease), trans
 }
 
 /* ── 항해 모드 (src/voyage.js · voyage-scene.js) ── */
+#voyageSea { position: fixed; left: 0; top: 0; z-index: 4; display: block; pointer-events: none; }
+body:not(.atSea) #voyageSea { display: none; }
 #voyage { position: fixed; inset: 0; z-index: 4; display: block; }
 #voyage[hidden] { display: none; }
 body.atSea #say, body.atSea #touch { display: none; }
