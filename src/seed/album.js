@@ -5,8 +5,9 @@
 //  · 날짜·이유는 seed/focus.js sessions() 의 "끝까지 한" 기록과 같다 → 달력과 앨범이 맞는다.
 //  · 더미 사진에는 seed: true 를 달아 둔다 → 비우기·되돌리기는 더미만 지우고 진짜 사진은 그대로 둔다.
 
-import { Album } from '../album.js?v=v23.1.0';
-import { sessions } from './focus.js?v=v23.1.0';
+import { Album } from '../album.js?v=v23.2.0';
+import { sessions, REASONS } from './focus.js?v=v23.2.0';
+import { at, rng, pickOf } from './util.js?v=v23.2.0';
 
 const SIZES = [[1600, 1000], [900, 1600], [1600, 1000], [1600, 1200]];
 
@@ -34,11 +35,22 @@ export async function clearSeed() {
   for (const s of list) if (s.seed) await Album.remove(s.id);
 }
 
+// v23.2 앨범 묶음·200장 알림 시험용: 달력 기록에 더해 1년 넘게 이틀에 한 번꼴로 채워 210장
+function huge(now, done, n = 210) {
+  const out = done.slice(), used = new Set(out.map(s => s.at)), r = rng(210);
+  for (let d = 1; out.length < n && d < 900; d += 1 + Math.floor(r() * 3)) {
+    const t = at(now, d, 7 + Math.floor(r() * 14), Math.floor(r() * 60));
+    if (t >= now || used.has(t)) continue;
+    used.add(t); out.push({ at: t, min: pickOf(r, [15, 25, 25, 50]), reason: pickOf(r, REASONS), letter: '' });
+  }
+  return out.sort((a, b) => b.at - a.at).slice(0, n);
+}
+
 export async function apply(now = Date.now(), variant = 'rich') {
   await clearSeed();
   if (variant === 'none') return 0;
   const done = sessions(now, 'rich').filter(s => s.done).reverse();   // 최근 것부터
-  const pick = done.slice(0, variant === 'few' ? 3 : variant === 'many' ? 40 : 14);
+  const pick = variant === 'huge' ? huge(now, done) : done.slice(0, variant === 'few' ? 3 : variant === 'many' ? 40 : 14);
   for (let i = 0; i < pick.length; i++) {
     const s = pick[i], blob = await paint(s, i);
     await Album.add({ id: 'shot-seed-' + s.at, reason: s.reason, letter: s.letter, min: s.min, steps: s.min * 100, at: s.at, blob, seed: true });
@@ -49,6 +61,6 @@ export async function apply(now = Date.now(), variant = 'rich') {
 export default {
   id: 'album', label: '집중 사진 앨범', where: '모은 것 › 집중 사진',
   keys: [],   // localStorage 가 아니라 IndexedDB
-  variants: { rich: '14장 (가로·세로 섞음)', few: '3장', many: '40장 (스크롤·용량)', none: '더미 사진 지우기' },
+  variants: { rich: '14장 (가로·세로 섞음)', few: '3장', many: '40장 (스크롤·용량)', huge: '210장 (달별 묶음·200장 알림)', none: '더미 사진 지우기' },
   apply, clearSeed,
 };

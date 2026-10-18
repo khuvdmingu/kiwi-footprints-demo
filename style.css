@@ -581,3 +581,27 @@ body.drowse #focusHud { opacity: 0.22; transition: opacity 4s var(--ease), trans
 #shotWarn:empty { display: none; }
 #found .art .shotDel { display: block; margin: 10px auto 0; padding: 6px 12px; border: 0; border-radius: 999px; background: transparent; color: #8a5a3a; font: 500 13px/1.2 var(--font); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 #found .art .shotDel.armed { background: #c4513e; color: #fff; text-decoration: none; }
+
+/* v23.2 사진 앨범 — 최근은 폴라로이드, 지난 사진은 달별 카드 묶음 · 크게 보기 넘기기 · 공유 */
+.shots .shotOlder { grid-column: 1 / -1; margin: 8px 2px -4px; font-size: 13px; font-weight: 600; opacity: 0.8; }
+.shots .shotStack { position: relative; display: grid; gap: 6px; padding: 10px 6px 4px; border: 0; background: transparent; color: inherit; cursor: pointer; text-align: left; font: inherit; }
+.shotStack .pile { position: relative; display: block; aspect-ratio: 16 / 11; }
+.shotStack .pile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; padding: 5px; box-sizing: border-box; background: #fbf6ea; border-radius: 3px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); transition: transform 0.2s ease; }
+.shotStack .pile img:nth-last-child(2) { transform: rotate(-5deg) translate(-4px, 2px); }
+.shotStack .pile img:nth-last-child(3) { transform: rotate(6deg) translate(5px, 3px); }
+.shotStack:hover .pile img:nth-last-child(2), .shotStack:focus-visible .pile img:nth-last-child(2) { transform: rotate(-9deg) translate(-10px, 2px); }
+.shotStack:hover .pile img:nth-last-child(3), .shotStack:focus-visible .pile img:nth-last-child(3) { transform: rotate(10deg) translate(11px, 3px); }
+.shotStack .cap { display: flex; align-items: baseline; gap: 6px; padding: 0 2px; }
+.shotStack .cap b { font-size: 14px; }
+.shotStack .cap small { font-size: 12px; opacity: 0.75; }
+#found .art .photoFrame { position: relative; touch-action: pan-y; }
+#found .art .shotNav { position: absolute; top: 50%; width: 44px; height: 44px; min-height: 0; padding: 0; margin-top: -22px; border-radius: 50%; background: rgba(255, 253, 247, 0.88); box-shadow: 0 1px 6px rgba(40, 30, 10, 0.25); z-index: 2; }
+#found .art .shotNav.prev { left: -10px; }
+#found .art .shotNav.next { right: -10px; }
+#found .art .shotNav::before { content: ''; position: absolute; inset: 0; margin: auto; width: 10px; height: 10px; border: solid #5a4128; border-width: 0 0 2.5px 2.5px; transform: translateX(2px) rotate(45deg); }
+#found .art .shotNav.next::before { transform: translateX(-2px) rotate(-135deg); }
+#found .art .shotNav:disabled { opacity: 0; pointer-events: none; }
+#found #foundShare { background: #3f7f8c; color: #fff; }
+#found #foundShare[hidden] { display: none; }
+#found #foundShare:disabled { opacity: 0.6; }
+#found.bare #foundTitle, #found.bare .body, #found.bare .btns { display: none; }   /* 이름 묻기처럼 카드가 제목·버튼을 다 가진 때 */
