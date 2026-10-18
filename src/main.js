@@ -16,41 +16,41 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v25.2.0';
-import { Beach } from './beach.js?v=v25.2.0';
-import { Kiwi } from './kiwi.js?v=v25.2.0';
-import { Sound, SONG_TRACKS } from './sound.js?v=v25.2.0';
-import { KiwiWeather } from './sky/kiwi-react.js?v=v25.2.0';   // v23 날씨에 반응하는 키위 (잎 우산·비 피하기 · 바람에 기우뚱·깃털)
-import { loadPlate } from './plate.js?v=v25.2.0';
-import { MAPS, MAP_IDS } from './maps.js?v=v25.2.0';
-import { WaterGL, FlatWater } from './water.js?v=v25.2.0';
-import { setKiwiSprite, setKiwiSkins, setKiwiSleep } from './kiwi.js?v=v25.2.0';
-import { Bottles, MIN_DAYS, mineTitle, mineNote } from './bottles.js?v=v25.2.0';
-import { Album, capture, stamp, sandDate, longDate, shortReason } from './album.js?v=v25.2.0';
-import { breathAt, ringSpot, ROUNDS, SQUASH } from './breath.js?v=v25.2.0';
-import { Doze } from './doze.js?v=v25.2.0';
-import { zipStore, shotNames } from './zip.js?v=v25.2.0';
-import { Voyage, PLACES, SIGHTS, distanceText, hourOf } from './voyage.js?v=v25.2.0';   // 항해 모드 (docs/VOYAGE.md)
-import { VoyageScene } from './voyage-scene.js?v=v25.2.0';
-import { groupShots, shareCard, shareFile } from './album-view.js?v=v25.2.0';
-import { Memos } from './memos.js?v=v25.2.0';
-import { Greeter } from './greet.js?v=v25.2.0';
-import { mountMemoPanel, missedCard, nameCard } from './memo-ui.js?v=v25.2.0';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v25.2.0';
-import { Leaves } from './leaves.js?v=v25.2.0';
-import { Rake } from './zen.js?v=v25.2.0';
-import { Clouds } from './clouds.js?v=v25.2.0';
-import { Gulls } from './gulls.js?v=v25.2.0';
-import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v25.2.0';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v25.2.0';
-import { clamp, dist } from './util.js?v=v25.2.0';
-import { Focus, Awake, LENGTHS, CUSTOM, today } from './focus.js?v=v25.2.0';
-import { Flock } from './flock.js?v=v25.2.0';
-import { GUESTS, GUEST_IDS, Guestbook, guestCount, pickGuests, leaveTracks, NOTE_CELL, LETTER_TOTAL } from './guests.js?v=v25.2.0';
-import { UNLOCK_ALL } from './config.js?v=v25.2.0';
-import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v25.2.0';
-import { mountRenderDiagnostics } from './render-diagnostics.js?v=v25.2.0';
-import { renderTint } from './tint.js?v=v25.2.0';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v25.2.1';
+import { Beach } from './beach.js?v=v25.2.1';
+import { Kiwi } from './kiwi.js?v=v25.2.1';
+import { Sound, SONG_TRACKS } from './sound.js?v=v25.2.1';
+import { KiwiWeather } from './sky/kiwi-react.js?v=v25.2.1';   // v23 날씨에 반응하는 키위 (잎 우산·비 피하기 · 바람에 기우뚱·깃털)
+import { loadPlate } from './plate.js?v=v25.2.1';
+import { MAPS, MAP_IDS } from './maps.js?v=v25.2.1';
+import { WaterGL, FlatWater } from './water.js?v=v25.2.1';
+import { setKiwiSprite, setKiwiSkins, setKiwiSleep } from './kiwi.js?v=v25.2.1';
+import { Bottles, MIN_DAYS, mineTitle, mineNote } from './bottles.js?v=v25.2.1';
+import { Album, capture, stamp, sandDate, longDate, shortReason } from './album.js?v=v25.2.1';
+import { breathAt, ringSpot, ROUNDS, SQUASH } from './breath.js?v=v25.2.1';
+import { Doze } from './doze.js?v=v25.2.1';
+import { zipStore, shotNames } from './zip.js?v=v25.2.1';
+import { Voyage, PLACES, SIGHTS, distanceText, hourOf } from './voyage.js?v=v25.2.1';   // 항해 모드 (docs/VOYAGE.md)
+import { VoyageScene } from './voyage-scene.js?v=v25.2.1';
+import { groupShots, shareCard, shareFile } from './album-view.js?v=v25.2.1';
+import { Memos } from './memos.js?v=v25.2.1';
+import { Greeter } from './greet.js?v=v25.2.1';
+import { mountMemoPanel, missedCard, nameCard } from './memo-ui.js?v=v25.2.1';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v25.2.1';
+import { Leaves } from './leaves.js?v=v25.2.1';
+import { Rake } from './zen.js?v=v25.2.1';
+import { Clouds } from './clouds.js?v=v25.2.1';
+import { Gulls } from './gulls.js?v=v25.2.1';
+import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v25.2.1';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v25.2.1';
+import { clamp, dist } from './util.js?v=v25.2.1';
+import { Focus, Awake, LENGTHS, customMinutes, today } from './focus.js?v=v25.2.1';
+import { Flock } from './flock.js?v=v25.2.1';
+import { GUESTS, GUEST_IDS, Guestbook, guestCount, pickGuests, leaveTracks, NOTE_CELL, LETTER_TOTAL } from './guests.js?v=v25.2.1';
+import { UNLOCK_ALL } from './config.js?v=v25.2.1';
+import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v25.2.1';
+import { mountRenderDiagnostics } from './render-diagnostics.js?v=v25.2.1';
+import { renderTint } from './tint.js?v=v25.2.1';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -637,8 +637,8 @@ voyScene.load().then(() => { voyReady = true; }).catch(() => { voyReady = false;
 const ro = w => { const c = w.charCodeAt(w.length - 1) - 0xac00; return c >= 0 && c < 11172 && c % 28 && c % 28 !== 8 ? '으로' : '로'; };   // 받침 따라 「로/으로」
 const crewN = () => Math.min(3, Math.max(1, kiwis.filter(k => !k.gone).length));
 const voyState = (now = Date.now()) => ({ frac: voyage.frac(now), sailed: voyage.sailed(now), left: voyage.left(now), crew: crewN(), hour: lightShown ?? realHour(), weather: atmos.weather });
-function enterSea() { document.body.classList.add('atSea'); voyCv.hidden = false; voyScene.resize(innerWidth, innerHeight, Math.min(2, devicePixelRatio || 1)); }
-function leaveSea() { document.body.classList.remove('atSea'); voyCv.hidden = true; }
+function enterSea() { sound.onVoyage = true; document.body.classList.add('atSea'); voyCv.hidden = false; voyScene.resize(innerWidth, innerHeight, Math.min(2, devicePixelRatio || 1)); }
+function leaveSea() { sound.onVoyage = false; document.body.classList.remove('atSea'); voyCv.hidden = true; }
 function paintVoyage() {
   const vm = voyage.mode === 'voyage', p = voyage.paused;
   for (const r of focusPanel.querySelectorAll('input[name="fmode"]')) r.checked = r.value === voyage.mode;
@@ -765,13 +765,18 @@ focusPanel.addEventListener('change', e => {
   if (e.target.id === 'focusMin') setCustom(+e.target.value);
   if (e.target.name === 'fmode') { voyage.setMode(e.target.value); paintFocus(); }
 });
-// v20.1 직접 정하기: 5~180분, 5분 단위로 맞춘다 (마지막 값을 기억)
+// 직접 정하기: 1~180분, 정수 분 단위 (마지막 값을 기억)
 function setCustom(v) {
   if (!Number.isFinite(v)) v = focus.custom;
-  focus.custom = focus.len = clamp(Math.round(v / 5) * 5, CUSTOM[0], CUSTOM[1]); focus.useCustom = true; focus.store();
+  focus.custom = focus.len = customMinutes(v); focus.useCustom = true; focus.store();
   document.getElementById('focusMin').value = focus.custom; paintFocus();
 }
 for (const b of focusPanel.querySelectorAll('.fcustom button')) b.addEventListener('click', () => setCustom(focus.custom + +b.dataset.step));
+document.getElementById('focusMin').addEventListener('input', e => {
+  // 다른 옵션을 누르며 창이 다시 그려져도 방금 입력한 분 수를 잃지 않는다.
+  if (e.target.value === '' || !e.target.validity.valid) return;
+  focus.custom = focus.len = customMinutes(+e.target.value); focus.useCustom = true; focus.store();
+});
 document.getElementById('focusMin').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); setCustom(+e.target.value); } });
 // v20.1 집중하는 동안 소리: 배경 소리만(기본) · 조용히 · 그대로 — 끝나면 원래대로
 const applyHush = () => sound.setHush((focus.active || voyage.active) && focus.hush !== 'off' ? focus.hush : null);
@@ -913,6 +918,11 @@ function tick(dt) {
   else { const d = ((lightTarget - lightShown + 36) % 24) - 12; lightShown = Math.abs(d) < 0.005 ? lightTarget : (lightShown + d * Math.min(1, dt * 2.2) + 24) % 24; }
   atmos.mapId = mapId;
   atmos.update(dt, beach, lightShown);
+  if (voyage.active) {
+    // 숨겨진 섬은 정지한다. 항해 시간·날씨·배경 소리만 갱신하고 섬 걸음/콕/수집을 발생시키지 않는다.
+    sound.update({ high: 0, rain: atmos.v.rain, wind: Math.max(atmos.v.wind, atmos.v.rain * 0.3), night: atmos.night, hour: lightShown, weather: atmos.weather });
+    voyageTick(); ambAt = Date.now(); return;
+  }
   // 시간대 그림: 해 질 녘·밤·새벽에 그 빛으로 다시 칠한 판을 섞는다. 처음 필요해질 때 읽고, 다 읽기 전엔 시간 빛만.
   if (plate && water) artWarm = artTick(dt);
   clouds.amount = atmos.cloud; clouds.windK = atmos.windK;
@@ -1170,6 +1180,7 @@ let artScale = 0;   // 0 = 화면 해상도 그대로
 const artDpr = () => (artScale ? Math.min(artScale, dpr) : dpr);
 const perf = { ema: 1 / 60, slowFor: 0 };
 function watchPerf(gap) {
+  if (voyage.active) return;   // 숨겨진 섬의 해상도를 항해 부하로 낮추지 않는다
   if (gap > 0.2 || !water || beach.t < 6) return;   // 숨김에서 돌아온 긴 틈 · 그림·소리를 읽는 첫 6초는 세지 않는다
   // 손가락으로 핀치·끌기 하는 동안 느려지는 건 기기 탓이 아니다 — 세지 않는다(해상도를 낮추며 층을 다시 만들면 번쩍인다, v18.5.3)
   if (gesturing()) { perf.slowFor = 0; return; }
@@ -1191,7 +1202,7 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   // 한 프레임에서 오류가 나도 화면이 멈추지 않게 다음 프레임은 꼭 예약한다 (오류는 처음 한 번만 남긴다)
-  try { tick(dt); draw(); voyageDraw(dt); if (shotWanted) { shotWanted = false; takeShot(); } }
+  try { tick(dt); if (voyage.active) voyageDraw(dt); else draw(); if (shotWanted) { shotWanted = false; takeShot(); } }
   catch (e) { if (!frame.err) { frame.err = String(e && e.message || e); console.error(e); } }
   if (!ready) { ready = true; document.body.classList.add('ready'); }
   requestAnimationFrame(frame);
@@ -1457,19 +1468,19 @@ async function boot() {
     }
     throw err;
   })();
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v25.2.0'), img('assets/gull.webp?v=v25.2.0'), img('assets/bottle.webp?v=v25.2.0'), img('assets/crate.webp?v=v25.2.0')]);
-  img('assets/finds.webp?v=v25.2.0').then(im => {
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v25.2.1'), img('assets/gull.webp?v=v25.2.1'), img('assets/bottle.webp?v=v25.2.1'), img('assets/crate.webp?v=v25.2.1')]);
+  img('assets/finds.webp?v=v25.2.1').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
     drifters.setSprites({ ...drifters.imgs, conch: c });
   }).catch(() => {});
   drifters.setSprites({ ...drifters.imgs, bottle, crate });
-  img('assets/bottle-mine.webp?v=v25.2.0').then(im => drifters.setSprites({ ...drifters.imgs, mine: im })).catch(() => {});
-  img('assets/bottle-cheer.webp?v=v25.2.0').then(im => drifters.setSprites({ ...drifters.imgs, cheer: im })).catch(() => {});
-  img('assets/kiwi-sleep.webp?v=v25.2.0').then(setKiwiSleep).catch(() => {});
-  img('assets/leaves.webp?v=v25.2.0').then(im => floaters.setSheet(im)).catch(() => {});
-  img('assets/guests.webp?v=v25.2.0').then(im => { guestSheet = im; }).catch(() => {});
+  img('assets/bottle-mine.webp?v=v25.2.1').then(im => drifters.setSprites({ ...drifters.imgs, mine: im })).catch(() => {});
+  img('assets/bottle-cheer.webp?v=v25.2.1').then(im => drifters.setSprites({ ...drifters.imgs, cheer: im })).catch(() => {});
+  img('assets/kiwi-sleep.webp?v=v25.2.1').then(setKiwiSleep).catch(() => {});
+  img('assets/leaves.webp?v=v25.2.1').then(im => floaters.setSheet(im)).catch(() => {});
+  img('assets/guests.webp?v=v25.2.1').then(im => { guestSheet = im; }).catch(() => {});
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
   plate = p;
@@ -1755,7 +1766,7 @@ function paintFlock() {
   for (const m of flock.members.slice().reverse()) {   // 새로 들어온 키위가 위에
     const row = document.createElement('div'); row.className = 'mate';
     const im = document.createElement('img'); im.alt = '';
-    im.src = m.wear !== 'auto' && m.wear !== 'none' && ITEM[m.wear] ? 'assets/' + ITEM[m.wear].img : 'assets/kiwi.webp?v=v25.2.0';
+    im.src = m.wear !== 'auto' && m.wear !== 'none' && ITEM[m.wear] ? 'assets/' + ITEM[m.wear].img : 'assets/kiwi.webp?v=v25.2.1';
     const nm = document.createElement('input'); nm.type = 'text'; nm.value = m.name; nm.maxLength = 8; nm.setAttribute('aria-label', `${m.name} 이름 바꾸기`);
     nm.addEventListener('change', () => { flock.rename(m.id, nm.value); nm.value = m.name; });
     const dd = document.createElement('span'); dd.className = 'days'; dd.textContent = `${flock.daysWith(m)}일째`;
@@ -1942,7 +1953,7 @@ function paintCollection() {
   const ll = document.getElementById('letterList'); ll.textContent = '';
   for (const it of letters) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'letter';
-    const im = document.createElement('img'); im.src = 'assets/bottle.webp?v=v25.2.0'; im.alt = '';
+    const im = document.createElement('img'); im.src = 'assets/bottle.webp?v=v25.2.1'; im.alt = '';
     const tx = document.createElement('span'); tx.className = 'tx';
     const t = document.createElement('b'), q = document.createElement('span');
     if (col.owns(it.id)) {
@@ -2395,7 +2406,7 @@ async function paintAlbum() {
   document.getElementById('shotWarn').textContent = list.length >= ALBUM_WARN ? `${list.length}장 — 사진은 이 기기 저장 공간에 있어요. 아끼는 건 내려받아 두고, 지난 사진은 지워도 돼요.` : '';
   if (!list.length) {
     const e = document.createElement('div'); e.className = 'shotEmpty';
-    const im = document.createElement('img'); im.src = 'assets/flower.webp?v=v25.2.0'; im.alt = '';
+    const im = document.createElement('img'); im.src = 'assets/flower.webp?v=v25.2.1'; im.alt = '';
     const t = document.createElement('span'); t.textContent = '아직 사진이 없어요. 집중을 끝까지 하면 키위들이 이유와 날짜를 모래에 써 주고, 그 순간이 여기 남아요.';
     e.append(im, t); grid.append(e); return;
   }

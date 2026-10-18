@@ -13,11 +13,15 @@ void main(){ vUv = vec2(p.x * .5 + .5, .5 - p.y * .5); gl_Position = vec4(p, 0.,
 const FS = `#version 300 es
 precision highp float;
 in vec2 vUv; out vec4 o;
-uniform sampler2D tex, texN; uniform vec2 res, texSize, boat, boatSize; uniform float time, travel, calm, night;
-// 정수 해시 — sin 해시는 오래 항해해 좌표가 커지면 정밀도가 무너져 물결이 네모 덩어리로 깨졌다
-float h1(ivec2 c, uint s){ uint h = uint(c.x) * 1597334677u ^ uint(c.y) * 3812015801u ^ s * 2654435761u;
-  h ^= h >> 15; h *= 0x2c1b3c6du; h ^= h >> 12; h *= 0x297a2d39u; h ^= h >> 15; return float(h & 0xffffffu) / 16777215.; }
-float hash(vec2 p){ return h1(ivec2(floor(p)), 0u); }
+uniform sampler2D tex, texN; uniform vec2 res, texSize, boat, boatSize; uniform float time, travel, calm, night, lod;
+// 부동소수 해시: 일부 모바일 드라이버의 uint overflow/변환 경로를 피한다.
+// 중간값은 작은 범위에 유지한다 (sin에 큰 수를 넣는 해시도 사용하지 않는다).
+float h1(vec2 c, float seed){
+  vec3 p = fract(vec3(c.x, c.y, c.x) * vec3(.1031, .1030, .0973) + seed * .0137);
+  p += dot(p, p.yzx + 33.33);
+  return fract((p.x + p.y) * p.z);
+}
+float hash(vec2 p){ return h1(floor(p), 0.); }
 float noise(vec2 p){ vec2 i = floor(p), f = fract(p), u = f * f * f * (f * (f * 6. - 15.) + 10.);   // 5차 보간 — 칸 경계가 띠·네모로 드러나지 않게
   return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y); }
 float fbm(vec2 p){ float v = 0., a = .5; for (int i = 0; i < 4; i++) { v += a * noise(p); p = p * 2.03 + 17.1; a *= .5; } return v; }
@@ -25,13 +29,13 @@ float fbm(vec2 p){ float v = 0., a = .5; for (int i = 0; i < 4; i++) { v += a * 
 float sm(float a, float b, float x){ float t = clamp((x - a) / (b - a), 0., 1.); return t * t * (3. - 2. * t); }
 mat2 rot(float a){ float c = cos(a), n = sin(a); return mat2(c, -n, n, c); }
 // 흩뿌린 점 — 칸마다 있을 수도 없을 수도 있고, 자리·크기·깜빡이는 박자가 제각각이며 천천히 떠다닌다 (격자로 안 보이게)
-float dots(vec2 p, float keep, float r, uint s){
-  ivec2 c = ivec2(floor(p)); vec2 f = fract(p);
+float dots(vec2 p, float keep, float r, float s){
+  vec2 c = floor(p); vec2 f = fract(p);
   if (h1(c, s) > keep) return 0.;
-  vec2 o = vec2(h1(c, s + 1u), h1(c, s + 2u)) * .66 + .17;
-  o += .07 * vec2(sin(time * .5 + h1(c, s + 3u) * 20.), cos(time * .4 + h1(c, s + 4u) * 20.));
-  float rr = r * (.45 + h1(c, s + 5u));
-  float tw = .3 + .7 * (.5 + .5 * sin(time * (.7 + 1.6 * h1(c, s + 6u)) + h1(c, s + 7u) * 40.));
+  vec2 o = vec2(h1(c, s + 1.), h1(c, s + 2.)) * .66 + .17;
+  o += .07 * vec2(sin(time * .5 + h1(c, s + 3.) * 20.), cos(time * .4 + h1(c, s + 4.) * 20.));
+  float rr = r * (.45 + h1(c, s + 5.));
+  float tw = .3 + .7 * (.5 + .5 * sin(time * (.7 + 1.6 * h1(c, s + 6.)) + h1(c, s + 7.) * 40.));
   return sm(rr, 0., length(f - o)) * tw;
 }
 void main(){
@@ -44,7 +48,7 @@ void main(){
   vec2 tuv = (px - .5 * res) / (texSize * k) + .5;
   tuv.y -= travel * u / (texSize.y * k);
   tuv += d * .03;
-  vec3 col = mix(texture(tex, tuv).rgb, texture(texN, tuv).rgb, night);   // 밤엔 밤바다 판으로 (같은 구도)
+  vec3 col = mix(textureLod(tex, tuv, lod).rgb, textureLod(texN, tuv, lod).rgb, night);   // 밤엔 밤바다 판으로 (같은 구도)
   col = mix(col, col * vec3(.94, 1.0, 1.03), .5);
   vec3 foamC = mix(vec3(.93, .97, .98), vec3(.52, .66, .8), night);       // 밤 거품은 달빛 받은 푸른 회색
   vec3 glow = vec3(.22, .95, 1.);                                          // 야광 플랑크톤
@@ -53,15 +57,15 @@ void main(){
   float r2 = sin(-wp.x * 2.6 + wp.y * 16. + fbm(wp * 3.1 + 3.) * 6. - time * 1.7);
   col += mix(vec3(.85, 1., 1.), vec3(.55, .7, 1.), night) * pow(max(0., r1 * r2), 7.) * mix(.22, .14, night) * calm;
   // 반짝임 (물에 붙어 같이 흐르며 깜빡) — 크기·각도가 다른 두 겹
-  float gl = dots(rot(.5) * wp * 26., mix(.07, .025, night), .13, 1u) + dots(rot(-.9) * wp * 15. + 3.7, mix(.04, .015, night), .11, 11u);
+  float gl = dots(rot(.5) * wp * 26., mix(.07, .025, night), .13, 1.) + dots(rot(-.9) * wp * 15. + 3.7, mix(.04, .015, night), .11, 11.);
   col += mix(vec3(1.), vec3(.8, .88, 1.), night) * gl * .6 * calm;
   // 밤: 달빛 물길 (화면 오른쪽 위에서 비스듬히 — 반짝임이 모여 흐른다)
   float path = sm(.2, .0, abs(w.x - res.x / u * .68 + (w.y - .3) * .18 + .03 * sin(wp.y * 5. + time * .4)));
-  float ms = dots(rot(.3) * wp * 44., .14, .18, 21u) + dots(rot(-.6) * wp * 29. + 1.3, .1, .15, 27u);
+  float ms = dots(rot(.3) * wp * 44., .14, .18, 21.) + dots(rot(-.6) * wp * 29. + 1.3, .1, .15, 27.);
   col += vec3(.85, .9, 1.) * night * path * (.1 + ms * 1.1);
   // 밤: 물에 떠 흐르는 야광 점 — 무리 지어 몰렸다 비었다 하게
   float clump = sm(.42, .72, fbm(wp * 1.4 + vec2(time * .02, 0.)));
-  float pl = (dots(rot(.7) * wp * 13., .22, .13, 31u) + .7 * dots(rot(-.4) * wp * 21. + 5.1, .2, .1, 41u)) * (.2 + clump);
+  float pl = (dots(rot(.7) * wp * 13., .22, .13, 31.) + .7 * dots(rot(-.4) * wp * 21. + 5.1, .2, .1, 41.)) * (.2 + clump);
   col += glow * night * pl * .6;
   // 지나가는 물마루 거품 (가로로 짧게 끊긴 흰 결 — 물과 함께 아래로 흐른다)
   vec2 cp = rot(.22) * wp;                                    // 살짝 비스듬히, 덜 늘여서 (늘인 칸이 긴 네모로 보였다)
@@ -116,7 +120,7 @@ export class SeaGL {
       const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
       const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      this.U = {}; for (const n of ['tex', 'texN', 'res', 'texSize', 'boat', 'boatSize', 'time', 'travel', 'calm', 'night']) this.U[n] = gl.getUniformLocation(pr, n);
+      this.U = {}; for (const n of ['tex', 'texN', 'res', 'texSize', 'boat', 'boatSize', 'time', 'travel', 'calm', 'night', 'lod']) this.U[n] = gl.getUniformLocation(pr, n);
       this.ok = true;
     } catch (e) { console.warn('voyage water', e); this.ok = false; }
   }
@@ -144,6 +148,9 @@ export class SeaGL {
     const U = this.U;
     gl.uniform1i(U.tex, 0); gl.uniform1i(U.texN, 1); gl.uniform1f(U.night, nightImg ? night : 0); gl.uniform2f(U.res, w, h); gl.uniform2f(U.texSize, img.width, img.height);
     gl.uniform2f(U.boat, boat[0], boat[1]); gl.uniform2f(U.boatSize, boatSize[0], boatSize[1]);
+    // 그림 크기로 LOD를 정해 노이즈 경계의 미분이 큰 사각형 밉을 고르지 않게 한다.
+    const scale = Math.max(w / img.width, h / img.height) * 1.08;
+    gl.uniform1f(U.lod, Math.max(0, Math.log2(1 / scale)));
     gl.uniform1f(U.time, time); gl.uniform1f(U.travel, travel); gl.uniform1f(U.calm, calm);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     return this.cv;

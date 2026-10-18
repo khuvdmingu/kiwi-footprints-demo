@@ -15,7 +15,8 @@ export const STEPS_PER_MIN = 100;
 export const IDLE_STEPS_PER_MIN = 10;   // v13 켜 두기만 해도 (집중의 1/10)
 export const GRACE = 10;   // 초: 이 안에 돌아오면 이어서
 export const LENGTHS = [15, 25, 50];
-export const CUSTOM = [5, 180];   // v20.1 직접 정하기: 5분 단위 (5분 아래는 선물 상자를 연달아 받는 걸 막으려고 둔 하한)
+export const CUSTOM = [1, 180];   // 직접 정하기: 1분부터, 정수 분 단위
+export const customMinutes = value => Math.min(CUSTOM[1], Math.max(CUSTOM[0], Math.round(Number.isFinite(value) ? value : 40)));
 export const HUSH = ['events', 'all', 'off'];   // v20.1 집중 중 소리: 배경 소리만(기본) · 조용히 · 그대로
 const KEEP_DAYS = 800;   // 날마다 기록은 2년 남짓만 (그보다 오래된 날은 지운다)
 
@@ -33,7 +34,7 @@ export class Focus {
     this.idle = s.idle || 0;              // 그중 켜 두기로 쌓은 걸음
     this.idleMs = 0;
     this.log = s.log && typeof s.log === 'object' ? s.log : {};   // v19 { 'Y-M-D': { s 집중 걸음, m 분, n 횟수, d 끝까지, i 켜 두기 걸음 } }
-    this.custom = Number.isFinite(s.custom) ? Math.min(CUSTOM[1], Math.max(CUSTOM[0], s.custom)) : 40;   // 직접 정한 길이 (마지막 값)
+    this.custom = customMinutes(s.custom);   // 직접 정한 길이 (마지막 값)
     this.useCustom = !!s.useCustom;      // 「직접」을 골랐나 (직접 값이 15·25·50 과 같아도 직접으로 남게)
     this.len = this.useCustom ? this.custom : LENGTHS.includes(s.len) ? s.len : 25;   // 마지막에 고른 길이
     this.hush = HUSH.includes(s.hush) ? s.hush : 'events';

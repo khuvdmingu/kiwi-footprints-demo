@@ -9,11 +9,11 @@
 //  믹서 값(소리 켜기·음악·환경음·효과음·발자국 음악)은 기기에 기억한다.
 //  브라우저는 사용자 동작 안에서만 소리를 열 수 있어서 unlock() 을 그때 부른다. 탭을 숨기면 멈춘다.
 
-import { Music } from './music.js?v=v25.2.0';
+import { Music } from './music.js?v=v25.2.1';
 
 // v16 아이템 소리·곡은 오픈소스 녹음 — 목록·출처는 카탈로그 한 곳 (src/tracks/index.js). assets/audio/ 에서 처음 고를 때 받는다
 //  STEP_SAMPLES: 0.5초 칸마다 한 걸음 · NATURE_LOOPS: 끝과 처음을 겹쳐 이음매 없이 도는 고리 · SONG_TRACKS: 곡 고리
-import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v25.2.0';
+import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v25.2.1';
 export { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, NATURAL_STEPS };
 const AUDIO = 'assets/audio/';
 
@@ -273,6 +273,7 @@ export class Sound {
   // ── 발자국 음악 ──
   // 글씨 획 위 발자국 하나 → 화음 안의 음. 위쪽일수록 높다. 너무 촘촘하면 건너뛴다. 소리가 났으면 true
   step(x, y) {
+    if (this.onVoyage) return false;
     if (!this.ready()) return false;
     if (this.natural) {   // v18.7 자연스러운 소리: 글씨 획 위 발자국도 녹음 한 걸음 (음 없음, ♪ 안 띄움)
       if (this.gap('step', 0.11)) this.stepTex(this.natPack(), x, 1.25);
@@ -385,6 +386,7 @@ export class Sound {
     return true;
   }
   walkStep(x, flee = false) {
+    if (this.onVoyage) return;
     if (this.natural) {   // v18.7 걷기는 고른 바닥, 도망칠 때는 동물 종종걸음
       if (!this.ready() || !this.gap('walk', flee ? 0.1 : 0.15)) return;
       this.stepTex(flee ? 'scurry' : this.natPack(), x, flee ? 0.9 : 0.75);
@@ -468,6 +470,7 @@ export class Sound {
   }
 
   peck(x = this.stage.W / 2) {
+    if (this.onVoyage) return;   // 출항 전에 예약된 콕 타이머도 차단
     if (!this.ready() || !this.gap('peck', 0.05)) return;
     if (this.natural) {   // v18.7 바닥을 콕 — 고른 바닥(장소 따라면 장소)의 녹음
       if (this.fx(PECK_OF[this.natPack()], x, 0.42, 0.9 + Math.random() * 0.25)) return;

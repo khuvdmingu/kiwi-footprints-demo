@@ -16,7 +16,7 @@
 export const MODES = ['island', 'voyage'];
 export const MODE_NAME = { island: { ko: '섬에서 보기', en: 'Stay on the island' }, voyage: { ko: '항해하기', en: 'Set sail' } };
 export const NM_PER_MIN = 0.1;      // 1분 = 0.1해리 (6노트, 작은 돛배) — 25분 = 2.5해리
-export const MIN_SAIL = 5;          // 분: 이보다 짧은 항해는 없다 (focus.js CUSTOM 하한과 같음)
+export const MIN_SAIL = 1;          // 분: 직접 입력의 하한과 같게 (집중과 항해 공통)
 export const MAX_LOG = 400;         // 일기는 이만큼만 남긴다 (오래된 것부터 지움)
 const RECENT = 2;                   // 최근 일기 두 장과 같은 사건은 피한다
 const SEEN_WINDOW = 15000;          // ms: 사건 시각에서 이 안에 화면이 보이고 있었으면 직접 본 것
