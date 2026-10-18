@@ -1,0 +1,99 @@
+/* src/ia/ia.css — UI 구조 개편 모듈의 모양 (src/ia/ia.js 가 붙인다). 바구니 틀 자체는 basket-gen.css(설정 창 규칙 복사)가 맡는다. */
+
+/* 바구니 탭 (설정 창 탭과 같은 모양) */
+#basket { width: min(340px, calc(100vw - 2 * var(--edge, 16px))); right: var(--right, 16px); top: calc(var(--top) + var(--tap) + 10px); max-height: calc(100dvh - var(--top) - var(--tap) - 26px); padding: 14px 14px 12px; border-radius: 16px; overscroll-behavior: contain; }
+#basket[hidden] { display: none; }
+#basket .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; padding: 3px; margin: 0 0 12px; border-radius: 11px; background: rgba(0, 0, 0, 0.18); }
+#basket .tabs button { min-height: 38px; padding: 6px 2px; border: 0; border-radius: 8px; background: transparent; color: inherit; font: inherit; font-size: 12.5px; font-weight: 600; opacity: 0.7; cursor: pointer; white-space: nowrap; }
+#basket .tabs button[aria-selected="true"] { background: var(--sand); color: #2a2016; opacity: 1; }
+#basket .tabs button:focus-visible { outline: 2px solid rgb(var(--ink)); outline-offset: 1px; }
+#basket .pane[hidden] { display: none; }
+#basket #colTitle { margin: 0 2px 10px; font-size: 12.5px; opacity: 0.75; }
+/* 집중 기록 · 달력 (원래 집중 창 안의 단추 규칙을 바구니에서도) */
+#basket .cal button { display: grid; place-items: center; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.08); color: inherit; font: inherit; cursor: pointer; }
+#basket .calGrid .day { aspect-ratio: 1; width: auto; padding: 0; border-color: transparent; }
+#basket .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 0 0 4px; padding: 0; border-top: 0; opacity: 1; font-size: inherit; }
+#basket .stats div { display: grid; gap: 2px; padding: 8px 6px; border-radius: 10px; background: rgba(255, 255, 255, 0.06); text-align: center; }
+#basket .stats b { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+#basket .stats span { font-size: 10.5px; opacity: 0.7; line-height: 1.3; word-break: keep-all; }
+#basket .cal { max-width: 300px; margin: 10px auto 0; }
+
+/* 메뉴 첫 줄: 소리 (+ 바로 켜고 끄기) */
+#menu .ia-menurow { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px; }
+#menu .ia-menurow #soundBtn { width: auto; height: auto; }
+#menu [hidden] { display: none !important; }
+#menu .ia-mute { display: inline-flex; align-items: center; justify-content: center; grid-template-columns: none; align-self: center; width: auto; min-height: 36px; min-width: 64px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--panel-line); background: transparent; color: inherit; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+#menu .ia-mute[aria-checked="true"] { background: var(--sand); color: #2a2016; border-color: transparent; }
+#menu .ia-menurow + button { box-shadow: 0 -1px 0 rgba(var(--ink), 0.1); }
+#soundBtn .mute, #soundBtn[data-on="0"] .wave { display: none; }
+#soundBtn[data-on="0"] .mute { display: inline; }
+
+/* 위 모서리에 보이지 않게 남긴 시점 버튼 (고르기 창이 메뉴 버튼 아래에 뜨게 그 자리에 겹쳐 둔다) */
+.corner { position: fixed; }
+.corner .ia-ghost { position: absolute; right: 0; top: 0; opacity: 0; pointer-events: none; }
+
+/* 설정 › 풍경 › 시점: 지금 시점 그림 + 이름 */
+.ia-row { margin: 4px 2px 0; }
+.ia-pick { display: grid; grid-template-columns: 30px 1fr; grid-template-rows: auto auto; column-gap: 10px; align-items: center; width: 100%; min-height: 48px; padding: 6px 12px; border-radius: 12px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.ia-pick svg { grid-row: 1 / 3; width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.ia-pick span { font-weight: 600; } .ia-pick small { font-size: 12px; opacity: 0.65; }
+.ia-wide { display: grid; grid-template-columns: 26px 1fr; grid-template-rows: auto auto; column-gap: 12px; align-items: center; width: 100%; min-height: 48px; padding: 6px 12px; margin: 2px 0 0; border-radius: 12px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.ia-wide svg { grid-row: 1 / 3; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.ia-wide span { font-weight: 600; } .ia-wide small { font-size: 12px; opacity: 0.65; }
+
+/* 집중 창 「더 보기」 */
+#focusPanel .ia-more { margin: 10px 0 0; border-top: 1px solid var(--panel-line); padding-top: 4px; }
+#focusPanel .ia-more summary { display: flex; align-items: baseline; gap: 8px; min-height: 44px; align-items: center; padding: 0 4px; cursor: pointer; font-weight: 600; font-size: 14px; list-style: none; }
+#focusPanel .ia-more summary::-webkit-details-marker { display: none; }
+#focusPanel .ia-more summary::before { content: '▸'; font-size: 12px; opacity: 0.7; transition: transform 0.2s; }
+#focusPanel .ia-more[open] summary::before { transform: rotate(90deg); }
+#focusPanel .ia-more summary small { font-weight: 400; font-size: 12px; opacity: 0.6; }
+#focusPanel #focusStart { margin-top: 12px; }
+
+/* 가로로 든 폰 (v24.3 레일과 같은 조건) */
+@media (orientation: landscape) and (max-height: 520px) {
+  #basket { top: var(--top); right: var(--rail); max-height: calc(100dvh - 2 * var(--top)); width: min(360px, calc(100vw - var(--rail) - 2 * var(--edge))); }
+}
+
+/* 종이 테마 */
+html[data-ui="paper"] #basket .tabs { background: var(--pp-2); box-shadow: inset 0 1px 2px rgba(80, 60, 30, 0.12); }
+html[data-ui="paper"] #basket .tabs button { color: var(--pp-ink); opacity: 0.6; }
+html[data-ui="paper"] #basket .tabs button[aria-selected="true"] { background: var(--pp); color: var(--pp-ink); opacity: 1; box-shadow: 0 1px 3px rgba(80, 60, 30, 0.22); }
+html[data-ui="paper"] #basket .stats div, html[data-ui="paper"] #basket .calGrid .day { background: rgba(255, 255, 255, 0.3); }
+html[data-ui="paper"] #basket .cal button { border-color: rgba(74, 56, 38, 0.2); color: var(--pp-ink); }
+html[data-ui="paper"] #menu .ia-mute { border-color: rgba(74, 56, 38, 0.28); color: var(--pp-ink); }
+html[data-ui="paper"] #menu .ia-mute[aria-checked="true"] { background: var(--pp-stamp); color: var(--pp-stamp-ink); border-color: transparent; }
+html[data-ui="paper"] #menu .ia-menurow + button { border-top: 1px dashed var(--pp-edge); box-shadow: none; }
+html[data-ui="paper"] :is(.ia-pick, .ia-wide) { border-color: rgba(74, 56, 38, 0.28); background: rgba(255, 255, 255, 0.35); color: var(--pp-ink); }
+html[data-ui="paper"] #focusPanel .ia-more { border-top: 1px dashed var(--pp-edge); }
+html[data-ui="paper"] #focusPanel .ia-more summary { font-family: var(--pp-hand); font-size: 18px; }
+/* 종이 그림 아이콘: 바구니 버튼 = 바구니 칸, 시점 그림 = 시점 칸 (theme-paper.css 표와 같은 방식) */
+html[data-ui="paper"] :is(#basketBtn, .ia-pick, .ia-wide, #info i[data-icon="basketBtn"]) svg { background-repeat: no-repeat; background-size: 400% 400%; filter: drop-shadow(0 0 0.6px rgba(74, 56, 38, 0.55)); }
+html[data-ui="paper"] :is(#basketBtn, .ia-pick, .ia-wide, #info i[data-icon="basketBtn"]) svg > * { visibility: hidden; }
+html[data-ui="paper"] #basketBtn svg { width: 30px; height: 30px; }
+html[data-ui="paper"] :is(#basketBtn, #info i[data-icon="basketBtn"]) svg { background-image: url("../../assets/icons-paper-b.webp"); background-position: 100% 33.333%; }
+html[data-ui="paper"] .ia-wide svg { background-image: url("../../assets/icons-paper-a.webp"); background-position: 100% 100%; }
+html[data-ui="paper"] .ia-pick svg[data-ico="v-top"] { background-image: url("../../assets/icons-paper-b.webp"); background-position: 0% 0%; }
+html[data-ui="paper"] .ia-pick svg[data-ico="v-diorama"] { background-image: url("../../assets/icons-paper-b.webp"); background-position: 33.333% 0%; }
+html[data-ui="paper"] .ia-pick svg[data-ico="v-follow"] { background-image: url("../../assets/icons-paper-b.webp"); background-position: 66.667% 0%; }
+html[data-ui="paper"] .ia-pick svg[data-ico="v-scope"] { background-image: url("../../assets/icons-paper-b.webp"); background-position: 100% 0%; }
+html[data-ui="paper"] .ia-pick svg[data-ico="v-text"] { background-image: url("../../assets/icons-paper-b.webp"); background-position: 0% 33.333%; }
+html[data-ui="paper"] .ia-pick svg[data-ico="v-breeze"] { background-image: url("../../assets/icons-paper-b.webp"); background-position: 33.333% 33.333%; }
+#focusPanel .ia-more summary { white-space: nowrap; flex-wrap: nowrap; }
+#focusPanel .ia-more summary small { white-space: normal; font-family: var(--font); line-height: 1.35; }
+html[data-ui="paper"] #focusPanel .ia-more summary small { font-family: var(--font); font-size: 12px; }
+/* 키위 수: 한 마리는 「직접」 막대로 (3단계 + 직접) */
+#settings .seg.five:has(input[value="one"]) { grid-template-columns: repeat(4, 1fr); }
+#settings label.ia-off { display: none; }
+/* 집중 ① 단계의 「오늘의 한 줄」 — 사진(스냅샷)이 되는 칸이라 시작 바로 위에 */
+#focusPanel .ia-letter-h { display: flex; align-items: baseline; gap: 8px; margin: 14px 4px 6px; }
+#focusPanel .ia-letter-h small { font-family: var(--font); font-size: 11.5px; font-weight: 500; opacity: 0.65; }
+#focusPanel .ia-snap { margin: 2px 4px 0; font-size: 12px; line-height: 1.5; opacity: 0.8; word-break: keep-all; }
+#focusPanel .ia-snap b { font-weight: 700; color: var(--sand); }
+#focusPanel .ia-snap span { display: block; margin-top: 2px; opacity: 0.75; }
+html[data-ui="paper"] #focusPanel .ia-snap b { color: var(--pp-stamp); }
+/* 집중 창 아래 「이번 달 기록」 — 접지 않고 늘 보임 (통계 3칸 + 달력, 원래 집중 창 규칙 그대로) */
+#focusPanel .ia-rec-h { margin: 16px 4px 6px; padding-top: 12px; border-top: 1px solid var(--panel-line); }
+#focusPanel .ia-rec-h + .stats { margin-top: 0; padding-top: 0; border-top: 0; }
+html[data-ui="paper"] #focusPanel .ia-rec-h { border-top: 1px dashed var(--pp-edge); }
+html[data-ui="paper"] #focusPanel .ia-rec-h + .stats { border-top: 0; padding-top: 0; }

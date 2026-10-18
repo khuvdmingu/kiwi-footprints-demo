@@ -1,0 +1,76 @@
+/* 자동 생성 — tools/ia-css.py (손으로 고치지 말 것) */
+body.clean #basket { display: none !important; }
+#basket { position: fixed; z-index: 25; top: calc(var(--top) + var(--tap) + 10px); right: max(14px, env(safe-area-inset-right));
+  width: min(300px, calc(100vw - 28px)); padding: 12px 12px 8px; border-radius: 14px;
+  background: rgba(20, 47, 73, 0.78); border: 1px solid var(--panel-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 10px 30px rgba(var(--shadow), 0.35); font-size: 14px; }
+#basket .stats { margin: 10px 4px 0; word-break: keep-all; line-height: 1.5; padding-top: 8px; border-top: 1px solid var(--panel-line); font-size: 12.5px; opacity: 0.8; font-variant-numeric: tabular-nums; }
+#basket .stats:empty { display: none; }
+#basket h2 { margin: 2px 4px 6px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; opacity: 0.75; }
+#basket h2.sep { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--panel-line); }
+#basket { max-height: calc(100dvh - 90px); overflow-y: auto; }
+#basket h2.sub { margin-top: 10px; }
+#basket h3 { margin: 12px 0 6px; padding-top: 10px; border-top: 1px solid var(--panel-line); font-size: 12.5px; font-weight: 600; opacity: 0.75; }
+#basket .packs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+#basket .packs.voice { grid-template-columns: 1fr 1fr; margin-bottom: 8px; }
+#basket .packs.voice button { font-size: 13px; font-weight: 600; min-height: 38px; }
+#basket .packs button { padding: 7px 2px; border-radius: 9px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; word-break: keep-all; }
+#basket .packs button[aria-pressed="true"] { background: var(--sand); color: #2a2016; border-color: transparent; }
+#basket .packs button:disabled { opacity: 0.4; cursor: default; }
+#basket .hint { margin: 6px 0 2px; font-size: 12px; line-height: 1.5; opacity: 0.7; word-break: keep-all; }
+#basket .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 3px; margin: 0 0 12px; border-radius: 11px; background: rgba(0, 0, 0, 0.18); }
+#basket .tabs button { padding: 7px 4px; border: 0; border-radius: 8px; background: transparent; color: inherit; font: inherit; font-size: 13px; font-weight: 600; opacity: 0.7; cursor: pointer; white-space: nowrap; }
+#basket .tabs button:focus-visible { outline: 2px solid rgb(var(--ink)); outline-offset: 1px; }
+#basket .hint { margin: 6px 2px 2px; font-size: 12px; line-height: 1.5; opacity: 0.7; word-break: keep-all; }
+#basket .bagSum { margin: 0 2px 10px; font-size: 12.5px; opacity: 0.75; }
+#basket .hint.top { margin: 0 0 8px; }
+#basket .hint.foot { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--panel-line); }
+#basket .packs .part { grid-column: 1 / -1; margin: 8px 0 0; font-size: 11.5px; font-weight: 600; opacity: 0.65; }
+#basket .packs .part:first-child { margin-top: 0; }
+#basket .packs button { display: grid; place-items: center; min-height: 34px; }
+#basket .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 12px 0 0; padding: 10px 0 0; border-top: 1px solid var(--panel-line); opacity: 1; font-size: inherit; }
+#basket .stats:empty { display: none; }
+#basket .stats div { display: grid; gap: 2px; padding: 8px 6px; border-radius: 10px; background: rgba(255, 255, 255, 0.06); text-align: center; }
+#basket .stats b { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+#basket .stats span { font-size: 10.5px; opacity: 0.7; line-height: 1.3; word-break: keep-all; }
+#basket .cal { margin: 10px 2px 0; padding-top: 8px; border-top: 1px solid var(--panel-line); }
+#basket .cal button { display: grid; width: auto; padding: 0; border-radius: 8px; font-weight: 500; }
+#basket .calHead { display: grid; grid-template-columns: 30px 1fr 30px; align-items: center; margin-bottom: 4px; }
+#basket .calHead b { text-align: center; font-size: 13px; font-weight: 600; opacity: 0.85; }
+#basket .calHead button { height: 28px; place-items: center; border-color: transparent; background: none; font-size: 18px; line-height: 1; }
+#basket .calHead button:disabled { opacity: 0.25; cursor: default; }
+#basket .calDow, #basket .calGrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+#basket .calDow span { text-align: center; font-size: 10.5px; opacity: 0.5; padding-bottom: 2px; }
+#basket .calGrid .day { position: relative; aspect-ratio: 1; place-items: center; border: 1px solid transparent; background: rgba(255, 255, 255, 0.04); }
+#basket .calGrid .day .n { position: absolute; left: 3px; top: 1px; font-size: 9.5px; opacity: 0.55; font-variant-numeric: tabular-nums; }
+#basket .calGrid .day svg { width: 74%; height: 74%; margin-top: 10%; fill: none; stroke: var(--sand); stroke-width: 2.6; stroke-linecap: round; }
+#basket .calGrid .day.try svg { opacity: 0.38; }
+#basket .calGrid .day.done { background: rgba(232, 151, 46, 0.18); }
+#basket .calGrid .day i { width: 5px; height: 5px; border-radius: 50%; background: var(--sand); opacity: 0.45; margin-top: 8%; }
+#basket .calGrid .day em { position: absolute; right: 2px; bottom: 1px; font-style: normal; font-size: 9.5px; font-weight: 700; color: #e8972e; }
+#basket .calGrid .day.today { border-color: rgba(var(--ink), 0.55); }
+#basket .calGrid .day.pick { border-color: var(--sand); }
+#basket .calGrid .day:disabled { opacity: 0.35; cursor: default; }
+#basket .cal .note { margin: 6px 2px 0; font-size: 12px; line-height: 1.5; opacity: 0.75; word-break: keep-all; min-height: 1.5em; }
+#basket { width: min(320px, calc(100vw - 2 * var(--edge))); padding: 14px 14px 12px; border-radius: 16px; right: var(--right); }
+#basket { max-height: calc(100dvh - var(--top) - var(--tap) - 26px); }
+#basket .tabs button { min-height: 38px; }
+#basket h2.sep, #basket h3 { margin-top: 18px; padding-top: 14px; }
+#basket .packs { gap: 6px; }
+#basket .packs button, #basket .packs.voice button { min-height: var(--tap-in); }
+#basket .calHead { grid-template-columns: 40px 1fr 40px; }
+#basket .calHead button { height: 36px; min-height: 0; }
+#basket .cal button.day { min-height: 0; }
+html[data-ui="paper"] #basket { background: var(--pp-grain), var(--pp); color: var(--pp-ink); border: 1px solid var(--pp-edge);
+  border-radius: 18px 14px 17px 13px / 13px 17px 14px 18px;
+  box-shadow: var(--pp-shadow); backdrop-filter: none; -webkit-backdrop-filter: none; }
+html[data-ui="paper"] #basket h2, html[data-ui="paper"] #basket h3 { font-family: var(--pp-hand); font-size: 18px; font-weight: 700; letter-spacing: 0.01em; opacity: 1; color: var(--pp-ink); }
+html[data-ui="paper"] #basket h2.sep, html[data-ui="paper"] #basket h3 { border-top: 1px dashed var(--pp-edge); }
+html[data-ui="paper"] #basket .tabs { background: var(--pp-2); box-shadow: inset 0 1px 2px rgba(80, 60, 30, 0.12); }
+html[data-ui="paper"] #basket .tabs button { color: var(--pp-ink); opacity: 0.6; }
+html[data-ui="paper"] :is(#basket, html[data-ui="paper"] #basket .packs button { border: 1px solid rgba(74, 56, 38, 0.28); background: rgba(255, 255, 255, 0.35); color: var(--pp-ink); }
+html[data-ui="paper"] :is(#basket, html[data-ui="paper"] #basket .packs button[aria-pressed="true"] { background: var(--pp-stamp); color: var(--pp-stamp-ink); border-color: transparent;
+  transform: rotate(-1.2deg); box-shadow: inset 0 0 0 2px rgba(255, 240, 220, 0.35), 0 1px 0 rgba(120, 60, 20, 0.35); }
+html[data-ui="paper"] :is(#basket { outline-color: var(--pp-stamp); }
+html[data-ui="paper"] #basket .stats, html[data-ui="paper"] #basket .cal { border-top: 1px dashed var(--pp-edge); }
+html[data-ui="paper"] #basket .stats div, html[data-ui="paper"] #basket .calGrid .day { background: rgba(255, 255, 255, 0.3); }
