@@ -16,30 +16,30 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v21.0.0';
-import { Beach } from './beach.js?v=v21.0.0';
-import { Kiwi } from './kiwi.js?v=v21.0.0';
-import { Sound, SONG_TRACKS } from './sound.js?v=v21.0.0';
-import { loadPlate } from './plate.js?v=v21.0.0';
-import { MAPS, MAP_IDS } from './maps.js?v=v21.0.0';
-import { WaterGL, FlatWater } from './water.js?v=v21.0.0';
-import { setKiwiSprite, setKiwiSkins, setKiwiSleep } from './kiwi.js?v=v21.0.0';
-import { Bottles, MIN_DAYS, mineTitle, mineNote } from './bottles.js?v=v21.0.0';
-import { Album, capture, stamp, sandDate, longDate, shortReason } from './album.js?v=v21.0.0';
-import { breathAt, ringSpot, ROUNDS, SQUASH } from './breath.js?v=v21.0.0';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v21.0.0';
-import { Leaves } from './leaves.js?v=v21.0.0';
-import { Rake } from './zen.js?v=v21.0.0';
-import { Clouds } from './clouds.js?v=v21.0.0';
-import { Gulls } from './gulls.js?v=v21.0.0';
-import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v21.0.0';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v21.0.0';
-import { clamp, dist } from './util.js?v=v21.0.0';
-import { Focus, Awake, LENGTHS, CUSTOM, today } from './focus.js?v=v21.0.0';
-import { Flock } from './flock.js?v=v21.0.0';
-import { GUESTS, GUEST_IDS, Guestbook, guestCount, pickGuests, leaveTracks, NOTE_CELL, LETTER_TOTAL } from './guests.js?v=v21.0.0';
-import { UNLOCK_ALL } from './config.js?v=v21.0.0';
-import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v21.0.0';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v22.0.0';
+import { Beach } from './beach.js?v=v22.0.0';
+import { Kiwi } from './kiwi.js?v=v22.0.0';
+import { Sound, SONG_TRACKS } from './sound.js?v=v22.0.0';
+import { loadPlate } from './plate.js?v=v22.0.0';
+import { MAPS, MAP_IDS } from './maps.js?v=v22.0.0';
+import { WaterGL, FlatWater } from './water.js?v=v22.0.0';
+import { setKiwiSprite, setKiwiSkins, setKiwiSleep } from './kiwi.js?v=v22.0.0';
+import { Bottles, MIN_DAYS, mineTitle, mineNote } from './bottles.js?v=v22.0.0';
+import { Album, capture, stamp, sandDate, longDate, shortReason } from './album.js?v=v22.0.0';
+import { breathAt, ringSpot, ROUNDS, SQUASH } from './breath.js?v=v22.0.0';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v22.0.0';
+import { Leaves } from './leaves.js?v=v22.0.0';
+import { Rake } from './zen.js?v=v22.0.0';
+import { Clouds } from './clouds.js?v=v22.0.0';
+import { Gulls } from './gulls.js?v=v22.0.0';
+import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v22.0.0';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v22.0.0';
+import { clamp, dist } from './util.js?v=v22.0.0';
+import { Focus, Awake, LENGTHS, CUSTOM, today } from './focus.js?v=v22.0.0';
+import { Flock } from './flock.js?v=v22.0.0';
+import { GUESTS, GUEST_IDS, Guestbook, guestCount, pickGuests, leaveTracks, NOTE_CELL, LETTER_TOTAL } from './guests.js?v=v22.0.0';
+import { UNLOCK_ALL } from './config.js?v=v22.0.0';
+import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v22.0.0';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -1057,7 +1057,7 @@ const form = document.getElementById('say');
 const input = document.getElementById('sayInput');
 const soundBtn = document.getElementById('soundBtn');
 const viewBtn = document.getElementById('viewBtn');
-const infoBtn = document.getElementById('infoBtn');
+const infoBtn = document.getElementById('infoBtn'), menuBtn = document.getElementById('menuBtn');
 const info = document.getElementById('info');
 // 작품 설명의 버튼 목록에 실제 버튼 그림을 그대로 옮겨 쓴다 (v18.6.1) — 그림이 바뀌어도 설명이 따라간다
 for (const i of info.querySelectorAll('[data-icon]')) { const svg = document.getElementById(i.dataset.icon)?.querySelector('svg'); if (!svg) continue; const c = svg.cloneNode(true); c.querySelectorAll(':scope > g[class]').forEach((g, k) => k && g.remove()); i.append(c); }   // 글 모드·날씨는 그림 여러 벌 중 첫 번째만
@@ -1207,7 +1207,7 @@ const openInfo = open => {
   info.hidden = !open;
   document.body.classList.toggle('info-open', open);
   infoBtn.setAttribute('aria-expanded', String(open));
-  if (open) info.querySelector('button').focus(); else infoBtn.focus();
+  if (open) info.querySelector('button').focus(); else menuBtn.focus();   // v22: 작품 설명은 메뉴 안에 있다 → 메뉴 버튼으로
 };
 infoBtn.addEventListener('click', () => openInfo(info.hidden));
 info.addEventListener('click', e => { if (e.target === info || e.target.closest('[data-close]')) openInfo(false); });
@@ -1311,19 +1311,19 @@ async function boot() {
     }
     throw err;
   })();
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v21.0.0'), img('assets/gull.webp?v=v21.0.0'), img('assets/bottle.webp?v=v21.0.0'), img('assets/crate.webp?v=v21.0.0')]);
-  img('assets/finds.webp?v=v21.0.0').then(im => {
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v22.0.0'), img('assets/gull.webp?v=v22.0.0'), img('assets/bottle.webp?v=v22.0.0'), img('assets/crate.webp?v=v22.0.0')]);
+  img('assets/finds.webp?v=v22.0.0').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
     drifters.setSprites({ ...drifters.imgs, conch: c });
   }).catch(() => {});
   drifters.setSprites({ ...drifters.imgs, bottle, crate });
-  img('assets/bottle-mine.webp?v=v21.0.0').then(im => drifters.setSprites({ ...drifters.imgs, mine: im })).catch(() => {});
-  img('assets/bottle-cheer.webp?v=v21.0.0').then(im => drifters.setSprites({ ...drifters.imgs, cheer: im })).catch(() => {});
-  img('assets/kiwi-sleep.webp?v=v21.0.0').then(setKiwiSleep).catch(() => {});
-  img('assets/leaves.webp?v=v21.0.0').then(im => floaters.setSheet(im)).catch(() => {});
-  img('assets/guests.webp?v=v21.0.0').then(im => { guestSheet = im; }).catch(() => {});
+  img('assets/bottle-mine.webp?v=v22.0.0').then(im => drifters.setSprites({ ...drifters.imgs, mine: im })).catch(() => {});
+  img('assets/bottle-cheer.webp?v=v22.0.0').then(im => drifters.setSprites({ ...drifters.imgs, cheer: im })).catch(() => {});
+  img('assets/kiwi-sleep.webp?v=v22.0.0').then(setKiwiSleep).catch(() => {});
+  img('assets/leaves.webp?v=v22.0.0').then(im => floaters.setSheet(im)).catch(() => {});
+  img('assets/guests.webp?v=v22.0.0').then(im => { guestSheet = im; }).catch(() => {});
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
   plate = p;
@@ -1503,7 +1503,7 @@ function setWear(id, on) {
 }
 foundWear.addEventListener('click', () => {
   if (foundItem?.kind === 'guest') { const read = Math.min(guestbook.read[foundItem.id] || 0, GUESTS[foundItem.id].letters.length); showFound({ ...foundItem, n: (foundItem.n + 1) % Math.max(1, read) }); return; }
-  if (foundItem?.kind === 'shot') { const a = document.createElement('a'); a.href = foundItem.url; a.download = `kiwi-focus-${stamp(foundItem.at).replace(/[ .:]/g, '')}.webp?v=v21.0.0`; document.body.append(a); a.click(); a.remove(); return; }
+  if (foundItem?.kind === 'shot') { const a = document.createElement('a'); a.href = foundItem.url; a.download = `kiwi-focus-${stamp(foundItem.at).replace(/[ .:]/g, '')}.webp?v=v22.0.0`; document.body.append(a); a.click(); a.remove(); return; }
   if (foundItem?.kind === 'map') { setMap(foundItem.map); paintCollection(); }
   else if (foundItem?.kind === 'sound') { const g = foundItem.group, on = curPack(g) === foundItem.pack; unlock(); setPack(g, on ? PACK_BASE[g][0].pack : foundItem.pack); toast(on ? `${foundItem.name} 끔` : `${foundItem.name} — 소리 창에서 바꿀 수 있어요`, 2200); paintCollection(); }
   else if (foundItem) setWear(foundItem.id, !col.wearing(foundItem.id));
@@ -1573,7 +1573,7 @@ function paintFlock() {
   for (const m of flock.members.slice().reverse()) {   // 새로 들어온 키위가 위에
     const row = document.createElement('div'); row.className = 'mate';
     const im = document.createElement('img'); im.alt = '';
-    im.src = m.wear !== 'auto' && m.wear !== 'none' && ITEM[m.wear] ? 'assets/' + ITEM[m.wear].img : 'assets/kiwi.webp?v=v21.0.0';
+    im.src = m.wear !== 'auto' && m.wear !== 'none' && ITEM[m.wear] ? 'assets/' + ITEM[m.wear].img : 'assets/kiwi.webp?v=v22.0.0';
     const nm = document.createElement('input'); nm.type = 'text'; nm.value = m.name; nm.maxLength = 8; nm.setAttribute('aria-label', `${m.name} 이름 바꾸기`);
     nm.addEventListener('change', () => { flock.rename(m.id, nm.value); nm.value = m.name; });
     const dd = document.createElement('span'); dd.className = 'days'; dd.textContent = `${flock.daysWith(m)}일째`;
@@ -1757,7 +1757,7 @@ function paintCollection() {
   const ll = document.getElementById('letterList'); ll.textContent = '';
   for (const it of letters) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'letter';
-    const im = document.createElement('img'); im.src = 'assets/bottle.webp?v=v21.0.0'; im.alt = '';
+    const im = document.createElement('img'); im.src = 'assets/bottle.webp?v=v22.0.0'; im.alt = '';
     const tx = document.createElement('span'); tx.className = 'tx';
     const t = document.createElement('b'), q = document.createElement('span');
     if (col.owns(it.id)) {
@@ -1805,7 +1805,7 @@ settings.addEventListener('change', e => {
   if (mode === 'clock') { lastClock = null; submit(...nextAuto(nowHour())); }
 });
 document.addEventListener('pointerdown', e => { if (!settings.hidden && !onTop(e.target) && !settings.contains(e.target) && !setBtn.contains(e.target)) openSettings(false); });
-window.addEventListener('keydown', e => { if (e.key === 'Escape' && foundEl.hidden && !settings.hidden) { openSettings(false); setBtn.focus(); } });
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && foundEl.hidden && !settings.hidden) { openSettings(false); menuBtn.focus(); } });
 paintMode(); paintModeMenu();
 document.getElementById('optWall').checked = wallOn;
 
@@ -1825,7 +1825,7 @@ function setClean(on) {
   hideBtn.setAttribute('aria-pressed', String(on));
   hideBtn.setAttribute('aria-label', on ? '버튼·입력창 다시 보이기 (H 키)' : '화면 정리 — 버튼·입력창 숨기기 (H 키)');
   if (on) {
-    openSettings(false); openMixer(false); openFocusPanel(false); openInfo(false);
+    openSettings(false); openMixer(false); openFocusPanel(false); openInfo(false); if (!menu.hidden) openMenu(false);
     if (document.activeElement && document.activeElement !== hideBtn) document.activeElement.blur();
     peek();
   } else { document.body.classList.remove('peek'); clearTimeout(peekTimer); }
@@ -1846,6 +1846,27 @@ const paintWeather = () => { weatherBtn.dataset.weather = atmos.weather; weather
 function pickWeather(w) { atmos.setWeather(w); save('weather', atmos.weather); paintWeather(); toast(WEATHER_NAME[atmos.weather]); }
 weatherBtn.addEventListener('click', () => openPicker(weatherBtn, '날씨', WEATHERS.map(w => ({ id: w, name: WEATHER_NAME[w], g: 'w-' + w })), atmos.weather, w => { if (w !== atmos.weather) pickWeather(w); }));
 
+// ── 메뉴 (v22): 자주 안 쓰는 것(설정 · 모은 것 · 화면 정리 · 작품 설명)은 ⋯ 안으로 — 위 버튼 줄은 8개 → 6개(풍경 3개 묶음 + 소리 · 집중 · 메뉴) ──
+const menu = document.getElementById('menu');
+function openMenu(open, back = false) {
+  if (open === !menu.hidden) return;
+  if (open) { closePicker(); openSettings(false); openMixer(false); openFocusPanel(false); }
+  menu.hidden = !open; menuBtn.setAttribute('aria-expanded', String(open));
+  if (open) menu.querySelector('button').focus(); else if (back) menuBtn.focus();
+}
+menuBtn.addEventListener('click', () => openMenu(menu.hidden));
+// 메뉴 항목은 누르면 메뉴를 닫고 제 일을 한다 (설정·작품 설명 버튼의 원래 동작은 그대로 — 닫는 건 먼저, 붙잡는 단계에서)
+menu.addEventListener('click', e => { if (e.target.closest('button')) openMenu(false); }, true);
+document.getElementById('bagBtn').addEventListener('click', () => { unlock(); paintCollection(); paintModeMenu(); paintLight(); settingsTab('bag'); openSettings(true); });
+document.getElementById('cleanBtn').addEventListener('click', () => setClean(true));
+document.addEventListener('pointerdown', e => { if (!menu.hidden && !menu.contains(e.target) && !menuBtn.contains(e.target)) openMenu(false); });
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && !menu.hidden) openMenu(false, true); });
+menu.addEventListener('keydown', e => {
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+  const bs = [...menu.querySelectorAll('button')], i = bs.indexOf(document.activeElement);
+  bs[(i + (e.key === 'ArrowDown' ? 1 : bs.length - 1)) % bs.length].focus(); e.preventDefault();
+});
+
 // ── 고르기 창 (v18.6.2): 버튼 바로 아래에 뜨고, 고르면 닫힌다. 같은 버튼을 다시 누르거나 바깥을 누르면 닫힘 ──
 const picker = document.getElementById('picker');
 let pickerFor = null;
@@ -1857,7 +1878,7 @@ function closePicker(back = false) {
 }
 function openPicker(btn, title, opts, cur, onPick) {
   if (pickerFor === btn) { closePicker(); return; }
-  closePicker();
+  closePicker(); openMenu(false);
   openSettings(false); openMixer(false); openFocusPanel(false);
   picker.textContent = '';
   picker.setAttribute('aria-label', title + ' 고르기');
@@ -2081,7 +2102,7 @@ async function paintAlbum() {
   title.textContent = `집중 사진 ${list.length}` + (bottles.returned ? ` · 돌아온 글 ${bottles.returned}` : '');
   if (!list.length) {
     const e = document.createElement('div'); e.className = 'shotEmpty';
-    const im = document.createElement('img'); im.src = 'assets/flower.webp?v=v21.0.0'; im.alt = '';
+    const im = document.createElement('img'); im.src = 'assets/flower.webp?v=v22.0.0'; im.alt = '';
     const t = document.createElement('span'); t.textContent = '아직 사진이 없어요. 집중을 끝까지 하면 키위들이 이유와 날짜를 모래에 써 주고, 그 순간이 여기 남아요.';
     e.append(im, t); grid.append(e); return;
   }
