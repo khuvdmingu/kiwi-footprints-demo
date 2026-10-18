@@ -6,7 +6,7 @@
 //  사건(voyage.js 의 kind)을 받으면 12초쯤 그 장면을 보여 준다. snapshot() 은 같은 장면을 사진 한 장으로 다시 그린다
 //  (화면을 꺼 두었던 사이의 사건도 일기 사진을 남길 수 있게).
 
-import { SeaGL } from './voyage-water.js?v=v25.5.1';
+import { SeaGL } from './voyage-water.js?v=v25.5.2';
 
 export const SPEED = 0.05;   // 배가 가는 빠르기: 1초에 화면 짧은 변의 5% (물·잔물결·지나가는 것이 모두 이 빠르기로 흐른다)
 const WATER_SCALE = 0.75;     // 물은 화면보다 성기게 그린다 (배터리·발열 — 물결은 흐려도 티가 안 난다)
@@ -37,9 +37,12 @@ export class VoyageScene {
     if (this.water.ok) { const w = this.water.cv; w.id = 'voyageSea'; w.setAttribute('aria-hidden', 'true'); canvas.parentNode.insertBefore(w, canvas); }
     this.rain = Array.from({ length: 90 }, () => ({ x: Math.random(), y: Math.random(), v: 0.8 + Math.random() * 0.6 }));
   }
+  // 항해 그림을 읽는다. 끝나기 전에 unload() 되면 false (늦게 온 그림이 놓아준 자리를 되살리지 않는다)
   async load(base = 'assets/') {
     this.base = base;
-    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v25.5.1', 'sea-tall.webp?v=v25.5.1', 'voyage-sprites.webp?v=v25.5.1', 'kiwi.webp?v=v25.5.1', 'kiwi-sleep.webp?v=v25.5.1', 'umbrellas.webp?v=v25.5.1', 'sea-night.webp?v=v25.5.1', 'sea-tall-night.webp?v=v25.5.1', 'voyage-crew.webp?v=v25.5.1', 'voyage-boat.webp?v=v25.5.1', 'voyage-sail.webp?v=v25.5.1'].map(f => img(base + f).catch(() => null)));
+    const gen = this.gen = (this.gen || 0) + 1;
+    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v25.5.2', 'sea-tall.webp?v=v25.5.2', 'voyage-sprites.webp?v=v25.5.2', 'kiwi.webp?v=v25.5.2', 'kiwi-sleep.webp?v=v25.5.2', 'umbrellas.webp?v=v25.5.2', 'sea-night.webp?v=v25.5.2', 'sea-tall-night.webp?v=v25.5.2', 'voyage-crew.webp?v=v25.5.2', 'voyage-boat.webp?v=v25.5.2', 'voyage-sail.webp?v=v25.5.2'].map(f => img(base + f).catch(() => null)));
+    if (gen !== this.gen) return false;
     if (!sea || !sheet) throw new Error('voyage art');
     Object.assign(this, { sea, tall: tall || sea, sheet, kiwi, sleep, umb, seaN, tallN: tallN || seaN, crewSheet });
     this.cells = cellBoxes(sheet, CELLS);
@@ -48,6 +51,17 @@ export class VoyageScene {
     // 넓은 배 + 따로 흔들리는 잎 돛 (둘 다 있어야 쓴다 — 아니면 예전 한 장짜리 배)
     if (hull && sail) Object.assign(this, { hull, sail, hullBox: cellBoxes(hull, ['h'], 1, 1).h, sailBox: cellBoxes(sail, ['s'], 1, 1).s });
     this.ready = true;
+    return true;
+  }
+  // 항해가 끝나면 그림·GPU 텍스처·그리기 버퍼를 놓아준다 — 항해하지 않는 동안은 바다 그림을 들고 있지 않는다 (2026-10-19)
+  //  다음 항해 때 load() 로 다시 읽는다(기기 캐시에서). 노을 그림의 실패 기록도 이때 지워 다음 항해에 다시 시도한다
+  unload() {
+    this.gen = (this.gen || 0) + 1; this.ready = false;
+    for (const k of ['sea', 'tall', 'sheet', 'kiwi', 'sleep', 'umb', 'seaN', 'tallN', 'crewSheet', 'hull', 'sail', 'cells', 'crewCells', 'crewRef', 'hullBox', 'sailBox']) this[k] = null;
+    this.sunsets.clear();
+    this.water.release(); this.photoWater?.release();
+    this.cv.width = 1; this.cv.height = 1; this.W = 0; this.H = 0;
+    this.play = null;
   }
   resize(w, h, dpr = 1) {
     this.W = w; this.H = h; this.dpr = dpr;
@@ -61,7 +75,7 @@ export class VoyageScene {
   sunsetArt(tall) {
     if (!this.sunsets.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v25.5.1' : 'sea-sunset.webp?v=v25.5.1')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v25.5.2' : 'sea-sunset.webp?v=v25.5.2')).then(image => (entry.image = image)).catch(() => null);
       this.sunsets.set(tall, entry);
     }
     return this.sunsets.get(tall).promise;

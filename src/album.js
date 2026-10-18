@@ -5,7 +5,7 @@
 //  · 버튼·입력창은 #world 밖에 있어서 사진에 안 들어간다. 확대·시점 이동과 상관없이 해변 전체가 찍힌다.
 //  · 저장: 이 기기 IndexedDB (사진은 localStorage 에 넣기엔 크다). 가로 최대 1600px webp.
 
-import { tintSnapshot } from './tint.js?v=v25.5.1';
+import { tintSnapshot } from './tint.js?v=v25.5.2';
 
 const DB = 'kiwi-footprints', STORE = 'shots', MAXW = 1600;
 
@@ -27,10 +27,15 @@ async function tx(mode, fn) {
   });
 }
 
+// version: 이 창에서 사진을 넣거나 지울 때마다 올라간다 → 앨범 화면은 바뀌었을 때만 다시 읽는다 (O4, 2026-10-19)
+const write = fn => fn().finally(() => { Album.version++; });
 export const Album = {
-  add: shot => tx('readwrite', st => st.put(shot)),
-  remove: id => tx('readwrite', st => st.delete(id)),
+  version: 0,
+  add: shot => write(() => tx('readwrite', st => st.put(shot))),
+  remove: id => write(() => tx('readwrite', st => st.delete(id))),
   async all() { const list = await tx('readonly', st => st.getAll()); return (list || []).sort((a, b) => b.at - a.at); },
+  // 장수만 필요할 때: 사진(Blob)을 읽지 않고 센다
+  count: () => tx('readonly', st => st.count()),
 };
 
 const BLEND = { multiply: 'multiply', 'soft-light': 'soft-light', screen: 'screen', overlay: 'overlay', normal: 'source-over' };

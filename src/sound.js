@@ -9,13 +9,18 @@
 //  믹서 값(소리 켜기·음악·환경음·효과음·발자국 음악)은 기기에 기억한다.
 //  브라우저는 사용자 동작 안에서만 소리를 열 수 있어서 unlock() 을 그때 부른다. 탭을 숨기면 멈춘다.
 
-import { Music } from './music.js?v=v25.5.1';
+import { Music } from './music.js?v=v25.5.2';
 
 // v16 아이템 소리·곡은 오픈소스 녹음 — 목록·출처는 카탈로그 한 곳 (src/tracks/index.js). assets/audio/ 에서 처음 고를 때 받는다
 //  STEP_SAMPLES: 0.5초 칸마다 한 걸음 · NATURE_LOOPS: 끝과 처음을 겹쳐 이음매 없이 도는 고리 · SONG_TRACKS: 곡 고리
-import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v25.5.1';
+import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v25.5.2';
 export { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, NATURAL_STEPS };
 const AUDIO = 'assets/audio/';
+// 곡·자연 배경 고리는 풀어 두면 한 곡에 수십 MB(48kHz 기준 최대 약 96MiB)라, 고리 자리마다 지금 것 + 바로 전 것만 들고 있는다 (2026-10-19)
+//  · 재생 중·줄어드는 중·받는 중인 고리는 지우지 않는다 · 짧은 효과음·발자국 녹음은 계속 둔다
+//  · 못 받은 파일은 기록하지 않고 RETRY_MS 뒤 다시 받는다 (그 사이엔 걸음마다 다시 요청하지 않는다) · 인터넷이 돌아오면 바로 다시
+const LOOP_FILES = new Set([...Object.values(SONG_TRACKS), ...Object.values(NATURE_LOOPS)]);
+const LOOP_KEEP = 2, RETRY_MS = 15000, FADE_MS = 3000;
 
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 const MIX_KEY = 'kiwi-footprints.mix';
@@ -56,6 +61,7 @@ export class Sound {
         if (document.hidden) this.ctx.suspend(); else if (this.mix.on) this.ctx.resume();
       });
     }
+    if (typeof globalThis.addEventListener === 'function') globalThis.addEventListener('online', () => this.retryLoops());   // 오프라인에서 못 받은 곡·소리 (2026-10-19)
   }
 
   get on() { return this.mix.on; }
@@ -323,14 +329,41 @@ export class Sound {
   //  v15.1: 발자국 음악(칼림바)·파도에 묻혀 "바꿔도 안 바뀐다"(사용자) → 2.5배 키우고, 글씨가 아닌 걸음에도 작게 낸다(walkStep)
   // 녹음 파일 읽기 (한 번만, 다 읽으면 this.got[file] 에 바로 쓸 수 있게)
   loadBuf(file) {
-    this.bufs ||= {}; this.got ||= {};
+    this.bufs ||= {}; this.got ||= {}; this.failAt ||= {};
     if (!this.bufs[file] && this.ctx) {
+      if (Date.now() - (this.failAt[file] ?? -Infinity) < RETRY_MS) return Promise.resolve(null);   // 방금 못 받았다: 잠깐 쉬었다 다시
       // audioBase: 게임 밖 페이지(작업장 듣기 페이지)는 다른 경로에서 연다 · 못 읽으면 조용히 null (2026-10-18)
-      this.bufs[file] = fetch((this.audioBase || AUDIO) + file).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+      //  늦게 온 응답은 그사이 지워졌거나 바뀐 자리를 되살리지 않는다 (this.bufs[file] === p 일 때만 기록)
+      const p = this.bufs[file] = fetch((this.audioBase || AUDIO) + file).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
         .then(a => this.ctx.decodeAudioData(a))
-        .then(b => (this.got[file] = b)).catch(() => null);
+        .then(b => { if (this.bufs[file] === p) { this.got[file] = b; delete this.failAt[file]; } return b; })
+        .catch(() => { if (this.bufs[file] === p) { delete this.bufs[file]; this.failAt[file] = Date.now(); } return null; });
     }
     return this.bufs[file] || Promise.resolve(null);
+  }
+  // 고리 자리(track·bed)마다 최근 LOOP_KEEP 개만 기억한다 — A→B→A 는 다시 받지 않고 바로 이어진다
+  useLoop(slot, file) {
+    if (!file) return;
+    this.recent ||= {};
+    const list = (this.recent[slot] ||= []).filter(f => f !== file);
+    list.push(file);
+    this.recent[slot] = list.slice(-LOOP_KEEP);
+  }
+  // 최근 것·재생 중·줄어드는 중이 아닌 곡·배경 고리를 놓아준다 (다음에 고르면 다시 받아 푼다)
+  trimLoops() {
+    if (!this.bufs) return;
+    const keep = new Set(this.fading ? this.fading.keys() : []);
+    for (const list of Object.values(this.recent || {})) for (const f of list) keep.add(f);
+    for (const s of ['track', 'bed']) if (this[s]) keep.add(this[s].file);
+    for (const f of Object.keys(this.bufs)) if (LOOP_FILES.has(f) && !keep.has(f)) { delete this.bufs[f]; delete this.got[f]; }
+  }
+  // 인터넷이 돌아오면: 못 받았던 소리를 바로 다시 받을 수 있게 하고, 듣고 싶던 고리를 다시 건다
+  retryLoops() {
+    this.failAt = {};
+    for (const slot of ['track', 'bed']) {
+      const f = this.want?.[slot], args = this.loopArgs?.[slot];
+      if (f && args && !(this[slot] && this[slot].file === f)) this.playLoop(slot, f, ...args);
+    }
   }
   // 발자국 소리: 녹음에서 자른 한 걸음(0.5초 칸 중 하나)을 높낮이를 조금씩 바꿔 낸다
   stepTex(pk, x, k = 1) {
@@ -408,9 +441,22 @@ export class Sound {
   // 고리 하나(배경 소리 bed · 곡 track): 바꾸면 이전 것은 천천히 줄이고 새 것은 천천히 키운다
   playLoop(slot, file, bus, level) {
     this.want ||= {}; this.want[slot] = file || null;
+    if (file) { (this.loopArgs ||= {})[slot] = [bus, level]; this.useLoop(slot, file); }
     if (!this.ctx) return;
     const t = this.ctx.currentTime, old = this[slot];
-    if (old && old.file !== file) { old.g.gain.setTargetAtTime(0, t, 0.5); setTimeout(() => { try { old.src.stop(); } catch (e) { /* 이미 멈춤 */ } }, 3000); this[slot] = null; }
+    if (old && old.file !== file) {
+      old.g.gain.setTargetAtTime(0, t, 0.5);
+      const fading = (this.fading ||= new Map());
+      fading.set(old.file, (fading.get(old.file) || 0) + 1);   // 줄어드는 동안은 그 버퍼를 놓지 않는다
+      setTimeout(() => {
+        try { old.src.stop(); } catch (e) { /* 이미 멈춤 */ }
+        const n = fading.get(old.file) - 1;
+        if (n > 0) fading.set(old.file, n); else fading.delete(old.file);
+        this.trimLoops();
+      }, FADE_MS);
+      this[slot] = null;
+    }
+    this.trimLoops();
     if (!file || (this[slot] && this[slot].file === file)) return;
     this.loadBuf(file).then(b => {
       if (!b || this.want[slot] !== file || (this[slot] && this[slot].file === file)) return;

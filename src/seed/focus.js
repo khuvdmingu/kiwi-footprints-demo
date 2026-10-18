@@ -6,7 +6,7 @@
 //   · 켜 두기 걸음만 있는 날 · 한 달 전·두 달 전 드문드문 · 작년 이맘때 며칠
 //  sessions() 는 사진(seed/album.js)도 같이 쓴다 → 사진 날짜와 달력 날짜가 맞는다.
 
-import { at, dayKey, rng, pickOf, DAY } from './util.js?v=v25.5.1';
+import { at, dayKey, rng, pickOf, DAY } from './util.js?v=v25.5.2';
 
 export const REASONS = ['보고서 마무리', '영어 단어 50개', '포트폴리오 케이스', '책 30쪽', '메일 정리', '그림 연습', '코딩 공부', '방 청소',
   '자기소개서 첫 문단', '운동 계획 짜기', '일기', '피아노 연습', '논문 한 편 읽기', '집중'];

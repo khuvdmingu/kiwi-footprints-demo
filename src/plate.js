@@ -11,12 +11,13 @@
 //   · canopy    숲 잎만 오려 낸 그림 → 키위 위에 한 번 더 깔면 키위가 덤불 뒤로 숨는다
 //   · shadeAt   모래 위 잎 그림자 농도 → 그늘을 지나는 키위를 어둡게
 
+const SET_RETRY_MS = 30000;   // 못 읽은 시간대 그림을 다시 읽기까지 (2026-10-19)
 const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
   // 물 없는 장소(opts.rest — 젠 가든 v18): 물 뺀 판·바위 지운 판이 없다 → 같은 판 한 장을 세 자리에 쓴다
-  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v25.5.1').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v25.5.1'), load(name + '-dry.webp?v=v25.5.1'), load(name + '-sea.webp?v=v25.5.1')]);
+  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v25.5.2').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v25.5.2'), load(name + '-dry.webp?v=v25.5.2'), load(name + '-sea.webp?v=v25.5.2')]);
   const p = new Plate(img, dry, sea, opts);
   p.name = name; p.base = base;
   return p;
@@ -248,10 +249,16 @@ export class Plate {
   loadSet(kind) {
     if (this.opts.art === false) return Promise.resolve(null);   // 시간대 그림 판이 없는 장소: 코드 빛만
     const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = rej; im.src = this.base + src; });
-    this.sets ||= {}; this._sets ||= {};
-    return (this._sets[kind] ||= Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v25.5.1`)))
-      .then(([img, dry, sea]) => (this.sets[kind] = { img, dry, sea }))
-      .catch(() => null));
+    this.sets ||= {}; this._sets ||= {}; this._setFail ||= {};
+    // 못 읽은 시간대는 기억하지 않고 SET_RETRY_MS 뒤 다시 읽는다 (오프라인으로 켰다가 다시 연결된 경우, 2026-10-19).
+    //  그 사이에는 바로 null — artTick 이 매 프레임 불러도 요청이 나가지 않는다 (R1 중복 요청 방지 유지)
+    if (!this._sets[kind] && Date.now() - (this._setFail[kind] ?? -Infinity) < SET_RETRY_MS) return Promise.resolve(null);
+    if (!this._sets[kind]) {
+      const p = this._sets[kind] = Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v25.5.2`)))
+        .then(([img, dry, sea]) => (this.sets[kind] = { img, dry, sea }))
+        .catch(() => { if (this._sets[kind] === p) { delete this._sets[kind]; this._setFail[kind] = Date.now(); } return null; });
+    }
+    return this._sets[kind];
   }
 
   paintCanopy(cv, dpr, img = this.img) {

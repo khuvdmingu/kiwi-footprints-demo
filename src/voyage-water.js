@@ -125,6 +125,13 @@ export class SeaGL {
       this.ok = true;
     } catch (e) { console.warn('voyage water', e); this.ok = false; }
   }
+  // 항해가 끝나면 큰 바다 텍스처(4k + 밉맵)와 그리기 버퍼를 돌려준다. 다음 render 가 다시 올린다 (2026-10-19)
+  release() {
+    const gl = this.gl;
+    if (gl && !gl.isContextLost()) for (const t of this.tex.values()) gl.deleteTexture(t);
+    this.tex.clear();
+    this.cv.width = 1; this.cv.height = 1;
+  }
   // 바다 판을 거울 반복 텍스처로 (흘려도 이음매가 안 보이게)
   texture(img) {
     if (this.tex.has(img)) return this.tex.get(img);

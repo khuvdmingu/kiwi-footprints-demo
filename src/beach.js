@@ -7,9 +7,9 @@
 //  · 지우개(v18): 물가선 edge(x) 는 "발자국을 지우는 경계선"이다. 물이 아닌 장소(eraser 'rake' — 젠 가든)에서는
 //    같은 줄이 잔물결·밀물 없이 가만히 있고, 지우기는 zen.js 가 발자국에 직접 표시한다(p.erase — 다시 긋는 갈퀴 줄)
 
-import { clamp, easeOut, easeInOut } from './util.js?v=v25.5.1';
-import { PAL, PHOTO_PRINT, NIGHT_PRINT } from './tokens.js?v=v25.5.1';
-import { addGuestFoot } from './guests.js?v=v25.5.1';
+import { clamp, easeOut, easeInOut } from './util.js?v=v25.5.2';
+import { PAL, PHOTO_PRINT, NIGHT_PRINT } from './tokens.js?v=v25.5.2';
+import { addGuestFoot } from './guests.js?v=v25.5.2';
 
 const RISE = 1.5, HOLD = 0.5, FALL = 3.2;
 const FAINT = 0.22, FAINT_LIFE = 2.2;
@@ -131,14 +131,14 @@ export class Beach {
   drawPrints(ctx, { night = 0, photo = false, lettersOnly = false } = {}) {
     const groups = new Map();
     for (const p of this.prints) {
-      const written = p.tag != null && (p.kind === 'deep' || p.kind === 'hole'), letter = photo && written;
+      // 묶음 = (종류·모양·글씨 여부) × 진하기 8단계. 예전 문자열 키와 같은 묶음·같은 순서를 숫자 키로 (매 프레임 문자열을 만들지 않게)
+      const c = printClass(p), written = c.written, letter = photo && written;
       if (lettersOnly && !letter) continue;
-      const k = p.kind + (p.shape ? p.shape + Math.round(p.f) : '') + Math.round(p.alpha * 8) + (written ? ':text' : '');
-      if (!groups.has(k)) groups.set(k, { kind: p.kind, written, letter, alpha: Math.round(p.alpha * 8) / 8, f: p.f, path: new Path2D() });
-      const g = groups.get(k);
+      const step = Math.round(p.alpha * 8), k = c.id * 16 + step;
+      let g = groups.get(k);
+      if (!g) groups.set(k, g = { kind: p.kind, written, letter, alpha: step / 8, f: p.f, path: new Path2D() });
       if (p.kind === 'hole') { g.path.moveTo(p.x + p.f * 0.3, p.y); g.path.ellipse(p.x, p.y, p.f * 0.3, p.f * 0.22, 0, 0, Math.PI * 2); }
-      else if (p.kind === 'guest') addGuestFoot(g.path, p.shape, p.x, p.y, p.a, p.f);
-      else addFoot(g.path, p.x, p.y, p.a, p.f);
+      else replay(g.path, footPath(p));   // 발가락 좌표는 처음 그릴 때 한 번만 계산 (2026-10-19)
     }
     ctx.save();
     ctx.lineCap = 'round';
@@ -154,10 +154,15 @@ export class Beach {
       const a = day[0] === '#' ? [...day.slice(1).match(/../g).map(v => parseInt(v, 16)), 1] : day.match(/[\d.]+/g).map(Number);
       return `rgba(${a.slice(0, 3).map((v, i) => Math.round(v + (b[i] - v) * n)).join(',')},${Math.round((a[3] + (b[3] - a[3]) * n) * 1000) / 1000})`;
     };
-    const ground = NIGHT_PRINT[sn ? 'snow' : this.gravel ? 'gravel' : 'sand'];
-    const darkC = n > 0 ? C.map((c, i) => blend(c, ground[i])) : C;
-    const lightC = photo && n > 0 && !sn && !this.gravel ? [blend(C[0], PHOTO_PRINT.edge), blend(C[1], PHOTO_PRINT.ridge), blend(C[2], PHOTO_PRINT.hole), blend(C[3], PHOTO_PRINT.shadow)] : darkC;
-    const darkLit = n > 0 ? blend(LIT, NIGHT_PRINT.rim) : LIT;
+    // 해 질 녘 색 섞기는 같은 밤 값·바닥·사진 여부면 지난 프레임 결과를 그대로 쓴다 (색 문자열 해석을 매 프레임 반복하지 않게)
+    const ck = `${n}|${sn}|${this.gravel}|${photo}`;
+    if (this._ink?.k !== ck) {
+      const ground = NIGHT_PRINT[sn ? 'snow' : this.gravel ? 'gravel' : 'sand'];
+      const darkC = n > 0 ? C.map((c, i) => blend(c, ground[i])) : C;
+      const lightC = photo && n > 0 && !sn && !this.gravel ? [blend(C[0], PHOTO_PRINT.edge), blend(C[1], PHOTO_PRINT.ridge), blend(C[2], PHOTO_PRINT.hole), blend(C[3], PHOTO_PRINT.shadow)] : darkC;
+      this._ink = { k: ck, darkC, lightC, darkLit: n > 0 ? blend(LIT, NIGHT_PRINT.rim) : LIT };
+    }
+    const { darkC, lightC, darkLit } = this._ink;
     for (const g of groups.values()) {
       const ink = g.letter ? lightC : g.written ? darkC : C, lit = g.written && !(g.letter && !sn && !this.gravel) ? darkLit : LIT;
       ctx.globalAlpha = g.alpha;
@@ -176,8 +181,45 @@ export class Beach {
   }
 }
 
+// 발자국 하나의 선 좌표(x·y·a·f)는 찍힌 뒤 바뀌지 않는다 → 처음 그릴 때 같은 함수(addFoot·addGuestFoot)로 한 번 계산해
+//  64비트 그대로 p.v 에 두고, 매 프레임은 그 좌표로 다시 긋기만 한다. 명령·좌표가 같아서 그림은 픽셀 단위로 같다 (2026-10-19)
+const MOVE = 0, LINE = 1, QUAD = 2;
+// 발자국 묶음 종류 번호: 예전 키의 고정 부분(종류 + 손님 발 모양·크기 + 글씨 여부)이 같으면 같은 번호. 찍힌 뒤 바뀌지 않으므로 p.kc 에 한 번만
+const CLASSES = new Map();
+export function printClass(p) {
+  if (!p.kc) {
+    const written = p.tag != null && (p.kind === 'deep' || p.kind === 'hole');
+    const name = p.kind + (p.shape ? p.shape + Math.round(p.f) : '') + (written ? '|text' : '|');
+    let c = CLASSES.get(name);
+    if (!c) CLASSES.set(name, c = { id: CLASSES.size, written });
+    p.kc = c;
+  }
+  return p.kc;
+}
+class PathRecorder {
+  constructor() { this.v = []; }
+  moveTo(x, y) { this.v.push(MOVE, x, y); }
+  lineTo(x, y) { this.v.push(LINE, x, y); }
+  quadraticCurveTo(cx, cy, x, y) { this.v.push(QUAD, cx, cy, x, y); }
+}
+export function footPath(p) {
+  if (!p.v) {
+    const r = new PathRecorder();
+    if (p.kind === 'guest') addGuestFoot(r, p.shape, p.x, p.y, p.a, p.f); else addFoot(r, p.x, p.y, p.a, p.f);
+    p.v = Float64Array.from(r.v);
+  }
+  return p.v;
+}
+export function replay(path, v) {
+  for (let i = 0; i < v.length;) {
+    if (v[i] === MOVE) { path.moveTo(v[i + 1], v[i + 2]); i += 3; }
+    else if (v[i] === LINE) { path.lineTo(v[i + 1], v[i + 2]); i += 3; }
+    else { path.quadraticCurveTo(v[i + 1], v[i + 2], v[i + 3], v[i + 4]); i += 5; }
+  }
+}
+
 // 키위 발자국: 통통한 앞발가락 셋 + 짧은 뒷발가락. (x, y) = 발꿈치, a = 걷는 방향
-function addFoot(path, x, y, a, f) {
+export function addFoot(path, x, y, a, f) {
   const toe = (da, len) => { path.moveTo(x, y); path.lineTo(x + Math.cos(a + da) * len, y + Math.sin(a + da) * len); };
   toe(-0.55, f);
   toe(0, f * 1.12);
