@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#1A5C91" />
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v24.6.0" />
-  <link rel="stylesheet" href="memos.css?v=v24.6.0" />
-  <link rel="stylesheet" href="theme-paper.css?v=v24.6.0" />
+  <link rel="stylesheet" href="style.css?v=v25.0.0" />
+  <link rel="stylesheet" href="memos.css?v=v25.0.0" />
+  <link rel="stylesheet" href="theme-paper.css?v=v25.0.0" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -40,6 +40,7 @@
   <div class="tilt bottom" aria-hidden="true"></div>
   <canvas id="scope" aria-hidden="true"></canvas>
   <div id="veil" aria-hidden="true"></div>
+  <canvas id="voyage" aria-hidden="true" hidden></canvas>
 
   <form id="say" autocomplete="off" aria-label="문장 입력">
     <input id="sayInput" type="text" maxlength="40" enterkeyhint="send" autocapitalize="off" autocorrect="off" spellcheck="false"
@@ -91,6 +92,20 @@
   <div id="focusPanel" role="dialog" aria-label="집중 모드" hidden>
     <div class="idle">
       <h2>집중하기</h2>
+      <div class="seg two fmode" role="radiogroup" aria-label="집중하는 곳">
+        <label><input type="radio" name="fmode" value="island" /><span>섬에서 보기</span></label>
+        <label><input type="radio" name="fmode" value="voyage" /><span>항해하기</span></label>
+      </div>
+      <div id="voyOpts" hidden>
+        <div id="voyPaused" class="voyPaused" hidden>
+          <p id="voyPausedText"></p>
+          <div class="tbtns"><button id="voyResume" type="button" class="primary">이어 가기</button><button id="voyDrop" type="button">접기</button></div>
+        </div>
+        <div id="voyNew">
+          <h2 class="sub">어디로 갈까요</h2>
+          <div class="chips voyTo" id="voyTo"></div>
+        </div>
+      </div>
       <div class="seg four" role="radiogroup" aria-label="집중 시간">
         <label><input type="radio" name="flen" value="15" /><span>15분</span></label>
         <label><input type="radio" name="flen" value="25" /><span>25분</span></label>
@@ -113,7 +128,13 @@
       <p class="note">끝까지 하면 키위들이 이 한 줄과 날짜를 모래에 쓰고 사진으로 남겨요. 며칠 뒤엔 호박색 병에 담겨 돌아와요.</p>
       <button id="focusStart" type="button" class="primary">시작</button>
       <button id="focusBreath" type="button" class="quiet">1분 숨 고르기</button>
-      <ul class="rules">
+      <ul class="rules" id="voyRules" hidden>
+        <li><b>잠가도</b><span>화면을 끄거나 다른 앱으로 가도 배는 계속 가요</span></li>
+        <li><b>바닷길</b><span>걸음 대신 바닷길로 세요 · 1분 0.1해리</span></li>
+        <li><b>일기</b><span>가는 길에 만난 것을 키위가 사진과 일기로 남겨요</span></li>
+        <li><b>멈춤</b><span>멈춰도 온 바닷길은 남아요 — 다음에 이어 가요</span></li>
+      </ul>
+      <ul class="rules" id="islandRules">
         <li><b>선물</b><span>끝까지 켜 두면 옷·장소가 든 상자가 떠내려와요</span></li>
         <li><b>10초</b><span>다른 앱으로 가면 10초 안에 돌아와야 해요</span></li>
         <li><b>화면</b><span>집중하는 동안 꺼지지 않아요 — 충전하면서 두세요</span></li>
@@ -121,11 +142,11 @@
       </ul>
     </div>
     <div class="busy" hidden>
-      <h2>집중 중</h2>
+      <h2 id="focusBusyH">집중 중</h2>
       <p class="big"><span id="focusLeft">25:00</span></p>
-      <p class="sub"><span id="focusSteps">0</span>보 걸었어요</p>
+      <p class="sub" id="focusSub"><span id="focusSteps">0</span>보 걸었어요</p>
       <button id="focusStop" type="button">그만하기</button>
-      <p class="note">그만둬도 걸은 만큼은 쌓여요. 선물은 끝까지 했을 때만.</p>
+      <p class="note" id="focusBusyNote">그만둬도 걸은 만큼은 쌓여요. 선물은 끝까지 했을 때만.</p>
     </div>
     <div id="focusStats" class="stats"></div>
     <div id="focusCal" class="cal">
@@ -347,8 +368,8 @@
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v24.6.0"></script>
-  <script type="module" src="src/credits.js?v=v24.6.0"></script>
+  <script type="module" src="src/main.js?v=v25.0.0"></script>
+  <script type="module" src="src/credits.js?v=v25.0.0"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.

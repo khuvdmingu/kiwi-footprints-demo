@@ -637,3 +637,18 @@ body.drowse #focusHud { opacity: 0.22; transition: opacity 4s var(--ease), trans
   #found .art img.photo { max-height: 46dvh; }
   #info { padding: 14px 20px; }
 }
+
+/* ── 항해 모드 (src/voyage.js · voyage-scene.js) ── */
+#voyage { position: fixed; inset: 0; z-index: 4; display: block; }
+#voyage[hidden] { display: none; }
+body.atSea #say, body.atSea #touch { display: none; }
+#focusPanel .fmode { margin-bottom: 10px; }
+#focusPanel .rules[hidden], #focusPanel .seg[hidden], #focusPanel textarea[hidden], #focusPanel .note[hidden] { display: none; }
+#focusPanel .voyTo { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 10px; }
+#focusPanel .voyTo button { min-height: var(--tap-in, 40px); padding: 0 14px; border-radius: 999px; border: 1px solid var(--panel-line); background: transparent; color: inherit; font: inherit; font-size: 13.5px; cursor: pointer; }
+#focusPanel .voyTo button.on { background: var(--sand); color: #2a2016; border-color: transparent; }
+#focusPanel .voyPaused { border: 1px solid var(--panel-line); border-radius: 12px; padding: 10px 12px; margin: 0 0 10px; }
+#focusPanel .voyPaused p { margin: 0 0 8px; font-size: 13.5px; line-height: 1.5; word-break: keep-all; }
+#focusPanel .voyPaused .tbtns { display: flex; gap: 8px; }
+#focusPanel .voyPaused .tbtns button { flex: 1; }
+#found .art .diary { margin: 10px 4px 0; font-size: 14px; line-height: 1.6; color: #5a4632; word-break: keep-all; text-align: center; }
