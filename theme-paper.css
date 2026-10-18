@@ -114,3 +114,6 @@ html[data-ui="paper"] #focusPanel .rules b { color: var(--pp-stamp); }
 html[data-ui="paper"] #focusPanel .rules, html[data-ui="paper"] #focusPanel .stats, html[data-ui="paper"] #focusPanel .cal { border-top: 1px dashed var(--pp-edge); }
 html[data-ui="paper"] #focusPanel .stats div, html[data-ui="paper"] #focusPanel .calGrid .day { background: rgba(255, 255, 255, 0.3); }
 html[data-ui="paper"] :is(#lightOpts, #kiwiOpts, #mixer, #tunePane, #clockOpts) input { accent-color: var(--pp-stamp); }   /* 원래 규칙이 id 로 잡혀 있어 맞춰 준다 */
+
+/* v24.1 아이콘: 한 벌 그대로, 종이에선 잉크로 그은 듯 가장자리를 아주 조금 흔든다 (index.html #ink 필터) */
+html[data-ui="paper"] :is(.round, #saySend, #menu button, #picker button, #focusHud) svg { filter: url(#ink); }

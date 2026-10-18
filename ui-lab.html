@@ -25,17 +25,31 @@
     #picker { display: none; }
     body[data-show="picker"] #picker { display: block; }
     #toast { opacity: 1; transform: translate(-50%, 0); }
+    /* 아이콘 한 장: 앱 버튼의 그림을 전부 (그림 여러 벌 버튼은 벌마다) — 모던/종이 둘 다 같은 판에 */
+    #icons { display: none; position: fixed; z-index: 30; left: 50%; top: 50%; transform: translate(-50%, -55%); width: min(820px, calc(100vw - 24px)); max-height: 70vh; overflow: auto; }
+    body[data-show="icons"] #icons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    #icons .sheet { padding: 12px; border-radius: 14px; }
+    #icons .sheet.modern { background: rgba(20, 47, 73, 0.85); color: rgb(251, 235, 200); }
+    #icons .sheet.paper { background: #fbf4e4; color: #4a3826; }
+    html[data-time="night"] #icons .sheet.paper { background: #d6c39e; color: #34261a; }
+    #icons h4 { margin: 0 0 8px; font: 600 12px var(--font); opacity: 0.7; }
+    #icons .g { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px; }
+    #icons figure { margin: 0; display: grid; justify-items: center; gap: 3px; font: 11px var(--font); opacity: 0.9; }
+    #icons figure i { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid currentColor; border-color: color-mix(in srgb, currentColor 35%, transparent); }
+    #icons svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    #icons .sheet.paper svg { stroke-width: 1.9; filter: url(#ink); }
   </style>
 </head>
 <body>
   <div id="bg"></div>
   <div id="slot"></div>
   <div id="picker" role="dialog"></div>
+  <div id="icons"></div>
   <div id="toast">맑음</div>
   <div id="lab">
     <div class="r" data-k="ui"><b>테마</b><button data-v="modern">모던(지금)</button><button data-v="paper">종이</button></div>
     <div class="r" data-k="time"><b>시간</b><button data-v="day">낮</button><button data-v="night">밤</button></div>
-    <div class="r" data-k="show"><b>창</b><button data-v="none">없음</button><button data-v="menu">메뉴</button><button data-v="picker">날씨 고르기</button><button data-v="settings">설정</button><button data-v="mixer">소리</button><button data-v="focus">집중</button></div>
+    <div class="r" data-k="show"><b>창</b><button data-v="none">없음</button><button data-v="menu">메뉴</button><button data-v="picker">날씨 고르기</button><button data-v="settings">설정</button><button data-v="mixer">소리</button><button data-v="focus">집중</button><button data-v="icons">아이콘</button></div>
   </div>
   <script>
   // 앱의 실제 마크업을 가져와 붙인다 (버튼·창이 바뀌면 이 페이지도 저절로 따라간다)
@@ -43,7 +57,7 @@
     const html = await (await fetch('index.html')).text();
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const slot = document.getElementById('slot');
-    for (const sel of ['.corner', '#menu', '#settings', '#mixer', '#focusPanel', '#say']) { const el = doc.querySelector(sel); if (el) slot.append(document.importNode(el, true)); }
+    for (const sel of ['#inkDefs', '.corner', '#menu', '#settings', '#mixer', '#focusPanel', '#say']) { const el = doc.querySelector(sel); if (el) slot.append(document.importNode(el, true)); }
     for (const el of slot.querySelectorAll('[hidden]')) if (!el.matches('.pane:not([data-pane="scene"]), #focusPanel .busy, #hideBtn')) el.hidden = false;
     for (const el of slot.querySelectorAll('#settings .pane, #mixer .pane')) el.hidden = !['scene', 'vol'].includes(el.dataset.pane);
     document.querySelector('[data-tab="test"]')?.remove();
@@ -74,6 +88,20 @@
     const q = new URLSearchParams(location.search), mem = k => { try { return localStorage.getItem('uilab.' + k); } catch (e) { return null; } };
     set('ui', q.get('ui') || mem('ui') || 'paper'); set('time', q.get('time') || mem('time') || 'day'); set('show', q.get('show') || mem('show') || 'menu');
     addEventListener('resize', place);
+    // 아이콘 한 장
+    const icons = document.getElementById('icons'), list = [];
+    const nm = { hideBtn: '화면 정리', modeBtn: '글 모드', weatherBtn: '날씨', viewBtn: '시점', soundBtn: '소리', focusBtn: '집중', menuBtn: '메뉴', setBtn: '설정', bagBtn: '모은 것', cleanBtn: '화면 정리', infoBtn: '작품 설명', saySend: '보내기' };
+    for (const id of Object.keys(nm)) {
+      const svg = (slot.querySelector('#' + id) || doc.querySelector('#' + id))?.querySelector('svg'); if (!svg) continue;
+      const groups = [...svg.querySelectorAll(':scope > g[class]')];
+      if (groups.length > 1 && id !== 'hideBtn') for (const g of groups) { const c = svg.cloneNode(false); c.append(g.cloneNode(true)); c.firstChild.style.display = 'inline'; list.push([nm[id] + ' · ' + g.getAttribute('class').split('-').slice(1).join('-'), c]); }
+      else { const c = svg.cloneNode(true); c.querySelectorAll(':scope > g[class]').forEach((g, i) => i ? g.remove() : (g.style.display = 'inline')); c.querySelectorAll('.mute').forEach(e => e.remove()); list.push([nm[id], c]); }
+    }
+    for (const kind of ['modern', 'paper']) {
+      const sh = document.createElement('div'); sh.className = 'sheet ' + kind; sh.innerHTML = `<h4>${kind === 'modern' ? '모던' : '종이'} · ${list.length}개</h4><div class="g"></div>`;
+      for (const [label, svg] of list) { const f = document.createElement('figure'); const i = document.createElement('i'); i.append(svg.cloneNode(true)); f.append(i); const c = document.createElement('figcaption'); c.textContent = label; f.append(c); sh.querySelector('.g').append(f); }
+      icons.append(sh);
+    }
   })();
   </script>
 </body>

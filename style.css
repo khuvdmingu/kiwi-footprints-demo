@@ -605,3 +605,5 @@ body.drowse #focusHud { opacity: 0.22; transition: opacity 4s var(--ease), trans
 #found #foundShare[hidden] { display: none; }
 #found #foundShare:disabled { opacity: 0.6; }
 #found.bare #foundTitle, #found.bare .body, #found.bare .btns { display: none; }   /* 이름 묻기처럼 카드가 제목·버튼을 다 가진 때 */
+/* v24.1 아이콘 한 벌: 고르기 창 그림을 조금 크게 (20 → 26px) */
+#picker svg { width: 26px; height: 26px; }
