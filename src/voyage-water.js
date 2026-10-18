@@ -13,7 +13,7 @@ void main(){ vUv = vec2(p.x * .5 + .5, .5 - p.y * .5); gl_Position = vec4(p, 0.,
 const FS = `#version 300 es
 precision highp float;
 in vec2 vUv; out vec4 o;
-uniform sampler2D tex, texN; uniform vec2 res, texSize, boat, boatSize; uniform float time, travel, calm, night, lod;
+uniform sampler2D tex, texN; uniform vec2 res, texSize, boat, boatSize; uniform float time, travel, calm, night, imageMix, sunset, lod;
 // 부동소수 해시: 일부 모바일 드라이버의 uint overflow/변환 경로를 피한다.
 // 중간값은 작은 범위에 유지한다 (sin에 큰 수를 넣는 해시도 사용하지 않는다).
 float h1(vec2 c, float seed){
@@ -48,17 +48,18 @@ void main(){
   vec2 tuv = (px - .5 * res) / (texSize * k) + .5;
   tuv.y -= travel * u / (texSize.y * k);
   tuv += d * .03;
-  vec3 col = mix(textureLod(tex, tuv, lod).rgb, textureLod(texN, tuv, lod).rgb, night);   // 밤엔 밤바다 판으로 (같은 구도)
-  col = mix(col, col * vec3(.94, 1.0, 1.03), .5);
+  vec3 col = mix(textureLod(tex, tuv, lod).rgb, textureLod(texN, tuv, lod).rgb, imageMix);
+  col = mix(col, col * vec3(.94, 1.0, 1.03), .5 * (1. - sunset));
   vec3 foamC = mix(vec3(.93, .97, .98), vec3(.52, .66, .8), night);       // 밤 거품은 달빛 받은 푸른 회색
+  foamC = mix(foamC, vec3(1., .81, .62), sunset * .65);
   vec3 glow = vec3(.22, .95, 1.);                                          // 야광 플랑크톤
   // 흐르는 잔물결 빛 (두 겹이 엇갈려 지나갈 때만 밝다)
   float r1 = sin(wp.x * 1.7 + wp.y * 11. + fbm(wp * 2.2) * 7. + time * 1.3);
   float r2 = sin(-wp.x * 2.6 + wp.y * 16. + fbm(wp * 3.1 + 3.) * 6. - time * 1.7);
-  col += mix(vec3(.85, 1., 1.), vec3(.55, .7, 1.), night) * pow(max(0., r1 * r2), 7.) * mix(.22, .14, night) * calm;
+  col += mix(mix(vec3(.85, 1., 1.), vec3(.55, .7, 1.), night), vec3(1., .78, .46), sunset) * pow(max(0., r1 * r2), 7.) * mix(.22, .14, night) * calm;
   // 반짝임 (물에 붙어 같이 흐르며 깜빡) — 크기·각도가 다른 두 겹
   float gl = dots(rot(.5) * wp * 26., mix(.07, .025, night), .13, 1.) + dots(rot(-.9) * wp * 15. + 3.7, mix(.04, .015, night), .11, 11.);
-  col += mix(vec3(1.), vec3(.8, .88, 1.), night) * gl * .6 * calm;
+  col += mix(mix(vec3(1.), vec3(.8, .88, 1.), night), vec3(1., .79, .5), sunset) * gl * .6 * calm;
   // 밤: 달빛 물길 (화면 오른쪽 위에서 비스듬히 — 반짝임이 모여 흐른다)
   float path = sm(.2, .0, abs(w.x - res.x / u * .68 + (w.y - .3) * .18 + .03 * sin(wp.y * 5. + time * .4)));
   float ms = dots(rot(.3) * wp * 44., .14, .18, 21.) + dots(rot(-.6) * wp * 29. + 1.3, .1, .15, 27.);
@@ -120,7 +121,7 @@ export class SeaGL {
       const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
       const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      this.U = {}; for (const n of ['tex', 'texN', 'res', 'texSize', 'boat', 'boatSize', 'time', 'travel', 'calm', 'night', 'lod']) this.U[n] = gl.getUniformLocation(pr, n);
+      this.U = {}; for (const n of ['tex', 'texN', 'res', 'texSize', 'boat', 'boatSize', 'time', 'travel', 'calm', 'night', 'imageMix', 'sunset', 'lod']) this.U[n] = gl.getUniformLocation(pr, n);
       this.ok = true;
     } catch (e) { console.warn('voyage water', e); this.ok = false; }
   }
@@ -138,15 +139,18 @@ export class SeaGL {
     this.tex.set(img, t); return t;
   }
   // w,h = 그릴 픽셀 크기. travel = 지금까지 흘러간 거리(짧은 변 단위). boat·boatSize 는 같은 픽셀 좌표
-  render(img, w, h, { time, travel, boat, boatSize, calm = 1, night = 0, nightImg = null }) {
+  render(img, w, h, { time, travel, boat, boatSize, calm = 1, night = 0, nightImg = null, imageMix = night, sunset = 0 }) {
     if (!this.ok || this.gl.isContextLost()) return null;
     const gl = this.gl;
     if (this.cv.width !== w || this.cv.height !== h) { this.cv.width = w; this.cv.height = h; }
     gl.viewport(0, 0, w, h); gl.useProgram(this.pr);
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.texture(img));
     gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, this.texture(nightImg || img));
+    // 시간대/화면 방향을 바꾸면 더 이상 쓰지 않는 큰 텍스처는 반환한다.
+    for (const [source, texture] of this.tex) if (source !== img && source !== (nightImg || img)) { gl.deleteTexture(texture); this.tex.delete(source); }
     const U = this.U;
     gl.uniform1i(U.tex, 0); gl.uniform1i(U.texN, 1); gl.uniform1f(U.night, nightImg ? night : 0); gl.uniform2f(U.res, w, h); gl.uniform2f(U.texSize, img.width, img.height);
+    gl.uniform1f(U.imageMix, nightImg ? imageMix : 0); gl.uniform1f(U.sunset, sunset);
     gl.uniform2f(U.boat, boat[0], boat[1]); gl.uniform2f(U.boatSize, boatSize[0], boatSize[1]);
     // 그림 크기로 LOD를 정해 노이즈 경계의 미분이 큰 사각형 밉을 고르지 않게 한다.
     const scale = Math.max(w / img.width, h / img.height) * 1.08;
