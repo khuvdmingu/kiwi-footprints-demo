@@ -230,6 +230,7 @@ export class WaterGL {
     gl.uniform1i(this.U.uPlateW, 8); gl.uniform1i(this.U.uDryW, 9); gl.uniform1i(this.U.uSeaW, 10);
     this.slots = { N: null, W: null };   // 시간대 그림 칸: N = 밤 · W = 노을 또는 새벽 (읽었을 때만)
     this.texs = {};
+    this.checkFrame = true;
   }
 
   tex(unit, upload, mip) {
@@ -248,11 +249,23 @@ export class WaterGL {
     const gl = this.gl;
     if (this.plate === plate) return;
     for (const t of Object.values(this.texs)) gl.deleteTexture(t);   // 가로 ↔ 세로 판을 바꿀 때 앞 판을 비운다
+    this.texs = {};
     this.drop('N'); this.drop('W');
     this.plate = plate;
     const up = (unit, src) => this.tex(unit, () => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src), true);
     this.texs = { img: up(0, plate.img), dry: up(1, plate.dry), sea: up(3, plate.sea), rock: up(4, plate.rockMask) };
+    this.bindSet('N'); this.bindSet('W');
+    this.checkFrame = true;
     gl.uniform2f(this.U.uPS, plate.pw, plate.ph);
+  }
+
+  // 섞는 양이 0이어도 활성 sampler에는 완전한 텍스처가 필요하다.
+  // 아직 안 읽었거나 내린 시간대는 낮 판을 공유한다 — 복사·추가 GPU 메모리 없음.
+  bindSet(slot) {
+    const texs = this.slots[slot]?.texs || [this.texs.img, this.texs.dry, this.texs.sea];
+    if (!texs.every(Boolean)) return;
+    const gl = this.gl, base = slot === 'N' ? 5 : 8;
+    texs.forEach((t, i) => { gl.activeTexture(gl.TEXTURE0 + base + i); gl.bindTexture(gl.TEXTURE_2D, t); });
   }
 
   // 시간대 그림 올리기 · 내리기 (v16.5~): 칸 N(밤) · W(노을/새벽).
@@ -264,10 +277,19 @@ export class WaterGL {
     const f = Math.min(1, 1.25 * (this.plate.map ? this.plate.map.s : 1) * this.dpr);
     const shrink = src => { if (f >= 0.999) return src; const c = document.createElement('canvas'); c.width = Math.round(src.naturalWidth * f); c.height = Math.round(src.naturalHeight * f); const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, c.width, c.height); return c; };
     const base = slot === 'N' ? 5 : 8;
-    const up = (unit, src) => this.tex(unit, () => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, shrink(src)), true);
+    const up = (unit, src) => this.tex(unit, () => {
+      const image = shrink(src);
+      try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image); }
+      finally { if (image !== src) { image.width = 0; image.height = 0; } }   // 업로드용 캔버스를 바로 반환
+    }, true);
     this.slots[slot] = { kind, shift: Math.log2(f), texs: [up(base, set.img), up(base + 1, set.dry), up(base + 2, set.sea)] };
+    this.checkFrame = true;
   }
-  drop(slot) { const s = this.slots[slot]; if (s) for (const t of s.texs) this.gl.deleteTexture(t); this.slots[slot] = null; }
+  drop(slot) {
+    const s = this.slots[slot];
+    if (s) for (const t of s.texs) this.gl.deleteTexture(t);
+    this.slots[slot] = null; this.bindSet(slot); this.checkFrame = true;
+  }
   has(slot, kind) { const s = this.slots[slot]; return !!s && (!kind || s.kind === kind); }
 
   resize(W, H, dpr) {
@@ -275,6 +297,7 @@ export class WaterGL {
     this.cv.width = Math.round(W * this.dpr); this.cv.height = Math.round(H * this.dpr);
     this.cv.style.width = W + 'px'; this.cv.style.height = H + 'px';
     this.gl.viewport(0, 0, this.cv.width, this.cv.height);
+    this.checkFrame = true;
   }
 
   draw(beach, { snow = 0, night = 0, rain = 0, art = 0, warm = 0, land = false } = {}) {
@@ -313,6 +336,13 @@ export class WaterGL {
     gl.uniform1f(this.U.uSurge, beach.surgeK || 0);
     gl.uniform1f(this.U.uLand, land ? 1 : 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
+    // WebGL은 업로드/그리기를 거절해도 JS 예외를 던지지 않는다.
+    // 자원을 바꾼 첫 프레임만 검사해 빈 풍경을 정상 시작으로 처리하지 않는다.
+    if (this.checkFrame) {
+      this.checkFrame = false;
+      const error = gl.getError();
+      if (error !== gl.NO_ERROR) throw new Error('WebGL 그리기 실패: 0x' + error.toString(16));
+    }
   }
 }
 
