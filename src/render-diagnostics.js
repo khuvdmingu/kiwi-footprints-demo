@@ -8,7 +8,7 @@ export function mountRenderDiagnostics(q, readState, doc = document, win = windo
   doc.body.appendChild(el);
   const update = () => {
     const state = readState(), plate = doc.getElementById('plate');
-    el.textContent = ['v24.4.2 · 풍경 진단',
+    el.textContent = ['v24.4.3 · 풍경 진단',
       `색조 합성: ${q.get('tint') === '0' ? '제외' : '사용'} · ${state.renderer}`,
       `화면 ${win.innerWidth}×${win.innerHeight} · DPR ${win.devicePixelRatio}`,
       `그림 ${plate?.width || 0}×${plate?.height || 0} · ${state.ready ? '그리기 시작' : '시작 중'}`,

@@ -5,6 +5,8 @@
 //  · 버튼·입력창은 #world 밖에 있어서 사진에 안 들어간다. 확대·시점 이동과 상관없이 해변 전체가 찍힌다.
 //  · 저장: 이 기기 IndexedDB (사진은 localStorage 에 넣기엔 크다). 가로 최대 1600px webp.
 
+import { tintSnapshot } from './tint.js?v=v24.4.3';
+
 const DB = 'kiwi-footprints', STORE = 'shots', MAXW = 1600;
 
 function open() {
@@ -43,9 +45,10 @@ export function capture(world, W, H) {
     const cs = getComputedStyle(el), op = +cs.opacity;
     if (cs.display === 'none' || cs.visibility === 'hidden' || !(op > 0.01)) continue;
     g.globalAlpha = op; g.globalCompositeOperation = BLEND[cs.mixBlendMode] || 'source-over';
-    if (el instanceof HTMLCanvasElement) {
-      if (!el.width || !el.height) continue;
-      try { g.drawImage(el, 0, 0, c.width, c.height); } catch (e) { /* 읽을 수 없는 층은 건너뛴다 */ }
+    const image = el instanceof HTMLCanvasElement ? el : el.id === 'tint' ? tintSnapshot(el) : null;
+    if (image) {
+      if (!image.width || !image.height) continue;
+      try { g.drawImage(image, 0, 0, c.width, c.height); } catch (e) { /* 읽을 수 없는 층은 건너뛴다 */ }
     } else if (el.id === 'glow') {
       // 골든아워 빛(CSS 그라데이션)을 같은 모양으로 다시 칠한다
       const r = g.createRadialGradient(c.width * 0.1, c.height * 0.04, 0, c.width * 0.1, c.height * 0.04, Math.max(c.width * 0.7, c.height * 0.6) * 0.7);

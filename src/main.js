@@ -16,38 +16,39 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v24.4.2';
-import { Beach } from './beach.js?v=v24.4.2';
-import { Kiwi } from './kiwi.js?v=v24.4.2';
-import { Sound, SONG_TRACKS } from './sound.js?v=v24.4.2';
-import { KiwiWeather } from './sky/kiwi-react.js?v=v24.4.2';   // v23 날씨에 반응하는 키위 (잎 우산·비 피하기 · 바람에 기우뚱·깃털)
-import { loadPlate } from './plate.js?v=v24.4.2';
-import { MAPS, MAP_IDS } from './maps.js?v=v24.4.2';
-import { WaterGL, FlatWater } from './water.js?v=v24.4.2';
-import { setKiwiSprite, setKiwiSkins, setKiwiSleep } from './kiwi.js?v=v24.4.2';
-import { Bottles, MIN_DAYS, mineTitle, mineNote } from './bottles.js?v=v24.4.2';
-import { Album, capture, stamp, sandDate, longDate, shortReason } from './album.js?v=v24.4.2';
-import { breathAt, ringSpot, ROUNDS, SQUASH } from './breath.js?v=v24.4.2';
-import { Doze } from './doze.js?v=v24.4.2';
-import { zipStore, shotNames } from './zip.js?v=v24.4.2';
-import { groupShots, shareCard, shareFile } from './album-view.js?v=v24.4.2';
-import { Memos } from './memos.js?v=v24.4.2';
-import { Greeter } from './greet.js?v=v24.4.2';
-import { mountMemoPanel, missedCard, nameCard } from './memo-ui.js?v=v24.4.2';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v24.4.2';
-import { Leaves } from './leaves.js?v=v24.4.2';
-import { Rake } from './zen.js?v=v24.4.2';
-import { Clouds } from './clouds.js?v=v24.4.2';
-import { Gulls } from './gulls.js?v=v24.4.2';
-import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v24.4.2';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v24.4.2';
-import { clamp, dist } from './util.js?v=v24.4.2';
-import { Focus, Awake, LENGTHS, CUSTOM, today } from './focus.js?v=v24.4.2';
-import { Flock } from './flock.js?v=v24.4.2';
-import { GUESTS, GUEST_IDS, Guestbook, guestCount, pickGuests, leaveTracks, NOTE_CELL, LETTER_TOTAL } from './guests.js?v=v24.4.2';
-import { UNLOCK_ALL } from './config.js?v=v24.4.2';
-import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v24.4.2';
-import { mountRenderDiagnostics } from './render-diagnostics.js?v=v24.4.2';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v24.4.3';
+import { Beach } from './beach.js?v=v24.4.3';
+import { Kiwi } from './kiwi.js?v=v24.4.3';
+import { Sound, SONG_TRACKS } from './sound.js?v=v24.4.3';
+import { KiwiWeather } from './sky/kiwi-react.js?v=v24.4.3';   // v23 날씨에 반응하는 키위 (잎 우산·비 피하기 · 바람에 기우뚱·깃털)
+import { loadPlate } from './plate.js?v=v24.4.3';
+import { MAPS, MAP_IDS } from './maps.js?v=v24.4.3';
+import { WaterGL, FlatWater } from './water.js?v=v24.4.3';
+import { setKiwiSprite, setKiwiSkins, setKiwiSleep } from './kiwi.js?v=v24.4.3';
+import { Bottles, MIN_DAYS, mineTitle, mineNote } from './bottles.js?v=v24.4.3';
+import { Album, capture, stamp, sandDate, longDate, shortReason } from './album.js?v=v24.4.3';
+import { breathAt, ringSpot, ROUNDS, SQUASH } from './breath.js?v=v24.4.3';
+import { Doze } from './doze.js?v=v24.4.3';
+import { zipStore, shotNames } from './zip.js?v=v24.4.3';
+import { groupShots, shareCard, shareFile } from './album-view.js?v=v24.4.3';
+import { Memos } from './memos.js?v=v24.4.3';
+import { Greeter } from './greet.js?v=v24.4.3';
+import { mountMemoPanel, missedCard, nameCard } from './memo-ui.js?v=v24.4.3';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v24.4.3';
+import { Leaves } from './leaves.js?v=v24.4.3';
+import { Rake } from './zen.js?v=v24.4.3';
+import { Clouds } from './clouds.js?v=v24.4.3';
+import { Gulls } from './gulls.js?v=v24.4.3';
+import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v24.4.3';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v24.4.3';
+import { clamp, dist } from './util.js?v=v24.4.3';
+import { Focus, Awake, LENGTHS, CUSTOM, today } from './focus.js?v=v24.4.3';
+import { Flock } from './flock.js?v=v24.4.3';
+import { GUESTS, GUEST_IDS, Guestbook, guestCount, pickGuests, leaveTracks, NOTE_CELL, LETTER_TOTAL } from './guests.js?v=v24.4.3';
+import { UNLOCK_ALL } from './config.js?v=v24.4.3';
+import { Shore, Finds, FINDS, FIND, RARITY } from './shore.js?v=v24.4.3';
+import { mountRenderDiagnostics } from './render-diagnostics.js?v=v24.4.3';
+import { renderTint } from './tint.js?v=v24.4.3';
 
 const q = new URLSearchParams(location.search);
 const num = (k, d) => { const v = q.get(k); return v != null && v !== '' && !isNaN(+v) ? +v : d; };
@@ -106,21 +107,9 @@ const fxCanvas = document.getElementById('fx');
 const fctx = fxCanvas.getContext('2d');
 const tintEl = document.getElementById('tint');
 const scopeEl = document.getElementById('scope');
-// 시간 빛(#tint, 곱하기)은 작은 캔버스에 그려 늘린다 (v18.5.4). CSS 그라데이션이던 때는 핀치로 확대하면 브라우저가 새 배율로
-//  사각형 타일마다 다시 그렸고, 아직 못 그린 타일 자리만 어둡게 안 덮여 밤에 밝은 사각형이 깜빡였다(낮엔 거의 흰색이라 안 보임).
-//  캔버스는 한 장짜리 그림이라 확대해도 다시 그리지 않는다. 부드러운 그라데이션이라 가로 160칸이면 충분
-let tintKey = '';
+// 시간 빛은 같은 작은 PNG를 HTML 배경으로 표시한다 (tint.js).
 function paintTint() {
-  const stops = atmos.tintStops(art.n, art.w), tw = 160, th = Math.max(1, Math.round(160 * H / Math.max(1, W)));
-  const key = stops.join('|') + '|' + th;
-  if (key === tintKey) return;
-  tintKey = key;
-  if (tintEl.width !== tw || tintEl.height !== th) { tintEl.width = tw; tintEl.height = th; }
-  const c = tintEl.getContext('2d'), cx = tw * 0.55, cy = th * 0.45, rx = tw * 0.75, ry = th * 0.62;
-  c.setTransform(rx, 0, 0, ry, cx, cy);   // 원을 가로 rx · 세로 ry 타원으로
-  const g = c.createRadialGradient(0, 0, 0, 0, 0, 1);
-  g.addColorStop(0, `rgb(${stops[0]})`); g.addColorStop(0.55, `rgb(${stops[1]})`); g.addColorStop(1, `rgb(${stops[2]})`);
-  c.fillStyle = g; c.fillRect(-cx / rx, -cy / ry, tw / rx, th / ry);
+  renderTint(tintEl, atmos.tintStops(art.n, art.w), W, H);
 }
 const captionEl = document.getElementById('caption');
 const atmos = new Atmos(q.get('weather') || saved('weather') || 'clear');
@@ -1363,19 +1352,19 @@ async function boot() {
     }
     throw err;
   })();
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v24.4.2'), img('assets/gull.webp?v=v24.4.2'), img('assets/bottle.webp?v=v24.4.2'), img('assets/crate.webp?v=v24.4.2')]);
-  img('assets/finds.webp?v=v24.4.2').then(im => {
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v24.4.3'), img('assets/gull.webp?v=v24.4.3'), img('assets/bottle.webp?v=v24.4.3'), img('assets/crate.webp?v=v24.4.3')]);
+  img('assets/finds.webp?v=v24.4.3').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
     drifters.setSprites({ ...drifters.imgs, conch: c });
   }).catch(() => {});
   drifters.setSprites({ ...drifters.imgs, bottle, crate });
-  img('assets/bottle-mine.webp?v=v24.4.2').then(im => drifters.setSprites({ ...drifters.imgs, mine: im })).catch(() => {});
-  img('assets/bottle-cheer.webp?v=v24.4.2').then(im => drifters.setSprites({ ...drifters.imgs, cheer: im })).catch(() => {});
-  img('assets/kiwi-sleep.webp?v=v24.4.2').then(setKiwiSleep).catch(() => {});
-  img('assets/leaves.webp?v=v24.4.2').then(im => floaters.setSheet(im)).catch(() => {});
-  img('assets/guests.webp?v=v24.4.2').then(im => { guestSheet = im; }).catch(() => {});
+  img('assets/bottle-mine.webp?v=v24.4.3').then(im => drifters.setSprites({ ...drifters.imgs, mine: im })).catch(() => {});
+  img('assets/bottle-cheer.webp?v=v24.4.3').then(im => drifters.setSprites({ ...drifters.imgs, cheer: im })).catch(() => {});
+  img('assets/kiwi-sleep.webp?v=v24.4.3').then(setKiwiSleep).catch(() => {});
+  img('assets/leaves.webp?v=v24.4.3').then(im => floaters.setSheet(im)).catch(() => {});
+  img('assets/guests.webp?v=v24.4.3').then(im => { guestSheet = im; }).catch(() => {});
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
   plate = p;
@@ -1660,7 +1649,7 @@ function paintFlock() {
   for (const m of flock.members.slice().reverse()) {   // 새로 들어온 키위가 위에
     const row = document.createElement('div'); row.className = 'mate';
     const im = document.createElement('img'); im.alt = '';
-    im.src = m.wear !== 'auto' && m.wear !== 'none' && ITEM[m.wear] ? 'assets/' + ITEM[m.wear].img : 'assets/kiwi.webp?v=v24.4.2';
+    im.src = m.wear !== 'auto' && m.wear !== 'none' && ITEM[m.wear] ? 'assets/' + ITEM[m.wear].img : 'assets/kiwi.webp?v=v24.4.3';
     const nm = document.createElement('input'); nm.type = 'text'; nm.value = m.name; nm.maxLength = 8; nm.setAttribute('aria-label', `${m.name} 이름 바꾸기`);
     nm.addEventListener('change', () => { flock.rename(m.id, nm.value); nm.value = m.name; });
     const dd = document.createElement('span'); dd.className = 'days'; dd.textContent = `${flock.daysWith(m)}일째`;
@@ -1847,7 +1836,7 @@ function paintCollection() {
   const ll = document.getElementById('letterList'); ll.textContent = '';
   for (const it of letters) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'letter';
-    const im = document.createElement('img'); im.src = 'assets/bottle.webp?v=v24.4.2'; im.alt = '';
+    const im = document.createElement('img'); im.src = 'assets/bottle.webp?v=v24.4.3'; im.alt = '';
     const tx = document.createElement('span'); tx.className = 'tx';
     const t = document.createElement('b'), q = document.createElement('span');
     if (col.owns(it.id)) {
@@ -2299,7 +2288,7 @@ async function paintAlbum() {
   document.getElementById('shotWarn').textContent = list.length >= ALBUM_WARN ? `${list.length}장 — 사진은 이 기기 저장 공간에 있어요. 아끼는 건 내려받아 두고, 지난 사진은 지워도 돼요.` : '';
   if (!list.length) {
     const e = document.createElement('div'); e.className = 'shotEmpty';
-    const im = document.createElement('img'); im.src = 'assets/flower.webp?v=v24.4.2'; im.alt = '';
+    const im = document.createElement('img'); im.src = 'assets/flower.webp?v=v24.4.3'; im.alt = '';
     const t = document.createElement('span'); t.textContent = '아직 사진이 없어요. 집중을 끝까지 하면 키위들이 이유와 날짜를 모래에 써 주고, 그 순간이 여기 남아요.';
     e.append(im, t); grid.append(e); return;
   }

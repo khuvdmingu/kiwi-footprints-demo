@@ -5,9 +5,9 @@
 //  · 날짜·이유는 seed/focus.js sessions() 의 "끝까지 한" 기록과 같다 → 달력과 앨범이 맞는다.
 //  · 더미 사진에는 seed: true 를 달아 둔다 → 비우기·되돌리기는 더미만 지우고 진짜 사진은 그대로 둔다.
 
-import { Album } from '../album.js?v=v24.4.2';
-import { sessions, REASONS } from './focus.js?v=v24.4.2';
-import { at, rng, pickOf } from './util.js?v=v24.4.2';
+import { Album } from '../album.js?v=v24.4.3';
+import { sessions, REASONS } from './focus.js?v=v24.4.3';
+import { at, rng, pickOf } from './util.js?v=v24.4.3';
 
 const SIZES = [[1600, 1000], [900, 1600], [1600, 1000], [1600, 1200]];
 
