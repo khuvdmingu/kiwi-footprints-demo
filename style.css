@@ -607,3 +607,28 @@ body.drowse #focusHud { opacity: 0.22; transition: opacity 4s var(--ease), trans
 #found.bare #foundTitle, #found.bare .body, #found.bare .btns { display: none; }   /* 이름 묻기처럼 카드가 제목·버튼을 다 가진 때 */
 /* v24.1 아이콘 한 벌: 고르기 창 그림을 조금 크게 (20 → 26px) */
 #picker svg { width: 26px; height: 26px; }
+
+/* ── v24.3 가로 모드(높이가 낮은 화면 — 가로로 든 폰): 버튼 줄을 오른쪽 세로 레일로, 창은 그 왼쪽에 화면 높이만큼 ──
+   위에 가로 줄을 두고 그 아래로 창을 내리면 창이 300px 안팎밖에 안 돼서 안에서 계속 스크롤해야 했다.
+   레일 높이 = 버튼 6개 ≈ 300px 라 390px 높이에도 들어간다. 고르기 창은 버튼 옆으로 뜬다(main.js openPicker 가 같은 조건을 본다) */
+@media (orientation: landscape) and (max-height: 520px) {
+  :root { --edge: 10px; --rail: calc(var(--right) + var(--tap) + 12px); }
+  .corner { flex-direction: column; top: var(--top); right: var(--right); }
+  .corner .grp { flex-direction: column; height: auto; width: var(--tap); }
+  .corner .grp .round { width: 100%; height: calc(var(--tap) + 2px); }
+  .corner .grp .round + .round::before { left: 25%; right: 25%; top: 0; bottom: auto; width: auto; height: 1px; }
+  #settings, #mixer, #focusPanel, #menu { top: var(--top); right: var(--rail); max-height: calc(100dvh - 2 * var(--top)); }
+  #settings, #mixer, #focusPanel { width: min(340px, calc(100vw - var(--rail) - 2 * var(--edge))); }
+  #picker.side::before { top: calc(var(--arrow, 50%) - 6px); left: auto; right: -6px; transform: rotate(135deg); }
+  #toast { top: var(--top); }
+  #focusHud { top: var(--top); }
+  #breathOffer { bottom: calc(68px + env(safe-area-inset-bottom)); }
+  #caption { bottom: calc(64px + env(safe-area-inset-bottom)); }
+  #say { bottom: calc(12px + env(safe-area-inset-bottom)); width: min(70vw, 640px); }
+  /* 열어 보는 카드: 화면 안에 다 들어오게 */
+  #found { padding: 10px; }
+  #found .card { max-height: calc(100dvh - 20px); overflow-y: auto; overscroll-behavior: contain; padding: 14px 16px 12px; }
+  #found .art img { width: auto; height: min(170px, 34dvh); }
+  #found .art img.photo { max-height: 46dvh; }
+  #info { padding: 14px 20px; }
+}
