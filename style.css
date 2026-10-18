@@ -2,6 +2,11 @@
    색·빛·움직임은 아래 토큰으로만 쓴다 (src/tokens.js 와 이름을 맞춘다).
    UI 는 최소로: 반투명 깊은 바다색 면 + 옅은 크림색 테두리, 움직임은 느린 페이드만 (바운스 없음). */
 :root {
+  --photo-view-bg: #0a1824;
+  --photo-view-ink: #fbf4e4;
+  --photo-view-line: rgba(251, 244, 228, 0.3);
+  --photo-view-pad: 12px;
+  --photo-view-control: 44px;
   --sand: #F3C77E; --sand-light: #F7D69A; --sunset: #D88C57;
   --forest: #24563A; --forest-near: #4C8F3F;
   --sea: #1FA2B6; --deep: #174879; --foam: #FFFFFF;
@@ -16,6 +21,28 @@
   --top: max(var(--edge), env(safe-area-inset-top)); --right: max(var(--edge), env(safe-area-inset-right));
   --font: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", system-ui, sans-serif;
 }
+
+/* 사진 원본 보기: 화면 맞춤 → 최대 4배. 모바일은 세로 화면 전체를 사용한다. */
+#found .art button.photoExpand { display: block; position: relative; width: 100%; border: 0; padding: 0; background: transparent; color: inherit; cursor: zoom-in; }
+#found .photoExpandHint { display: block; font: 500 12px/1.5 var(--font); margin-top: 6px; text-decoration: underline; text-underline-offset: 3px; }
+#photoViewer { position: fixed; inset: 0; width: 100%; height: 100%; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: var(--photo-view-bg); color: var(--photo-view-ink); color-scheme: dark; box-sizing: border-box; }
+#photoViewer[open] { display: flex; flex-direction: column; }
+#photoViewer::backdrop { background: var(--photo-view-bg); }
+#photoViewer .photoToolbar { flex: none; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--photo-view-pad); padding: var(--photo-view-pad); padding-top: max(var(--photo-view-pad), env(safe-area-inset-top)); }
+#photoViewer h2 { font: 500 14px/1.5 var(--font); margin: 0; overflow-wrap: anywhere; }
+#photoViewer .photoControls { display: flex; flex-wrap: wrap; gap: calc(var(--photo-view-pad) / 2); }
+#photoViewer button { min-width: var(--photo-view-control); min-height: var(--photo-view-control); padding: 0 var(--photo-view-pad); border: 1px solid var(--photo-view-line); border-radius: var(--photo-view-pad); font: 500 14px/1.2 var(--font); background: transparent; color: var(--photo-view-ink); cursor: pointer; }
+#photoViewer button:disabled { opacity: 0.35; cursor: default; }
+#photoViewer button:focus-visible, #photoViewer .photoViewport:focus-visible { outline: 2px solid var(--photo-view-ink); outline-offset: -3px; }
+#photoViewer .photoViewport { flex: 1; min-height: 0; display: flex; overflow: auto; overscroll-behavior: contain; touch-action: pan-x pan-y pinch-zoom; }
+#photoViewer .photoViewport img { display: block; flex: none; max-width: none; max-height: none; margin: auto; object-fit: contain; user-select: none; }
+#photoViewer[data-zoomed="true"] .photoViewport { cursor: grab; }
+#photoViewer[data-zoomed="true"] .photoViewport:active { cursor: grabbing; }
+#found .journeyEvents { margin-top: var(--photo-view-pad); text-align: left; }
+#found .journeyEvents h3 { font: 600 14px/1.5 var(--font); }
+#found .journeyEvents p { font: 400 12px/1.5 var(--font); margin: 6px 0; }
+#found .art button.journeyScene { display: block; width: 100%; padding: 0; margin-top: var(--photo-view-pad); border: 0; background: transparent; color: inherit; cursor: zoom-in; text-align: left; }
+#found .art .journeyScene img { display: block; width: 100%; height: auto; max-height: none; object-fit: contain; }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; font-family: var(--font); color: rgb(var(--ink)); }
@@ -236,6 +263,7 @@ body.typing #caption, body.info-open #caption { opacity: 0; }
 #found { position: fixed; inset: 0; z-index: 35; display: grid; place-items: center; padding: 16px; background: rgba(10, 24, 36, 0.45); }
 #found[hidden] { display: none; }
 #found .card { width: min(320px, 100%); padding: 18px 18px 14px; border-radius: 18px; background: #fbf4e4; color: #3a2c1c; text-align: center;
+  max-height: calc(100dvh - 2 * var(--photo-view-pad)); overflow-y: auto; overscroll-behavior: contain;
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35); animation: pop 0.45s cubic-bezier(.2, 1.4, .4, 1); }
 @keyframes pop { from { transform: scale(0.6) translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
 #found .art img { width: 170px; height: 170px; object-fit: contain; }

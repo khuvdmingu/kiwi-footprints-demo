@@ -27,6 +27,9 @@ export const PAL = {
 // 해가 왼쪽 위 높지 않은 곳 → 그림자는 오른쪽 아래로 길게
 export const LIGHT = { dir: [0.78, 0.62], shadowAlpha: 0.22, long: 1.0 };
 
+// 완료 사진의 글씨: 밤에는 달빛에 드러난 밝은 모래 가장자리, 홈의 깊이는 유지.
+export const PHOTO_PRINT = { edge: [255, 244, 216, 0.98], ridge: [236, 227, 197, 0.98], hole: [247, 236, 205, 0.98], shadow: [111, 135, 168, 0.85] };
+
 // 움직임: 느리고, 반복 주기가 서로 어긋나게
 export const MOTION = { swayMin: 5.5, swayMax: 10, cloudDrift: 5, glintDrift: 3, gull: 26 };
 

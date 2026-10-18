@@ -7,9 +7,9 @@
 //  · 지우개(v18): 물가선 edge(x) 는 "발자국을 지우는 경계선"이다. 물이 아닌 장소(eraser 'rake' — 젠 가든)에서는
 //    같은 줄이 잔물결·밀물 없이 가만히 있고, 지우기는 zen.js 가 발자국에 직접 표시한다(p.erase — 다시 긋는 갈퀴 줄)
 
-import { clamp, easeOut, easeInOut } from './util.js?v=v25.2.1';
-import { PAL } from './tokens.js?v=v25.2.1';
-import { addGuestFoot } from './guests.js?v=v25.2.1';
+import { clamp, easeOut, easeInOut } from './util.js?v=v25.3.0';
+import { PAL, PHOTO_PRINT } from './tokens.js?v=v25.3.0';
+import { addGuestFoot } from './guests.js?v=v25.3.0';
 
 const RISE = 1.5, HOLD = 0.5, FALL = 3.2;
 const FAINT = 0.22, FAINT_LIFE = 2.2;
@@ -128,11 +128,13 @@ export class Beach {
     ctx.closePath();
     ctx.clip();
   }
-  drawPrints(ctx) {
+  drawPrints(ctx, { night = 0, photo = false, lettersOnly = false } = {}) {
     const groups = new Map();
     for (const p of this.prints) {
-      const k = p.kind + (p.shape ? p.shape + Math.round(p.f) : '') + Math.round(p.alpha * 8);
-      if (!groups.has(k)) groups.set(k, { kind: p.kind, alpha: Math.round(p.alpha * 8) / 8, f: p.f, path: new Path2D() });
+      const letter = photo && p.tag != null && (p.kind === 'deep' || p.kind === 'hole');
+      if (lettersOnly && !letter) continue;
+      const k = p.kind + (p.shape ? p.shape + Math.round(p.f) : '') + Math.round(p.alpha * 8) + (letter ? ':photo' : '');
+      if (!groups.has(k)) groups.set(k, { kind: p.kind, letter, alpha: Math.round(p.alpha * 8) / 8, f: p.f, path: new Path2D() });
       const g = groups.get(k);
       if (p.kind === 'hole') { g.path.moveTo(p.x + p.f * 0.3, p.y); g.path.ellipse(p.x, p.y, p.f * 0.3, p.f * 0.22, 0, 0, Math.PI * 2); }
       else if (p.kind === 'guest') addGuestFoot(g.path, p.shape, p.x, p.y, p.a, p.f);
@@ -146,18 +148,25 @@ export class Beach {
     // 자갈(젠 가든) 위에서는 회갈색으로 눌린 홈
     const C = sn ? ['#BCC4CF', '#9AA6B6', '#B0BAC7', '#8C98AA'] : this.gravel ? ['rgba(104,96,84,0.5)', 'rgba(80,73,63,0.55)', 'rgba(104,96,84,0.55)', 'rgba(76,70,60,0.55)'] : ['rgba(150,96,48,0.55)', 'rgba(112,66,30,0.55)', 'rgba(150,96,48,0.6)', 'rgba(105,62,28,0.6)'];
     const LIT = sn ? 'rgba(255,255,255,0.7)' : this.gravel ? 'rgba(255,253,246,0.75)' : 'rgba(255,240,205,0.75)';
+    // 같은 발자국 경로를 쓰고 색만 보정한다. 추가 blur/그림 버퍼는 만들지 않는다.
+    const n = clamp(night, 0, 1), blend = (day, key) => {
+      const a = day.match(/[\d.]+/g).map(Number), b = PHOTO_PRINT[key];
+      return `rgba(${a.slice(0, 3).map((v, i) => Math.round(v + (b[i] - v) * n)).join(',')},${a[3] + (b[3] - a[3]) * n})`;
+    };
+    const lightC = photo && n > 0 && !sn && !this.gravel ? [blend(C[0], 'edge'), blend(C[1], 'ridge'), blend(C[2], 'hole'), blend(C[3], 'shadow')] : C;
     for (const g of groups.values()) {
+      const ink = g.letter ? lightC : C;
       ctx.globalAlpha = g.alpha;
       if (g.kind === 'hole') {
         ctx.save(); ctx.translate(g.f * 0.05, g.f * 0.07); ctx.fillStyle = LIT; ctx.fill(g.path); ctx.restore();
-        ctx.fillStyle = C[2]; ctx.fill(g.path);
-        ctx.save(); ctx.translate(0, -g.f * 0.07); ctx.fillStyle = C[3]; ctx.fill(g.path); ctx.restore();
+        ctx.fillStyle = ink[2]; ctx.fill(g.path);
+        ctx.save(); ctx.translate(0, -g.f * 0.07); ctx.fillStyle = ink[3]; ctx.fill(g.path); ctx.restore();
         continue;
       }
       ctx.save(); ctx.translate(g.f * 0.06, g.f * 0.08); ctx.lineWidth = g.f * 0.4; ctx.strokeStyle = LIT; ctx.stroke(g.path); ctx.restore();
       ctx.lineWidth = g.f * 0.4;
-      ctx.strokeStyle = C[0]; ctx.stroke(g.path);
-      ctx.save(); ctx.translate(0, -g.f * 0.07); ctx.lineWidth = g.f * 0.26; ctx.strokeStyle = C[1]; ctx.stroke(g.path); ctx.restore();
+      ctx.strokeStyle = ink[0]; ctx.stroke(g.path);
+      ctx.save(); ctx.translate(0, -g.f * 0.07); ctx.lineWidth = g.f * 0.26; ctx.strokeStyle = ink[1]; ctx.stroke(g.path); ctx.restore();
     }
     ctx.restore();
   }

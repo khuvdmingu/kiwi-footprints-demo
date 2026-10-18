@@ -5,12 +5,14 @@
 //  · 공유: 폰의 공유 창(Web Share)으로 다른 앱에 파일을 넘긴다. 서버로 보내는 것 없음. 공유 창이 없는 브라우저는 내려받기.
 //  groupShots 는 DOM 없이 돌아서 node 시험에서 그대로 쓴다.
 
+import { photoDate, PHOTO_MONTHS } from './album.js?v=v25.3.0';
+
 export const RECENT = 6;
 
 const monthKey = ms => { const d = new Date(ms); return `${d.getFullYear()}-${d.getMonth() + 1}`; };
 export function monthLabel(ms, now = Date.now()) {
-  const d = new Date(ms), y = new Date(now).getFullYear();
-  return d.getFullYear() === y ? `${d.getMonth() + 1}월` : `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
+  const d = new Date(ms);
+  return `${PHOTO_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 // list: 최신순 사진 → { recent: [..최근 n장], months: [{ key, label, shots, start }] }
@@ -36,12 +38,12 @@ export async function shareCard(shot, font = 'sans-serif') {
   g.fillStyle = '#fffdf7'; g.fillRect(0, 0, W, H);
   g.drawImage(bmp, pad, pad, pw, ph); bmp.close?.();
   g.strokeStyle = 'rgba(60, 40, 20, 0.08)'; g.lineWidth = 2; g.strokeRect(pad, pad, pw, ph);
-  const d = new Date(shot.at), y0 = pad + ph;
+  const y0 = pad + ph;
   g.fillStyle = '#3a2c1c'; g.textBaseline = 'alphabetic';
   g.font = `600 54px ${font}`;
   g.fillText(fit(g, shot.reason || '집중', pw - 10), pad + 6, y0 + 92);
   g.fillStyle = '#8a6a48'; g.font = `400 36px ${font}`;
-  const meta = [`${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`, shot.min ? `${shot.min}분 집중` : ''].filter(Boolean).join(' · ');
+  const meta = [photoDate(shot.at), shot.min ? `${shot.min}분 집중` : ''].filter(Boolean).join(' · ');
   g.fillText(meta, pad + 6, y0 + 150);
   g.textAlign = 'right'; g.fillStyle = '#b39a7a'; g.font = `500 30px ${font}`;
   g.fillText('발자국 한글', W - pad - 6, y0 + 150);

@@ -5,7 +5,7 @@
 //  · 버튼·입력창은 #world 밖에 있어서 사진에 안 들어간다. 확대·시점 이동과 상관없이 해변 전체가 찍힌다.
 //  · 저장: 이 기기 IndexedDB (사진은 localStorage 에 넣기엔 크다). 가로 최대 1600px webp.
 
-import { tintSnapshot } from './tint.js?v=v25.2.1';
+import { tintSnapshot } from './tint.js?v=v25.3.0';
 
 const DB = 'kiwi-footprints', STORE = 'shots', MAXW = 1600;
 
@@ -36,7 +36,7 @@ export const Album = {
 const BLEND = { multiply: 'multiply', 'soft-light': 'soft-light', screen: 'screen', overlay: 'overlay', normal: 'source-over' };
 
 // world: #world 요소, W·H: 화면 크기(CSS px) → Promise<Blob>
-export function capture(world, W, H) {
+export function capture(world, W, H, finish) {
   const sc = Math.min(MAXW / W, 2), c = document.createElement('canvas');
   c.width = Math.round(W * sc); c.height = Math.round(H * sc);
   const g = c.getContext('2d');
@@ -57,14 +57,34 @@ export function capture(world, W, H) {
     }
   }
   g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+  // 밤의 multiply 색조가 글씨까지 다시 어둡게 하지 않도록 최종 합성 후 보정한다.
+  if (finish) { g.save(); g.scale(sc, sc); finish(g); g.restore(); }
   return new Promise(res => c.toBlob(b => res(b), 'image/webp', 0.86));
 }
 
-// "10.18 15:30" — 모래에 쓰는 날짜 줄 (발자국 글씨는 숫자 · 점 · 쌍점을 쓸 수 있다)
-export const stamp = (ms = Date.now()) => { const d = new Date(ms), p = n => String(n).padStart(2, '0'); return `${d.getMonth() + 1}.${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`; };
-// "10월 18일 2:56" — 모래에 쓰는 날짜 줄 (점·쌍점은 발자국 한 개라 멀리선 안 보인다 → 월·일은 글자로)
-export const sandDate = (ms = Date.now()) => { const d = new Date(ms); return `${d.getMonth() + 1}월 ${d.getDate()}일 ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`; };
-export const longDate = (ms = Date.now()) => { const d = new Date(ms), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 ${p(d.getHours())}:${p(d.getMinutes())}`; };
+// 사진 날짜는 여행 엽서처럼 "18 OCT 2026". UTC로 바꾸지 않고 기기의 현지 시각을 쓴다.
+export const PHOTO_MONTHS = Object.freeze(['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']);
+export const photoDate = (ms = Date.now()) => { const d = new Date(ms); return `${d.getDate()} ${PHOTO_MONTHS[d.getMonth()]} ${d.getFullYear()}`; };
+export const photoTime = (ms = Date.now()) => { const d = new Date(ms), p = n => String(n).padStart(2, '0'); return `${p(d.getHours())}:${p(d.getMinutes())}`; };
+export const stamp = (ms = Date.now()) => `${photoDate(ms)} ${photoTime(ms)}`;
+// '/'는 layoutText의 줄바꿈. 날짜·시간을 나눠 세로 화면에서도 충분한 글씨 크기를 확보한다.
+export const sandDate = (ms = Date.now()) => `${photoDate(ms)}/${photoTime(ms)}`;
+export const longDate = stamp;
+
+// 항해 하나 = 앨범 기록 하나. 도착 사진이 준비되면 같은 id에 표지만 갱신한다.
+export function voyageAlbumEntry(e, scenes = []) {
+  return {
+    id: `voyage-${e.id}`, reason: shortReason(e.reason) || `항해 ${e.min}분`, letter: e.reason || '',
+    min: e.min, steps: 0, nm: Math.round(e.min * 0.1 * 10) / 10, at: e.at, diary: e.text.ko,
+    journey: { from: e.from, to: e.to, sights: e.sights.map(s => ({ ...s, blob: scenes.find(p => p.ts === s.ts && p.kind === s.kind)?.blob || null })) },
+    blob: scenes.find(p => p.blob)?.blob || null,
+  };
+}
+
+// 앨범에서는 한 기록으로 묶고, 일괄 내려받기에는 안쪽의 사건 사진도 포함한다.
+export function albumPhotos(list) {
+  return list.flatMap(s => [s, ...(s.journey?.sights || []).filter(e => e.blob).map((e, i) => ({ at: e.ts, reason: `${s.reason} - ${e.kind} ${i + 1}`, blob: e.blob }))]);
+}
 
 // 집중 이유 → 모래에 쓸 짧은 한 줄 (첫 줄, 14자 안팎에서 띄어쓰기 자리로 자른다)
 export function shortReason(text, max = 14) {
