@@ -14,10 +14,24 @@ const FS = `#version 300 es
 precision highp float;
 in vec2 vUv; out vec4 o;
 uniform sampler2D tex, texN; uniform vec2 res, texSize, boat, boatSize; uniform float time, travel, calm, night;
-float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+// 정수 해시 — sin 해시는 오래 항해해 좌표가 커지면 정밀도가 무너져 물결이 네모 덩어리로 깨졌다
+float h1(ivec2 c, uint s){ uint h = uint(c.x) * 1597334677u ^ uint(c.y) * 3812015801u ^ s * 2654435761u;
+  h ^= h >> 15; h *= 0x2c1b3c6du; h ^= h >> 12; h *= 0x297a2d39u; h ^= h >> 15; return float(h & 0xffffffu) / 16777215.; }
+float hash(vec2 p){ return h1(ivec2(floor(p)), 0u); }
 float noise(vec2 p){ vec2 i = floor(p), f = fract(p), u = f * f * (3. - 2. * f);
   return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y); }
 float fbm(vec2 p){ float v = 0., a = .5; for (int i = 0; i < 4; i++) { v += a * noise(p); p = p * 2.03 + 17.1; a *= .5; } return v; }
+mat2 rot(float a){ float c = cos(a), n = sin(a); return mat2(c, -n, n, c); }
+// 흩뿌린 점 — 칸마다 있을 수도 없을 수도 있고, 자리·크기·깜빡이는 박자가 제각각이며 천천히 떠다닌다 (격자로 안 보이게)
+float dots(vec2 p, float keep, float r, uint s){
+  ivec2 c = ivec2(floor(p)); vec2 f = fract(p);
+  if (h1(c, s) > keep) return 0.;
+  vec2 o = vec2(h1(c, s + 1u), h1(c, s + 2u)) * .66 + .17;
+  o += .07 * vec2(sin(time * .5 + h1(c, s + 3u) * 20.), cos(time * .4 + h1(c, s + 4u) * 20.));
+  float rr = r * (.45 + h1(c, s + 5u));
+  float tw = .3 + .7 * (.5 + .5 * sin(time * (.7 + 1.6 * h1(c, s + 6u)) + h1(c, s + 7u) * 40.));
+  return smoothstep(rr, 0., length(f - o)) * tw;
+}
 void main(){
   vec2 px = vUv * res; float u = min(res.x, res.y);
   vec2 w = px / u;                       // 짧은 변 = 1
@@ -36,20 +50,17 @@ void main(){
   float r1 = sin(wp.x * 1.7 + wp.y * 11. + fbm(wp * 2.2) * 7. + time * 1.3);
   float r2 = sin(-wp.x * 2.6 + wp.y * 16. + fbm(wp * 3.1 + 3.) * 6. - time * 1.7);
   col += mix(vec3(.85, 1., 1.), vec3(.55, .7, 1.), night) * pow(max(0., r1 * r2), 7.) * mix(.22, .14, night) * calm;
-  // 반짝임 (물에 붙어 같이 흐르며 깜빡)
-  vec2 g = wp * 26.; vec2 gi = floor(g); float h = hash(gi);
-  float tw = .5 + .5 * sin(time * 3.1 + h * 40.);
-  col += mix(vec3(1.), vec3(.8, .88, 1.), night) * smoothstep(.14, .0, length(fract(g) - .5)) * step(mix(.94, .97, night), h) * tw * .6 * calm;
+  // 반짝임 (물에 붙어 같이 흐르며 깜빡) — 크기·각도가 다른 두 겹
+  float gl = dots(rot(.5) * wp * 26., mix(.07, .025, night), .13, 1u) + dots(rot(-.9) * wp * 15. + 3.7, mix(.04, .015, night), .11, 11u);
+  col += mix(vec3(1.), vec3(.8, .88, 1.), night) * gl * .6 * calm;
   // 밤: 달빛 물길 (화면 오른쪽 위에서 비스듬히 — 반짝임이 모여 흐른다)
   float path = smoothstep(.2, .0, abs(w.x - res.x / u * .68 + (w.y - .3) * .18 + .03 * sin(wp.y * 5. + time * .4)));
-  vec2 g2 = wp * vec2(34., 60.); float h2 = hash(floor(g2));
-  float tw2 = .5 + .5 * sin(time * 4.2 + h2 * 60.);
-  col += vec3(.85, .9, 1.) * night * path * (.1 + smoothstep(.22, .0, length(fract(g2) - .5)) * step(.72, h2) * tw2 * 1.1);
-  // 밤: 물에 떠 흐르는 야광 점 (드문드문, 숨 쉬듯)
-  vec2 g3 = wp * 14.; vec2 i3 = floor(g3); float h3 = hash(i3 + 3.1);
-  vec2 o3 = vec2(hash(i3 + 7.), hash(i3 + 9.)) - .5;
-  float pl = smoothstep(.09, .0, length(fract(g3) - .5 - o3 * .6)) * step(.9, h3) * (.4 + .6 * sin(time * 1.3 + h3 * 30.));
-  col += glow * night * max(pl, 0.) * .55;
+  float ms = dots(rot(.3) * wp * 44., .14, .18, 21u) + dots(rot(-.6) * wp * 29. + 1.3, .1, .15, 27u);
+  col += vec3(.85, .9, 1.) * night * path * (.1 + ms * 1.1);
+  // 밤: 물에 떠 흐르는 야광 점 — 무리 지어 몰렸다 비었다 하게
+  float clump = smoothstep(.42, .72, fbm(wp * 1.4 + vec2(time * .02, 0.)));
+  float pl = (dots(rot(.7) * wp * 13., .22, .13, 31u) + .7 * dots(rot(-.4) * wp * 21. + 5.1, .2, .1, 41u)) * (.2 + clump);
+  col += glow * night * pl * .6;
   // 지나가는 물마루 거품 (가로로 짧게 끊긴 흰 결 — 물과 함께 아래로 흐른다)
   float f = fbm(vec2(wp.x * 2.2, wp.y * 7.5));
   float crest = smoothstep(.62, .67, f) * smoothstep(.74, .67, f) * smoothstep(.45, .7, fbm(wp * 9. + 4.));
@@ -77,7 +88,7 @@ void main(){
   // 배 둘레 물 그늘
   col *= 1. - .16 * smoothstep(1.6, .9, e) * (1. - night * .7);
   // 밤: 뱃머리 등불이 물에 따뜻한 빛 웅덩이를 만든다
-  float lamp = length((b - vec2(-bs.x * .03, -bs.y * .45)) / vec2(1., 1.3));
+  float lamp = length((b - vec2(0., -bs.y * .5)) / vec2(1., 1.3));
   col += vec3(1., .72, .38) * night * (smoothstep(bs.x * 1.9, 0., lamp) * .2 + smoothstep(bs.x * .7, 0., lamp) * .12);
   o = vec4(col, 1.);
 }`;
