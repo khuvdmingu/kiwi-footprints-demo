@@ -10,8 +10,8 @@
 //      그림을 처음 읽을 때 알파를 훑어 부리 끝·몸 바닥을 찾아 크기·콕 각도를 맞춘다 (setKiwiSprite).
 //  (x, y) = 발이 땅에 닿는 점. k = 몸 크기 단위 (꼬리 −0.41k ~ 부리 끝 +0.8k, 머리 꼭대기 −0.86k)
 
-import { angleDiff, clamp, dist, Path } from './util.js?v=v26.0.0';
-import { PAL as T, LIGHT } from './tokens.js?v=v26.0.0';
+import { angleDiff, clamp, dist, Path } from './util.js?v=v26.0.1';
+import { PAL as T, LIGHT } from './tokens.js?v=v26.0.1';
 
 let ID = 0;
 export let REACH = 0.8;             // 몸을 숙였을 때 부리 끝이 땅에 닿는 가로 거리 (k 배수) — 그림에서 다시 잰다
@@ -267,6 +267,12 @@ export class Kiwi {
     // 골든아워의 긴 그림자: 빛 방향(오른쪽 아래)으로 늘어진 부드러운 타원
     const [lx, ly] = LIGHT.dir, L = 0.55 * k * LIGHT.long * (1 + h * 0.8);
     const cx = this.x + lx * L * 0.75, cy = this.y + ly * L * 0.3;
+    // 위치·크기가 숫자가 아니면(원인 미확정, 2026-10-19 로컬에서 1회 관찰) 그림자만 건너뛴다 — 예외로 그 프레임의 나머지 그림이 빠지지 않게.
+    //  처음 한 번은 키위 상태를 남겨 실기기에서 원인을 잡는다
+    if (!Number.isFinite(cx) || !Number.isFinite(cy) || !Number.isFinite(L)) {
+      if (!Kiwi.shadowWarned) { Kiwi.shadowWarned = true; console.warn('키위 그림자 값이 숫자가 아니에요 — 그림자만 건너뜀', { x: this.x, y: this.y, k, hop: this.hopY(), state: this.state, goal: this.goal, clock: this.clock }); }
+      return;
+    }
     const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, L * 1.1);
     g.addColorStop(0, `rgba(${T.shadow},${0.26 * (1 - h * 0.5)})`); g.addColorStop(1, `rgba(${T.shadow},0)`);
     ctx.save(); ctx.globalAlpha = this.vis ?? 1; ctx.translate(cx, cy); ctx.rotate(Math.atan2(ly, lx) * 0.5); ctx.scale(1, 0.32); ctx.translate(-cx, -cy);

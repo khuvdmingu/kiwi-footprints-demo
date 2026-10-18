@@ -6,7 +6,7 @@
 //  사건(voyage.js 의 kind)을 받으면 12초쯤 그 장면을 보여 준다. snapshot() 은 같은 장면을 사진 한 장으로 다시 그린다
 //  (화면을 꺼 두었던 사이의 사건도 일기 사진을 남길 수 있게).
 
-import { SeaGL } from './voyage-water.js?v=v26.0.0';
+import { SeaGL } from './voyage-water.js?v=v26.0.1';
 
 export const SPEED = 0.05;   // 배가 가는 빠르기: 1초에 화면 짧은 변의 5% (물·잔물결·지나가는 것이 모두 이 빠르기로 흐른다)
 const WATER_SCALE = 0.75;     // 물은 화면보다 성기게 그린다 (배터리·발열 — 물결은 흐려도 티가 안 난다)
@@ -41,15 +41,15 @@ export class VoyageScene {
   async load(base = 'assets/') {
     this.base = base;
     const gen = this.gen = (this.gen || 0) + 1;
-    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v26.0.0', 'sea-tall.webp?v=v26.0.0', 'voyage-sprites.webp?v=v26.0.0', 'kiwi.webp?v=v26.0.0', 'kiwi-sleep.webp?v=v26.0.0', 'umbrellas.webp?v=v26.0.0', 'sea-night.webp?v=v26.0.0', 'sea-tall-night.webp?v=v26.0.0', 'voyage-crew.webp?v=v26.0.0', 'voyage-boat.webp?v=v26.0.0', 'voyage-sail.webp?v=v26.0.0'].map(f => img(base + f).catch(() => null)));
+    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v26.0.1', 'sea-tall.webp?v=v26.0.1', 'voyage-sprites.webp?v=v26.0.1', 'kiwi.webp?v=v26.0.1', 'kiwi-sleep.webp?v=v26.0.1', 'umbrellas.webp?v=v26.0.1', 'sea-night.webp?v=v26.0.1', 'sea-tall-night.webp?v=v26.0.1', 'voyage-crew.webp?v=v26.0.1', 'voyage-boat.webp?v=v26.0.1', 'voyage-sail.webp?v=v26.0.1'].map(f => img(base + f).catch(() => null)));
     if (gen !== this.gen) return false;
     if (!sea || !sheet) throw new Error('voyage art');
     Object.assign(this, { sea, tall: tall || sea, sheet, kiwi, sleep, umb, seaN, tallN: tallN || seaN, crewSheet });
-    this.cells = cellBoxes(sheet, CELLS);
-    this.crewCells = crewSheet ? cellBoxes(crewSheet, CREW) : null;
+    this.cells = boxesOf(sheet, 'sheet', CELLS);
+    this.crewCells = crewSheet ? boxesOf(crewSheet, 'crew', CREW) : null;
     if (this.crewCells) this.crewRef = this.crewCells.right.h;   // 배율 기준: 옆을 보고 앉은 키위의 높이
     // 넓은 배 + 따로 흔들리는 잎 돛 (둘 다 있어야 쓴다 — 아니면 예전 한 장짜리 배)
-    if (hull && sail) Object.assign(this, { hull, sail, hullBox: cellBoxes(hull, ['h'], 1, 1).h, sailBox: cellBoxes(sail, ['s'], 1, 1).s });
+    if (hull && sail) Object.assign(this, { hull, sail, hullBox: boxesOf(hull, 'hull', ['h'], 1, 1).h, sailBox: boxesOf(sail, 'sail', ['s'], 1, 1).s });
     this.ready = true;
     return true;
   }
@@ -75,7 +75,7 @@ export class VoyageScene {
   sunsetArt(tall) {
     if (!this.sunsets.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v26.0.0' : 'sea-sunset.webp?v=v26.0.0')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v26.0.1' : 'sea-sunset.webp?v=v26.0.1')).then(image => (entry.image = image)).catch(() => null);
       this.sunsets.set(tall, entry);
     }
     return this.sunsets.get(tall).promise;
@@ -268,7 +268,21 @@ export class VoyageScene {
 }
 
 // 3×2 시트에서 칸마다 실제로 그려진 곳(알파)만 찾는다 — 생성 그림은 칸 안 위치가 제각각이라
-function cellBoxes(sheet, names, cols = 3, rows = 2) {
+// 시트 칸 위치(cellBoxes 가 지금 그림에서 찾은 값 그대로, 2026-10-19). 항해할 때마다 큰 시트를 줄여 그리고 픽셀을 다시 읽느라
+//  메인 스레드가 약 0.45초 멈췄다(이 맥) → 그림 크기가 같으면 이 값을 쓰고, 그림을 바꿔 크기가 다르면 예전처럼 직접 찾는다.
+//  그림을 크기 그대로 다시 칠했다면 이 표를 지우거나 test/voyage-boxes.test.mjs 안내대로 다시 받아 적는다.
+const KNOWN_BOXES = {
+  sheet: { size: [3600, 2418], boxes: { boat: { x: 376, y: 176, w: 480, h: 852 }, whale: { x: 1408, y: 280, w: 816, h: 592 }, tail: { x: 2652, y: 272, w: 672, h: 712 }, seabird: { x: 280, y: 1552, w: 628, h: 396 }, lighthouse: { x: 1544, y: 1400, w: 536, h: 680 }, island: { x: 2720, y: 1340, w: 580, h: 712 } } },
+  crew: { size: [3000, 2015], boxes: { up: { x: 176, y: 120, w: 632, h: 768 }, left: { x: 1028, y: 224, w: 864, h: 600 }, right: { x: 2096, y: 260, w: 860, h: 548 }, sleep: { x: 144, y: 1224, w: 712, h: 588 }, sky: { x: 1212, y: 1060, w: 544, h: 776 }, wave: { x: 2228, y: 1176, w: 548, h: 636 } } },
+  hull: { size: [1600, 1600], boxes: { h: { x: 408, y: 128, w: 784, h: 1340 } } },
+  sail: { size: [1400, 1879], boxes: { s: { x: 308, y: 240, w: 736, h: 1372 } } },
+};
+export function boxesOf(sheet, key, names, cols, rows) {
+  const k = KNOWN_BOXES[key], w = sheet.naturalWidth || sheet.width, h = sheet.naturalHeight || sheet.height;
+  if (k && k.size[0] === w && k.size[1] === h && names.every(n => k.boxes[n])) return Object.fromEntries(names.map(n => [n, { ...k.boxes[n] }]));
+  return cellBoxes(sheet, names, cols, rows);
+}
+export function cellBoxes(sheet, names, cols = 3, rows = 2) {
   const S = 4, w = Math.floor(sheet.width / S), h = Math.floor(sheet.height / S);
   const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
   const c = cv.getContext('2d', { willReadFrequently: true }); c.drawImage(sheet, 0, 0, w, h);
