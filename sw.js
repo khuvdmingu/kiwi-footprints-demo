@@ -3,7 +3,7 @@
 //  - 나머지(모듈·그림·소리): 저장본 먼저, 없으면 받아서 저장 → 그림 23MB를 한꺼번에 받지 않고 본 것만 쌓인다.
 //  - 저장 이름에 버전이 들어간다. 새 버전이 켜지면 옛 저장분은 통째로 지운다.
 //    VERSION 은 tools/deploy-demo.sh 가 배포 버전(예: v18.0.0)으로 바꿔 넣는다.
-const VERSION = 'v25.4.0';
+const VERSION = 'v25.5.0';
 const CACHE = 'kiwi-footprints-' + VERSION;
 
 self.addEventListener('install', e => {

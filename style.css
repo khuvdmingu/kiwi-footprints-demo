@@ -38,11 +38,6 @@
 #photoViewer .photoViewport img { display: block; flex: none; max-width: none; max-height: none; margin: auto; object-fit: contain; user-select: none; }
 #photoViewer[data-zoomed="true"] .photoViewport { cursor: grab; }
 #photoViewer[data-zoomed="true"] .photoViewport:active { cursor: grabbing; }
-#found .journeyEvents { margin-top: var(--photo-view-pad); text-align: left; }
-#found .journeyEvents h3 { font: 600 14px/1.5 var(--font); }
-#found .journeyEvents p { font: 400 12px/1.5 var(--font); margin: 6px 0; }
-#found .art button.journeyScene { display: block; width: 100%; padding: 0; margin-top: var(--photo-view-pad); border: 0; background: transparent; color: inherit; cursor: zoom-in; text-align: left; }
-#found .art .journeyScene img { display: block; width: 100%; height: auto; max-height: none; object-fit: contain; }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; font-family: var(--font); color: rgb(var(--ink)); }
@@ -682,3 +677,54 @@ body.atSea #say, body.atSea #touch { display: none; }
 #focusPanel .voyPaused .tbtns { display: flex; gap: 8px; }
 #focusPanel .voyPaused .tbtns button { flex: 1; }
 #found .art .diary { margin: 10px 4px 0; font-size: 14px; line-height: 1.6; color: #5a4632; word-break: keep-all; text-align: center; }
+
+/* Voyage notebook: page controls occupy their own gutters, outside the paper. */
+#found.journal {
+  --book-gap: 12px; --book-pad: clamp(14px, 3vw, 26px); --book-turn: 44px;
+  grid-template-columns: var(--book-turn) minmax(0, 440px) var(--book-turn);
+  justify-content: center; gap: var(--book-gap); padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+}
+#found.journal .card {
+  grid-column: 2; grid-row: 1; box-sizing: border-box; width: 100%; height: min(760px, calc(100dvh - 40px));
+  max-height: none; padding: var(--book-pad); overflow: hidden; display: flex; flex-direction: column; gap: 12px;
+  background: var(--pp, #fbf4e4); color: var(--pp-ink, #3a2c1c); border: 1px solid var(--pp-edge, #e6d8bb);
+  box-shadow: inset 5px 0 8px rgba(80, 50, 20, .08), 0 18px 50px rgba(0, 0, 0, .35);
+}
+#found.journal .art { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 0; }
+#found.journal .art::before { display: none; }
+#found.journal h2 { margin: 0; font-family: var(--pp-hand, var(--font)); font-size: 21px; }
+#found.journal .body { margin: 0; font-size: 12px; line-height: 1.6; }
+#found.journal .btns { gap: 8px; flex-wrap: wrap; }
+#found.journal .btns button { padding: 0 14px; flex: 1; white-space: nowrap; }
+#found.journal .art .shotDel { margin: 8px auto 0; padding: 4px 8px; min-height: 32px; font-size: 12px; }
+.journeyBook { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; }
+.journeyLeaf { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; touch-action: pan-y; }
+#found .journeyLeaf h3 { margin: 0; font: 600 16px/1.5 var(--font); }
+#found .art button.bookPhoto { flex: 1; min-height: 0; width: 100%; border: 0; padding: 6px; border-radius: 3px; background: #fffdf7; cursor: zoom-in; box-shadow: 0 3px 10px rgba(40, 30, 10, .15); }
+#found .art .bookPhoto img { display: block; width: 100%; height: 100%; object-fit: contain; }
+#found .journeyLeaf small { font-size: 11px; opacity: .7; }
+#found .bookCaption { margin: 0; font-size: 12px; line-height: 1.6; }
+#found .bookWriting { margin: auto 0; padding: 12px 4px; text-align: left; white-space: pre-wrap; overflow-wrap: anywhere; font: 16px/1.9 'Noto Serif KR', 'AppleMyungjo', serif; }
+#found .journeyPageNumber { margin: 0; padding-top: 10px; border-top: 1px solid var(--pp-edge, #e6d8bb); font-size: 11px; line-height: 1.6; opacity: .75; }
+#found button.bookTurn { grid-row: 1; width: var(--book-turn); height: var(--book-turn); min-height: 44px; padding: 0; font: 32px/1 var(--font); background: var(--pp, #fbf4e4); box-shadow: 0 3px 12px rgba(0, 0, 0, .2); }
+#found .bookTurn.prev { grid-column: 1; }
+#found .bookTurn.next { grid-column: 3; }
+#found .bookTurn:disabled { opacity: .3; cursor: default; }
+#found.journal button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+@media (max-width: 420px) { #found.journal { --book-gap: 6px; --book-pad: 12px; } #found.journal .btns button { padding: 0 8px; font-size: 12px; } }
+@media (orientation: landscape) and (max-height: 560px) {
+  #found.journal { grid-template-columns: var(--book-turn) minmax(0, 800px) var(--book-turn); --book-pad: 16px; }
+  #found.journal .card { height: calc(100dvh - 32px); display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); grid-template-rows: 1fr auto auto; gap: 12px 24px; }
+  #found.journal .art { grid-column: 1; grid-row: 1 / 4; }
+  #found.journal h2 { grid-column: 2; align-self: end; }
+  #found.journal .body, #found.journal .btns { grid-column: 2; }
+  #found .journeyLeaf { gap: 6px; }
+  #found .bookWriting { font-size: 14px; line-height: 1.7; padding: 0; }
+  #found.journal .art .shotDel { min-height: 28px; margin-top: 4px; }
+}
+@media (max-height: 320px), (max-width: 300px) {
+  #found.journal .card { overflow-y: auto; }
+  #found.journal .art { min-height: 230px; }
+}
+
+#found .bookMeasure { position: absolute; visibility: hidden; pointer-events: none; margin: 0; }
