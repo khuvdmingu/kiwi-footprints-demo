@@ -564,3 +564,8 @@ body.clean #menu { display: none !important; }
 #picker button { min-height: 64px; align-content: center; }
 #focusHud { min-height: 38px; align-items: center; }
 #focusPanel .seg + .note { margin-top: 8px; }
+
+/* ── v22.1 번인 방지: 안 건드리면 버튼 줄·입력창은 천천히 사라지고 집중 알약은 흐려짐 (누르면 바로 돌아옴) ── */
+body.drowse .corner, body.drowse #say { opacity: 0; pointer-events: none; transition: opacity 4s var(--ease); }
+#focusHud { transform: translate(calc(-50% + var(--hx, 0px)), var(--hy, 0px)); transition: opacity 0.4s var(--ease), transform 2s var(--ease); }
+body.drowse #focusHud { opacity: 0.22; transition: opacity 4s var(--ease), transform 2s var(--ease); }

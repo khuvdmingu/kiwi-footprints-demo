@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#1A5C91" />
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v22.0.1" />
+  <link rel="stylesheet" href="style.css?v=v22.1.0" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png" />
@@ -207,6 +207,11 @@
     <div class="trow"><span>걷는 속도</span><output id="tSpeedV"></output></div>
     <input id="tSpeed" type="range" min="0.5" max="4" step="0.25" aria-label="키위 걷는 속도" />
     <label class="trow"><span>벽시계 밤 어둡게 미리 보기</span><input id="tDim" type="checkbox" /></label>
+    <h2 class="sep">번인 방지</h2>
+    <div class="trow"><span>안 건드리면 키위 잠듦 · 버튼 숨김</span><output id="tSleepV"></output></div>
+    <input id="tSleep" type="range" min="5" max="300" step="5" aria-label="안 건드리면 키위가 잠들고 버튼이 숨는 시간(초)" />
+    <div class="trow"><span>그림이 한 바퀴 도는 시간</span><select id="tOrbit" aria-label="그림이 한 바퀴 도는 시간"><option value="0">끔</option><option value="0.25">15초 (확인용)</option><option value="1">1분</option><option value="6">6분</option><option value="12">12분 (기본)</option></select></div>
+    <p class="hint">오래 켜 둬도 화면에 자국이 남지 않게 — 그림 전체가 4px 안에서 아주 천천히 돌고, 안 건드리면 버튼·입력창이 사라지고 집중 알약은 흐려져요(10분마다 자리 이동).</p>
     <h2 class="sep">기록</h2>
     <div class="tbtns"><button type="button" data-act="defaults">조절값 기본으로</button><button type="button" data-act="wipe" class="warn">테스트 기록 지우기</button></div>
     <p class="hint">기록 지우기는 무리 · 손님 방명록 · 편지 · 집중 기록을 지워요. 모은 아이템과 설정은 그대로예요.</p>
@@ -316,15 +321,15 @@
         <li>모은 것은 메뉴 → 「모은 것」에서 다시 보고 입히고 골라요</li>
       </ul>
       <p class="small">빛은 실제 시각을 따라 새벽 · 낮 · 노을 · 밤으로 바뀌고, 밤엔 반딧불이가 떠요(T 키로 3시간씩 미리 보기). 장소: 바닷가 · 뉴질랜드 숲 · 눈밭 · 가을 호숫가 · 모래 정원.</p>
-      <p class="credits">키위 스핀오프 v22.0.1 · 2026-10-18<span id="audio-credits"></span></p>
+      <p class="credits">키위 스핀오프 v22.1 · 2026-10-18<span id="audio-credits"></span></p>
       <button type="button" data-close>닫기</button>
     </div>
   </div>
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v22.0.1"></script>
-  <script type="module" src="src/credits.js?v=v22.0.1"></script>
+  <script type="module" src="src/main.js?v=v22.1.0"></script>
+  <script type="module" src="src/credits.js?v=v22.1.0"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.
