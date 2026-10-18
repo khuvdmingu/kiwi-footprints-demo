@@ -1,6 +1,6 @@
-// A voyage stays one album record; only the currently open page owns an image URL.
-import { PLACES, SIGHTS } from './voyage.js?v=v25.5.0';
-import { stamp } from './album.js?v=v25.5.0';
+// Voyage reader: result first, then each image and its record on the same page.
+import { PLACES, SIGHTS } from './voyage.js?v=v25.5.1';
+import { stamp } from './album.js?v=v25.5.1';
 
 export function diaryLeaves(text, size = 90) {
   const chars = Array.from(text || ''), leaves = [];
@@ -17,78 +17,85 @@ export function diaryLeaves(text, size = 90) {
   return leaves;
 }
 export function journeyPages(shot, diarySize = 90) {
+  const sights = shot.journey?.sights || [];
   const route = shot.journey ? `${PLACES[shot.journey.from]?.ko || shot.journey.from} → ${PLACES[shot.journey.to]?.ko || shot.journey.to}` : '';
-  return [
-    { title: '항해의 한 장', caption: route, blob: shot.blob },
-    ...(shot.journey?.sights || []).map(s => ({ title: SIGHTS[s.kind]?.ko || '잔잔한 바다', caption: `${stamp(s.ts)}${s.seen ? '' : ' · 키위가 남긴 기록'}`, blob: s.blob, text: s.blob ? '' : '사진 대신 마음에 담아 둔 풍경이에요.' })),
-    ...diaryLeaves(shot.diary, diarySize).map((text, i) => ({ title: i ? '이어지는 이야기' : '키위의 항해 일기', text })),
-  ];
+  const pages = [{ key: 'result', title: '항해 전체 결과', caption: route, blob: shot.blob, summary: true,
+    stats: [shot.min ? `${shot.min}분 집중` : '', shot.nm ? `${shot.nm.toFixed(1)}해리` : '', sights.length ? `풍경 ${sights.length}장` : ''].filter(Boolean) }];
+  // Same selection rule as Voyage.complete(): the saved diary belongs to this event.
+  const real = sights.filter(s => s.kind !== 'quiet');
+  const primary = real.find(s => !s.seen) || real[0] || sights[0];
+  const records = sights.length ? sights : [{ kind: 'quiet', ts: shot.at, seen: true, blob: shot.blob }];
+  for (const [i, sight] of records.entries()) {
+    const name = SIGHTS[sight.kind]?.ko || '잔잔한 바다';
+    const isDiary = !sights.length || sight === primary;
+    const text = isDiary && shot.diary ? shot.diary : (sight.seen ? '항해 중 함께 바라본 풍경이에요.' : '자리를 비운 동안 키위가 남겨 둔 기록이에요.');
+    const chunks = diaryLeaves(text, diarySize);
+    for (const [part, text] of chunks.entries()) pages.push({ key: `scene-${i}`, part, text,
+      title: (sights.length ? name : '키위의 항해 일기') + (part ? ' · 이어서' : ''),
+      caption: [stamp(sight.ts || shot.at), sight.blob ? '' : '사진 대신 남긴 기록'].filter(Boolean).join(' · '),
+      blob: sight.blob || shot.blob, fallback: !sight.blob && !!sights.length,
+    });
+  }
+  return pages;
 }
 export function mountJourneyBook(root, host, shot, viewer) {
-  let pages = journeyPages(shot), diarySize = 90, fitting = 0;
-  const diaryStart = 1 + (shot.journey?.sights?.length || 0);
+  const compact = matchMedia('(orientation: landscape) and (max-height: 360px)');
+  let pages = journeyPages(shot, compact.matches ? 50 : 90);
   let index = 0, url = '', start = null, animation, swiped = false;
   const book = document.createElement('section'); book.className = 'journeyBook'; book.setAttribute('aria-label', '항해 수첩');
-  const leaf = document.createElement('div'); leaf.className = 'journeyLeaf';
-  const status = document.createElement('p'); status.className = 'journeyPageNumber'; status.setAttribute('aria-live', 'polite'); status.setAttribute('aria-atomic', 'true');
-  const measure = document.createElement('p'); measure.className = 'bookWriting bookMeasure'; measure.setAttribute('aria-hidden', 'true');
-  book.append(leaf, status, measure); host.append(book); root.classList.add('journal');
+  const leaf = document.createElement('div'); leaf.className = 'journeyLeaf'; book.append(leaf); host.append(book); root.classList.add('journal');
+  const nav = document.createElement('nav'); nav.className = 'bookNavigation'; nav.setAttribute('aria-label', '항해일지 페이지');
+  const status = document.createElement('span'); status.className = 'journeyPageNumber'; status.setAttribute('aria-live', 'polite'); status.setAttribute('aria-atomic', 'true');
   const controls = [-1, 1].map(dir => {
     const b = document.createElement('button'); b.type = 'button'; b.className = `bookTurn ${dir < 0 ? 'prev' : 'next'}`;
-    b.setAttribute('aria-label', dir < 0 ? '항해일지 이전 페이지' : '항해일지 다음 페이지'); b.textContent = dir < 0 ? '‹' : '›';
-    b.addEventListener('click', () => turn(dir)); root.append(b); return b;
+    b.setAttribute('aria-label', dir < 0 ? '항해일지 이전 페이지' : '항해일지 다음 페이지');
+    b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${dir < 0 ? 'M14 6l-6 6 6 6' : 'M10 6l6 6-6 6'}"/></svg>`;
+    b.addEventListener('click', () => turn(dir)); return b;
   });
+  nav.append(controls[0], status, controls[1]); root.append(nav);
   function paint(dir = 0) {
-    animation?.cancel();
-    // Close the enlarged image before releasing its backing URL.
-    viewer.close(); if (url) URL.revokeObjectURL(url); url = ''; leaf.replaceChildren();
-    const p = pages[index], title = document.createElement('h3'); title.textContent = p.title; leaf.append(title);
+    animation?.cancel(); viewer.close(); if (url) URL.revokeObjectURL(url); url = ''; leaf.replaceChildren();
+    const p = pages[index]; leaf.classList.toggle('summary', !!p.summary);
+    const heading = document.createElement('h3'); heading.textContent = p.title; leaf.append(heading);
     if (p.blob) {
       url = URL.createObjectURL(p.blob);
       const b = document.createElement('button'); b.type = 'button'; b.className = 'bookPhoto'; b.setAttribute('aria-label', `${p.title} 전체 화면으로 보기`);
-      const im = document.createElement('img'); im.src = url; im.alt = p.title;
-      b.append(im); b.addEventListener('click', () => viewer.show(url, p.title)); leaf.append(b);
-      const hint = document.createElement('small'); hint.textContent = '사진을 누르면 크게 볼 수 있어요'; leaf.append(hint);
+      const im = document.createElement('img'); im.src = url; im.alt = p.fallback ? '도착 사진' : p.title;
+      const hint = document.createElement('span'); hint.className = 'bookPhotoHint'; hint.textContent = p.fallback ? '도착 사진 · 원본 보기' : '원본 크게 보기';
+      b.append(im, hint); b.addEventListener('click', () => viewer.show(url, im.alt)); leaf.append(b);
     }
-    if (p.text) { const text = document.createElement('p'); text.className = 'bookWriting'; text.textContent = p.text; leaf.append(text); }
-    if (p.caption) { const caption = document.createElement('p'); caption.className = 'bookCaption'; caption.textContent = p.caption; leaf.append(caption); }
-    status.textContent = `${index + 1} / ${pages.length} · ${p.title}`;
+    const copy = document.createElement('div'); copy.className = 'bookCopy';
+    if (p.text) { const text = document.createElement('p'); text.className = 'bookWriting'; text.textContent = p.text; copy.append(text); }
+    if (p.caption) { const caption = document.createElement('p'); caption.className = 'bookCaption'; caption.textContent = p.caption; copy.append(caption); }
+    if (p.stats?.length) { const stats = document.createElement('p'); stats.className = 'bookStats'; stats.textContent = p.stats.join(' · '); copy.append(stats); }
+    leaf.append(copy);
+    status.textContent = `${index + 1} / ${pages.length}`;
     controls[0].disabled = index === 0; controls[1].disabled = index === pages.length - 1;
     if (document.activeElement === controls[0] && controls[0].disabled) controls[1].focus();
     if (document.activeElement === controls[1] && controls[1].disabled) controls[0].focus();
-    cancelAnimationFrame(fitting); fitting = requestAnimationFrame(fitDiary);
-    if (dir && !matchMedia('(prefers-reduced-motion: reduce)').matches) animation = leaf.animate([{ opacity: 0, transform: `translateX(${dir * 12}px)` }, { opacity: 1, transform: 'translateX(0)' }], { duration: 220, easing: 'ease-out' });
-  }
-  function fitDiary() {
-    if (!shot.diary) return;
-    const css = getComputedStyle(measure), heading = leaf.querySelector('h3');
-    const line = parseFloat(css.lineHeight), font = parseFloat(css.fontSize);
-    const height = leaf.clientHeight - heading.offsetHeight - parseFloat(getComputedStyle(leaf).gap) - parseFloat(css.paddingTop) - parseFloat(css.paddingBottom);
-    // Reserve a full em per character: Korean and Latin both fit without clipping.
-    const capacity = Math.max(16, Math.min(90, Math.floor((leaf.clientWidth - 8) / font) * Math.max(1, Math.floor(height / line))));
-    if (capacity === diarySize) return;
-    const offset = pages.slice(diaryStart, index).reduce((n, p) => n + Array.from(p.text).length, 0);
-    diarySize = capacity; pages = journeyPages(shot, diarySize);
-    if (index >= diaryStart) {
-      let consumed = 0; index = diaryStart;
-      while (index < pages.length - 1 && consumed + Array.from(pages[index].text).length <= offset) consumed += Array.from(pages[index++].text).length;
+    if (dir && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const css = getComputedStyle(root);
+      animation = leaf.animate([{ opacity: 0, transform: `translateX(${dir * parseFloat(css.getPropertyValue('--book-space'))}px)` }, { opacity: 1, transform: 'translateX(0)' }], { duration: parseFloat(css.getPropertyValue('--book-motion-ms')), easing: css.getPropertyValue('--ease').trim() });
     }
-    paint();
   }
-  const resize = new ResizeObserver(() => { cancelAnimationFrame(fitting); fitting = requestAnimationFrame(fitDiary); }); resize.observe(leaf);
   function turn(dir) { const next = index + dir; if (next < 0 || next >= pages.length) return; index = next; paint(dir); }
-  // Keep normal vertical gestures and avoid opening a picture after a page swipe.
-  function down(e) { swiped = false; start = e.isPrimary ? { x: e.clientX, y: e.clientY } : null; }
-  function up(e) {
+  leaf.addEventListener('pointerdown', e => { swiped = false; start = e.isPrimary ? { x: e.clientX, y: e.clientY } : null; });
+  leaf.addEventListener('pointerup', e => {
     if (!start) return;
     const dx = e.clientX - start.x, dy = e.clientY - start.y; start = null;
-    if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-      turn(dx < 0 ? 1 : -1);
-      swiped = true;
-    }
-  }
+    if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) { turn(dx < 0 ? 1 : -1); swiped = true; }
+  });
+  leaf.addEventListener('pointercancel', () => { start = null; });
   leaf.addEventListener('click', e => { if (swiped) { swiped = false; e.preventDefault(); e.stopImmediatePropagation(); } }, true);
-  leaf.addEventListener('pointerdown', down); leaf.addEventListener('pointerup', up); leaf.addEventListener('pointercancel', () => { start = null; });
+  function reflow() {
+    const current = pages[index], offset = pages.slice(0, index).filter(p => p.key === current.key).reduce((n, p) => n + Array.from(p.text || '').length, 0);
+    pages = journeyPages(shot, compact.matches ? 50 : 90);
+    index = pages.findIndex(p => p.key === current.key); let consumed = 0;
+    if (index < 0) index = 0;
+    while (index < pages.length - 1 && pages[index + 1].key === current.key && consumed + Array.from(pages[index].text || '').length <= offset) consumed += Array.from(pages[index++].text || '').length;
+    paint();
+  }
+  compact.addEventListener('change', reflow);
   paint();
-  return { turn, destroy() { resize.disconnect(); cancelAnimationFrame(fitting); animation?.cancel(); viewer.close(); if (url) URL.revokeObjectURL(url); controls.forEach(b => b.remove()); root.classList.remove('journal'); book.remove(); } };
+  return { turn, destroy() { compact.removeEventListener('change', reflow); animation?.cancel(); viewer.close(); if (url) URL.revokeObjectURL(url); nav.remove(); root.classList.remove('journal'); book.remove(); } };
 }
