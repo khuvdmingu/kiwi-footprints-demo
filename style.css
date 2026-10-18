@@ -570,3 +570,14 @@ body.clean #menu { display: none !important; }
 body.drowse .corner, body.drowse #say { opacity: 0; pointer-events: none; transition: opacity 4s var(--ease); }
 #focusHud { transform: translate(calc(-50% + var(--hx, 0px)), var(--hy, 0px)); transition: opacity 0.4s var(--ease), transform 2s var(--ease); }
 body.drowse #focusHud { opacity: 0.22; transition: opacity 4s var(--ease), transform 2s var(--ease); }
+
+/* ── v23.1 집중 사진 관리 ── */
+.shotTools { display: grid; gap: 6px; margin: 2px 2px 4px; }
+.shotTools[hidden] { display: none; }
+.shotTools button { justify-self: start; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--panel-line); background: transparent; color: inherit; font: 500 13.5px/1.2 var(--font); cursor: pointer; }
+.shotTools button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); }
+.shotTools button:disabled { opacity: 0.6; cursor: default; }
+#shotWarn { font-size: 12.5px; line-height: 1.5; color: #ffd9a8; word-break: keep-all; }
+#shotWarn:empty { display: none; }
+#found .art .shotDel { display: block; margin: 10px auto 0; padding: 6px 12px; border: 0; border-radius: 999px; background: transparent; color: #8a5a3a; font: 500 13px/1.2 var(--font); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+#found .art .shotDel.armed { background: #c4513e; color: #fff; text-decoration: none; }

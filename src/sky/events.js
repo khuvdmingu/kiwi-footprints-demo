@@ -5,7 +5,7 @@
 //  무지개: 비(보슬비 포함)가 그친 순간이 낮이면 바다 위에 75초쯤 떴다가 사라진다. 밤이 되면 빨리 걷힌다.
 //  둘 다 atmos.js 가 갖고 update/draw 를 부른다.
 
-import { clamp } from '../util.js?v=v23.0.0';
+import { clamp } from '../util.js?v=v23.1.0';
 
 export class Meteors {
   constructor({ rand = Math.random, first = 20, gap = [35, 110] } = {}) {

@@ -6,7 +6,7 @@
 //  main.js 는 매 프레임 update(dt, kiwis, atmos.v, beach) 를 부르고, 그릴 때 drawLeaning(ctx, k, () => k.draw(ctx)) 로 감싸고
 //  drawUmbrella(ctx, k) · drawFeathers(ctx, u) 를 키위 위에 얹는다. 키위 그림(kiwi.js)은 건드리지 않는다.
 
-import { clamp } from '../util.js?v=v23.0.0';
+import { clamp } from '../util.js?v=v23.1.0';
 
 export const UMB_SHARE = 0.45;   // 우산을 드는 성격의 비율
 const approach = (a, b, d) => (a < b ? Math.min(b, a + d) : Math.max(b, a - d));
