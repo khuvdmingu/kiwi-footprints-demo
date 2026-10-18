@@ -1,6 +1,16 @@
-// 명시적인 진단 URL에서만 표시. 기기 정보는 화면에만 남으며 전송·저장하지 않는다.
+// iPad에서 확인된 합성 제외 경로를 기본 적용한다. 장면의 그림/물결/키위는 그대로.
+// 플랫폼 판별은 로컬에서만 수행하며 진단 UI·전송·저장은 기본 방문에 없다.
+export function colorCompositingEnabled(q, nav = {}) {
+  if (q.get('tint') === '0') return false;
+  if (q.get('tint') === '1') return true;   // 명시적인 비교 시험용
+  const ua = nav.userAgent || '', platform = nav.platform || '';
+  const ipad = /iPad/i.test(ua + ' ' + platform) || (/Macintosh|MacIntel/i.test(ua + ' ' + platform) && nav.maxTouchPoints > 1);
+  return !ipad;
+}
+
 export function mountRenderDiagnostics(q, readState, doc = document, win = window) {
-  if (q.get('tint') === '0') doc.documentElement.classList.add('no-color-compositing');
+  const compositing = colorCompositingEnabled(q, win.navigator);
+  if (!compositing) doc.documentElement.classList.add('no-color-compositing');
   if (!q.has('diagnostic')) return null;
   const el = doc.createElement('pre');
   el.id = 'renderDiagnostics';
@@ -8,8 +18,8 @@ export function mountRenderDiagnostics(q, readState, doc = document, win = windo
   doc.body.appendChild(el);
   const update = () => {
     const state = readState(), plate = doc.getElementById('plate');
-    el.textContent = ['v24.4.3 · 풍경 진단',
-      `색조 합성: ${q.get('tint') === '0' ? '제외' : '사용'} · ${state.renderer}`,
+    el.textContent = ['v24.4.4 · 풍경 진단',
+      `색조 합성: ${compositing ? '사용' : '제외 (호환 모드)'} · ${state.renderer}`,
       `화면 ${win.innerWidth}×${win.innerHeight} · DPR ${win.devicePixelRatio}`,
       `그림 ${plate?.width || 0}×${plate?.height || 0} · ${state.ready ? '그리기 시작' : '시작 중'}`,
       state.error ? `오류: ${state.error}` : '프레임 오류 없음',
