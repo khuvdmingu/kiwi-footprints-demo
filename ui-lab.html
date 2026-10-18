@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko" data-ui="paper" data-time="day">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>UI 테마 비교</title>
+  <!-- v24 UI 테마 미리 보기 — 앱(index.html)의 실제 버튼·창을 그대로 가져와 「모던 / 종이」 · 낮/밤을 바꿔 본다. 앱 코드는 안 돌린다 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="theme-paper.css" />
+  <style>
+    #bg { position: fixed; inset: 0; background: center / cover no-repeat url('assets/plate-sea.webp'); transition: filter 0.6s; }
+    html[data-time="night"] #bg { background-image: url('assets/plate-sea-night.webp'); }
+    @media (max-aspect-ratio: 4/5) { #bg { background-image: url('assets/tall-sea.webp'), url('assets/plate-sea.webp'); } html[data-time="night"] #bg { background-image: url('assets/tall-sea-night.webp'), url('assets/plate-sea-night.webp'); } }
+    #lab { position: fixed; z-index: 60; left: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); display: grid; gap: 6px; padding: 10px; border-radius: 12px;
+      background: rgba(0, 0, 0, 0.6); color: #fff; font: 13px/1.3 var(--font); max-width: calc(100vw - 48px); }
+    #lab .r { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+    #lab b { width: 34px; font-weight: 600; opacity: 0.75; }
+    #lab button { padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.35); background: transparent; color: inherit; font: inherit; cursor: pointer; }
+    #lab button[aria-pressed="true"] { background: #fff; color: #222; }
+    #settings, #mixer, #menu, #focusPanel { display: none; }
+    body[data-show="menu"] #menu, body[data-show="settings"] #settings, body[data-show="mixer"] #mixer, body[data-show="focus"] #focusPanel { display: block; }
+    body[data-show="menu"] #menu { display: grid; }
+    #picker { display: none; }
+    body[data-show="picker"] #picker { display: block; }
+    #toast { opacity: 1; transform: translate(-50%, 0); }
+  </style>
+</head>
+<body>
+  <div id="bg"></div>
+  <div id="slot"></div>
+  <div id="picker" role="dialog"></div>
+  <div id="toast">맑음</div>
+  <div id="lab">
+    <div class="r" data-k="ui"><b>테마</b><button data-v="modern">모던(지금)</button><button data-v="paper">종이</button></div>
+    <div class="r" data-k="time"><b>시간</b><button data-v="day">낮</button><button data-v="night">밤</button></div>
+    <div class="r" data-k="show"><b>창</b><button data-v="none">없음</button><button data-v="menu">메뉴</button><button data-v="picker">날씨 고르기</button><button data-v="settings">설정</button><button data-v="mixer">소리</button><button data-v="focus">집중</button></div>
+  </div>
+  <script>
+  // 앱의 실제 마크업을 가져와 붙인다 (버튼·창이 바뀌면 이 페이지도 저절로 따라간다)
+  (async () => {
+    const html = await (await fetch('index.html')).text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const slot = document.getElementById('slot');
+    for (const sel of ['.corner', '#menu', '#settings', '#mixer', '#focusPanel', '#say']) { const el = doc.querySelector(sel); if (el) slot.append(document.importNode(el, true)); }
+    for (const el of slot.querySelectorAll('[hidden]')) if (!el.matches('.pane:not([data-pane="scene"]), #focusPanel .busy, #hideBtn')) el.hidden = false;
+    for (const el of slot.querySelectorAll('#settings .pane, #mixer .pane')) el.hidden = !['scene', 'vol'].includes(el.dataset.pane);
+    document.querySelector('[data-tab="test"]')?.remove();
+    // 날씨·글 모드·시점 버튼은 그림 한 벌만 보이게 (앱은 data- 값으로 고른다)
+    slot.querySelector('#weatherBtn').dataset.weather = 'clear';
+    document.body.dataset.view = 'top';
+    // 고르기 창 (앱은 JS 로 만든다 — 같은 모양으로 흉내)
+    const wb = slot.querySelector('#weatherBtn'), pk = document.getElementById('picker');
+    const names = { clear: '맑음', cloudy: '흐림', drizzle: '보슬비', rain: '비', snow: '눈', fog: '안개', wind: '바람', blossom: '꽃잎 바람' };
+    pk.innerHTML = '<p class="ttl">날씨</p><div class="opts three"></div>';
+    for (const [id, nm] of Object.entries(names)) {
+      const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-pressed', String(id === 'clear'));
+      const c = wb.querySelector('svg').cloneNode(true); c.querySelectorAll(':scope > g[class]').forEach(g => { if (!g.classList.contains('w-' + id)) g.remove(); else g.style.display = 'inline'; });
+      b.append(c); const t = document.createElement('span'); t.textContent = nm; b.append(t); pk.querySelector('.opts').append(b);
+    }
+    const place = () => { const r = wb.getBoundingClientRect(); const w = pk.offsetWidth || 280; const left = Math.max(10, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 10)); pk.style.left = left + 'px'; pk.style.top = (r.bottom + 10) + 'px'; pk.style.setProperty('--arrow', (r.left + r.width / 2 - left) + 'px'); };
+    // 고른 칸 몇 개 켜 두기
+    const pick = (name, v) => { const r = slot.querySelector(`input[name="${name}"][value="${v}"]`); if (r) r.checked = true; };
+    pick('map', 'beach'); pick('light', 'auto'); pick('flen', '25'); pick('fhush', 'events');
+    // 실험 막대
+    const set = (k, v) => {
+      if (k === 'show') document.body.dataset.show = v; else document.documentElement.dataset[k] = v;
+      for (const b of document.querySelectorAll(`#lab [data-k="${k}"] button`)) b.setAttribute('aria-pressed', String(b.dataset.v === v));
+      if (k === 'show' && v === 'picker') requestAnimationFrame(place);
+      try { localStorage.setItem('uilab.' + k, v); } catch (e) {}
+    };
+    for (const row of document.querySelectorAll('#lab .r')) row.addEventListener('click', e => { const b = e.target.closest('button'); if (b) set(row.dataset.k, b.dataset.v); });
+    const q = new URLSearchParams(location.search), mem = k => { try { return localStorage.getItem('uilab.' + k); } catch (e) { return null; } };
+    set('ui', q.get('ui') || mem('ui') || 'paper'); set('time', q.get('time') || mem('time') || 'day'); set('show', q.get('show') || mem('show') || 'menu');
+    addEventListener('resize', place);
+  })();
+  </script>
+</body>
+</html>

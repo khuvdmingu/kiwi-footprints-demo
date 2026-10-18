@@ -1,0 +1,116 @@
+/* theme-paper.css — v24 UI 테마 「종이」 (바닷가에서 쓰는 편지지)
+ *
+ *  켜는 법: <html data-ui="paper">. 이 파일은 모양(색·질감·둥글기·그림자·글꼴)만 바꾸고 자리·구조는 그대로 둔다.
+ *  밤(<html data-time="night">)엔 등불 아래 종이처럼 톤을 낮춘다 — 밤 화면에서 종이만 하얗게 뜨지 않게.
+ *  새 창·버튼을 만들 땐 이 파일을 고치지 말고 공용 부품(.round · 창 · .seg · .chips · 카드)을 쓰면 저절로 따라온다 (docs/UI.md).
+ *  아직 앱에 연결 전 — 미리 보기는 ui-lab.html.
+ */
+
+html[data-ui="paper"] {
+  --pp: #fbf4e4;                 /* 종이 */
+  --pp-2: #f4e9d2;               /* 한 칸 어두운 종이 (탭 바탕·눌림) */
+  --pp-edge: #e3d3b2;            /* 종이 가장자리 */
+  --pp-ink: #4a3826;             /* 잉크 */
+  --pp-ink-soft: rgba(74, 56, 38, 0.68);
+  --pp-stamp: #d9772b;           /* 고른 것: 주황 도장 */
+  --pp-stamp-ink: #fffaf0;
+  --pp-shadow: 0 2px 0 rgba(120, 90, 50, 0.12), 0 8px 22px rgba(60, 40, 20, 0.22);
+  --pp-hand: 'Gaegu', 'Nanum Pen Script', var(--font);   /* 손글씨는 제목에만 */
+  /* 종이 결: 아주 옅은 섬유 무늬 (그림 파일 없이) */
+  --pp-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.35 0 0 0 0 0.2 0 0 0 0.09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+html[data-ui="paper"][data-time="night"] {
+  --pp: #d6c39e; --pp-2: #c8b38a; --pp-edge: #ad976d; --pp-ink: #34261a; --pp-ink-soft: rgba(59, 43, 28, 0.7);
+  --pp-stamp: #c8692a;
+  --pp-shadow: 0 2px 0 rgba(0, 0, 0, 0.18), 0 10px 26px rgba(0, 0, 0, 0.45), 0 0 40px rgba(255, 196, 120, 0.12);   /* 등불이 비치는 듯 */
+}
+
+/* ── 떠 있는 버튼: 종이 동그라미에 잉크 아이콘 ── */
+html[data-ui="paper"] .round,
+html[data-ui="paper"] .corner .grp,
+html[data-ui="paper"] #saySend,
+html[data-ui="paper"] #focusHud {
+  background: var(--pp-grain), var(--pp); border: 1px solid var(--pp-edge); color: var(--pp-ink);
+  box-shadow: var(--pp-shadow); backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+html[data-ui="paper"] .corner { opacity: 0.95; }
+html[data-ui="paper"] .corner .grp .round { background: transparent; border: 0; box-shadow: none; }
+html[data-ui="paper"] .corner .grp .round + .round::before { background: var(--pp-edge); opacity: 1; }
+html[data-ui="paper"] .round:hover, html[data-ui="paper"] .corner .grp .round:hover { background-color: var(--pp-2); border-color: var(--pp-edge); }
+html[data-ui="paper"] .round[aria-expanded="true"], html[data-ui="paper"] .corner .grp .round[aria-expanded="true"] { background: var(--pp-2); }
+html[data-ui="paper"] .round svg, html[data-ui="paper"] #saySend svg, html[data-ui="paper"] #menu svg, html[data-ui="paper"] #picker svg { stroke-width: 1.9; }
+html[data-ui="paper"] .round:focus-visible { outline-color: var(--pp-stamp); }
+html[data-ui="paper"] #focusBtn.on { background: var(--pp-stamp); color: var(--pp-stamp-ink); border-color: transparent; }
+
+/* ── 창: 크림색 종이 · 손으로 자른 듯 고르지 않은 모서리 ── */
+html[data-ui="paper"] #settings,
+html[data-ui="paper"] #mixer,
+html[data-ui="paper"] #focusPanel,
+html[data-ui="paper"] #menu,
+html[data-ui="paper"] #picker {
+  background: var(--pp-grain), var(--pp); color: var(--pp-ink); border: 1px solid var(--pp-edge);
+  border-radius: 18px 14px 17px 13px / 13px 17px 14px 18px;
+  box-shadow: var(--pp-shadow); backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+html[data-ui="paper"] #picker::before { background: var(--pp); border-color: var(--pp-edge); }
+html[data-ui="paper"] #settings h2, html[data-ui="paper"] #focusPanel h2, html[data-ui="paper"] #mixer h3, html[data-ui="paper"] #picker .ttl {
+  font-family: var(--pp-hand); font-size: 18px; font-weight: 700; letter-spacing: 0.01em; opacity: 1; color: var(--pp-ink);
+}
+html[data-ui="paper"] #settings h2.sep, html[data-ui="paper"] #mixer h3 { border-top: 1px dashed var(--pp-edge); }
+html[data-ui="paper"] .hint, html[data-ui="paper"] .note, html[data-ui="paper"] #menu small, html[data-ui="paper"] .lightNow { color: var(--pp-ink-soft); opacity: 1; }
+
+/* 탭: 종이 위 한 칸 어두운 홈, 고른 탭은 종이 조각이 올라온 것처럼 */
+html[data-ui="paper"] #settings .tabs, html[data-ui="paper"] #mixer .tabs { background: var(--pp-2); box-shadow: inset 0 1px 2px rgba(80, 60, 30, 0.12); }
+html[data-ui="paper"] #settings .tabs button, html[data-ui="paper"] #mixer .tabs button { color: var(--pp-ink); opacity: 0.6; }
+html[data-ui="paper"] #settings .tabs button[aria-selected="true"], html[data-ui="paper"] #mixer .tabs button[aria-selected="true"] {
+  background: var(--pp); color: var(--pp-ink); opacity: 1; box-shadow: 0 1px 3px rgba(80, 60, 30, 0.22);
+}
+
+/* 고르기 칸: 연필 테두리, 고른 것은 주황 도장 (살짝 비뚤게) — 기존 규칙이 #settings 처럼 id 로 잡고 있어 :is(id) 로 맞선다 */
+html[data-ui="paper"] :is(#settings, #focusPanel) .seg span,
+html[data-ui="paper"] #lightOpts .chips button,
+html[data-ui="paper"] #mixer .packs button,
+html[data-ui="paper"] #picker button,
+html[data-ui="paper"] #tunePane .tbtns button,
+html[data-ui="paper"] #craftList button,
+html[data-ui="paper"] .soundSum button,
+html[data-ui="paper"] .fcustom button {
+  border: 1px solid rgba(74, 56, 38, 0.28); background: rgba(255, 255, 255, 0.35); color: var(--pp-ink);
+}
+html[data-ui="paper"] :is(#settings, #focusPanel) .seg input:checked + span,
+html[data-ui="paper"] #lightOpts .chips button.on,
+html[data-ui="paper"] #mixer .packs button[aria-pressed="true"],
+html[data-ui="paper"] #picker button[aria-pressed="true"] {
+  background: var(--pp-stamp); color: var(--pp-stamp-ink); border-color: transparent;
+  transform: rotate(-1.2deg); box-shadow: inset 0 0 0 2px rgba(255, 240, 220, 0.35), 0 1px 0 rgba(120, 60, 20, 0.35);
+}
+html[data-ui="paper"] :is(#settings, #focusPanel) .seg input:focus-visible + span { outline-color: var(--pp-stamp); }
+html[data-ui="paper"] input[type="range"], html[data-ui="paper"] input[type="checkbox"] { accent-color: var(--pp-stamp); }
+html[data-ui="paper"] #focusPanel button { background: rgba(255, 255, 255, 0.35); border-color: rgba(74, 56, 38, 0.28); color: var(--pp-ink); }
+html[data-ui="paper"] #focusPanel button.primary { background: var(--pp-stamp); color: var(--pp-stamp-ink); border-color: transparent; }
+html[data-ui="paper"] #focusPanel textarea, html[data-ui="paper"] .fcustom input, html[data-ui="paper"] #tunePane select {
+  background: rgba(255, 255, 255, 0.5); border-color: rgba(74, 56, 38, 0.28); color: var(--pp-ink);
+}
+
+/* 메뉴: 편지지 목록처럼 줄 사이 점선 */
+html[data-ui="paper"] #menu button { color: var(--pp-ink); }
+html[data-ui="paper"] #menu button + button { box-shadow: none; border-top: 1px dashed var(--pp-edge); border-radius: 0 0 11px 11px; }
+html[data-ui="paper"] #menu button:hover, html[data-ui="paper"] #menu button:focus-visible { background: var(--pp-2); }
+html[data-ui="paper"] #menu span { font-family: var(--pp-hand); font-size: 19px; font-weight: 700; }
+html[data-ui="paper"] #menu kbd { border-color: var(--pp-edge); color: var(--pp-ink-soft); }
+
+/* 알림 · 뜻 풀이: 작은 쪽지 */
+html[data-ui="paper"] #toast, html[data-ui="paper"] #caption {
+  background: var(--pp-grain), var(--pp); color: var(--pp-ink); border: 1px solid var(--pp-edge); box-shadow: var(--pp-shadow);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+html[data-ui="paper"] #caption .main { font-family: var(--pp-hand); font-size: clamp(19px, 4.6vw, 24px); }
+
+/* 입력창 안내 글: 모래 위에 연필로 쓴 듯 */
+html[data-ui="paper"] #sayInput { font-family: var(--pp-hand); font-weight: 700; letter-spacing: 0.01em; }
+
+/* 집중 창 규칙 머리글(선물·10초…)은 원래 모래색 — 종이 위에선 도장색으로 */
+html[data-ui="paper"] #focusPanel .rules b { color: var(--pp-stamp); }
+html[data-ui="paper"] #focusPanel .rules, html[data-ui="paper"] #focusPanel .stats, html[data-ui="paper"] #focusPanel .cal { border-top: 1px dashed var(--pp-edge); }
+html[data-ui="paper"] #focusPanel .stats div, html[data-ui="paper"] #focusPanel .calGrid .day { background: rgba(255, 255, 255, 0.3); }
+html[data-ui="paper"] :is(#lightOpts, #kiwiOpts, #mixer, #tunePane, #clockOpts) input { accent-color: var(--pp-stamp); }   /* 원래 규칙이 id 로 잡혀 있어 맞춰 준다 */
