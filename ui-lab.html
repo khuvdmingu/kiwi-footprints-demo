@@ -70,7 +70,7 @@
     pk.innerHTML = '<p class="ttl">날씨</p><div class="opts three"></div>';
     for (const [id, nm] of Object.entries(names)) {
       const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-pressed', String(id === 'clear'));
-      const c = wb.querySelector('svg').cloneNode(true); c.querySelectorAll(':scope > g[class]').forEach(g => { if (!g.classList.contains('w-' + id)) g.remove(); else g.style.display = 'inline'; });
+      const c = wb.querySelector('svg').cloneNode(true); c.querySelectorAll(':scope > g[class]').forEach(g => { if (!g.classList.contains('w-' + id)) g.remove(); else g.style.display = 'inline'; }); c.dataset.ico = 'w-' + id;
       b.append(c); const t = document.createElement('span'); t.textContent = nm; b.append(t); pk.querySelector('.opts').append(b);
     }
     const place = () => { const r = wb.getBoundingClientRect(); const w = pk.offsetWidth || 280; const left = Math.max(10, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 10)); pk.style.left = left + 'px'; pk.style.top = (r.bottom + 10) + 'px'; pk.style.setProperty('--arrow', (r.left + r.width / 2 - left) + 'px'); };

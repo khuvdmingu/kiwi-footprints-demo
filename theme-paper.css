@@ -116,4 +116,46 @@ html[data-ui="paper"] #focusPanel .stats div, html[data-ui="paper"] #focusPanel 
 html[data-ui="paper"] :is(#lightOpts, #kiwiOpts, #mixer, #tunePane, #clockOpts) input { accent-color: var(--pp-stamp); }   /* 원래 규칙이 id 로 잡혀 있어 맞춰 준다 */
 
 /* v24.1 아이콘: 한 벌 그대로, 종이에선 잉크로 그은 듯 가장자리를 아주 조금 흔든다 (index.html #ink 필터) */
-html[data-ui="paper"] :is(.round, #saySend, #menu button, #picker button, #focusHud) svg { filter: url(#ink); }
+html[data-ui="paper"] #focusHud svg { filter: url(#ink); }   /* v24.4 부터 다른 아이콘은 칠한 그림 — 잉크 번짐은 남은 선 그림에만 */
+
+/* ── v24.4 종이 테마 아이콘: 손으로 칠한 그림 (assets/icons-paper-a/b.webp, 4×4, Higgsfield 한 장씩 묶어 뽑음) ──
+   모던은 선 아이콘(index.html svg) 그대로. 종이에선 같은 svg 상자에 그림을 배경으로 깔고 선은 숨긴다 —
+   버튼·고르기 창·작품 설명이 쓰는 svg 를 그대로 두니 구조·스크립트는 안 바뀐다. 칸 배치는 docs/GRAPHICS-PROMPTS.md */
+/* 공통 규칙은 :where 로 우선순위를 0 으로 — 아이콘마다 그림을 고르는 아래 규칙이 늘 이기게 (전엔 :is(#info …) 가 더 세서 그림이 지워졌다) */
+html[data-ui="paper"] :where(.round, #saySend, #menu button, #picker button, #info .keys i) svg {
+  background-position: center; background-size: 400% 400%; background-repeat: no-repeat;
+  filter: drop-shadow(0 0 0.6px rgba(74, 56, 38, 0.55)) drop-shadow(0 1px 1px rgba(74, 56, 38, 0.18));   /* 흰 눈송이·구름도 종이 위에서 보이게 */
+}
+html[data-ui="paper"] :where(.round, #saySend, #menu button, #picker button, #info .keys i) svg > * { visibility: hidden; }
+html[data-ui="paper"] .round svg, html[data-ui="paper"] #saySend svg { width: 30px; height: 30px; }
+html[data-ui="paper"] #picker svg { width: 34px; height: 34px; }
+html[data-ui="paper"] #menu svg { width: 28px; height: 28px; }
+html[data-ui="paper"] #info .keys i svg { width: 24px; height: 24px; }
+html[data-ui="paper"] #weatherBtn[data-weather="clear"] svg, html[data-ui="paper"] svg[data-ico="w-clear"] { background-image: url("assets/icons-paper-a.webp"); background-position: 0.000% 0.000%; }
+html[data-ui="paper"] #weatherBtn[data-weather="cloudy"] svg, html[data-ui="paper"] svg[data-ico="w-cloudy"] { background-image: url("assets/icons-paper-a.webp"); background-position: 33.333% 0.000%; }
+html[data-ui="paper"] #weatherBtn[data-weather="drizzle"] svg, html[data-ui="paper"] svg[data-ico="w-drizzle"] { background-image: url("assets/icons-paper-a.webp"); background-position: 66.667% 0.000%; }
+html[data-ui="paper"] #weatherBtn[data-weather="rain"] svg, html[data-ui="paper"] svg[data-ico="w-rain"] { background-image: url("assets/icons-paper-a.webp"); background-position: 100.000% 0.000%; }
+html[data-ui="paper"] #weatherBtn[data-weather="snow"] svg, html[data-ui="paper"] svg[data-ico="w-snow"] { background-image: url("assets/icons-paper-a.webp"); background-position: 0.000% 33.333%; }
+html[data-ui="paper"] #weatherBtn[data-weather="fog"] svg, html[data-ui="paper"] svg[data-ico="w-fog"] { background-image: url("assets/icons-paper-a.webp"); background-position: 33.333% 33.333%; }
+html[data-ui="paper"] #weatherBtn[data-weather="wind"] svg, html[data-ui="paper"] svg[data-ico="w-wind"] { background-image: url("assets/icons-paper-a.webp"); background-position: 66.667% 33.333%; }
+html[data-ui="paper"] #weatherBtn[data-weather="blossom"] svg, html[data-ui="paper"] svg[data-ico="w-blossom"] { background-image: url("assets/icons-paper-a.webp"); background-position: 100.000% 33.333%; }
+html[data-ui="paper"] #modeBtn[data-mode="free"] svg, html[data-ui="paper"] svg[data-ico="m-free"] { background-image: url("assets/icons-paper-a.webp"); background-position: 0.000% 66.667%; }
+html[data-ui="paper"] #modeBtn[data-mode="clock"] svg, html[data-ui="paper"] svg[data-ico="m-clock"] { background-image: url("assets/icons-paper-a.webp"); background-position: 33.333% 66.667%; }
+html[data-ui="paper"] #modeBtn[data-mode="quote"] svg, html[data-ui="paper"] svg[data-ico="m-quote"] { background-image: url("assets/icons-paper-a.webp"); background-position: 66.667% 66.667%; }
+html[data-ui="paper"] #modeBtn[data-mode="word"] svg, html[data-ui="paper"] svg[data-ico="m-word"] { background-image: url("assets/icons-paper-a.webp"); background-position: 100.000% 66.667%; }
+html[data-ui="paper"] body[data-view="top"] #viewBtn svg, html[data-ui="paper"] svg[data-ico="v-top"] { background-image: url("assets/icons-paper-b.webp"); background-position: 0.000% 0.000%; }
+html[data-ui="paper"] body[data-view="diorama"] #viewBtn svg, html[data-ui="paper"] svg[data-ico="v-diorama"] { background-image: url("assets/icons-paper-b.webp"); background-position: 33.333% 0.000%; }
+html[data-ui="paper"] body[data-view="follow"] #viewBtn svg, html[data-ui="paper"] svg[data-ico="v-follow"] { background-image: url("assets/icons-paper-b.webp"); background-position: 66.667% 0.000%; }
+html[data-ui="paper"] body[data-view="scope"] #viewBtn svg, html[data-ui="paper"] svg[data-ico="v-scope"] { background-image: url("assets/icons-paper-b.webp"); background-position: 100.000% 0.000%; }
+html[data-ui="paper"] body[data-view="text"] #viewBtn svg, html[data-ui="paper"] svg[data-ico="v-text"] { background-image: url("assets/icons-paper-b.webp"); background-position: 0.000% 33.333%; }
+html[data-ui="paper"] body[data-view="breeze"] #viewBtn svg, html[data-ui="paper"] svg[data-ico="v-breeze"] { background-image: url("assets/icons-paper-b.webp"); background-position: 33.333% 33.333%; }
+html[data-ui="paper"] :is(#soundBtn, #info i[data-icon="soundBtn"]) svg { background-image: url("assets/icons-paper-a.webp"); background-position: 0.000% 100.000%; }
+html[data-ui="paper"] #soundBtn[data-on="0"] svg { background-image: url("assets/icons-paper-a.webp"); background-position: 33.333% 100.000%; }
+html[data-ui="paper"] :is(#focusBtn, #info i[data-icon="focusBtn"]) svg { background-image: url("assets/icons-paper-a.webp"); background-position: 66.667% 100.000%; }
+html[data-ui="paper"] :is(#hideBtn, #info i[data-icon="hideBtn"]) svg { background-image: url("assets/icons-paper-a.webp"); background-position: 100.000% 100.000%; }
+html[data-ui="paper"] :is(#cleanBtn, #info i[data-icon="cleanBtn"]) svg { background-image: url("assets/icons-paper-a.webp"); background-position: 100.000% 100.000%; }
+html[data-ui="paper"] :is(#setBtn, #info i[data-icon="setBtn"]) svg { background-image: url("assets/icons-paper-b.webp"); background-position: 66.667% 33.333%; }
+html[data-ui="paper"] :is(#bagBtn, #info i[data-icon="bagBtn"]) svg { background-image: url("assets/icons-paper-b.webp"); background-position: 100.000% 33.333%; }
+html[data-ui="paper"] :is(#infoBtn, #info i[data-icon="infoBtn"]) svg { background-image: url("assets/icons-paper-b.webp"); background-position: 0.000% 66.667%; }
+html[data-ui="paper"] :is(#saySend, #info i[data-icon="saySend"]) svg { background-image: url("assets/icons-paper-b.webp"); background-position: 33.333% 66.667%; }
+html[data-ui="paper"] :is(#menuBtn, #info i[data-icon="menuBtn"]) svg { background-image: url("assets/icons-paper-b.webp"); background-position: 66.667% 66.667%; }
