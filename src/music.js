@@ -103,13 +103,13 @@ export class Music {
 
   play(t) {
     const m = this.m, chord = this.chord(), w = this.weather;
-    const bright = m.bright * (w === 'rain' ? 0.55 : w === 'fog' ? 0.7 : w === 'snow' ? 1.25 : 1);
+    const bright = m.bright * (w === 'rain' ? 0.55 : w === 'drizzle' ? 0.75 : w === 'fog' ? 0.7 : w === 'snow' ? 1.25 : w === 'blossom' ? 1.1 : 1);
     const spb = 60 / m.bpm / 2;
     const cb = m.chordBars || 1, root = this.key + m.prog[this.ci() % m.prog.length][0];
     if (this.beat === 0 && this.bar % cb === 0) this.pad(chord, t, spb * 8 * cb, bright, m.pad);
     if (m.drone && this.beat === 0 && this.bar % (cb * m.prog.length) === 0) this.drone(this.key, t, spb * 8 * cb * m.prog.length, bright);
     if (m.bass !== 'none' && (this.beat === 0 || (this.beat === 4 && m.bass !== 'one'))) this.bass(root - 24, t, spb * (m.bass === 'one' ? 7 : 3.5));
-    let density = m.density * (w === 'rain' ? 0.6 : w === 'wind' ? 0.5 : w === 'snow' ? 1.2 : 1);
+    let density = m.density * (w === 'rain' ? 0.6 : w === 'drizzle' ? 0.8 : w === 'wind' ? 0.5 : w === 'snow' ? 1.2 : 1);
     if (this.beat % 2 === 1) density *= 0.55;   // 뒷박은 드물게
     const up = 12 + (w === 'snow' ? 12 : 0);
     if (m.play === 'motif') {

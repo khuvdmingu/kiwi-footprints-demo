@@ -6,11 +6,13 @@
 //        구름 양·흐름 속도·파도 높이는 셰이더/해변에 넘기고, 빗줄기·물방울 고리·눈송이·나뭇잎·안개·반딧불이·야광은 여기서 #fx 캔버스에 그린다.
 //        눈은 시간이 지날수록 땅(셰이더 uSnow)과 나무에 쌓이고, 그치면 천천히 녹는다.
 
-import { clamp, lerp } from './util.js?v=v22.2.0';
+import { clamp, lerp } from './util.js?v=v23.0.0';
+import { EXTRA_KEYS, EXTRA_PARAM, SkyExtra, blossomName } from './sky/extra.js?v=v23.0.0';   // v23 보슬비 · 꽃잎/낙엽 바람
+import { Meteors, Rainbow } from './sky/events.js?v=v23.0.0';                                 // v23 별똥별 · 무지개
 
-export const WEATHERS = ['clear', 'cloudy', 'rain', 'snow', 'fog', 'wind'];
-export const WEATHER_NAME = { clear: '맑음', cloudy: '흐림', rain: '비', snow: '눈', fog: '안개', wind: '바람' };
-const PARAM = {
+export const WEATHERS = ['clear', 'cloudy', 'drizzle', 'rain', 'snow', 'fog', 'wind', 'blossom'];
+export const WEATHER_NAME = { clear: '맑음', cloudy: '흐림', drizzle: '보슬비', rain: '비', snow: '눈', fog: '안개', wind: '바람', blossom: '꽃잎 바람' };   // blossom 은 장소 따라 '낙엽 바람'
+const BASE = {
   clear: { cloud: 0.06, windK: 1, amp: 1, rain: 0, snow: 0, fog: 0, wind: 0, grey: 0 },
   cloudy: { cloud: 0.6, windK: 1.3, amp: 1.1, rain: 0, snow: 0, fog: 0, wind: 0.15, grey: 0.35 },
   rain: { cloud: 0.72, windK: 1.6, amp: 1.25, rain: 1, snow: 0, fog: 0.1, wind: 0.3, grey: 0.7 },
@@ -18,6 +20,8 @@ const PARAM = {
   fog: { cloud: 0.15, windK: 0.5, amp: 0.8, rain: 0, snow: 0, fog: 1, wind: 0, grey: 0.3 },
   wind: { cloud: 0.35, windK: 3.4, amp: 1.65, rain: 0, snow: 0, fog: 0, wind: 1, grey: 0.1 },
 };
+// 원래 날씨에도 v23 칸(drizzle·blossom = 0)을 붙이고 새 날씨 둘을 합친다 — 값을 섞을 때 모든 날씨가 같은 열쇠를 가져야 한다
+const PARAM = { ...Object.fromEntries(Object.entries(BASE).map(([k, v]) => [k, { ...v, ...EXTRA_KEYS }])), ...EXTRA_PARAM };
 
 // 시각 → 곱하는 색, 밤 정도 (사이는 보간)
 const KEYS = [
@@ -58,8 +62,13 @@ export class Atmos {
     this.drops = []; this.rings = []; this.flakes = []; this.leaves = []; this.fogs = []; this.flies = []; this.plankton = [];
     this.holes = []; this.wisps = [];   // v16.2 안개 구멍 · 흩어지는 안개 조각
     this.t = 0;
+    this._map = 'beach';                // v23 꽃잎/낙엽을 고르려고 main.js 가 알려 준다 (mapId)
+    this.extra = new SkyExtra(); this.meteors = new Meteors(); this.rainbow = new Rainbow();
+    this.onMeteor = null;               // 별똥별이 떨어질 때 (main.js 가 소리·키위 반응을 붙인다)
   }
-  setWeather(w) { this.weather = w; }
+  get mapId() { return this._map; }
+  set mapId(m) { this._map = m; WEATHER_NAME.blossom = blossomName(m); }
+  setWeather(w) { if (!WEATHERS.includes(w)) return; const prev = this.weather; this.weather = w; this.rainbow.weatherChanged(prev, w, this.night); }
   // v16.2 안개 뚫기: (x, y)에 둥근 구멍 — 퍽 하고 열렸다가(0.35초) 잠시 머물고(3.5초) 천천히 다시 찬다(5초). big = 누르기, 아니면 문지르기
   punchFog(x, y, u, big = true) {
     if (this.v.fog < 0.2) return false;
@@ -148,6 +157,10 @@ export class Atmos {
     }
     for (const p of this.plankton) p.age += dt;
     this.plankton = this.plankton.filter(p => p.age < p.life);
+    // v23: 보슬비·꽃잎 바람 · 별똥별 · 무지개
+    this.extra.update(dt, beach, this.v, this.mapId);
+    if (laid) { const m = this.meteors.update(dt, beach, this.v, this.night); if (m && this.onMeteor) this.onMeteor(m); }
+    this.rainbow.update(dt, this.night);
   }
 
   // n·w: 밤 · 노을/새벽 그림이 섞인 정도 — 그림이 이미 그 빛이라 그만큼 시간 빛을 옅게 씌운다
@@ -168,13 +181,14 @@ export class Atmos {
 
   // 이번 프레임에 그릴 것이 있는가 (없으면 #fx 층을 건드리지 않는다 — main.js)
   get busy() {
-    return this.v.fog > 0.01 || this.drops.length || this.rings.length || this.flakes.length || this.leaves.length || this.flies.length || this.plankton.length || this.wisps.length;
+    return this.extra.busy || this.meteors.list.length || this.rainbow.on || this.v.fog > 0.01 || this.drops.length || this.rings.length || this.flakes.length || this.leaves.length || this.flies.length || this.plankton.length || this.wisps.length;
   }
 
   // #fx 캔버스 (시간 빛 위에 그린다 — 빛나는 것들이 어둡게 눌리지 않게)
   draw(ctx, beach) {
     const u = beach.u, W = beach.W, H = beach.H;
     ctx.save();
+    this.rainbow.draw(ctx, beach);   // v23 무지개는 비·안개 아래
     // 안개: 전체에 옅은 흰 막 + 흘러가는 덩어리
     // v16.2: 안개만 따로(반 해상도) 그린 뒤 구멍을 뚫어 얹는다 — 같은 캔버스의 비·반딧불이까지 지우지 않게
     if (this.v.fog > 0.01) {
@@ -252,6 +266,8 @@ export class Atmos {
       ctx.beginPath(); ctx.ellipse(0, 0, l.s, l.s * 0.45, 0, 0, 6.29); ctx.fill();
       ctx.restore();
     }
+    this.extra.draw(ctx, beach);     // v23 실비 · 꽃잎/낙엽
+    this.meteors.draw(ctx, beach);   // v23 별똥별
     // 밤의 빛: 반딧불이 · 야광 플랑크톤 (더하기 합성)
     if (this.flies.length || this.plankton.length) {
       ctx.globalCompositeOperation = 'lighter';

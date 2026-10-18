@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>더미 데이터 채우기</title>
+<style>
+  :root { --bg: #f4ecdc; --card: #fffaf0; --ink: #3d3326; --sub: #7a6c58; --line: #e2d5bd; --accent: #2f7d7a; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1d2125; --card: #262b30; --ink: #ece4d6; --sub: #a99f8f; --line: #3a4148; --accent: #6cc3bd; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+  main { max-width: 640px; margin: 0 auto; padding: 20px 16px 48px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p.lead { color: var(--sub); margin: 0 0 16px; font-size: 14px; }
+  .mod { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+  .mod label { display: flex; gap: 10px; align-items: center; font-weight: 600; }
+  .mod input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); }
+  .where { color: var(--sub); font-size: 13px; margin: 2px 0 8px 30px; }
+  select { margin-left: 30px; width: calc(100% - 30px); padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+  button { min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  #log { white-space: pre-wrap; font-size: 13px; color: var(--sub); background: var(--card); border: 1px dashed var(--line); border-radius: 10px; padding: 10px 12px; min-height: 44px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>더미 데이터 채우기</h1>
+  <p class="lead">테스트용 기록을 이 기기에 채워요. 채우기 전 기록은 자동으로 한 번 백업되고, 「되돌리기」로 돌아갈 수 있어요. 진짜 집중 사진은 지우지 않아요.</p>
+  <p class="lead"><b>먼저 발자국 한글이 열린 다른 탭·홈 화면 앱을 닫아 주세요.</b> 열려 있으면 30초쯤 뒤에 그 화면이 자기 기록으로 덮어써요.</p>
+  <div id="mods"></div>
+  <div class="bar">
+    <button class="primary" id="go">채우고 열기</button>
+    <button id="only">채우기만</button>
+    <button id="undo">되돌리기</button>
+    <button id="open">발자국 한글 열기</button>
+  </div>
+  <div id="log">아직 아무것도 안 했어요.</div>
+</main>
+<script type="module">
+  import { MODULES, seed, restore, hasBackup } from './src/seed/index.js';
+  const box = document.getElementById('mods'), log = document.getElementById('log');
+  for (const m of MODULES) {
+    const d = document.createElement('div'); d.className = 'mod';
+    const opts = Object.entries(m.variants).map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
+    d.innerHTML = `<label><input type="checkbox" data-id="${m.id}" ${m.defaultOff ? '' : 'checked'}>${m.label}</label><div class="where">${m.where}</div><select data-for="${m.id}">${opts}</select>`;
+    box.append(d);
+  }
+  const plan = () => Object.fromEntries([...box.querySelectorAll('input:checked')].map(c => [c.dataset.id, box.querySelector(`select[data-for="${c.dataset.id}"]`).value]));
+  const say = t => { log.textContent = t; };
+  const label = id => MODULES.find(m => m.id === id).label;
+  async function fill() {
+    const p = plan();
+    if (!Object.keys(p).length) { say('고른 것이 없어요.'); return false; }
+    const firstBackup = !hasBackup();
+    try {
+      const r = await seed(p);
+      say((firstBackup ? '지금 기록을 백업해 두었어요.\n' : '') + r.map(x => `✓ ${label(x.id)} — ${x.variant} (${x.keys.join(', ')})`).join('\n'));
+      return true;
+    } catch (e) { say('채우지 못했어요: ' + e.message); return false; }
+  }
+  document.getElementById('go').onclick = async () => { if (await fill()) setTimeout(() => location.href = 'index.html', 600); };
+  document.getElementById('only').onclick = fill;
+  document.getElementById('undo').onclick = async () => say(await restore() ? '채우기 전 기록으로 되돌렸어요 (더미 사진도 지웠어요).' : '되돌릴 백업이 없어요.');
+  document.getElementById('open').onclick = () => location.href = 'index.html';
+  if (hasBackup()) say('백업이 있어요 — 「되돌리기」로 채우기 전으로 돌아갈 수 있어요.');
+</script>
+</body>
+</html>
