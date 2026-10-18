@@ -23,14 +23,19 @@ html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: non
 body { position: fixed; inset: 0; background: linear-gradient(#24563A 0 30%, #1A5C91 50%); -webkit-tap-highlight-color: transparent; }
 
 /* ── 장면 층 ── */
-#world { position: fixed; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+#world { position: fixed; left: 0; top: 0; transform-origin: 0 0; will-change: transform; isolation: isolate; }
 #world > * { position: absolute; left: 0; top: 0; pointer-events: none; }
 #world .layer { width: 100%; height: 100%; }
 #world .layer svg { width: 100%; height: 100%; display: block; }
 #world canvas { display: block; }
 /* (v18.3.1) 그림 층을 늘 각자의 합성 층으로 — 비었다 찼다 하는 층(구름·효과)이 층 묶음을 바꾸면 그 위 섞기 층(#tint 곱하기 · #glow soft-light)이
    한 프레임 다른 바탕과 섞여 화면 전체가 반짝였다 */
-#world > canvas, #world #tint, #world #glow { will-change: transform; }
+#world > canvas:not(#tint) { will-change: transform; }
+/* 색조·빛은 같은 풍경 안에서 섞는다. 개별 합성 층으로 강제 승격하지 않는다. */
+#world #tint, #world #glow { will-change: auto; }
+/* 명시적인 진단 주소에서만 색조 합성을 제외한다. 저장 설정·사진·움직임에는 영향 없음. */
+html.no-color-compositing #tint, html.no-color-compositing #glow,
+html.no-color-compositing #grain { visibility: hidden; }
 /* 한 손가락 끌기(안개 문지르기)는 앱이, 두 손가락 핀치(확대·축소)는 브라우저가 — v16.2 의 none 이 핀치까지 막았다(v18.5.1 복구).
    확대된 동안(body.zoomed)은 v16.1 까지처럼 한 손가락으로 화면을 옮길 수 있게 manipulation */
 #touch { position: fixed; inset: 0; z-index: 2; cursor: pointer; touch-action: pinch-zoom; }
