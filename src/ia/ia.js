@@ -9,7 +9,7 @@
 //  바뀌는 것
 //   · 화면 위: [글 모드·날씨·시점] → [글 모드·날씨], 소리 → ⋯ 메뉴 첫 줄, 새 「바구니」 버튼
 //   · 바구니: 모은 것 9묶음을 탭 5(사진 · 편지 · 키위 · 장소·소리 · 도감)로 — 소리 묶음도 이리로 (집중 기록·달력은 집중 창에 펼쳐 둠)
-//   · 설정: 풍경(장소·시간대·시점·키위 수) / 시계·메모(시간 메모·시계·벽시계) / 화면(창 모양·이름·화면 정리) / 테스트
+//   · 설정: 풍경(장소·시간대·시점·키위 수) / 시계·메모(시간 메모·시계·벽시계) / 화면(창 모양·창 투명도·이름·화면 정리) / 테스트
 //   · 소리 창: 크기 · 곡 (발자국·배경 묶음은 바구니)
 //   · 집중 창: 탭 [집중하기 | 기록] — 집중하기 = 섬/항해 → 시간 → 오늘의 한 줄 → 시작 → 더 보기(집중 중 소리 · 숨 고르기 · 규칙), 기록 = 통계 + 달력
 //   · 메뉴: 소리(+ 바로 켜고 끄기) · 설정 · 작품 설명
@@ -41,7 +41,7 @@ export function mountIA() {
   const pane = n => settings.querySelector(`.pane[data-pane="${n}"]`), tab = n => settings.querySelector(`[role="tab"][data-tab="${n}"]`);
 
   // ── 바구니 창 (설정 창과 같은 틀) ──
-  const TABS = [['photo', '사진'], ['letter', '편지'], ['kiwi', '키위'], ['world', '장소·소리'], ['dex', '도감']];
+  const TABS = [['photo', '일지'], ['letter', '편지'], ['kiwi', '키위'], ['world', '장소·소리'], ['dex', '도감']];
   const basket = el('div', { id: 'basket', role: 'dialog', 'aria-label': '바구니', hidden: '' });
   const tabs = el('div', { class: 'tabs', role: 'tablist', 'aria-label': '바구니 묶음' });
   const panes = {};
@@ -86,7 +86,7 @@ export function mountIA() {
   showTab(TABS.some(t => t[0] === saved) ? saved : 'photo');
 
   // 바구니 버튼 (메뉴 버튼 앞)
-  const basketBtn = el('button', { id: 'basketBtn', type: 'button', class: 'round', 'aria-label': '바구니 — 사진 · 편지 · 키위 · 장소·소리 · 도감', 'aria-expanded': 'false', 'aria-controls': 'basket' },
+  const basketBtn = el('button', { id: 'basketBtn', type: 'button', class: 'round', 'aria-label': '바구니 — 일지 · 편지 · 키위 · 장소·소리 · 도감', 'aria-expanded': 'false', 'aria-controls': 'basket' },
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5h17" /><path d="M5 10.5l1.4 7.9a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6l1.4-7.9" /><path d="M7.6 10.5a4.4 4.9 0 0 1 8.8 0" /><path d="M5.9 14.5h12.2M10.2 10.5l.4 9.5M13.8 10.5l-.4 9.5" /></svg>');
   corner.insertBefore(basketBtn, menuBtn);
   const openBasket = open => {
@@ -158,6 +158,27 @@ export function mountIA() {
   if (one && !one.checked) { one.closest('label').classList.add('ia-off'); one.closest('.seg')?.classList.replace('five', 'four'); }
   // 창 모양 → 화면, 이름 → 화면, 화면 정리 → 화면
   const theme = byTitle(sceneSecs, /창 모양/); if (theme) { firstSep(theme.h); move(theme.nodes, shell); }
+  // 창 투명도 (v26.4 — 사용자 2026-10-19: 단색 배경을 설정에서 조절) — 창 모양 바로 아래. 모던·종이 따로 기억, 이 기기에만
+  //  0% = 지금처럼(모던은 원래 살짝 비침 22%, 종이는 단색), 최대 70%. 비치면 뒤 그림을 흐리게 해 글씨는 읽히게
+  {
+    const DEF = { modern: 22, paper: 0 }, KEY = 'kiwi-footprints.winSee.';
+    const ui = () => (document.documentElement.dataset.ui === 'paper' ? 'paper' : 'modern');
+    const get = u => { try { const v = localStorage.getItem(KEY + u); if (v !== null && isFinite(+v)) return Math.min(70, Math.max(0, +v)); } catch (e) {} return DEF[u]; };
+    const h = el('h2', { class: 'sep' }, '창 투명도');
+    const now = el('p', { class: 'lightNow ia-see-now' });
+    const r = el('input', { type: 'range', min: '0', max: '70', step: '5', id: 'winSee', 'aria-label': '창 투명도' });
+    const hint = el('p', { class: 'hint' }, '설정·바구니·집중 같은 창의 바탕을 비치게 해요. 창 모양(모던·종이)마다 따로 기억해요.');
+    const apply = v => {
+      const de = document.documentElement;
+      de.style.setProperty('--win-a', String(1 - v / 100));
+      de.toggleAttribute('data-win-see', v > 0);
+      r.value = String(v); now.textContent = v === 0 ? '비치지 않음' : `${v}% 비침`;
+    };
+    r.addEventListener('input', () => { const v = +r.value; apply(v); try { localStorage.setItem(KEY + ui(), String(v)); } catch (e) {} });
+    new MutationObserver(() => apply(get(ui()))).observe(document.documentElement, { attributes: true, attributeFilter: ['data-ui'] });
+    apply(get(ui()));
+    shell.append(h, now, r, hint);
+  }
   const name = byTitle(wSecs, /이름/); if (name) { name.h.classList.add('sep'); move(name.nodes, shell); }
   const cleanH = el('h2', { class: 'sep' }, '화면 정리');
   const cleanBtn = $('cleanBtn'); cleanBtn.removeAttribute('role'); cleanBtn.classList.add('ia-wide');
@@ -184,12 +205,12 @@ export function mountIA() {
     while (n) { const nx = n.nextElementSibling; if (n !== start && n !== ta && n !== taNote) rest.push(n); n = nx; }
     hushH.before(start);
     if (ta) {
-      const h = el('h2', { class: 'sub ia-letter-h' }, '오늘의 한 줄 <small>사진에 남아요</small>');
+      const h = el('h2', { class: 'sub ia-letter-h' }, '오늘의 한 줄 <small>일지에 남아요</small>');
       ta.placeholder = '예) 포트폴리오 정리 (안 써도 돼요)';
-      ta.setAttribute('aria-label', '오늘의 한 줄 — 끝까지 하면 키위들이 모래에 쓰고 사진으로 남겨요');
+      ta.setAttribute('aria-label', '오늘의 한 줄 — 끝까지 하면 키위들이 모래에 쓰고 일지로 남겨요');
       const note = taNote || el('p', { class: 'note' });
       note.classList.add('ia-snap');
-      note.innerHTML = '끝까지 하면(항해는 도착하면) 키위들이 이 한 줄과 날짜를 <b>모래에 쓰고 사진 한 장</b>으로 남겨요. 며칠 뒤엔 호박색 병에 담겨 돌아와요. <span>비워 두면 「집중 ○분」이라고 써요 · 모래엔 앞의 14자까지</span>';
+      note.innerHTML = '끝까지 하면(항해는 도착하면) 키위들이 이 한 줄과 날짜를 <b>모래에 쓰고 일지 한 쪽</b>으로 남겨요. 며칠 뒤엔 호박색 병에 담겨 돌아와요. <span>비워 두면 「집중 ○분」이라고 써요 · 모래엔 앞의 14자까지</span>';
       start.before(h, ta, note);
     }
     move(rest, more); start.after(more);
@@ -229,7 +250,7 @@ export function mountIA() {
     const m = li('menuBtn')?.querySelector('span'); if (m) m.textContent = '소리 · 설정(풍경 · 시계·메모 · 화면) · 작품 설명';
     const focusLi = li('focusBtn');
     if (focusLi) {
-      const b = el('li', {}, '<i></i><b>바구니</b><span>사진 · 편지 · 키위 · 장소·소리 · 도감</span>');
+      const b = el('li', {}, '<i></i><b>바구니</b><span>일지 · 편지 · 키위 · 장소·소리 · 도감</span>');
       b.querySelector('i').append(basketBtn.querySelector('svg').cloneNode(true)); b.querySelector('i').dataset.icon = 'basketBtn';
       focusLi.after(b);
     }

@@ -107,3 +107,15 @@ html[data-ui="paper"] #focusPanel .ia-fpane[data-pane="rec"] .stats { border-top
 /* 메뉴 「켜짐/꺼짐」: 종이 테마의 메뉴 줄 규칙(button + button → 위 모서리 각지고 점선)이 붙어 잘려 보이던 것 (v26.2) */
 #menu .ia-mute { margin-right: 6px; }
 html[data-ui="paper"] #menu .ia-mute { border-radius: 999px; border-style: solid; border-top-width: 1px; }
+/* 창 투명도 (v26.4): --win-a = 바탕 불투명도(ia.js 가 설정 › 화면 막대로 정함). 비칠 땐 뒤를 흐려 글씨가 읽히게 */
+html:not([data-ui="paper"]) :is(#settings, #basket, #mixer, #focusPanel) { background: rgba(20, 47, 73, var(--win-a, 0.78)); }
+html:not([data-ui="paper"]) :is(#menu, #picker) { background: rgba(20, 47, 73, calc(var(--win-a, 0.78) + 0.13)); }   /* 원래 0.9~0.92 — 기본값에선 그대로 */
+html[data-ui="paper"] { --pp-rgb: 251, 244, 228; }
+html[data-ui="paper"][data-time="night"] { --pp-rgb: 214, 195, 158; }
+html[data-ui="paper"] :is(#settings, #basket, #mixer, #focusPanel, #menu, #picker) { background: var(--pp-grain), rgba(var(--pp-rgb), var(--win-a, 1)); }
+html[data-ui="paper"][data-win-see] :is(#settings, #basket, #mixer, #focusPanel, #menu, #picker) { backdrop-filter: blur(10px) saturate(1.05); -webkit-backdrop-filter: blur(10px) saturate(1.05); }
+html[data-ui="paper"][data-win-see] #picker::before { background: rgba(var(--pp-rgb), var(--win-a, 1)); }
+html:not([data-ui="paper"]) #picker::before { background: rgba(20, 47, 73, calc(var(--win-a, 0.78) + 0.13)); }
+#settings .ia-see-now { margin: 2px 2px 4px; font-weight: 500; font-variant-numeric: tabular-nums; }
+#settings #winSee { width: 100%; margin: 4px 0 4px; accent-color: var(--sand); }
+html[data-ui="paper"] #settings #winSee { accent-color: var(--pp-stamp); }

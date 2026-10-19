@@ -58,8 +58,8 @@ export function mountPhotoViewer(root) {
   return {
     get open() { return root.open; }, close: dismiss,
     show(url, description) {
-      back = document.activeElement; zoom = 1; title.textContent = description || '집중 사진';
-      image.alt = description || '집중 사진'; image.src = url;
+      back = document.activeElement; zoom = 1; title.textContent = description || '집중 일지';
+      image.alt = description || '집중 일지'; image.src = url;
       root.showModal(); stage.scrollTo(0, 0); layout(); close.focus();
     },
   };

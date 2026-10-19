@@ -1,6 +1,6 @@
 // Voyage reader: result first, then each image and its record on the same page.
-import { PLACES, SIGHTS } from './voyage.js?v=v26.3.0';
-import { stamp } from './album.js?v=v26.3.0';
+import { PLACES, SIGHTS } from './voyage.js?v=v26.4.0';
+import { stamp } from './album.js?v=v26.4.0';
 
 export function diaryLeaves(text, size = 90) {
   const chars = Array.from(text || ''), leaves = [];
@@ -60,8 +60,8 @@ export function mountJourneyBook(root, host, shot, viewer) {
     if (p.blob) {
       url = URL.createObjectURL(p.blob);
       const b = document.createElement('button'); b.type = 'button'; b.className = 'bookPhoto'; b.setAttribute('aria-label', `${p.title} 전체 화면으로 보기`);
-      const im = document.createElement('img'); im.src = url; im.alt = p.fallback ? '도착 사진' : p.title;
-      const hint = document.createElement('span'); hint.className = 'bookPhotoHint'; hint.textContent = p.fallback ? '도착 사진 · 원본 보기' : '원본 크게 보기';
+      const im = document.createElement('img'); im.src = url; im.alt = p.fallback ? '도착한 날' : p.title;
+      const hint = document.createElement('span'); hint.className = 'bookPhotoHint'; hint.textContent = p.fallback ? '도착한 날 · 크게 보기' : '원본 크게 보기';
       b.append(im, hint); b.addEventListener('click', () => viewer.show(url, im.alt)); leaf.append(b);
     }
     const copy = document.createElement('div'); copy.className = 'bookCopy';

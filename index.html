@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#1A5C91" />
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v26.3.0" />
-  <link rel="stylesheet" href="memos.css?v=v26.3.0" />
-  <link rel="stylesheet" href="theme-paper.css?v=v26.3.0" />
+  <link rel="stylesheet" href="style.css?v=v26.4.0" />
+  <link rel="stylesheet" href="memos.css?v=v26.4.0" />
+  <link rel="stylesheet" href="theme-paper.css?v=v26.4.0" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -84,7 +84,7 @@
   </div>
   <div id="menu" role="menu" aria-label="메뉴" hidden>
     <button id="setBtn" type="button" role="menuitem" aria-expanded="false" aria-controls="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.9" /><path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M5.6 18.4l1.6-1.6M16.8 7.2l1.6-1.6" /><circle cx="12" cy="12" r="6.4" /></svg><span>설정</span><small>풍경 · 글씨</small></button>
-    <button id="bagBtn" type="button" role="menuitem" aria-controls="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5h17" /><path d="M5 10.5l1.4 7.9a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6l1.4-7.9" /><path d="M7.6 10.5a4.4 4.9 0 0 1 8.8 0" /><path d="M5.9 14.5h12.2M10.2 10.5l.4 9.5M13.8 10.5l-.4 9.5" /></svg><span>모은 것</span><small>사진 · 키위 · 편지 · 옷</small></button>
+    <button id="bagBtn" type="button" role="menuitem" aria-controls="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5h17" /><path d="M5 10.5l1.4 7.9a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6l1.4-7.9" /><path d="M7.6 10.5a4.4 4.9 0 0 1 8.8 0" /><path d="M5.9 14.5h12.2M10.2 10.5l.4 9.5M13.8 10.5l-.4 9.5" /></svg><span>모은 것</span><small>일지 · 키위 · 편지 · 옷</small></button>
     <button id="cleanBtn" type="button" role="menuitem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" /><circle cx="12" cy="12" r="2.6" /><path d="M4 20 20 4" /></svg><span>화면 정리</span><small>그림만 남기기</small></button>
     <button id="infoBtn" type="button" role="menuitem" aria-expanded="false" aria-controls="info"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 10.8v6.6" /><path stroke-width="3" d="M12 7.2h.01" /></svg><span>작품 설명</span><small>버튼 · 손으로 · 모이는 것</small></button>
   </div>
@@ -125,13 +125,13 @@
       </div>
       <p class="note" id="focusHushNote"></p>
       <textarea id="focusLetter" maxlength="80" rows="2" placeholder="무엇을 위해 집중하나요? 한 줄 (선택)"></textarea>
-      <p class="note">끝까지 하면 키위들이 이 한 줄과 날짜를 모래에 쓰고 사진으로 남겨요. 며칠 뒤엔 호박색 병에 담겨 돌아와요.</p>
+      <p class="note">끝까지 하면 키위들이 이 한 줄과 날짜를 모래에 쓰고 일지 한 쪽으로 남겨요. 며칠 뒤엔 호박색 병에 담겨 돌아와요.</p>
       <button id="focusStart" type="button" class="primary">시작</button>
       <button id="focusBreath" type="button" class="quiet">1분 숨 고르기</button>
       <ul class="rules" id="voyRules" hidden>
         <li><b>잠가도</b><span>화면을 끄거나 다른 앱으로 가도 배는 계속 가요</span></li>
         <li><b>바닷길</b><span>걸음 대신 바닷길로 세요 · 1분 0.1해리</span></li>
-        <li><b>일기</b><span>가는 길에 만난 것을 키위가 사진과 일기로 남겨요</span></li>
+        <li><b>일기</b><span>가는 길에 만난 것을 키위가 일지에 그려 남겨요</span></li>
         <li><b>멈춤</b><span>멈춰도 온 바닷길은 남아요 — 다음에 이어 가요</span></li>
       </ul>
       <ul class="rules" id="islandRules">
@@ -251,12 +251,12 @@
     <p class="hint">오래 켜 둬도 화면에 자국이 남지 않게 — 그림 전체가 4px 안에서 아주 천천히 돌고, 안 건드리면 버튼·입력창이 사라지고 집중 알약은 흐려져요(10분마다 자리 이동).</p>
     <h2 class="sep">기록</h2>
     <div class="tbtns"><button type="button" data-act="defaults">조절값 기본으로</button><button type="button" data-act="wipe" class="warn">테스트 기록 지우기</button></div>
-    <p class="hint"><a href="seed.html" style="color:inherit">더미 데이터 채우기 페이지</a> — 집중 달력·사진·무리·손님·병·도감을 가짜 기록으로 채워 보기 (게임 창을 닫고 채운 뒤 돌아와요, 되돌리기 있음)</p>
+    <p class="hint"><a href="seed.html" style="color:inherit">더미 데이터 채우기 페이지</a> — 집중 달력·일지·무리·손님·병·도감을 가짜 기록으로 채워 보기 (게임 창을 닫고 채운 뒤 돌아와요, 되돌리기 있음)</p>
     <p class="hint">기록 지우기는 무리 · 손님 방명록 · 편지 · 집중 기록을 지워요. 모은 아이템과 설정은 그대로예요.</p>
     </section>
     <section class="pane" data-pane="bag" role="tabpanel" aria-label="모은 것" hidden>
     <p id="colTitle" class="bagSum"></p>
-    <h2 id="shotTitle">집중 사진</h2>
+    <h2 id="shotTitle">집중 일지</h2>
     <div id="shotGrid" class="shots"></div>
     <div id="shotTools" class="shotTools" hidden><button id="shotAll" type="button">전부 내려받기</button><span id="shotWarn"></span></div>
     <p class="hint">집중을 끝까지 하면 키위들이 이유와 날짜를 모래에 쓰고 한 장 남겨요(이 기기에만 저장). 모래에 쓴 글은 며칠 뒤 호박색 병에 담겨 돌아오고, 초록 병엔 키위들의 쪽지가 들어 있어요.</p>
@@ -291,15 +291,15 @@
   </div>
   <dialog id="photoViewer" aria-labelledby="photoViewerTitle">
     <div class="photoToolbar">
-      <h2 id="photoViewerTitle">집중 사진</h2>
+      <h2 id="photoViewerTitle">집중 일지</h2>
       <div class="photoControls">
-        <button type="button" data-photo="out" aria-label="사진 축소">−</button>
+        <button type="button" data-photo="out" aria-label="일지 축소">−</button>
         <button type="button" data-photo="fit">화면 맞춤</button>
-        <button type="button" data-photo="in" aria-label="사진 확대">＋</button>
+        <button type="button" data-photo="in" aria-label="일지 확대">＋</button>
         <button type="button" data-photo="close" autofocus>닫기</button>
       </div>
     </div>
-    <div class="photoViewport" tabindex="0" role="region" aria-label="사진, 확대 후 스크롤하거나 끌어서 이동">
+    <div class="photoViewport" tabindex="0" role="region" aria-label="일지, 확대 후 스크롤하거나 끌어서 이동">
       <img alt="" draggable="false">
     </div>
   </dialog>
@@ -349,7 +349,7 @@
         <li><i data-icon="weatherBtn"></i><b>날씨</b><span>맑음 · 흐림 · 보슬비 · 비 · 눈 · 안개 · 바람 · 꽃잎 바람(숲에선 낙엽)</span></li>
         <li><i data-icon="viewBtn"></i><b>시점</b><span>위에서 · 디오라마 · 따라가기 · 쌍안경 · 글자 보기 · 바람결</span></li>
         <li><i data-icon="soundBtn"></i><b>소리</b><span>크기 · 곡 · 발자국 소리 · 자연 배경</span></li>
-        <li><i data-icon="focusBtn"></i><b>집중</b><span>15 · 25 · 50분 또는 직접(5~180분), 끝까지 하면 선물 상자와 사진 한 장</span></li>
+        <li><i data-icon="focusBtn"></i><b>집중</b><span>15 · 25 · 50분 또는 직접(5~180분), 끝까지 하면 선물 상자와 일지 한 쪽</span></li>
         <li><i data-icon="menuBtn"></i><b>메뉴</b><span>설정(풍경 · 글씨) · 모은 것 · 화면 정리 · 작품 설명</span></li>
       </ul>
       <h2>손으로</h2>
@@ -361,7 +361,7 @@
       <h2>모이는 것</h2>
       <ul class="plain">
         <li>물 위로 유리병(편지)과 소라(곡·소리)가 떠내려와요 — 물가에 닿으면 눌러서 열기</li>
-        <li>집중을 끝까지 하면 상자(키위 옷·새 장소)가 오고, 키위들이 내 한 줄과 날짜를 모래에 써서 사진으로 남겨요</li>
+        <li>집중을 끝까지 하면 상자(키위 옷·새 장소)가 오고, 키위들이 내 한 줄과 날짜를 모래에 써서 일지 한 쪽으로 남겨요</li>
         <li>모래에 쓴 글은 며칠 뒤 호박색 병에 담겨 돌아와요 — 초록 병엔 키위들의 쪽지가 들어 있어요</li>
         <li>비가 그친 낮엔 바다 위에 무지개가 잠깐, 맑은 밤엔 아주 가끔 별똥별이 지나가요</li>
         <li>한동안 화면을 안 건드리면 키위들이 하나둘 잠들어요 — 움직이면 깨어나 다가와요</li>
@@ -373,18 +373,18 @@
         <li>모은 것은 메뉴 → 「모은 것」에서 다시 보고 입히고 골라요</li>
       </ul>
       <p class="small">빛은 실제 시각을 따라 새벽 · 낮 · 노을 · 밤으로 바뀌고, 밤엔 반딧불이가 떠요. 장소: 바닷가 · 뉴질랜드 숲 · 눈밭 · 가을 호숫가 · 모래 정원.</p>
-      <p class="credits">키위 스핀오프 v26.3 · 2026-10-19<span id="audio-credits"></span></p>
+      <p class="credits">키위 스핀오프 v26.4 · 2026-10-19<span id="audio-credits"></span></p>
       <button type="button" data-close>닫기</button>
     </div>
   </div>
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v26.3.0"></script>
-  <script type="module" src="src/credits.js?v=v26.3.0"></script>
+  <script type="module" src="src/main.js?v=v26.4.0"></script>
+  <script type="module" src="src/credits.js?v=v26.4.0"></script>
   <!-- v26 UI 구조 개편(src/ia — 기존 버튼·창을 새 자리로 옮김, docs/IA.md) · 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/ia/ia.js?v=v26.3.0"></script>
-  <script type="module" src="src/taps.js?v=v26.3.0"></script>
+  <script type="module" src="src/ia/ia.js?v=v26.4.0"></script>
+  <script type="module" src="src/taps.js?v=v26.4.0"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.
