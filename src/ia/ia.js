@@ -9,7 +9,7 @@
 //  바뀌는 것
 //   · 화면 위: [글 모드·날씨·시점] → [글 모드·날씨], 소리 → ⋯ 메뉴 첫 줄, 새 「바구니」 버튼
 //   · 바구니: 모은 것 9묶음을 탭 5(사진 · 편지 · 키위 · 장소·소리 · 도감)로 — 소리 묶음도 이리로 (집중 기록·달력은 집중 창에 펼쳐 둠)
-//   · 설정: 풍경(장소·시간대·시점·키위 수) / 시계·메모(시간 메모·시계·벽시계) / 화면(창 모양·창 투명도·이름·화면 정리) / 테스트
+//   · 설정: 풍경(장소·시간대·시점·키위 수) / 시계·메모(시간 메모·시계·벽시계) / 화면(창 모양·창 투명도·입력창·이름·화면 정리) / 테스트
 //   · 소리 창: 크기 · 곡 (발자국·배경 묶음은 바구니)
 //   · 집중 창: 탭 [집중하기 | 기록] — 집중하기 = 섬/항해 → 시간 → 오늘의 한 줄 → 시작 → 더 보기(집중 중 소리 · 숨 고르기 · 규칙), 기록 = 통계 + 달력
 //   · 메뉴: 소리(+ 바로 켜고 끄기) · 설정 · 작품 설명
@@ -178,6 +178,18 @@ export function mountIA() {
     new MutationObserver(() => apply(get(ui()))).observe(document.documentElement, { attributes: true, attributeFilter: ['data-ui'] });
     apply(get(ui()));
     shell.append(h, now, r, hint);
+  }
+  // 아래 입력창 (v26.5 — 사용자 2026-10-19: 「여기에 문장을 써 보세요」를 설정에서 지울 수 있게). 끄면 글은 글 모드(시계·명언·단어장)로만, 이 기기에만 기억
+  {
+    const KEY = 'kiwi-footprints.sayOff';
+    const row = el('label', { class: 'row switch' }, '<span>아래 입력창 보이기</span>');
+    const cb = el('input', { type: 'checkbox', id: 'optSay' }); row.append(cb);
+    const hint = el('p', { class: 'hint' }, '끄면 화면 아래 「여기에 문장을 써 보세요」 칸이 사라져요. 글 모드(시계·명언·단어장)는 그대로예요.');
+    const apply = off => { document.body.classList.toggle('ia-say-off', off); cb.checked = !off; };
+    let off = false; try { off = localStorage.getItem(KEY) === '1'; } catch (e) {}
+    apply(off);
+    cb.addEventListener('change', () => { apply(!cb.checked); try { localStorage.setItem(KEY, cb.checked ? '0' : '1'); } catch (e) {} });
+    shell.append(el('h2', { class: 'sep' }, '입력창'), row, hint);
   }
   const name = byTitle(wSecs, /이름/); if (name) { name.h.classList.add('sep'); move(name.nodes, shell); }
   const cleanH = el('h2', { class: 'sep' }, '화면 정리');

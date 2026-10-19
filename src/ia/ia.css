@@ -119,3 +119,11 @@ html:not([data-ui="paper"]) #picker::before { background: rgba(20, 47, 73, calc(
 #settings .ia-see-now { margin: 2px 2px 4px; font-weight: 500; font-variant-numeric: tabular-nums; }
 #settings #winSee { width: 100%; margin: 4px 0 4px; accent-color: var(--sand); }
 html[data-ui="paper"] #settings #winSee { accent-color: var(--pp-stamp); }
+/* 아래 입력창 끄기 (v26.5) */
+body.ia-say-off #say { display: none !important; }
+/* v26.5 종이 아이콘 다시(더 다듬은 그림 한 벌): 화면 정리 중 다시 보이기 버튼은 뜬 눈(B 판 마지막 칸) */
+html[data-ui="paper"] body.clean #hideBtn svg { background-image: url("../../assets/icons-paper-b.webp"); background-position: 100% 100%; }
+/* v26.5 모던 아이콘 손질: 밝은 그림 위에서 선이 가늘어 흐렸다 → 버튼 아이콘 선을 조금 굵게(종이 테마는 칠한 그림이라 해당 없음) */
+html:not([data-ui="paper"]) :is(.round, #saySend) svg { stroke-width: 1.85; }
+html:not([data-ui="paper"]) :is(#menu, #picker, .ia-views, .ia-wide) svg { stroke-width: 1.75; }
+html:not([data-ui="paper"]) #menuBtn svg { stroke-width: 3.4; }

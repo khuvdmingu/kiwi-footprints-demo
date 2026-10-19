@@ -133,7 +133,7 @@ html body.clean.peek .corner { opacity: 0.6; pointer-events: auto; }
 .round:hover { background: rgba(20, 47, 73, 0.78); border-color: rgba(var(--ink), 0.85); }
 .round:focus-visible, #saySend:focus-visible { outline: 2px solid rgb(var(--ink)); outline-offset: 2px; }
 .round svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-#infoBtn svg { stroke-width: 2.2; }
+#infoBtn svg { stroke-width: 1.7; }   /* v26.5: 동그라미 안의 i */
 #soundBtn .mute { display: none; }
 #soundBtn[data-on="0"] .wave { display: none; }
 #soundBtn[data-on="0"] .mute { display: inline; }
