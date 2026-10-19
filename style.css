@@ -600,7 +600,8 @@ body.clean #menu { display: none !important; }
 
 /* ── v22.1 번인 방지: 안 건드리면 버튼 줄·입력창은 천천히 사라지고 집중 알약은 흐려짐 (누르면 바로 돌아옴) ── */
 body.drowse .corner, body.drowse #say { opacity: 0; pointer-events: none; transition: opacity 4s var(--ease); }
-#focusHud { transform: translate(calc(-50% + var(--hx, 0px)), var(--hy, 0px)); transition: opacity 0.4s var(--ease), transform 2s var(--ease); }
+/* v26.3: 집중 알약은 위 버튼 줄 오른쪽 끝에 맞춘다(화면 가운데 + 좌우 이동은 오른쪽으로 몰린 버튼 줄과 어긋나 보였다) — 번인 방지 이동은 위아래로만 */
+#focusHud { left: auto; right: var(--right); transform: translateY(var(--hy, 0px)); transition: opacity 0.4s var(--ease), transform 2s var(--ease); }
 body.drowse #focusHud { opacity: 0.22; transition: opacity 4s var(--ease), transform 2s var(--ease); }
 
 /* ── v23.1 집중 사진 관리 ── */
@@ -653,7 +654,7 @@ body.drowse #focusHud { opacity: 0.22; transition: opacity 4s var(--ease), trans
   #settings, #mixer, #focusPanel { width: min(340px, calc(100vw - var(--rail) - 2 * var(--edge))); }
   #picker.side::before { top: calc(var(--arrow, 50%) - 6px); left: auto; right: -6px; transform: rotate(135deg); }
   #toast { top: var(--top); }
-  #focusHud { top: var(--top); }
+  #focusHud { top: var(--top); right: var(--rail); }
   #breathOffer { bottom: calc(68px + env(safe-area-inset-bottom)); }
   #caption { bottom: calc(64px + env(safe-area-inset-bottom)); }
   #say { bottom: calc(12px + env(safe-area-inset-bottom)); width: min(70vw, 640px); }

@@ -63,3 +63,15 @@
 .km-me { grid-template-columns: 1fr auto !important; }
 .km-me input { grid-column: auto !important; grid-row: auto !important; }
 .km-me .km-go { grid-column: auto !important; }
+
+/* v26.3: 설정 창 안 줄 맞춤 — 아래 고르기 칸·스위치 줄과 같은 좌우 안쪽(2px) */
+.km-add, .km-err { margin-left: 2px; margin-right: 2px; }
+.km-rep { padding: 0 2px; min-height: var(--tap-in, 40px); }
+/* 종이 테마: 크림 종이 위 크림 글씨라 안 보이던 입력칸 → 종이보다 밝은 칸 + 잉크 글씨 */
+html[data-ui="paper"] .km-add input[type="time"], html[data-ui="paper"] .km-add input[type="text"] {
+  background: rgba(255, 255, 255, 0.6); border-color: rgba(74, 56, 38, 0.3); color: var(--pp-ink); color-scheme: light; box-shadow: inset 0 1px 2px rgba(80, 60, 30, 0.12); }
+html[data-ui="paper"] .km-add input::placeholder { color: var(--pp-ink-soft); opacity: 0.75; }
+html[data-ui="paper"] .km-add input:focus-visible { outline: 2px solid var(--pp-stamp); outline-offset: 1px; }
+html[data-ui="paper"] .km-rep { color: var(--pp-ink); }
+html[data-ui="paper"] .km-rep input { accent-color: var(--pp-stamp); }
+html[data-ui="paper"] .km-err { color: #b0461c; }
