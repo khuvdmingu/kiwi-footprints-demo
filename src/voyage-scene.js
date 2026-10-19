@@ -6,7 +6,7 @@
 //  사건(voyage.js 의 kind)을 받으면 12초쯤 그 장면을 보여 준다. snapshot() 은 같은 장면을 사진 한 장으로 다시 그린다
 //  (화면을 꺼 두었던 사이의 사건도 일기 사진을 남길 수 있게).
 
-import { SeaGL } from './voyage-water.js?v=v26.1.0';
+import { SeaGL } from './voyage-water.js?v=v26.2.0';
 
 export const SPEED = 0.05;   // 배가 가는 빠르기: 1초에 화면 짧은 변의 5% (물·잔물결·지나가는 것이 모두 이 빠르기로 흐른다)
 const WATER_SCALE = 0.75;     // 물은 화면보다 성기게 그린다 (배터리·발열 — 물결은 흐려도 티가 안 난다)
@@ -41,7 +41,7 @@ export class VoyageScene {
   async load(base = 'assets/') {
     this.base = base;
     const gen = this.gen = (this.gen || 0) + 1;
-    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v26.1.0', 'sea-tall.webp?v=v26.1.0', 'voyage-sprites.webp?v=v26.1.0', 'kiwi.webp?v=v26.1.0', 'kiwi-sleep.webp?v=v26.1.0', 'umbrellas.webp?v=v26.1.0', 'sea-night.webp?v=v26.1.0', 'sea-tall-night.webp?v=v26.1.0', 'voyage-crew.webp?v=v26.1.0', 'voyage-boat.webp?v=v26.1.0', 'voyage-sail.webp?v=v26.1.0'].map(f => img(base + f).catch(() => null)));
+    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v26.2.0', 'sea-tall.webp?v=v26.2.0', 'voyage-sprites.webp?v=v26.2.0', 'kiwi.webp?v=v26.2.0', 'kiwi-sleep.webp?v=v26.2.0', 'umbrellas.webp?v=v26.2.0', 'sea-night.webp?v=v26.2.0', 'sea-tall-night.webp?v=v26.2.0', 'voyage-crew.webp?v=v26.2.0', 'voyage-boat.webp?v=v26.2.0', 'voyage-sail.webp?v=v26.2.0'].map(f => img(base + f).catch(() => null)));
     if (gen !== this.gen) return false;
     if (!sea || !sheet) throw new Error('voyage art');
     Object.assign(this, { sea, tall: tall || sea, sheet, kiwi, sleep, umb, seaN, tallN: tallN || seaN, crewSheet });
@@ -75,7 +75,7 @@ export class VoyageScene {
   sunsetArt(tall) {
     if (!this.sunsets.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v26.1.0' : 'sea-sunset.webp?v=v26.1.0')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v26.2.0' : 'sea-sunset.webp?v=v26.2.0')).then(image => (entry.image = image)).catch(() => null);
       this.sunsets.set(tall, entry);
     }
     return this.sunsets.get(tall).promise;

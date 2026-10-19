@@ -11,7 +11,7 @@
 //   · 바구니: 모은 것 9묶음을 탭 5(사진 · 편지 · 키위 · 장소·소리 · 도감)로 — 소리 묶음도 이리로 (집중 기록·달력은 집중 창에 펼쳐 둠)
 //   · 설정: 풍경(장소·시간대·시점·키위 수) / 시계·메모(시간 메모·시계·벽시계) / 화면(창 모양·이름·화면 정리) / 테스트
 //   · 소리 창: 크기 · 곡 (발자국·배경 묶음은 바구니)
-//   · 집중 창: ① 섬/항해 → 시간 → 시작 ② 더 보기(집중 중 소리 · 한 줄 다짐 · 숨 고르기 · 규칙)
+//   · 집중 창: 탭 [집중하기 | 기록] — 집중하기 = 섬/항해 → 시간 → 오늘의 한 줄 → 시작 → 더 보기(집중 중 소리 · 숨 고르기 · 규칙), 기록 = 통계 + 달력
 //   · 메뉴: 소리(+ 바로 켜고 끄기) · 설정 · 작품 설명
 //   · 키보드 단축키(H·M·W·V·T) 없앰 — 손가락 앱이라 (사용자 2026-10-19). Esc 로 창 닫기는 남김 (v26.1: main.js 에서 지움)
 
@@ -65,8 +65,7 @@ export function mountIA() {
   put(/바꾸기/, 'dex');
   put(/guestTitle|손님/, 'dex');
   // 집중 기록 · 달력 → 바구니 › 사진 위
-  // 집중 기록(통계·달력)은 집중 창에 그대로 두고 펼쳐서 보인다 — 바구니 › 사진은 사진·앨범만 (사용자 2026-10-19: 접지 말고 바로 보이게)
-  $('focusStats')?.before(el('h2', { class: 'sub ia-rec-h' }, '이번 달 기록'));
+  // 집중 기록(통계·달력)은 집중 창의 「기록」 탭에 펼쳐 둔다 (아래 집중 창 절) — 바구니 › 사진은 사진·앨범만
   // 소리 묶음(키위 소리·발자국·찾았을 때·자연 배경) → 바구니 › 장소·소리
   const bed = mixer.querySelector('.pane[data-pane="bed"]');
   if (bed) { const h = el('h2', { class: 'sep' }, '모은 소리'); panes.world.append(h, ...[...bed.children]); mixer.querySelector('[role="tab"][data-tab="bed"]')?.setAttribute('hidden', ''); }
@@ -196,6 +195,29 @@ export function mountIA() {
     move(rest, more); start.after(more);
     try { more.open = localStorage.getItem('kiwi-footprints.ia.more') === '1'; } catch (e) {}
     more.addEventListener('toggle', () => { try { localStorage.setItem('kiwi-footprints.ia.more', more.open ? '1' : '0'); } catch (e) {} });
+  }
+
+  // ── 집중 창 탭 2개: 집중하기 | 기록 (v26.2 — 사용자 2026-10-19: 한 창에 시작과 달력이 다 있어 스크롤이 길었다) ──
+  //  집중하기 = 고르기·한 줄·시작(.idle) 또는 진행 중(.busy) · 기록 = 이번 달 통계 3칸 + 발자국 달력 (접지 않고 탭째 펼침)
+  //  창을 열 때마다 「집중하기」부터 — 하려고 연 창이 기본. .idle/.busy 를 감싸기만 해서 main.js 의 숨김·그리기는 그대로
+  {
+    const idleEl = focusPanel.querySelector('.idle'), busyEl = focusPanel.querySelector('.busy'), stats = $('focusStats'), cal = $('focusCal');
+    if (idleEl && busyEl && stats && cal) {
+      const ft = el('div', { class: 'tabs ia-ftabs', role: 'tablist', 'aria-label': '집중 창 묶음' });
+      const fp = {};
+      for (const [id, nm] of [['go', '집중하기'], ['rec', '기록']]) {
+        const b = el('button', { type: 'button', role: 'tab', 'data-tab': id, 'aria-selected': 'false' }); b.textContent = nm; ft.append(b);
+        fp[id] = el('section', { class: 'ia-fpane', 'data-pane': id, role: 'tabpanel', 'aria-label': nm });
+      }
+      focusPanel.prepend(ft, fp.go, fp.rec);
+      fp.go.append(idleEl, busyEl); fp.rec.append(stats, cal);
+      const t0 = idleEl.querySelector(':scope > h2:not(.sub)'); if (t0) t0.hidden = true;   // 「집중하기」 제목은 탭이 대신
+      const fShow = id => { for (const b of ft.children) { const on = b.dataset.tab === id; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; } for (const [k, p] of Object.entries(fp)) p.hidden = k !== id; focusPanel.scrollTop = 0; };
+      ft.addEventListener('click', e => { const b = e.target.closest('[role="tab"]'); if (b) fShow(b.dataset.tab); });
+      ft.addEventListener('keydown', e => { if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return; const n = ft.querySelector('[aria-selected="false"]'); fShow(n.dataset.tab); n.focus(); e.preventDefault(); });
+      new MutationObserver(() => { if (!focusPanel.hidden) fShow('go'); }).observe(focusPanel, { attributes: true, attributeFilter: ['hidden'] });
+      fShow('go');
+    }
   }
 
   // 작품 설명의 「위쪽 버튼」 목록 바로잡기

@@ -121,10 +121,12 @@ body.info-open #say { opacity: 0; pointer-events: none; }
 #hideBtn .ui-show, body.clean #hideBtn .ui-hide { display: none; }
 body.clean #hideBtn .ui-show { display: inline; }
 body.clean .corner > :not(#hideBtn), body.clean #say, body.clean #toast, body.clean #focusHud,
-body.clean #settings, body.clean #mixer, body.clean #focusPanel, body.clean #info { display: none !important; }
-body.clean .corner { opacity: 0; pointer-events: none; transition: opacity 0.6s var(--ease); }
-body.clean.peek .corner, body.clean .corner:focus-within { opacity: 0.55; pointer-events: auto; }
-body.clean .corner:hover { opacity: 0.9; }
+body.clean #settings, body.clean #basket, body.clean #mixer, body.clean #focusPanel, body.clean #info { display: none !important; }
+/* v26.2: 정리하고 3초 뒤엔 아예 안 보인다 — 화면(그 근처 포함)을 누르면 3초 동안 다시. html 을 붙여 종이 테마의 .corner 투명도(0.95)보다 앞서게,
+   :hover 는 마우스에서만(폰은 누른 자리에 hover 가 남아 버튼이 계속 보였다) */
+html body.clean .corner { opacity: 0; pointer-events: none; transition: opacity 0.6s var(--ease); }
+html body.clean.peek .corner { opacity: 0.6; pointer-events: auto; }
+@media (hover: hover) and (pointer: fine) { html body.clean.peek .corner:hover { opacity: 0.9; } }
 .round { width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 1px solid var(--panel-line); background: var(--panel); color: rgb(var(--ink));
   cursor: pointer; display: grid; place-items: center; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease); }
