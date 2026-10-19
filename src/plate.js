@@ -17,7 +17,7 @@ const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
   // 물 없는 장소(opts.rest — 젠 가든 v18): 물 뺀 판·바위 지운 판이 없다 → 같은 판 한 장을 세 자리에 쓴다
-  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v26.0.1').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v26.0.1'), load(name + '-dry.webp?v=v26.0.1'), load(name + '-sea.webp?v=v26.0.1')]);
+  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v26.1.0').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v26.1.0'), load(name + '-dry.webp?v=v26.1.0'), load(name + '-sea.webp?v=v26.1.0')]);
   const p = new Plate(img, dry, sea, opts);
   p.name = name; p.base = base;
   return p;
@@ -254,7 +254,7 @@ export class Plate {
     //  그 사이에는 바로 null — artTick 이 매 프레임 불러도 요청이 나가지 않는다 (R1 중복 요청 방지 유지)
     if (!this._sets[kind] && Date.now() - (this._setFail[kind] ?? -Infinity) < SET_RETRY_MS) return Promise.resolve(null);
     if (!this._sets[kind]) {
-      const p = this._sets[kind] = Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v26.0.1`)))
+      const p = this._sets[kind] = Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v26.1.0`)))
         .then(([img, dry, sea]) => (this.sets[kind] = { img, dry, sea }))
         .catch(() => { if (this._sets[kind] === p) { delete this._sets[kind]; this._setFail[kind] = Date.now(); } return null; });
     }

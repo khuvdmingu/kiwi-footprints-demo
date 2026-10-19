@@ -9,11 +9,11 @@
 //  믹서 값(소리 켜기·음악·환경음·효과음·발자국 음악)은 기기에 기억한다.
 //  브라우저는 사용자 동작 안에서만 소리를 열 수 있어서 unlock() 을 그때 부른다. 탭을 숨기면 멈춘다.
 
-import { Music } from './music.js?v=v26.0.1';
+import { Music } from './music.js?v=v26.1.0';
 
 // v16 아이템 소리·곡은 오픈소스 녹음 — 목록·출처는 카탈로그 한 곳 (src/tracks/index.js). assets/audio/ 에서 처음 고를 때 받는다
 //  STEP_SAMPLES: 0.5초 칸마다 한 걸음 · NATURE_LOOPS: 끝과 처음을 겹쳐 이음매 없이 도는 고리 · SONG_TRACKS: 곡 고리
-import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v26.0.1';
+import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v26.1.0';
 export { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, NATURAL_STEPS };
 const AUDIO = 'assets/audio/';
 // 곡·자연 배경 고리는 풀어 두면 한 곡에 수십 MB(48kHz 기준 최대 약 96MiB)라, 고리 자리마다 지금 것 + 바로 전 것만 들고 있는다 (2026-10-19)
@@ -180,6 +180,9 @@ export class Sound {
   update({ high = 0, rain = 0, wind = 0, night = 0, hour = 12, weather = 'clear' } = {}) {
     this.music.setMood(hour, weather);
     if (!this.ready()) return;
+    // 크기 없는 창(높이 0)에선 파도 높이가 0/0 = NaN 이 되어 setTargetAtTime 이 던진다 (2026-10-19) — 숫자가 아니면 0
+    const fin = v => (Number.isFinite(v) ? v : 0);
+    high = fin(high); rain = fin(rain); wind = fin(wind);
     const t = this.ctx.currentTime;
     const duck = this.mix.nature !== 'none' ? 0.5 : 1;   // 자연 배경을 고르면 파도는 절반 (고른 소리가 앞으로)
     for (const s of this.sea) { s.g.gain.setTargetAtTime((0.14 + high * 0.24) * duck, t, 0.25); s.f.frequency.setTargetAtTime(330 + high * 900, t, 0.25); }

@@ -2,8 +2,9 @@
 //
 //  기존 파일(index.html · main.js · style.css)을 고치지 않고, 앱이 뜬 뒤 기존 버튼·창을 새 자리로 "옮겨" 구조를 바꾼다.
 //  요소를 옮겨도 붙어 있던 동작(이벤트·id 로 그리는 함수)은 그대로라 기능은 하나도 안 바뀐다.
-//  최적화 작업이 끝나면 합칠 때: index.html 에 <script type="module" src="src/ia/ia.js"> 한 줄(또는 마크업 자체를 옮김) +
-//  아래 「합칠 때 바꿀 것」 표시한 우회(버튼을 대신 눌러 그리게 하는 곳)를 main.js 의 함수 호출로 바꾼다.
+//  v26.0 에서 index.html 끝 한 줄로 연결. v26.1(2026-10-19) 우회 정리: 바구니는 main.js 의 그리는 함수(__kiwi)를 직접 부르고,
+//  자동 숨김은 burnTick 이 #basket 을 열린 창으로 보고, 소리 요약·키보드 단축키는 원본(index.html·main.js)에서 지웠고,
+//  시점은 숨은 버튼 대신 설정 안에서 바로 고른다. 남은 큰 정리(마크업을 직접 새 자리로 옮기고 이 파일 지우기)는 docs/IA.md
 //
 //  바뀌는 것
 //   · 화면 위: [글 모드·날씨·시점] → [글 모드·날씨], 소리 → ⋯ 메뉴 첫 줄, 새 「바구니」 버튼
@@ -12,7 +13,7 @@
 //   · 소리 창: 크기 · 곡 (발자국·배경 묶음은 바구니)
 //   · 집중 창: ① 섬/항해 → 시간 → 시작 ② 더 보기(집중 중 소리 · 한 줄 다짐 · 숨 고르기 · 규칙)
 //   · 메뉴: 소리(+ 바로 켜고 끄기) · 설정 · 작품 설명
-//   · 키보드 단축키(H·M·W·V·T) 없앰 — 손가락 앱이라 (사용자 2026-10-19). Esc 로 창 닫기는 남김. 합칠 때 main.js 의 단축키 코드를 지운다
+//   · 키보드 단축키(H·M·W·V·T) 없앰 — 손가락 앱이라 (사용자 2026-10-19). Esc 로 창 닫기는 남김 (v26.1: main.js 에서 지움)
 
 const $ = id => document.getElementById(id);
 const el = (tag, attrs = {}, html = '') => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (html) e.innerHTML = html; return e; };
@@ -63,9 +64,6 @@ export function mountIA() {
   put(/findTitle|주운 것/, 'dex', true);
   put(/바꾸기/, 'dex');
   put(/guestTitle|손님/, 'dex');
-  // 중복(소리 요약)은 화면에서 뺀다 — main.js 의 그리는 함수가 이 칸(#soundSum · #toMixer)을 찾으므로 지우지 않고 숨겨 둔다 (합칠 때 함수와 함께 정리)
-  const soundSec = byTitle(bag, /soundTitle|^소리/);
-  if (soundSec) { const keep = el('div', { hidden: '', 'data-ia-keep': '' }); move(soundSec.nodes, keep); basket.append(keep); }
   // 집중 기록 · 달력 → 바구니 › 사진 위
   // 집중 기록(통계·달력)은 집중 창에 그대로 두고 펼쳐서 보인다 — 바구니 › 사진은 사진·앨범만 (사용자 2026-10-19: 접지 말고 바로 보이게)
   $('focusStats')?.before(el('h2', { class: 'sub ia-rec-h' }, '이번 달 기록'));
@@ -94,12 +92,10 @@ export function mountIA() {
   corner.insertBefore(basketBtn, menuBtn);
   const openBasket = open => {
     if (open) {
-      // 합칠 때 바꿀 것: 아래 두 줄은 main.js 의 paintCollection() · paintPacks() 를 대신 부르려고 기존 버튼을 눌러 그리게 하는 우회
-      const keepTab = settings.querySelector('[role="tab"][aria-selected="true"]')?.dataset.tab;
-      $('bagBtn').click(); settings.hidden = true; $('setBtn').setAttribute('aria-expanded', 'false'); if (keepTab) tab(keepTab)?.click();
-      const keepMix = mixer.querySelector('[role="tab"][aria-selected="true"]')?.dataset.tab;
-      $('toMixer')?.click(); mixer.hidden = true; soundBtn.setAttribute('aria-expanded', 'false'); if (keepMix) mixer.querySelector(`[role="tab"][data-tab="${keepMix}"]`)?.click();
-      for (const p of [focusPanel, menu, $('picker')]) if (p && !p.hidden) p.hidden = true;
+      // main.js 의 그리는 함수를 직접 (모은 것 묶음 + 모은 소리 묶음) — 예전엔 모은 것·소리 창 버튼을 대신 눌렀다
+      const k = window.__kiwi; k?.paintCollection(); k?.paintPacks();
+      for (const p of [settings, mixer, focusPanel, menu, $('picker')]) if (p && !p.hidden) p.hidden = true;
+      $('setBtn').setAttribute('aria-expanded', 'false'); soundBtn.setAttribute('aria-expanded', 'false');
     }
     basket.hidden = !open; basketBtn.setAttribute('aria-expanded', String(open));
     if (open) tabs.querySelector('[aria-selected="true"]')?.focus();
@@ -113,27 +109,26 @@ export function mountIA() {
     openBasket(false);
   }, true);
   addEventListener('keydown', e => { if (e.key === 'Escape' && !basket.hidden && $('found')?.hidden !== false) { openBasket(false); basketBtn.focus(); } });
-  // 바구니를 보는 동안엔 버튼 자동 숨김이 끼어들지 않게 (자동 숨김은 움직임이 없으면 동작 — 합칠 때 burnTick 의 열린 창 목록에 #basket 추가)
-  setInterval(() => { if (!basket.hidden) dispatchEvent(new PointerEvent('pointermove', { pointerType: 'touch' })); }, 20000);
+  // 바구니를 보는 동안 버튼 자동 숨김은 main.js burnTick 이 #basket 을 열린 창으로 보고 막는다
   // 메뉴의 「모은 것」은 바구니 버튼이 대신한다
   $('bagBtn').hidden = true;
 
   // ── 화면 위: 시점은 설정으로, 소리는 메뉴로 ──
   const sceneSecs = sections(pane('scene'));
-  // 진짜 시점 버튼은 위 모서리에 보이지 않게 남겨 둔다 — 고르기 창이 그 자리(메뉴 버튼 아래)에 뜨고, 설정 창은 고르기 창이 알아서 닫는다
-  corner.append(viewBtn); viewBtn.classList.add('ia-ghost'); viewBtn.tabIndex = -1; viewBtn.setAttribute('aria-hidden', 'true');
-  const viewRow = el('div', { class: 'ia-row' });
+  // 시점은 설정 안에서 바로 고른다 (v26.1 — 예전엔 위 모서리에 투명한 진짜 버튼을 남겨 고르기 창을 띄웠다)
+  corner.append(viewBtn); viewBtn.hidden = true;   // 위 줄 묶음(.grp)에선 빼 둔다 — 예전과 같은 [글 모드·날씨]
+  const viewRow = el('div', { class: 'ia-views', role: 'group', 'aria-label': '시점' });
   const viewH = el('h2', { class: 'sep' }, '시점');
   const NAMES = { top: '위에서', diorama: '디오라마', follow: '따라가기', scope: '쌍안경', text: '글자 보기', breeze: '바람결' };
-  const viewPick = el('button', { type: 'button', class: 'ia-pick', 'aria-haspopup': 'dialog' });
-  viewRow.append(viewPick);
-  const paintView = () => {
-    const v = document.body.dataset.view, svg = viewBtn.querySelector('svg').cloneNode(true);
+  for (const [v, nm] of Object.entries(NAMES)) {
+    const b = el('button', { type: 'button', class: 'ia-pick ia-view', 'data-view': v, 'aria-pressed': 'false' }), svg = viewBtn.querySelector('svg').cloneNode(true);
     svg.querySelectorAll(':scope > g[class]').forEach(g => { if (g.getAttribute('class') !== 'v-' + v) g.remove(); else g.style.display = 'inline'; });
-    svg.dataset.ico = 'v-' + v;
-    viewPick.textContent = ''; viewPick.append(svg, el('span', {}, NAMES[v] || v), el('small', {}, '눌러서 바꾸기'));
-  };
-  viewPick.addEventListener('click', () => viewBtn.click());
+    svg.dataset.ico = 'v-' + v;   // 종이 테마 아이콘이 이 이름으로 그림을 고른다
+    b.append(svg, el('span', {}, nm));
+    b.addEventListener('click', () => window.__kiwi?.setView(v));
+    viewRow.append(b);
+  }
+  const paintView = () => { for (const b of viewRow.children) b.setAttribute('aria-pressed', String(b.dataset.view === document.body.dataset.view)); };
   new MutationObserver(paintView).observe(document.body, { attributes: true, attributeFilter: ['data-view'] }); paintView();
   // 시간대 묶음 뒤에 시점
   const lightSec = byTitle(sceneSecs, /시간대/); (lightSec ? lightSec.nodes.at(-1) : pane('scene').lastElementChild).after(viewH, viewRow);
@@ -203,16 +198,6 @@ export function mountIA() {
     more.addEventListener('toggle', () => { try { localStorage.setItem('kiwi-footprints.ia.more', more.open ? '1' : '0'); } catch (e) {} });
   }
 
-  // ── 키보드 단축키 없앰: 글을 쓰는 중이 아니면 H·M·W·V·T(두벌식 자판 포함)를 앱이 받기 전에 막는다 ──
-  const KEYS = new Set(['h', 'm', 'w', 'v', 't', 'ㅗ', 'ㅡ', 'ㅈ', 'ㅍ', 'ㅅ']);
-  addEventListener('keydown', e => {
-    if (e.target.matches?.('input, textarea, [contenteditable]') || e.ctrlKey || e.metaKey || e.altKey) return;
-    if (KEYS.has(String(e.key).toLowerCase())) e.stopImmediatePropagation();
-  }, true);
-  for (const k of document.querySelectorAll('#info kbd, #menu kbd')) k.remove();
-  const stripKey = b => { const a = b.getAttribute('aria-label'); if (a && /\s*\([A-Z] 키\)/.test(a)) b.setAttribute('aria-label', a.replace(/\s*\([A-Z] 키\)/, '')); };
-  const hideBtn = $('hideBtn'); stripKey(hideBtn); new MutationObserver(() => stripKey(hideBtn)).observe(hideBtn, { attributes: true, attributeFilter: ['aria-label'] });
-
   // 작품 설명의 「위쪽 버튼」 목록 바로잡기
   const info = $('info');
   if (info) {
@@ -226,7 +211,6 @@ export function mountIA() {
       b.querySelector('i').append(basketBtn.querySelector('svg').cloneNode(true)); b.querySelector('i').dataset.icon = 'basketBtn';
       focusLi.after(b);
     }
-    for (const p of info.querySelectorAll('p, li span')) p.innerHTML = p.innerHTML.replace(/\s*\(?T 키로[^)·.]*\)?/g, '');
   }
 
   return { basket, openBasket, showTab };

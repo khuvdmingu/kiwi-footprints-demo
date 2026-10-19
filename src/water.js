@@ -300,9 +300,9 @@ export class WaterGL {
     this.checkFrame = true;
   }
 
-  draw(beach, { snow = 0, night = 0, rain = 0, art = 0, warm = 0, land = false } = {}) {
-    const gl = this.gl, { W, H } = this, P = this.plate, m = P.map;
-    const step = W / (N - 1), wc = beach.wet.length;
+  // 해안선 줄(uL): 그린 물가·젖은 모래·파도 끝을 칸마다 올린다
+  uploadLine(beach, P, W, H, step, wc) {
+    const gl = this.gl;
     // 젖은 줄을 옆 칸과 이어 부드럽게 (v16.2.4) — 칸마다 "가장 높이 왔던 곳"을 따로 기억하고 똑같은 속도로 말라서,
     // 파도 마루 사이마다 뾰족한 V자 골이 생기고 그 위의 거품 줄이 지그재그가 됐다. 5칸 상자 흐림 세 번 ≈ 둥근 흐림.
     const wet = (this.wetS ||= new Float32Array(wc)), tmp = (this.wetT ||= new Float32Array(wc));
@@ -320,6 +320,14 @@ export class WaterGL {
       this.line[i * 4 + 3] = ok(P.shoreSea(x));
     }
     gl.uniform4fv(this.U.uL, this.line);
+  }
+
+  draw(beach, { snow = 0, night = 0, rain = 0, art = 0, warm = 0, land = false } = {}) {
+    const gl = this.gl, { W, H } = this, P = this.plate, m = P.map;
+    const step = W / (N - 1), wc = beach.wet.length;
+    // O7 (2026-10-19): 물 없는 장소(uLand)의 셰이더는 판·눈만 그리고 해안선 줄(uL)을 읽지 않는다 → 줄 계산·업로드를 건너뛴다.
+    //  물 있는 장소로 돌아가면 첫 프레임에 다시 채우므로 낡은 줄이 남지 않는다
+    if (!land) this.uploadLine(beach, P, W, H, step, wc);
     // 그림 한 픽셀이 화면 몇 픽셀에 해당하는지로 해상도 단계를 정한다 (화면보다 큰 그림을 줄여 볼 때만 > 0)
     gl.uniform1f(this.U.uLod, Math.max(0, Math.log2(1 / (m.s * this.dpr))));
     gl.uniform2f(this.U.uRes, W, H);

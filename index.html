@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#1A5C91" />
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v26.0.1" />
-  <link rel="stylesheet" href="memos.css?v=v26.0.1" />
-  <link rel="stylesheet" href="theme-paper.css?v=v26.0.1" />
+  <link rel="stylesheet" href="style.css?v=v26.1.0" />
+  <link rel="stylesheet" href="memos.css?v=v26.1.0" />
+  <link rel="stylesheet" href="theme-paper.css?v=v26.1.0" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -51,7 +51,7 @@
   </form>
 
   <div class="corner">
-    <button id="hideBtn" type="button" class="round" aria-pressed="false" aria-label="화면 정리 — 버튼·입력창 숨기기 (H 키)">
+    <button id="hideBtn" type="button" class="round" aria-pressed="false" aria-label="화면 정리 — 버튼·입력창 숨기기">
       <svg viewBox="0 0 24 24" aria-hidden="true"><g class="ui-hide"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" /><circle cx="12" cy="12" r="2.6" /><path d="M4 20 20 4" /></g><g class="ui-show"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" /><circle cx="12" cy="12" r="2.6" /></g></svg>
     </button>
     <div class="grp" role="group" aria-label="풍경 바로 바꾸기">
@@ -85,7 +85,7 @@
   <div id="menu" role="menu" aria-label="메뉴" hidden>
     <button id="setBtn" type="button" role="menuitem" aria-expanded="false" aria-controls="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.9" /><path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M5.6 18.4l1.6-1.6M16.8 7.2l1.6-1.6" /><circle cx="12" cy="12" r="6.4" /></svg><span>설정</span><small>풍경 · 글씨</small></button>
     <button id="bagBtn" type="button" role="menuitem" aria-controls="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5h17" /><path d="M5 10.5l1.4 7.9a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6l1.4-7.9" /><path d="M7.6 10.5a4.4 4.9 0 0 1 8.8 0" /><path d="M5.9 14.5h12.2M10.2 10.5l.4 9.5M13.8 10.5l-.4 9.5" /></svg><span>모은 것</span><small>사진 · 키위 · 편지 · 옷</small></button>
-    <button id="cleanBtn" type="button" role="menuitem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" /><circle cx="12" cy="12" r="2.6" /><path d="M4 20 20 4" /></svg><span>화면 정리</span><small>그림만 남기기</small><kbd>H</kbd></button>
+    <button id="cleanBtn" type="button" role="menuitem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" /><circle cx="12" cy="12" r="2.6" /><path d="M4 20 20 4" /></svg><span>화면 정리</span><small>그림만 남기기</small></button>
     <button id="infoBtn" type="button" role="menuitem" aria-expanded="false" aria-controls="info"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 10.8v6.6" /><path stroke-width="3" d="M12 7.2h.01" /></svg><span>작품 설명</span><small>버튼 · 손으로 · 모이는 것</small></button>
   </div>
   <button id="focusHud" type="button" hidden aria-controls="focusPanel"><span class="t">25:00</span><span class="s">0보</span></button>
@@ -270,8 +270,6 @@
     <p class="hint">눌러서 입히기 · 벗기기</p>
     <h2 class="sep" id="placeTitle">장소</h2>
     <div id="placeGrid" class="colgrid places"></div>
-    <h2 class="sep" id="soundTitle">소리</h2>
-    <div class="soundSum"><span id="soundSum"></span><button id="toMixer" type="button">소리 창 열기</button></div>
     <h2 class="sep" id="findTitle">주운 것</h2>
     <div id="findGrid" class="colgrid finds"></div>
     <p class="hint">켜 두면 몇 분에 한 번 물가에 작은 것이 밀려와요. 어떤 건 밤 · 비 · 해 질 녘 · 눈밭에서만.</p>
@@ -347,12 +345,12 @@
       <p>문장을 쓰면 숲에 숨어 있던 키위들이 걸어 나와 획을 하나씩 맡아 발자국으로 한글을 씁니다. 점은 부리로 콕. 다음 문장을 쓰면 파도가 — 장소에 따라 개울이나 갈퀴 줄이 — 앞 글씨를 지우고 키위들이 다시 씁니다.</p>
       <h2>위쪽 버튼</h2>
       <ul class="keys">
-        <li><i data-icon="modeBtn"></i><b>글 모드</b><span>직접 쓰기 · 시계 · 명언 · 단어장</span><kbd>M</kbd></li>
-        <li><i data-icon="weatherBtn"></i><b>날씨</b><span>맑음 · 흐림 · 보슬비 · 비 · 눈 · 안개 · 바람 · 꽃잎 바람(숲에선 낙엽)</span><kbd>W</kbd></li>
-        <li><i data-icon="viewBtn"></i><b>시점</b><span>위에서 · 디오라마 · 따라가기 · 쌍안경 · 글자 보기 · 바람결</span><kbd>V</kbd></li>
+        <li><i data-icon="modeBtn"></i><b>글 모드</b><span>직접 쓰기 · 시계 · 명언 · 단어장</span></li>
+        <li><i data-icon="weatherBtn"></i><b>날씨</b><span>맑음 · 흐림 · 보슬비 · 비 · 눈 · 안개 · 바람 · 꽃잎 바람(숲에선 낙엽)</span></li>
+        <li><i data-icon="viewBtn"></i><b>시점</b><span>위에서 · 디오라마 · 따라가기 · 쌍안경 · 글자 보기 · 바람결</span></li>
         <li><i data-icon="soundBtn"></i><b>소리</b><span>크기 · 곡 · 발자국 소리 · 자연 배경</span></li>
         <li><i data-icon="focusBtn"></i><b>집중</b><span>15 · 25 · 50분 또는 직접(5~180분), 끝까지 하면 선물 상자와 사진 한 장</span></li>
-        <li><i data-icon="menuBtn"></i><b>메뉴</b><span>설정(풍경 · 글씨) · 모은 것 · 화면 정리 · 작품 설명</span><kbd>H</kbd></li>
+        <li><i data-icon="menuBtn"></i><b>메뉴</b><span>설정(풍경 · 글씨) · 모은 것 · 화면 정리 · 작품 설명</span></li>
       </ul>
       <h2>손으로</h2>
       <ul class="plain">
@@ -374,7 +372,7 @@
         <li>집중한 날은 집중 창 달력에 발자국 도장이 찍혀요</li>
         <li>모은 것은 메뉴 → 「모은 것」에서 다시 보고 입히고 골라요</li>
       </ul>
-      <p class="small">빛은 실제 시각을 따라 새벽 · 낮 · 노을 · 밤으로 바뀌고, 밤엔 반딧불이가 떠요(T 키로 3시간씩 미리 보기). 장소: 바닷가 · 뉴질랜드 숲 · 눈밭 · 가을 호숫가 · 모래 정원.</p>
+      <p class="small">빛은 실제 시각을 따라 새벽 · 낮 · 노을 · 밤으로 바뀌고, 밤엔 반딧불이가 떠요. 장소: 바닷가 · 뉴질랜드 숲 · 눈밭 · 가을 호숫가 · 모래 정원.</p>
       <p class="credits">키위 스핀오프 v26 · 2026-10-19<span id="audio-credits"></span></p>
       <button type="button" data-close>닫기</button>
     </div>
@@ -382,11 +380,11 @@
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v26.0.1"></script>
-  <script type="module" src="src/credits.js?v=v26.0.1"></script>
+  <script type="module" src="src/main.js?v=v26.1.0"></script>
+  <script type="module" src="src/credits.js?v=v26.1.0"></script>
   <!-- v26 UI 구조 개편(src/ia — 기존 버튼·창을 새 자리로 옮김, docs/IA.md) · 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/ia/ia.js?v=v26.0.1"></script>
-  <script type="module" src="src/taps.js?v=v26.0.1"></script>
+  <script type="module" src="src/ia/ia.js?v=v26.1.0"></script>
+  <script type="module" src="src/taps.js?v=v26.1.0"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.

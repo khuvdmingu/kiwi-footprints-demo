@@ -55,9 +55,11 @@ body { position: fixed; inset: 0; background: linear-gradient(#24563A 0 30%, #1A
 #world > canvas:not(#tint) { will-change: transform; }
 /* 색조·빛은 같은 풍경 안에서 섞는다. 개별 합성 층으로 강제 승격하지 않는다. */
 #world #tint, #world #glow { will-change: auto; }
-/* 명시적인 진단 주소에서만 색조 합성을 제외한다. 저장 설정·사진·움직임에는 영향 없음. */
+/* 색조 합성 제외: iPad 기본 방문(v24.4.4)과 ?tint=0. 저장 설정·사진·움직임에는 영향 없음.
+   ?layers=… 층별 시험이면 고르지 않은 층만 hide-* 로 끈다 (render-diagnostics.js) */
 html.no-color-compositing #tint, html.no-color-compositing #glow,
 html.no-color-compositing #grain { visibility: hidden; }
+html.hide-tint #tint, html.hide-glow #glow, html.hide-grain #grain { visibility: hidden; }
 /* 한 손가락 끌기(안개 문지르기)는 앱이, 두 손가락 핀치(확대·축소)는 브라우저가 — v16.2 의 none 이 핀치까지 막았다(v18.5.1 복구).
    확대된 동안(body.zoomed)은 v16.1 까지처럼 한 손가락으로 화면을 옮길 수 있게 manipulation */
 #touch { position: fixed; inset: 0; z-index: 2; cursor: pointer; touch-action: pinch-zoom; }
