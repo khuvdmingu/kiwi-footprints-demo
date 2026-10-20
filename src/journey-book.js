@@ -1,6 +1,6 @@
 // Voyage reader: result first, then each image and its record on the same page.
-import { PLACES, SIGHTS } from './voyage.js?v=v27.1.0';
-import { stamp } from './album.js?v=v27.1.0';
+import { PLACES, SIGHTS } from './voyage.js?v=v27.2.0';
+import { stamp } from './album.js?v=v27.2.0';
 
 export function diaryLeaves(text, size = 90) {
   const chars = Array.from(text || ''), leaves = [];
