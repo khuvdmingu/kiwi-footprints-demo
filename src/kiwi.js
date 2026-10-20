@@ -10,9 +10,9 @@
 //      그림을 처음 읽을 때 알파를 훑어 부리 끝·몸 바닥을 찾아 크기·콕 각도를 맞춘다 (setKiwiSprite).
 //  (x, y) = 발이 땅에 닿는 점. k = 몸 크기 단위 (꼬리 −0.41k ~ 부리 끝 +0.8k, 머리 꼭대기 −0.86k)
 
-import { angleDiff, clamp, dist, Path } from './util.js?v=v27.3.0';
-import { PAL as T, LIGHT } from './tokens.js?v=v27.3.0';
-import { ACTS, VARIANTS, WAKE_ACT, pickIdleAct } from './acts.js?v=v27.3.0';
+import { angleDiff, clamp, dist, Path } from './util.js?v=v27.4.0';
+import { PAL as T, LIGHT } from './tokens.js?v=v27.4.0';
+import { ACTS, VARIANTS, WAKE_ACT, pickIdleAct } from './acts.js?v=v27.4.0';
 
 let ID = 0;
 export let REACH = 0.8;             // 몸을 숙였을 때 부리 끝이 땅에 닿는 가로 거리 (k 배수) — 그림에서 다시 잰다
@@ -52,8 +52,11 @@ const ACT_IMG = {};
 let ACT_RATE = 0.16;
 export function setKiwiActs(map) { Object.assign(ACT_IMG, map); }
 export function setActRate(r) { ACT_RATE = r; }
-let ACT_ONLY = null;   // ?act=<id> — 기기에서 동작 하나만 되풀이해 보기 (시험)
-export function setActOnly(id) { ACT_ONLY = ACTS[id] ? id : null; }
+let ACT_ONLY = null;   // 이 동작들만 되풀이 (시험: ?act=<id>[,<id>…] · 테스트 탭 「고른 것만 되풀이」) — 이름 그대로(변형도 따로)
+export function setActOnly(ids) {
+  const list = (Array.isArray(ids) ? ids : String(ids ?? '').split(',')).filter(id => ACTS[id]);
+  ACT_ONLY = list.length ? list : null;
+}
 
 // v20 잠든 몸 그림 (assets/kiwi-sleep.webp — 같은 키위 그림을 편집해 눈을 감기고 고개를 숙인 것). 다리 없이 땅에 앉는다
 let SLEEP = null;
@@ -274,7 +277,7 @@ export class Kiwi {
         this.v *= Math.pow(0.02, dt);
         this.timer -= dt;
         if (this.timer <= 0) {
-          if (Math.random() < ACT_RATE && this.act(ACT_ONLY || pickIdleAct(W.mood))) break;
+          if (Math.random() < ACT_RATE && (ACT_ONLY ? this.act(ACT_ONLY[Math.floor(Math.random() * ACT_ONLY.length)], true) : this.act(pickIdleAct(W.mood)))) break;
           if (Math.random() < 0.45) this.beginPeck(1 + (Math.random() < 0.4), null, Math.random() < 0.5 ? 1 : -1);
           else this.state = 'free';
         }

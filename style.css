@@ -455,6 +455,11 @@ body.clean #picker { display: none !important; }
 #tunePane input[type="range"] { width: 100%; margin: 0 0 6px; }
 #tunePane select { padding: 4px 6px; border-radius: 8px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.08); color: inherit; font: inherit; font-size: 13px; }
 #tunePane select option { color: #1d2a36; }
+#tunePane .tacts { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 2px 2px; }
+#tunePane .tacts label { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.06); font-size: 13px; cursor: pointer; }
+#tunePane .tacts input { margin: 0; }
+#tunePane .tacts label:has(input:checked) { background: rgba(255, 255, 255, 0.2); font-weight: 600; }
+#tunePane .tbtns button[aria-pressed="true"] { background: rgba(255, 255, 255, 0.28); }
 #tunePane .tbtns { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 2px 2px; }
 #tunePane .tbtns button { padding: 7px 12px; border-radius: 999px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.08); color: inherit; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
 #tunePane .tbtns button:hover { background: rgba(255, 255, 255, 0.16); }
