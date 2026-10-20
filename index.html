@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#1A5C91" />
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v27.6.0" />
-  <link rel="stylesheet" href="memos.css?v=v27.6.0" />
-  <link rel="stylesheet" href="theme-paper.css?v=v27.6.0" />
+  <link rel="stylesheet" href="style.css?v=v27.6.1" />
+  <link rel="stylesheet" href="memos.css?v=v27.6.1" />
+  <link rel="stylesheet" href="theme-paper.css?v=v27.6.1" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -104,8 +104,6 @@
         <div id="voyNew">
           <h2 class="sub">어디로 갈까요</h2>
           <div class="chips voyTo" id="voyTo"></div>
-          <p class="note" id="voyChartNote"></p>
-          <button id="voyChartBtn" type="button" class="quiet">해도 보기</button>
         </div>
       </div>
       <div class="seg four" role="radiogroup" aria-label="집중 시간">
@@ -135,8 +133,6 @@
         <li><b>바닷길</b><span>걸음 대신 바닷길로 세요 · 1분 0.1해리</span></li>
         <li><b>일기</b><span>가는 길에 만난 것을 키위가 일지에 그려 남겨요</span></li>
         <li><b>멈춤</b><span>멈춰도 온 바닷길은 남아요 — 다음에 이어 가요</span></li>
-        <li><b>낚싯줄</b><span>배 뒤로 줄을 드리워요 · 오래 갈수록 드문 것이 걸려요</span></li>
-        <li><b>해도</b><span>간 만큼 지도 안개가 걷히고 작은 섬이 나타나요</span></li>
       </ul>
       <ul class="rules" id="islandRules">
         <li><b>선물</b><span>끝까지 켜 두면 옷·장소가 든 상자가 떠내려와요</span></li>
@@ -291,19 +287,9 @@
     <p class="hint">눌러서 입히기 · 벗기기</p>
     <h2 class="sep" id="placeTitle">장소</h2>
     <div id="placeGrid" class="colgrid places"></div>
-    <h2 class="sep" id="buildTitle">섬에서 지은 것</h2>
-    <div id="buildList" class="builds"></div>
-    <p class="hint">그 섬에서 끝까지 한 집중과 그 섬에 닿은 항해만큼 키위들이 하나씩 지어요. 낚아 온 유목 · 밧줄 · 판자는 하나에 15분어치예요.</p>
-    <h2 class="sep" id="chartTitle">해도</h2>
-    <div id="chartBox" class="chartBox"><canvas id="chartCv" aria-label="해도 — 다녀온 항로와 찾은 섬"></canvas></div>
-    <p class="note" id="chartNote"></p>
-    <div id="chartList" class="chartList"></div>
     <h2 class="sep" id="findTitle">주운 것</h2>
     <div id="findGrid" class="colgrid finds"></div>
     <p class="hint">켜 두면 몇 분에 한 번 물가에 작은 것이 밀려와요. 어떤 건 밤 · 비 · 해 질 녘 · 눈밭에서만.</p>
-    <h2 class="sep" id="catchTitle">낚은 것</h2>
-    <div id="catchGrid" class="colgrid finds"></div>
-    <p class="hint">항해할 때 배 뒤로 드리운 줄에 걸려 와요. 오래 갈수록 · 산호초를 지날수록 드문 것이 걸려요.</p>
     <h2 class="sub">바꾸기</h2>
     <div id="craftList"></div>
     <p class="hint">물 위로 유리병 · 상자 · 소라가 떠내려오면 눌러서 열어 보세요.</p>
@@ -404,18 +390,18 @@
         <li>모은 것은 메뉴 → 「모은 것」에서 다시 보고 입히고 골라요</li>
       </ul>
       <p class="small">빛은 실제 시각을 따라 새벽 · 낮 · 노을 · 밤으로 바뀌고, 밤엔 반딧불이가 떠요. 장소: 바닷가 · 뉴질랜드 숲 · 눈밭 · 가을 호숫가 · 모래 정원.</p>
-      <p class="credits">키위 스핀오프 v27.6 · 2026-10-21<span id="audio-credits"></span></p>
+      <p class="credits">키위 스핀오프 v27.6.1 · 2026-10-21<span id="audio-credits"></span></p>
       <button type="button" data-close>닫기</button>
     </div>
   </div>
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v27.6.0"></script>
-  <script type="module" src="src/credits.js?v=v27.6.0"></script>
+  <script type="module" src="src/main.js?v=v27.6.1"></script>
+  <script type="module" src="src/credits.js?v=v27.6.1"></script>
   <!-- v26 UI 구조 개편(src/ia — 기존 버튼·창을 새 자리로 옮김, docs/IA.md) · 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/ia/ia.js?v=v27.6.0"></script>
-  <script type="module" src="src/taps.js?v=v27.6.0"></script>
+  <script type="module" src="src/ia/ia.js?v=v27.6.1"></script>
+  <script type="module" src="src/taps.js?v=v27.6.1"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.

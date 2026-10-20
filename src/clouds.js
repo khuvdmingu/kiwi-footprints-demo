@@ -2,7 +2,7 @@
 //  천천히 흘러가고, 누르면 덩어리가 작은 조각으로 흩어져 사라졌다가 화면 왼쪽에서 새로 생긴다.
 //  amount(0~1)·windK 는 날씨가 정한다.
 
-import { PAL, LIGHT, MOTION } from './tokens.js?v=v27.6.0';
+import { PAL, LIGHT, MOTION } from './tokens.js?v=v27.6.1';
 
 export class Clouds {
   constructor() { this.list = []; this.bits = []; this.amount = 0.24; this.windK = 1; this.t = 0; }
