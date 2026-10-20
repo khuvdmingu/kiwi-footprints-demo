@@ -8,24 +8,28 @@
 //  main.js 는 매 프레임 update(dt, kiwis, atmos.v, beach) 를 부르고, 그릴 때 drawLeaning(ctx, k, () => k.draw(ctx)) 로 감싸고
 //  drawUmbrella(ctx, k) · drawFeathers(ctx, u) 를 키위 위에 얹는다. 키위 그림(kiwi.js)은 건드리지 않는다.
 
-import { clamp } from '../util.js?v=v27.5.0';
+import { clamp } from '../util.js?v=v27.6.0';
+import { headPose } from '../kiwi.js?v=v27.6.0';
 
 export const UMB_SHARE = 0.45;   // 우산을 드는 성격의 비율
-const SHEET = 'assets/umbrellas.webp?v=v27.5.0';
+const SHEET = 'assets/umbrellas.webp?v=v27.6.0';
 const GREEN = [1, 1, 0], AUTUMN = [2, 3];   // 칸: 0 토란잎 · 1 열대 잎(양산 모양이라 더 자주) / 2 단풍 · 3 은행잎
 // 키위 그림 기준(k 배수, 오른쪽을 볼 때): 부리 끝 (0.79, −0.48) · 머리 꼭대기 (−0.07, −0.89) — kiwi.webp 에서 잰 값
 const BITE = [0.64, -0.5];        // 줄기를 무는 자리 (부리 60% 쯤)
 const STEM = ['#5f8a3e', '#4f7a3a', '#c4552c', '#d9a035'];   // 칸마다 줄기 색 (그림에서 고름)
+// v27.6 잎을 더 뒤로 눕히고 길게 받쳐 등까지 덮는 양산처럼 (예전 −0.5 · 0.42 · 1.2 는 머리 앞에 깃발처럼 섰다)
+const TILT = -0.78, EXT = 0.5, SIZE = 1.38;
 const approach = (a, b, d) => (a < b ? Math.min(b, a + d) : Math.max(b, a - d));
 
 export class KiwiWeather {
-  constructor({ rand = Math.random } = {}) { this.rand = rand; this.feathers = []; this.t = 0; this.shelterAt = 4; this.mapId = 'beach'; this.sprites = null; }   // mapId: 합칠 때 main.js 가 알려 준다
+  constructor({ rand = Math.random } = {}) { this.rand = rand; this.feathers = []; this.drips = []; this.wet = 0; this.t = 0; this.shelterAt = 4; this.mapId = 'beach'; this.sprites = null; }   // mapId: 합칠 때 main.js 가 알려 준다
   static wetness(v) { return clamp((v.rain || 0) + (v.drizzle || 0) * 0.6, 0, 1); }
   static windiness(v) { return clamp((v.wind || 0) + (v.blossom || 0) * 0.5, 0, 1); }
 
   update(dt, kiwis, v, beach) {
     this.t += dt;
     const wet = KiwiWeather.wetness(v), wind = KiwiWeather.windiness(v), u = beach.u || 1, R = this.rand;
+    this.wet = wet;
     for (const k of kiwis) {
       if (k.gone) continue;
       if (k.umbPick == null) k.umbPick = R();
@@ -40,6 +44,11 @@ export class KiwiWeather {
         const goal = (moving ? -0.16 - Math.sin(k.phase || 0) * 0.05 : 0) + (k.lean || 0) * 1.8 * f;
         k.umbV = (k.umbV || 0) + ((goal - (k.umbA || 0)) * 38 - (k.umbV || 0) * 5.5) * dt;
         k.umbA = (k.umbA || 0) + k.umbV * dt;
+        // v27.6 잎 끝(등 뒤쪽)에서 빗물이 똑똑 — 비가 셀수록 자주, 걷는 중엔 덜
+        if (k.umb > 0.9 && wet > 0.35 && R() < dt * (moving ? 0.6 : 1.6) * wet) {
+          const sz = k.k, back = -f * (0.32 + R() * 0.18) * sz;
+          this.drips.push({ x: k.x + back, y: k.y - (0.95 + R() * 0.1) * sz, gy: k.y - 0.02 * sz, v: 0, age: 0, s: 0.028 * sz, splash: 0 });
+        }
       }
       // 기우뚱: 잔 흔들림 + 키위마다 다른 때 오는 돌풍(세제곱이라 가끔만 크게)
       const gust = Math.pow(Math.max(0, Math.sin(this.t * 0.55 + k.id * 1.7)), 3);
@@ -59,6 +68,8 @@ export class KiwiWeather {
       }
     }
     if (wet < 0.2) for (const k of kiwis) k.sheltered = false;
+    for (const d of this.drips) { d.age += dt; if (d.splash) d.splash += dt; else { d.v += 900 * u * dt; d.y += d.v * dt; if (d.y >= d.gy) { d.y = d.gy; d.splash = 0.001; } } }
+    this.drips = this.drips.filter(d => d.age < 2 && d.splash < 0.35);
     for (const f of this.feathers) { f.age += dt; f.x += (f.vx + wind * 60 * u) * dt; f.y += (f.vy + Math.sin(f.age * 4) * 18 * u) * dt; f.vy += 14 * u * dt; f.rot += f.spin * dt; }
     this.feathers = this.feathers.filter(f => f.age < f.life);
   }
@@ -116,8 +127,11 @@ export class KiwiWeather {
     ctx.scale(f, 1);
     ctx.translate(0, -bob);
     if (moving) { ctx.translate(0, -0.15 * s); ctx.rotate(st * 0.035); ctx.translate(0, 0.15 * s); }
+    // v27.6 동작 중엔 머리를 따라간다 (콕콕·킁킁에 숙이면 잎도 같이, 두리번에 돌면 같이) — 머리를 단단한 몸으로 보고 무는 자리째 옮기고 돌린다
+    const hp = headPose(k);
+    if (hp) { ctx.translate((hp.hx + hp.dx) * s, (hp.hy + hp.dy) * s); ctx.rotate(hp.a); ctx.translate(-hp.hx * s, -hp.hy * s); }
     ctx.translate(BITE[0] * s, BITE[1] * s);
-    ctx.rotate(-0.5 + (k.umbA || 0));   // 줄기를 뒤로 눕혀 잎이 머리·등 위로 온다
+    ctx.rotate(TILT + (k.umbA || 0) - (hp ? hp.a * 0.6 : 0));   // 줄기는 머리를 따라 돌되 잎은 하늘 쪽을 조금 지킨다 (물고 있는 잎이 물구나무서지 않게)   // 줄기를 뒤로 눕혀 잎이 머리·등 위로 온다
     ctx.scale(pop, pop);
     if (layer === 'front') {
       ctx.strokeStyle = STEM[k.umbKind] || '#4f7a3a'; ctx.lineCap = 'round'; ctx.lineWidth = Math.max(1.2, 0.034 * s);
@@ -125,7 +139,7 @@ export class KiwiWeather {
     } else if (sp && sp[k.umbKind]) {
       // 부리에서 위로 줄기를 조금 더 그려 잎을 머리 위로 띄운다 (그림 속 줄기와 같은 색, 끝은 가늘게)
       //  잎 폭 ≈ 키위 몸 길이 · 위에서 내려다보는 화면이라 세로로 조금 눌러 양산처럼 펼쳐 보이게
-      const c = sp[k.umbKind], sc = (1.2 * s) / c.w, sy = sc * 0.8, ext = 0.42 * s;
+      const c = sp[k.umbKind], sc = (SIZE * s) / c.w, sy = sc * 0.8, ext = EXT * s;
       ctx.strokeStyle = STEM[k.umbKind]; ctx.lineCap = 'round';
       ctx.lineWidth = Math.max(1.2, 0.034 * s);
       ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(0.03 * s, -ext * 0.5, 0, -ext - 2); ctx.stroke();
@@ -141,6 +155,15 @@ export class KiwiWeather {
   }
 
   drawFeathers(ctx) {
+    // v27.6 잎에서 떨어지는 빗물: 떨어지는 동안 짧은 줄, 땅에 닿으면 작은 고리로 번진다
+    if (this.drips.length) {
+      ctx.save(); ctx.lineCap = 'round';
+      for (const d of this.drips) {
+        if (!d.splash) { ctx.strokeStyle = 'rgba(215,232,245,0.85)'; ctx.lineWidth = d.s; ctx.beginPath(); ctx.moveTo(d.x, d.y - d.s * 2.2); ctx.lineTo(d.x, d.y); ctx.stroke(); }
+        else { const p = d.splash / 0.35; ctx.strokeStyle = `rgba(215,232,245,${0.7 * (1 - p)})`; ctx.lineWidth = Math.max(0.6, d.s * 0.5); ctx.beginPath(); ctx.ellipse(d.x, d.y, d.s * (1.5 + 5 * p), d.s * (0.5 + 1.6 * p), 0, 0, 6.29); ctx.stroke(); }
+      }
+      ctx.restore();
+    }
     if (!this.feathers.length) return;
     ctx.save();
     for (const f of this.feathers) {

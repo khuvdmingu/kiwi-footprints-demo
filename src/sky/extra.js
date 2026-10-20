@@ -6,7 +6,7 @@
 //           그림: 낙엽은 가을 호숫가 물 위 단풍과 같은 낱장(assets/leaves.webp 4×2), 꽃잎은 assets/petals.webp(4×2, Higgsfield v23).
 //           그림을 아직 못 읽었거나(첫 순간·시험) 없으면 선으로 그린 잎으로 대신한다.
 
-import { clamp } from '../util.js?v=v27.5.0';
+import { clamp } from '../util.js?v=v27.6.0';
 
 export const EXTRA_WEATHERS = ['drizzle', 'blossom'];
 // atmos 의 날씨 값 열쇠(cloud·windK·amp·rain·snow·fog·wind·grey)에 drizzle·blossom 두 칸이 더 붙는다
@@ -21,7 +21,7 @@ export const blossomName = mapId => (leafy(mapId) ? '낙엽 바람' : '꽃잎 �
 const PETAL = ['#F6C9D3', '#F2B6C6', '#FBE3E8', '#EFA9BD', '#FFF1F3'];
 const LEAF = ['#C8582B', '#D9822B', '#E3A23A', '#A8442A', '#B86A2E', '#E8B04A'];
 
-const SHEETS = { leaf: 'assets/leaves.webp?v=v27.5.0', petal: 'assets/petals.webp?v=v27.5.0' };
+const SHEETS = { leaf: 'assets/leaves.webp?v=v27.6.0', petal: 'assets/petals.webp?v=v27.6.0' };
 
 export class SkyExtra {
   constructor(rand = Math.random) { this.sprites = {}; this.rand = rand; this.mist = []; this.dots = []; this.petals = []; this.kind = 'petal'; this.t = 0; }

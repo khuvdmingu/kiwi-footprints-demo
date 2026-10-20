@@ -10,9 +10,10 @@
 //      그림을 처음 읽을 때 알파를 훑어 부리 끝·몸 바닥을 찾아 크기·콕 각도를 맞춘다 (setKiwiSprite).
 //  (x, y) = 발이 땅에 닿는 점. k = 몸 크기 단위 (꼬리 −0.41k ~ 부리 끝 +0.8k, 머리 꼭대기 −0.86k)
 
-import { angleDiff, clamp, dist, Path } from './util.js?v=v27.5.0';
-import { PAL as T, LIGHT } from './tokens.js?v=v27.5.0';
-import { ACTS, VARIANTS, WAKE_ACT, pickIdleAct } from './acts.js?v=v27.5.0';
+import { angleDiff, clamp, dist, Path } from './util.js?v=v27.6.0';
+import { PAL as T, LIGHT } from './tokens.js?v=v27.6.0';
+import { ACTS, VARIANTS, WAKE_ACT, pickIdleAct } from './acts.js?v=v27.6.0';
+import { ACT_HEADS, HEAD_MODES, HEAD_REST } from './act-heads.js?v=v27.6.0';
 
 let ID = 0;
 export let REACH = 0.8;             // 몸을 숙였을 때 부리 끝이 땅에 닿는 가로 거리 (k 배수) — 그림에서 다시 잰다
@@ -52,6 +53,17 @@ const ACT_IMG = {};
 let ACT_RATE = 0.16;
 export function setKiwiActs(map) { Object.assign(ACT_IMG, map); }
 export function setActRate(r) { ACT_RATE = r; }
+let IDLE_SCALE = 1;   // v27.6 멈춰 있는 시간 배수 (설정 「키위 몸짓」이 짧게 하면 다음 몸짓이 더 빨리 온다)
+export function setIdleScale(v) { IDLE_SCALE = v; }
+// v27.6 머리 따라가기: 지금 동작 프레임에서 머리가 쉬는 자세보다 얼마나 옮겨지고 돌았는지 (몸 좌표, k 배수) — 잎 우산·액세서리용
+//  { hx, hy } = 쉬는 자세 머리 꼭대기, { dx, dy } = 옮김, a = 회전(라디안). 동작 중이 아니거나 모르면 null
+export function headPose(k) {
+  if (!SPR || k.state !== 'act' || HEAD_MODES[k.actId] === 'fixed') return null;
+  const a = ACTS[k.actId], h = ACT_HEADS[k.actId];
+  if (!a || !h) return null;
+  const f = h[Math.min(h.length - 1, Math.max(0, Math.floor(k.actT * a.fps)))], u = SPR.w / SPR.img.naturalWidth;
+  return { hx: SPR.x + HEAD_REST[0] * u, hy: SPR.y + HEAD_REST[1] * u, dx: f[0] * u, dy: f[1] * u, a: f[2] * Math.PI / 180 };
+}
 let ACT_ONLY = null;   // 이 동작들만 되풀이 (시험: ?act=<id>[,<id>…] · 테스트 탭 「고른 것만 되풀이」) — 이름 그대로(변형도 따로)
 export function setActOnly(ids) {
   const list = (Array.isArray(ids) ? ids : String(ids ?? '').split(',')).filter(id => ACTS[id]);
@@ -104,11 +116,13 @@ export class Kiwi {
   get asleep() { return this.state === 'sleep'; }
   // v27 동작: 몸 그림과 같은 자리에서 시작·끝나는 짧은 그림 묶음을 재생한다 (옷 입은 키위·일하는 키위는 건너뜀)
   //  변형(acts.js variantOf)이 있으면 원래 것과 변형 중 무작위 — exact 면 그 묶음만 (시뮬레이터)
-  act(id, exact = false) {
+  //  v27.6 opt: from = 시작 초(묶음 가운데부터) · hold = 이 초에서 멈춰 있기 · holdUntil = 멈춤을 풀 시각(clock) — 기념사진 자세·쌍안경 눈 맞춤
+  act(id, exact = false, opt = {}) {
     if (this.skin || this.job || this.focus) return false;
     const ids = (exact ? [id] : [id, ...(VARIANTS[id] || [])]).filter(v => ACTS[v] && ACT_IMG[v]);
     if (!ids.length) return false;
-    this.state = 'act'; this.actId = ids[Math.floor(Math.random() * ids.length)]; this.actT = 0; this.v = 0; this.peck = 0;
+    this.state = 'act'; this.actId = ids[Math.floor(Math.random() * ids.length)];
+    this.hold = opt.hold ?? null; this.holdUntil = opt.holdUntil ?? null; this.actT = opt.from ?? 0; this.v = 0; this.peck = 0;
     return true;
   }
 
@@ -117,7 +131,8 @@ export class Kiwi {
   take(job) { this.job = job; this.path = new Path(job.pts); this.s = 0; this.state = 'go'; }
   wanderTo(x, y, then = 'idle', hole = null) { this.goal = { x, y }; this.after = then; this.hole = hole; this.job = null; this.state = 'wander'; }
   // (x, y) 를 부리로 콕: 옆에 서서 찍는다
-  digAt(x, y) { const f = this.x <= x ? 1 : -1; this.wanderTo(x - f * REACH * this.k, y, 'dig', [x, y]); }
+  //  v27.6 act 를 주면 콕 대신 그 동작(킁킁·땅 파기 등)을 그 자리 옆에서 한다
+  digAt(x, y, act = null) { const f = this.x <= x ? 1 : -1; this.wanderTo(x - f * REACH * this.k, y, act ? 'act:' + act : 'dig', [x, y]); }
   flee(y) { this.goal = { x: this.x + (Math.random() - 0.5) * 60, y }; this.job = null; this.state = 'flee'; this.alert(Math.random() * 0.25); }
   alert(delay = 0) { this.alertDelay = delay; this.alertT = 0.9 + delay; }
   hop(n = 1, delay = 0) { this.hop0 = this.clock + delay; this.hops = n; }
@@ -246,10 +261,16 @@ export class Kiwi {
       case 'wander': {
         if (dist(this.x, this.y, this.goal.x, this.goal.y) < this.k * 0.15 + 1) {
           if (this.after === 'dig' && this.hole) { this.beginPeck(2, this.hole, this.hole[0] >= this.x ? 1 : -1); this.hole = null; }
-          else { this.state = 'idle'; this.timer = 0.6 + Math.random() * 2.2; }
+          else if (this.after?.startsWith('act:')) {
+            this.state = 'idle'; this.timer = 0.6 + Math.random() * 1.2; this.v = 0;
+            if (this.hole) this.face = this.hole[0] >= this.x ? 1 : -1;
+            const id = this.after.slice(4); this.after = null; this.hole = null;
+            if (!this.act(id)) this.beginPeck(2, null, this.face);   // 그림이 아직 없으면 예전처럼 콕
+          }
+          else { this.state = 'idle'; this.timer = (0.6 + Math.random() * 2.2) * IDLE_SCALE; }
           break;
         }
-        this.step(this.walk(this.goal.x, this.goal.y, W.speed * (this.after === 'dig' ? 1 : 0.6), dt, W), W, 'faint');
+        this.step(this.walk(this.goal.x, this.goal.y, W.speed * (this.after === 'dig' || this.after?.startsWith('act:') ? 1 : 0.6), dt, W), W, 'faint');
         break;
       }
 
@@ -268,8 +289,12 @@ export class Kiwi {
         this.nextAct = null;
         this.v = 0;
         this.actT += dt;
+        if (this.hold != null) {   // 자세를 잠깐 붙잡는다 (풀 시각이 지나면 마저 한다)
+          if (this.holdUntil != null && this.clock >= this.holdUntil) this.hold = null;
+          else if (this.actT >= this.hold) this.actT = this.hold;
+        }
         const a = ACTS[this.actId];
-        if (!a || this.actT >= a.n / a.fps) { this.state = 'idle'; this.timer = 0.6 + Math.random() * 1.6; }
+        if (!a || this.actT >= a.n / a.fps) { this.state = 'idle'; this.timer = (0.6 + Math.random() * 1.6) * IDLE_SCALE; }
         break;
       }
 
