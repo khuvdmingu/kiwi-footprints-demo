@@ -41,7 +41,7 @@ export function mountIA() {
   const pane = n => settings.querySelector(`.pane[data-pane="${n}"]`), tab = n => settings.querySelector(`[role="tab"][data-tab="${n}"]`);
 
   // ── 바구니 창 (설정 창과 같은 틀) ──
-  const TABS = [['photo', '일지'], ['letter', '편지'], ['kiwi', '키위'], ['world', '장소·소리'], ['dex', '도감']];
+  const TABS = [['photo', '일지'], ['chart', '해도'], ['letter', '편지'], ['kiwi', '키위'], ['world', '장소·소리'], ['dex', '도감']];   // v28 해도
   const basket = el('div', { id: 'basket', role: 'dialog', 'aria-label': '바구니', hidden: '' });
   const tabs = el('div', { class: 'tabs', role: 'tablist', 'aria-label': '바구니 묶음' });
   const panes = {};
@@ -60,8 +60,11 @@ export function mountIA() {
   put(/letterTitle|편지/, 'letter', true);
   put(/flockTitle|내 키위/, 'kiwi', true);
   put(/wearTitle|옷/, 'kiwi');
+  put(/chartTitle|^해도/, 'chart', true);
   put(/placeTitle|^장소/, 'world', true);
+  put(/buildTitle|지은 것/, 'world');
   put(/findTitle|주운 것/, 'dex', true);
+  put(/catchTitle|낚은 것/, 'dex');
   put(/바꾸기/, 'dex');
   put(/guestTitle|손님/, 'dex');
   // 집중 기록 · 달력 → 바구니 › 사진 위
@@ -86,7 +89,7 @@ export function mountIA() {
   showTab(TABS.some(t => t[0] === saved) ? saved : 'photo');
 
   // 바구니 버튼 (메뉴 버튼 앞)
-  const basketBtn = el('button', { id: 'basketBtn', type: 'button', class: 'round', 'aria-label': '바구니 — 일지 · 편지 · 키위 · 장소·소리 · 도감', 'aria-expanded': 'false', 'aria-controls': 'basket' },
+  const basketBtn = el('button', { id: 'basketBtn', type: 'button', class: 'round', 'aria-label': '바구니 — 일지 · 해도 · 편지 · 키위 · 장소·소리 · 도감', 'aria-expanded': 'false', 'aria-controls': 'basket' },
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5h17" /><path d="M5 10.5l1.4 7.9a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6l1.4-7.9" /><path d="M7.6 10.5a4.4 4.9 0 0 1 8.8 0" /><path d="M5.9 14.5h12.2M10.2 10.5l.4 9.5M13.8 10.5l-.4 9.5" /></svg>');
   corner.insertBefore(basketBtn, menuBtn);
   const openBasket = open => {

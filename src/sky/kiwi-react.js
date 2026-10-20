@@ -8,11 +8,13 @@
 //  main.js 는 매 프레임 update(dt, kiwis, atmos.v, beach) 를 부르고, 그릴 때 drawLeaning(ctx, k, () => k.draw(ctx)) 로 감싸고
 //  drawUmbrella(ctx, k) · drawFeathers(ctx, u) 를 키위 위에 얹는다. 키위 그림(kiwi.js)은 건드리지 않는다.
 
-import { clamp } from '../util.js?v=v27.6.1';
-import { headPose } from '../kiwi.js?v=v27.6.1';
+import { clamp } from '../util.js?v=v28.2.0';
+import { headPose } from '../kiwi.js?v=v28.2.0';
 
 export const UMB_SHARE = 0.45;   // 우산을 드는 성격의 비율
-const SHEET = 'assets/umbrellas.webp?v=v27.6.1';
+const SHEET = 'assets/umbrellas.webp?v=v28.2.0';
+const HOODS = 'assets/hoods.webp?v=v28.2.0';   // v27.7 머리에 얹는 잎 2×2 (Higgsfield nano_banana_pro: 토란잎 · 몬스테라 / 바나나잎 · 연잎, 옆에서 본 둥근 지붕 모양)
+const HOOD_SHARE = 0.5;               // 우산을 드는 키위 가운데 머리에 얹는 성격의 비율
 const GREEN = [1, 1, 0], AUTUMN = [2, 3];   // 칸: 0 토란잎 · 1 열대 잎(양산 모양이라 더 자주) / 2 단풍 · 3 은행잎
 // 키위 그림 기준(k 배수, 오른쪽을 볼 때): 부리 끝 (0.79, −0.48) · 머리 꼭대기 (−0.07, −0.89) — kiwi.webp 에서 잰 값
 const BITE = [0.64, -0.5];        // 줄기를 무는 자리 (부리 60% 쯤)
@@ -22,7 +24,7 @@ const TILT = -0.78, EXT = 0.5, SIZE = 1.38;
 const approach = (a, b, d) => (a < b ? Math.min(b, a + d) : Math.max(b, a - d));
 
 export class KiwiWeather {
-  constructor({ rand = Math.random } = {}) { this.rand = rand; this.feathers = []; this.drips = []; this.wet = 0; this.t = 0; this.shelterAt = 4; this.mapId = 'beach'; this.sprites = null; }   // mapId: 합칠 때 main.js 가 알려 준다
+  constructor({ rand = Math.random } = {}) { this.rand = rand; this.feathers = []; this.drips = []; this.wet = 0; this.hoods = null; this.t = 0; this.shelterAt = 4; this.mapId = 'beach'; this.sprites = null; }   // mapId: 합칠 때 main.js 가 알려 준다
   static wetness(v) { return clamp((v.rain || 0) + (v.drizzle || 0) * 0.6, 0, 1); }
   static windiness(v) { return clamp((v.wind || 0) + (v.blossom || 0) * 0.5, 0, 1); }
 
@@ -37,6 +39,7 @@ export class KiwiWeather {
       const writing = k.busy || k.state === 'peck' || k.state === 'dig';
       const want = wet > 0.35 && k.umbPick < UMB_SHARE && !k.asleep && !writing;
       k.umb = approach(k.umb || 0, want ? 1 : 0, dt * (want ? 1.1 : 3));
+      if (k.umbStyle == null) { k.umbStyle = R() < HOOD_SHARE ? 'hood' : 'beak'; k.hoodKind = Math.floor(R() * 4); }   // v27.7 부리에 물기 / 머리에 얹기
       if (k.umbKind == null || k.umbMap !== this.mapId) { const set = this.mapId === 'fall' ? AUTUMN : GREEN; k.umbKind = set[Math.floor(R() * set.length)]; k.umbMap = this.mapId; }
       // 흔들림(용수철): 걸으면 잎이 뒤로 젖혀지고 걸음마다 까딱, 바람은 바람 쪽으로 — 한 박자 늦게 따라와 출렁인다
       if (k.umb > 0) {
@@ -129,6 +132,7 @@ export class KiwiWeather {
     if (moving) { ctx.translate(0, -0.15 * s); ctx.rotate(st * 0.035); ctx.translate(0, 0.15 * s); }
     // v27.6 동작 중엔 머리를 따라간다 (콕콕·킁킁에 숙이면 잎도 같이, 두리번에 돌면 같이) — 머리를 단단한 몸으로 보고 무는 자리째 옮기고 돌린다
     const hp = headPose(k);
+    if (k.umbStyle === 'hood') { const hs = this.hoodSheet(); if (hs) { this.hood(ctx, k, layer, hs, s, hp); ctx.restore(); return; } }   // 그림을 아직 못 읽었으면 부리에 물기로
     if (hp) { ctx.translate((hp.hx + hp.dx) * s, (hp.hy + hp.dy) * s); ctx.rotate(hp.a); ctx.translate(-hp.hx * s, -hp.hy * s); }
     ctx.translate(BITE[0] * s, BITE[1] * s);
     ctx.rotate(TILT + (k.umbA || 0) - (hp ? hp.a * 0.6 : 0));   // 줄기는 머리를 따라 돌되 잎은 하늘 쪽을 조금 지킨다 (물고 있는 잎이 물구나무서지 않게)   // 줄기를 뒤로 눕혀 잎이 머리·등 위로 온다
@@ -152,6 +156,40 @@ export class KiwiWeather {
       ctx.beginPath(); ctx.ellipse(0, -0.62 * s, 0.55 * s, 0.2 * s, 0, 0, 6.29); ctx.fill();
     }
     ctx.restore();
+  }
+
+  // 머리에 얹는 잎 낱장: 칸마다 잘라 잎의 상자(줄기 포함)를 재 둔다
+  hoodSheet() {
+    if (this.hoods !== null || typeof Image === 'undefined') return this.hoods || null;
+    this.hoods = false;
+    const im = new Image();
+    im.onload = () => {
+      const cw = Math.round(im.naturalWidth / 2), ch = Math.round(im.naturalHeight / 2), list = [];
+      for (let r = 0; r < 2; r++) for (let c = 0; c < 2; c++) {
+        const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+        const g = cv.getContext('2d', { willReadFrequently: true }); g.drawImage(im, c * cw, r * ch, cw, ch, 0, 0, cw, ch);
+        const a = g.getImageData(0, 0, cw, ch).data;
+        let x0 = cw, x1 = 0, y0 = ch, y1 = 0;
+        for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) if (a[(y * cw + x) * 4 + 3] > 80) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+        list.push({ cv, x0, x1, y0, y1 });
+      }
+      this.hoods = list;
+    };
+    im.src = HOODS;
+    return null;
+  }
+
+  // v27.7 머리에 얹기: 둥근 잎을 머리·등 위에 지붕처럼 — 키위 앞 층(덮고 있으니까), 줄기는 부리 쪽으로 늘어진다.
+  //  머리를 반쯤만 따라간다(숙이면 앞으로 미끄러지듯, 고개를 젖혀도 등에 남는다)
+  hood(ctx, k, layer, hs, s, hp) {
+    if (layer !== 'front') return;
+    const c = hs[k.hoodKind ?? 0]; if (!c) return;
+    if (hp) { ctx.translate(hp.dx * 0.45 * s, hp.dy * 0.45 * s); ctx.rotate(hp.a * 0.2); }
+    ctx.rotate((k.umbA || 0) * 0.35);
+    const w = c.x1 - c.x0, h = c.y1 - c.y0, sc = (1.02 * s) / w;   // 줄기까지 몸 길이쯤
+    // 잎 상자의 가로 가운데를 등 가운데 조금 앞(머리 쪽)에, 상자 위에서 62% 높이를 몸 윗선에 맞춘다
+    const ax = 0.04 * s, ay = -0.66 * s;
+    ctx.drawImage(c.cv, ax - (c.x0 + w / 2) * sc, ay - (c.y0 + h * 0.62) * sc, c.cv.width * sc, c.cv.height * sc);
   }
 
   drawFeathers(ctx) {

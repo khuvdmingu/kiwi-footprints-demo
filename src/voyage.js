@@ -174,11 +174,14 @@ export class Voyage {
     return { sailed: r.sailed, left: r.dur - r.sailed };
   }
   // 도착 → 키위의 일기 한 장 (한 번만). main.js 는 이걸 받아 해변에 글을 쓰고 사진을 찍는다
-  complete(now = Date.now(), ctx = {}) {
+  //   extra(trip, sailedMs) → { lines: [{ko, en}], ...필드 } (v28 해도·낚싯줄 — 일기에 덧붙일 줄과 기록에 같이 남길 것)
+  complete(now = Date.now(), ctx = {}, extra = null) {
     const r = this.run; if (!r) return null;
     this.tick(now, ctx);
     if (this.sailed(now) < r.dur) return null;
     this.sailedMs += r.dur - (r.counted || 0);
+    const add = (extra && extra(r, this.sailedMs)) || {}, more = Array.isArray(add.lines) ? add.lines : [];
+    delete add.lines;
     // 일기 사진은 한 장: 화면을 안 보던 사이에 지나간 일이 먼저(그건 키위만 봤으니까), 없으면 함께 본 일, 없으면 조용한 날
     const real = r.slots.filter(s => s.kind && s.kind !== 'quiet');
     const pick = real.find(s => !s.seen) || real[0] || { kind: 'quiet', t: r.slots[0]?.t ?? 0, seen: true };
@@ -189,9 +192,10 @@ export class Voyage {
       kind, seen: !missed, ts: pick.ts || now,
       sights: r.slots.filter(s => s.kind).map(s => ({ kind: s.kind, ts: s.ts, seen: s.seen })),
       text: {
-        ko: [line.ko, missed ? MISSED.ko : '', ARRIVE.ko(place.ko)].filter(Boolean).join(' '),
-        en: [line.en, missed ? MISSED.en : '', ARRIVE.en(place.en)].filter(Boolean).join(' '),
+        ko: [line.ko, missed ? MISSED.ko : '', ...more.map(l => l.ko), ARRIVE.ko(place.ko)].filter(Boolean).join(' '),
+        en: [line.en, missed ? MISSED.en : '', ...more.map(l => l.en), ARRIVE.en(place.en)].filter(Boolean).join(' '),
       },
+      ...add,
     };
     if (!this.log.some(e => e.id === entry.id)) { this.log.push(entry); if (this.log.length > MAX_LOG) this.log.splice(0, this.log.length - MAX_LOG); }
     this.at = r.to; this.run = null; this.store(); this.storeRun();
