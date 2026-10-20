@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#1A5C91" />
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v27.4.0" />
-  <link rel="stylesheet" href="memos.css?v=v27.4.0" />
-  <link rel="stylesheet" href="theme-paper.css?v=v27.4.0" />
+  <link rel="stylesheet" href="style.css?v=v27.5.0" />
+  <link rel="stylesheet" href="memos.css?v=v27.5.0" />
+  <link rel="stylesheet" href="theme-paper.css?v=v27.5.0" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -254,6 +254,11 @@
     <h2 class="sep">동작</h2>
     <div class="tacts" id="tActs" role="group" aria-label="볼 동작 고르기"></div>
     <div class="tbtns"><button type="button" data-act="actAll">전부</button><button type="button" data-act="actNone">비우기</button><button type="button" data-act="actNow">지금 보기</button><button type="button" data-act="actLoop" id="tActLoop" aria-pressed="false">고른 것만 되풀이</button></div>
+    <h2 class="sep">동작 장면</h2>
+    <p class="hint">섬 — 진짜 사건을 일으켜 키위 반응을 봐요(창이 닫혀요).</p>
+    <div class="tbtns"><button type="button" data-act="scMeteor">별똥별 · 하늘 보기</button><button type="button" data-act="scTap">누름 · 깜짝</button><button type="button" data-act="scJoy">집중 끝 · 통통</button><button type="button" data-act="scGuest">손님 · 두리번</button><button type="button" data-act="scSleep">잠들기</button><button type="button" data-act="scWake">깨우기 · 기지개</button></div>
+    <p class="hint">항해 — 먼저 「항해 시험 시작」, 바다에서 사건을 골라 배 위 키위 동작을 봐요.</p>
+    <div class="tbtns"><button type="button" data-act="voySail">항해 시험 시작 (1분)</button><button type="button" data-act="voy:whale">고래 · 손 흔들기</button><button type="button" data-act="voy:meteor">별똥별</button><button type="button" data-act="voy:doze">조는 키위</button><button type="button" data-act="voy:seabird">바닷새</button><button type="button" data-act="voy:lighthouse">등대</button><button type="button" data-act="voy:leaf">잎 우산</button></div>
     <p class="hint">「지금 보기」는 고른 동작을 쉬고 있는 키위들에게 하나씩 나눠 바로 시켜요(창이 닫혀요). 「고른 것만 되풀이」를 켜면 멈출 때마다(90%) 고른 동작만 해요. 평소 빈도는 설정 「키위 몸짓」. 옷 입은 키위·글씨 쓰는 키위는 동작하지 않아요.</p>
     <h2 class="sep">번인 방지</h2>
     <div class="trow"><span>안 건드리면 키위 잠듦 · 버튼 숨김</span><output id="tSleepV"></output></div>
@@ -384,18 +389,18 @@
         <li>모은 것은 메뉴 → 「모은 것」에서 다시 보고 입히고 골라요</li>
       </ul>
       <p class="small">빛은 실제 시각을 따라 새벽 · 낮 · 노을 · 밤으로 바뀌고, 밤엔 반딧불이가 떠요. 장소: 바닷가 · 뉴질랜드 숲 · 눈밭 · 가을 호숫가 · 모래 정원.</p>
-      <p class="credits">키위 스핀오프 v27.4 · 2026-10-21<span id="audio-credits"></span></p>
+      <p class="credits">키위 스핀오프 v27.5 · 2026-10-21<span id="audio-credits"></span></p>
       <button type="button" data-close>닫기</button>
     </div>
   </div>
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v27.4.0"></script>
-  <script type="module" src="src/credits.js?v=v27.4.0"></script>
+  <script type="module" src="src/main.js?v=v27.5.0"></script>
+  <script type="module" src="src/credits.js?v=v27.5.0"></script>
   <!-- v26 UI 구조 개편(src/ia — 기존 버튼·창을 새 자리로 옮김, docs/IA.md) · 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/ia/ia.js?v=v27.4.0"></script>
-  <script type="module" src="src/taps.js?v=v27.4.0"></script>
+  <script type="module" src="src/ia/ia.js?v=v27.5.0"></script>
+  <script type="module" src="src/taps.js?v=v27.5.0"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.

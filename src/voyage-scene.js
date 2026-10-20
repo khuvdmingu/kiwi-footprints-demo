@@ -6,7 +6,8 @@
 //  사건(voyage.js 의 kind)을 받으면 12초쯤 그 장면을 보여 준다. snapshot() 은 같은 장면을 사진 한 장으로 다시 그린다
 //  (화면을 꺼 두었던 사이의 사건도 일기 사진을 남길 수 있게).
 
-import { SeaGL } from './voyage-water.js?v=v27.4.0';
+import { CREW_ACTS } from './acts.js?v=v27.5.0';
+import { SeaGL } from './voyage-water.js?v=v27.5.0';
 
 export const SPEED = 0.05;   // 배가 가는 빠르기: 1초에 화면 짧은 변의 5% (물·잔물결·지나가는 것이 모두 이 빠르기로 흐른다)
 const WATER_SCALE = 0.75;     // 물은 화면보다 성기게 그린다 (배터리·발열 — 물결은 흐려도 티가 안 난다)
@@ -41,13 +42,16 @@ export class VoyageScene {
   async load(base = 'assets/') {
     this.base = base;
     const gen = this.gen = (this.gen || 0) + 1;
-    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v27.4.0', 'sea-tall.webp?v=v27.4.0', 'voyage-sprites.webp?v=v27.4.0', 'kiwi.webp?v=v27.4.0', 'kiwi-sleep.webp?v=v27.4.0', 'umbrellas.webp?v=v27.4.0', 'sea-night.webp?v=v27.4.0', 'sea-tall-night.webp?v=v27.4.0', 'voyage-crew.webp?v=v27.4.0', 'voyage-boat.webp?v=v27.4.0', 'voyage-sail.webp?v=v27.4.0'].map(f => img(base + f).catch(() => null)));
+    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v27.5.0', 'sea-tall.webp?v=v27.5.0', 'voyage-sprites.webp?v=v27.5.0', 'kiwi.webp?v=v27.5.0', 'kiwi-sleep.webp?v=v27.5.0', 'umbrellas.webp?v=v27.5.0', 'sea-night.webp?v=v27.5.0', 'sea-tall-night.webp?v=v27.5.0', 'voyage-crew.webp?v=v27.5.0', 'voyage-boat.webp?v=v27.5.0', 'voyage-sail.webp?v=v27.5.0'].map(f => img(base + f).catch(() => null)));
     if (gen !== this.gen) return false;
     if (!sea || !sheet) throw new Error('voyage art');
     Object.assign(this, { sea, tall: tall || sea, sheet, kiwi, sleep, umb, seaN, tallN: tallN || seaN, crewSheet });
     this.cells = boxesOf(sheet, 'sheet', CELLS);
     this.crewCells = crewSheet ? boxesOf(crewSheet, 'crew', CREW) : null;
     if (this.crewCells) this.crewRef = this.crewCells.right.h;   // 배율 기준: 옆을 보고 앉은 키위의 높이
+    // v27.5 자세별 동작 묶음 — 없어도 되는 그림이라 뒤에서 읽고, 못 읽으면 정지 자세 그대로
+    this.crewActs = {};
+    for (const [pose, a] of Object.entries(CREW_ACTS)) img(base + a.file).then(im => { if (gen === this.gen) this.crewActs[pose] = im; }).catch(() => {});
     // 넓은 배 + 따로 흔들리는 잎 돛 (둘 다 있어야 쓴다 — 아니면 예전 한 장짜리 배)
     if (hull && sail) Object.assign(this, { hull, sail, hullBox: boxesOf(hull, 'hull', ['h'], 1, 1).h, sailBox: boxesOf(sail, 'sail', ['s'], 1, 1).s });
     this.ready = true;
@@ -57,7 +61,7 @@ export class VoyageScene {
   //  다음 항해 때 load() 로 다시 읽는다(기기 캐시에서). 노을 그림의 실패 기록도 이때 지워 다음 항해에 다시 시도한다
   unload() {
     this.gen = (this.gen || 0) + 1; this.ready = false;
-    for (const k of ['sea', 'tall', 'sheet', 'kiwi', 'sleep', 'umb', 'seaN', 'tallN', 'crewSheet', 'hull', 'sail', 'cells', 'crewCells', 'crewRef', 'hullBox', 'sailBox']) this[k] = null;
+    for (const k of ['sea', 'tall', 'sheet', 'kiwi', 'sleep', 'umb', 'seaN', 'tallN', 'crewSheet', 'hull', 'sail', 'cells', 'crewCells', 'crewRef', 'crewActs', 'hullBox', 'sailBox']) this[k] = null;
     this.sunsets.clear();
     this.water.release(); this.photoWater?.release();
     this.cv.width = 1; this.cv.height = 1; this.W = 0; this.H = 0;
@@ -75,7 +79,7 @@ export class VoyageScene {
   sunsetArt(tall) {
     if (!this.sunsets.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v27.4.0' : 'sea-sunset.webp?v=v27.4.0')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v27.5.0' : 'sea-sunset.webp?v=v27.5.0')).then(image => (entry.image = image)).catch(() => null);
       this.sunsets.set(tall, entry);
     }
     return this.sunsets.get(tall).promise;
@@ -204,8 +208,14 @@ export class VoyageScene {
       // 여섯 자세는 원본에서 같은 크기로 그려졌다 → 같은 배율로, 몸 아래 가운데를 앉는 자리에 맞춘다 (부리·날개 때문에 크기가 달라 보이지 않게)
       const b = this.crewCells[pose] || this.crewCells.up, k2 = kh / this.crewRef, w = b.w * k2, h = b.h * k2, ax = CREW_AX[pose] ?? 0.5;
       const [x, y] = this.hullBox ? WIDE_SEATS[i].map((v, j) => v * (j ? bh : bw)) : [-bw * 0.13 + (i % 2 ? bw * 0.06 : 0), -bh * 0.25 + i * bh * 0.2];
-      const hop = pose === 'sleep' ? 0 : Math.max(0, Math.sin(t * 1.7 + i * 2.1)) * kh * 0.035;
-      c.drawImage(this.crewSheet, b.x, b.y, b.w, b.h, x - w * ax, y + kh * 0.42 - h - hop, w, h);
+      // 그 자세의 동작이 있으면 rest 초 쉬었다 한 번 (키위마다 1.7초씩 엇갈려) — 동작 중엔 통통 뛰기를 멈춘다
+      const A = CREW_ACTS[pose], ai = A && this.crewActs?.[pose];
+      let f = -1;
+      if (ai) { const len = A.n / A.fps, ph = (t + i * 1.7) % (len + (A.rest ?? 2.5)); if (ph < len) f = Math.min(A.n - 1, Math.floor(ph * A.fps)); }
+      const hop = pose === 'sleep' || f >= 0 ? 0 : Math.max(0, Math.sin(t * 1.7 + i * 2.1)) * kh * 0.035;
+      const dx = x - w * ax, dy = y + kh * 0.42 - h - hop;
+      if (f >= 0) c.drawImage(ai, (f % A.cols) * A.fw, Math.floor(f / A.cols) * A.fh, A.fw, A.fh, dx + A.ox * k2, dy + A.oy * k2, A.w * k2, A.h * k2);
+      else c.drawImage(this.crewSheet, b.x, b.y, b.w, b.h, dx, dy, w, h);
       if (pose === 'sleep') { c.fillStyle = 'rgba(255,255,255,0.9)'; c.font = `600 ${Math.round(kh * 0.32)}px sans-serif`; const z = (t * 0.6) % 1; c.globalAlpha = 1 - z; c.fillText('z', x + w * 0.35, y - h * 0.5 - z * kh * 0.6); c.globalAlpha = 1; }
     }
     this.leafOver(c, bw, bh, play);
