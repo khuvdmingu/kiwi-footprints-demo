@@ -10,9 +10,9 @@
 //      그림을 처음 읽을 때 알파를 훑어 부리 끝·몸 바닥을 찾아 크기·콕 각도를 맞춘다 (setKiwiSprite).
 //  (x, y) = 발이 땅에 닿는 점. k = 몸 크기 단위 (꼬리 −0.41k ~ 부리 끝 +0.8k, 머리 꼭대기 −0.86k)
 
-import { angleDiff, clamp, dist, Path } from './util.js?v=v27.2.1';
-import { PAL as T, LIGHT } from './tokens.js?v=v27.2.1';
-import { ACTS, WAKE_ACT, pickIdleAct } from './acts.js?v=v27.2.1';
+import { angleDiff, clamp, dist, Path } from './util.js?v=v27.3.0';
+import { PAL as T, LIGHT } from './tokens.js?v=v27.3.0';
+import { ACTS, VARIANTS, WAKE_ACT, pickIdleAct } from './acts.js?v=v27.3.0';
 
 let ID = 0;
 export let REACH = 0.8;             // 몸을 숙였을 때 부리 끝이 땅에 닿는 가로 거리 (k 배수) — 그림에서 다시 잰다
@@ -100,9 +100,12 @@ export class Kiwi {
   wake(delay = 0) { if (this.state === 'sleep') this.wakeAt = this.clock + delay; }
   get asleep() { return this.state === 'sleep'; }
   // v27 동작: 몸 그림과 같은 자리에서 시작·끝나는 짧은 그림 묶음을 재생한다 (옷 입은 키위·일하는 키위는 건너뜀)
-  act(id) {
-    if (!ACTS[id] || !ACT_IMG[id] || this.skin || this.job || this.focus) return false;
-    this.state = 'act'; this.actId = id; this.actT = 0; this.v = 0; this.peck = 0;
+  //  변형(acts.js variantOf)이 있으면 원래 것과 변형 중 무작위 — exact 면 그 묶음만 (시뮬레이터)
+  act(id, exact = false) {
+    if (this.skin || this.job || this.focus) return false;
+    const ids = (exact ? [id] : [id, ...(VARIANTS[id] || [])]).filter(v => ACTS[v] && ACT_IMG[v]);
+    if (!ids.length) return false;
+    this.state = 'act'; this.actId = ids[Math.floor(Math.random() * ids.length)]; this.actT = 0; this.v = 0; this.peck = 0;
     return true;
   }
 
