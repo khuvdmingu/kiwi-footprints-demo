@@ -6,8 +6,8 @@
 //  사건(voyage.js 의 kind)을 받으면 12초쯤 그 장면을 보여 준다. snapshot() 은 같은 장면을 사진 한 장으로 다시 그린다
 //  (화면을 꺼 두었던 사이의 사건도 일기 사진을 남길 수 있게).
 
-import { CREW_ACTS } from './acts.js?v=v28.7.4';
-import { SeaGL } from './voyage-water.js?v=v28.7.4';
+import { CREW_ACTS } from './acts.js?v=v28.8.0';
+import { SeaGL } from './voyage-water.js?v=v28.8.0';
 
 export const SPEED = 0.05;   // 배가 가는 빠르기: 1초에 화면 짧은 변의 5% (물·잔물결·지나가는 것이 모두 이 빠르기로 흐른다)
 const WATER_SCALE = 0.75;     // 물은 화면보다 성기게 그린다 (배터리·발열 — 물결은 흐려도 티가 안 난다)
@@ -22,7 +22,8 @@ export function voyageLight(hour = 12) {
   const h = ((hour % 24) + 24) % 24;
   const smooth = (a, b) => { const k = Math.max(0, Math.min(1, (h - a) / (b - a))); return k * k * (3 - 2 * k); };
   const night = h < 6.5 ? 1 - smooth(5, 6.5) : smooth(18.5, 20.5);
-  return { night, sunset: smooth(16.5, 18.5) * (1 - night) };
+  // 새벽(2026-10-22): 밤이 걷히는 5~6:30 에 밤→새벽, 6:30~8:30 에 새벽→낮 (노을과 거울 모양)
+  return { night, sunset: smooth(16.5, 18.5) * (1 - night), dawn: h < 12 ? (1 - smooth(6.5, 8.5)) * (1 - night) : 0 };
 }
 
 const img = src => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; });
@@ -34,7 +35,7 @@ export class VoyageScene {
     // 물은 자기 캔버스에 화면으로 바로 그린다(배 장면 캔버스 바로 아래). 매 프레임 2D 로 복사하면 일부 브라우저에서
     // 새·옛 프레임이 띠처럼 섞이거나 검은 칸이 보였다 → 복사는 일기 사진을 찍을 때만 (사진용 물은 따로 하나)
     this.water = new SeaGL(); this.travel = 0; this.photoWater = null;
-    this.sunsets = new Map();
+    this.sunsets = new Map(); this.dawns = new Map();
     if (this.water.ok) { const w = this.water.cv; w.id = 'voyageSea'; w.setAttribute('aria-hidden', 'true'); canvas.parentNode.insertBefore(w, canvas); }
     this.rain = Array.from({ length: 90 }, () => ({ x: Math.random(), y: Math.random(), v: 0.8 + Math.random() * 0.6 }));
   }
@@ -42,7 +43,7 @@ export class VoyageScene {
   async load(base = 'assets/') {
     this.base = base;
     const gen = this.gen = (this.gen || 0) + 1;
-    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v28.7.4', 'sea-tall.webp?v=v28.7.4', 'voyage-sprites.webp?v=v28.7.4', 'kiwi.webp?v=v28.7.4', 'kiwi-sleep.webp?v=v28.7.4', 'umbrellas.webp?v=v28.7.4', 'sea-night.webp?v=v28.7.4', 'sea-tall-night.webp?v=v28.7.4', 'voyage-crew.webp?v=v28.7.4', 'voyage-boat.webp?v=v28.7.4', 'voyage-sail.webp?v=v28.7.4'].map(f => img(base + f).catch(() => null)));
+    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v28.8.0', 'sea-tall.webp?v=v28.8.0', 'voyage-sprites.webp?v=v28.8.0', 'kiwi.webp?v=v28.8.0', 'kiwi-sleep.webp?v=v28.8.0', 'umbrellas.webp?v=v28.8.0', 'sea-night.webp?v=v28.8.0', 'sea-tall-night.webp?v=v28.8.0', 'voyage-crew.webp?v=v28.8.0', 'voyage-boat.webp?v=v28.8.0', 'voyage-sail.webp?v=v28.8.0'].map(f => img(base + f).catch(() => null)));
     if (gen !== this.gen) return false;
     if (!sea || !sheet) throw new Error('voyage art');
     Object.assign(this, { sea, tall: tall || sea, sheet, kiwi, sleep, umb, seaN, tallN: tallN || seaN, crewSheet });
@@ -62,7 +63,7 @@ export class VoyageScene {
   unload() {
     this.gen = (this.gen || 0) + 1; this.ready = false;
     for (const k of ['sea', 'tall', 'sheet', 'kiwi', 'sleep', 'umb', 'seaN', 'tallN', 'crewSheet', 'hull', 'sail', 'cells', 'crewCells', 'crewRef', 'crewActs', 'hullBox', 'sailBox']) this[k] = null;
-    this.sunsets.clear();
+    this.sunsets.clear(); this.dawns?.clear();
     this.water.release(); this.photoWater?.release();
     this.cv.width = 1; this.cv.height = 1; this.W = 0; this.H = 0;
     this.play = null;
@@ -79,10 +80,19 @@ export class VoyageScene {
   sunsetArt(tall) {
     if (!this.sunsets.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v28.7.4' : 'sea-sunset.webp?v=v28.7.4')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v28.8.0' : 'sea-sunset.webp?v=v28.8.0')).then(image => (entry.image = image)).catch(() => null);
       this.sunsets.set(tall, entry);
     }
     return this.sunsets.get(tall).promise;
+  }
+  // 새벽 그림도 같은 방식 (해 뜰 무렵에만)
+  dawnArt(tall) {
+    if (!this.dawns.has(tall)) {
+      const entry = { image: null };
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-dawn.webp?v=v28.8.0' : 'sea-dawn.webp?v=v28.8.0')).then(image => (entry.image = image)).catch(() => null);
+      this.dawns.set(tall, entry);
+    }
+    return this.dawns.get(tall).promise;
   }
 
   // st = { frac, crew(명), hour, weather }
@@ -93,6 +103,7 @@ export class VoyageScene {
     if (!this.ready || !this.W) return;
     const h = st.hour ?? 12;
     if (h >= 16 && h < 20.5) this.sunsetArt(this.H > this.W);
+    if (h >= 4.5 && h < 8.5) this.dawnArt(this.H > this.W);
     const c = this.cx; c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     this.paint(c, this.W, this.H, this.t, st, this.play, true);
   }
@@ -100,6 +111,7 @@ export class VoyageScene {
   async snapshot(kind, st, w = 1600, h = 900) {
     if (!this.ready) return null;
     if (voyageLight(st.hour).sunset > 0) await this.sunsetArt(h > w);
+    if (voyageLight(st.hour).dawn > 0) await this.dawnArt(h > w);
     // 사진은 배 가까이: 더 넓게 그린 뒤 배와 사건이 들어오는 가운데만 잘라 낸다
     const Z = 0.62, BW = Math.round(w / Z), BH = Math.round(h / Z), big = document.createElement('canvas'); big.width = BW; big.height = BH;
     this.paint(big.getContext('2d'), BW, BH, 37, st, kind && kind !== 'quiet' ? { kind, t: PLAY_SECS * 0.42 } : null);
@@ -111,19 +123,20 @@ export class VoyageScene {
 
   paint(c, W, H, t, st, play, screen = false) {
     const tallView = H > W, sea = tallView ? this.tall : this.sea, seaN = tallView ? this.tallN : this.seaN, u = Math.min(W, H);
-    const light = voyageLight(st.hour), n = light.night, sunset = this.sunsets.get(tallView)?.image;
-    const warm = sunset ? light.sunset : 0;
+    const light = voyageLight(st.hour), n = light.night, sunset = this.sunsets.get(tallView)?.image, dawnImg = this.dawns?.get(tallView)?.image;
+    const warm = sunset ? light.sunset : 0, pink = dawnImg && light.dawn ? light.dawn : 0;
+    const tint = warm > 0 ? sunset : dawnImg, tintMix = warm || pink;   // 노을과 새벽은 겹치지 않는다
     // 세 장을 한꺼번에 읽지 않고 낮↔노을 또는 노을↔밤 두 장씩만 샘플링한다.
-    const first = warm > 0 && n > 0 ? sunset : sea;
-    const next = warm > 0 && n === 0 ? sunset : seaN || first;
-    const imageMix = warm > 0 && n === 0 ? warm : n;
+    const first = tintMix > 0 && n > 0 ? tint : sea;
+    const next = tintMix > 0 && n === 0 ? tint : seaN || first;
+    const imageMix = tintMix > 0 && n === 0 ? tintMix : n;
     const bx = W / 2 + Math.sin(t * 0.37) * u * 0.006, by = H * (tallView ? 0.6 : 0.58) + Math.sin(t * 1.3) * u * 0.004, bh = u * (tallView ? 0.42 : 0.4);
     const wide = !!this.hullBox, bhh = wide ? bh * 0.78 : bh;   // 넓은 배는 조금 짧게
     const bwGuess = wide ? bhh * this.hullBox.w / this.hullBox.h : this.cells.boat ? bh * this.cells.boat.w / this.cells.boat.h : bh * 0.45;
     // 바다: 물 셰이더가 배 뒤로 흘려 보낸다 (안 되면 정지 그림)
     const q = this.waterScale ?? WATER_SCALE, gw = Math.max(2, Math.round(W * q)), gh = Math.max(2, Math.round(H * q));
     const sea3 = screen ? this.water : (this.photoWater ||= new SeaGL());
-    const gl = sea3.ok && sea3.render(first, gw, gh, { time: t, travel: travelOf(this, t), boat: [bx * q, by * q], boatSize: [bwGuess * q, bhh * q], night: n, nightImg: next, imageMix, sunset: warm });
+    const gl = sea3.ok && sea3.render(first, gw, gh, { time: t, travel: travelOf(this, t), boat: [bx * q, by * q], boatSize: [bwGuess * q, bhh * q], night: n, nightImg: next, imageMix, sunset: warm + pink * 0.45 });   // 새벽 거품·반짝임은 노을보다 옅게 데움
     if (gl && screen) { gl.style.width = W + 'px'; gl.style.height = H + 'px'; c.clearRect(0, 0, W, H); }   // 화면: 물은 아래 캔버스, 여기는 투명
     else if (gl) { c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high'; c.drawImage(gl, 0, 0, W, H); }   // 사진: 한 번 복사
     else {
@@ -163,6 +176,7 @@ export class VoyageScene {
     // 시간 빛 (밤엔 짙은 남색) — 별똥별·등대 불빛은 그 위에
     // 밤 판을 셰이더가 그렸으면 덮개는 아주 엷게(배·키위만 밤빛으로), 아니면 예전처럼 짙게
     if (warm > 0) { c.fillStyle = `rgba(255,181,128,${0.06 * warm})`; c.fillRect(0, 0, W, H); }
+    if (pink > 0) { c.fillStyle = `rgba(255,206,222,${0.05 * pink})`; c.fillRect(0, 0, W, H); }
     if (n > 0) { c.fillStyle = `rgba(12,22,52,${(seaN ? 0.22 : 0.55) * n})`; c.fillRect(0, 0, W, H); }
     if (n > 0.05) this.lantern(c, bx, by, bwGuess, bhh, n, t);
     if (play?.kind === 'meteor') this.meteor(c, W, H, play.t);
