@@ -17,11 +17,11 @@
 //           — 지금은 기록만. 나중에 "시간·날씨 따라 녹음 곡 돌리기(라디오)"가 이걸로 고른다
 //   credit  { title, author, source, url, license }   license 는 LICENSES 중 하나
 
-import cc0v16 from './cc0-v16.js?v=v28.7.3';
-import oga202610 from './oga-2026-10.js?v=v28.7.3';
-import fs202610 from './fs-2026-10.js?v=v28.7.3';
-import kiwiVoices from './kiwi-voices-2026-10.js?v=v28.7.3';
-import oga202610b from './oga-2026-10b.js?v=v28.7.3';
+import cc0v16 from './cc0-v16.js?v=v28.7.4';
+import oga202610 from './oga-2026-10.js?v=v28.7.4';
+import fs202610 from './fs-2026-10.js?v=v28.7.4';
+import kiwiVoices from './kiwi-voices-2026-10.js?v=v28.7.4';
+import oga202610b from './oga-2026-10b.js?v=v28.7.4';
 
 // 순서 = 소라로 떠내려오는 순서 (키위 소리를 곡보다 먼저)
 export const PACKS = [cc0v16, fs202610, kiwiVoices, oga202610, oga202610b];
