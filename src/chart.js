@@ -8,9 +8,9 @@
 //  기록은 이 기기에만 (localStorage 'chart'). 항해 기록(voyage.log)은 voyage.js 가 갖고, 여기는 발견·이름만 갖는다.
 //  그리기: 그림 격자(assets/chart-sheet.webp, 4×4)가 있으면 칸을 잘라 쓰고, 없으면 코드로 그린다.
 
-import { fitCell, roundCell } from './sheet.js?v=v28.3.0-b45aa56';
+import { fitCell, roundCell } from './sheet.js?v=v28.6.0';
 
-export const SHEET = 'chart-sheet.webp?v=v28.3.0-b45aa56';
+export const SHEET = 'chart-sheet.webp?v=v28.6.0';
 // 격자 칸 (4×4): 0~4 큰 섬 · 5~12 작은 섬 · 13 나침반 · 14 배 표시 · 15 안개 덩이
 export const CELL = { beach: 0, nz: 1, snow: 2, fall: 3, zen: 4, compass: 13, boat: 14, fog: 15 };
 
