@@ -10,10 +10,11 @@
 //      그림을 처음 읽을 때 알파를 훑어 부리 끝·몸 바닥을 찾아 크기·콕 각도를 맞춘다 (setKiwiSprite).
 //  (x, y) = 발이 땅에 닿는 점. k = 몸 크기 단위 (꼬리 −0.41k ~ 부리 끝 +0.8k, 머리 꼭대기 −0.86k)
 
-import { angleDiff, clamp, dist, Path } from './util.js?v=v28.6.0';
-import { PAL as T, LIGHT } from './tokens.js?v=v28.6.0';
-import { ACTS, VARIANTS, WAKE_ACT, pickIdleAct } from './acts.js?v=v28.6.0';
-import { ACT_HEADS, HEAD_MODES, HEAD_REST } from './act-heads.js?v=v28.6.0';
+import { angleDiff, clamp, dist, Path } from './util.js?v=v28.7.0';
+import { PAL as T, LIGHT } from './tokens.js?v=v28.7.0';
+import { ACTS, VARIANTS, WAKE_ACT, pickIdleAct } from './acts.js?v=v28.7.0';
+import { ACT_HEADS, HEAD_MODES, HEAD_REST } from './act-heads.js?v=v28.7.0';
+import { HEADWEAR, HEADWEAR_FADE } from './headwear.js?v=v28.7.0';
 
 let ID = 0;
 export let REACH = 0.8;             // 몸을 숙였을 때 부리 끝이 땅에 닿는 가로 거리 (k 배수) — 그림에서 다시 잰다
@@ -28,6 +29,11 @@ let SPR = null;
 // v10 옷 입은 몸 그림: 같은 키위 그림을 편집해 만들어 자리·크기가 원본과 같다 → 원본의 자리 맞춤을 그대로 쓴다
 const SKINS = {};
 export function setKiwiSkins(map) { Object.assign(SKINS, map); }
+// v28.7 머리에 얹는 장식 그림 (headwear.js) — 있으면 그 옷은 몸 그림 + 장식으로 그리고 동작도 한다
+const HW_IMG = {};
+export function setKiwiHeadwear(map) { Object.assign(HW_IMG, map); }
+// 옷 때문에 동작을 못 하는가 (몸째 그린 옷 그림만 그렇다)
+export function stiffSkin(id) { return !!id && !HW_IMG[id]; }
 export function setKiwiSprite(img) {
   const w = img.naturalWidth, h = img.naturalHeight;
   const c = document.createElement('canvas'); c.width = w; c.height = h;
@@ -118,7 +124,7 @@ export class Kiwi {
   //  변형(acts.js variantOf)이 있으면 원래 것과 변형 중 무작위 — exact 면 그 묶음만 (시뮬레이터)
   //  v27.6 opt: from = 시작 초(묶음 가운데부터) · hold = 이 초에서 멈춰 있기 · holdUntil = 멈춤을 풀 시각(clock) — 기념사진 자세·쌍안경 눈 맞춤
   act(id, exact = false, opt = {}) {
-    if (this.skin || this.job || this.focus) return false;
+    if (stiffSkin(this.skin) || this.job || this.focus) return false;
     const ids = (exact ? [id] : [id, ...(VARIANTS[id] || [])]).filter(v => ACTS[v] && ACT_IMG[v]);
     if (!ids.length) return false;
     this.state = 'act'; this.actId = ids[Math.floor(Math.random() * ids.length)];
@@ -387,7 +393,8 @@ export class Kiwi {
         const i = Math.min(a.n - 1, Math.floor(this.actT * a.fps)), u = SPR.w / SPR.img.naturalWidth;
         ctx.drawImage(ai, (i % a.cols) * a.fw, Math.floor(i / a.cols) * a.fh, a.fw, a.fh,
           SPR.x * k + a.ox * u * k, SPR.y * k + a.oy * u * k, a.w * u * k, a.h * u * k);
-      } else ctx.drawImage((this.skin && SKINS[this.skin]) || SPR.img, SPR.x * k, SPR.y * k, SPR.w * k, SPR.h * k);
+      } else ctx.drawImage((stiffSkin(this.skin) && SKINS[this.skin]) || SPR.img, SPR.x * k, SPR.y * k, SPR.w * k, SPR.h * k);
+      if (HW_IMG[this.skin]) this.drawHeadwear(ctx, k, a && ai ? a : null);
     } else {
       const s = kiwiShape(k);
       ctx.fillStyle = PAL.body; ctx.fill(s.body);
@@ -399,6 +406,23 @@ export class Kiwi {
     if (this.alertT > 0 && this.alertT <= 0.9) this.drawAlert(ctx, k, Math.max(1, k * 0.032));
     if (this.hops > 1 && this.clock - this.hop0 < this.hops * HOP + 0.6) this.drawNotes(ctx, k);
     ctx.globalAlpha = 1;
+  }
+
+  // v28.7 머리 장식: 쉬는 자리(headwear.js)에 얹고, 동작 중엔 머리 기준점을 따라 옮기고 돌린다 (몸 그림을 그린 좌표 그대로)
+  //  HEADWEAR_FADE 동작(숨기·뿌듯)은 처음·끝 0.3초에 걸쳐 흐려졌다 돌아온다
+  drawHeadwear(ctx, k, a) {
+    const p = HEADWEAR[this.skin], img = HW_IMG[this.skin], u = SPR.w / SPR.img.naturalWidth;
+    let alpha = 1;
+    if (a && HEADWEAR_FADE.has(this.actId)) alpha = clamp(1 - Math.min(this.actT, a.n / a.fps - this.actT) / 0.3, 0, 1);
+    if (alpha <= 0) return;
+    const hp = a ? headPose(this) : null;
+    ctx.save();
+    ctx.globalAlpha *= alpha;
+    if (hp) {
+      ctx.translate((hp.hx + hp.dx) * k, (hp.hy + hp.dy) * k); ctx.rotate(hp.a); ctx.translate(-hp.hx * k, -hp.hy * k);
+    }
+    ctx.drawImage(img, (SPR.x + p.x * u) * k, (SPR.y + p.y * u) * k, p.w * u * k, p.h * u * k);
+    ctx.restore();
   }
 
   // 잠든 키위: 다리 없이 앉아서 숨 쉬듯 부풀었다 가라앉고, 머리 위로 z 가 천천히 떠오른다
