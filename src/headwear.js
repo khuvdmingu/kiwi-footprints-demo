@@ -7,14 +7,14 @@
 //  몸을 감싸는 옷(목도리·스웨터·담요·조끼·배낭·목걸이·펜던트)은 아직 몸째 그린 그림 그대로라 동작하지 않는다.
 
 export const HEADWEAR = {
-  hat: { file: 'head-hat.webp?v=v28.7.0', x: 256.2, y: 126.9, w: 290, h: 226.3 },
-  crown: { file: 'head-crown.webp?v=v28.7.0', x: 290, y: 134.7, w: 190, h: 118.8 },
-  glasses: { file: 'head-glasses.webp?v=v28.7.0', x: 224.2, y: 224.6, w: 210, h: 101 },
-  beanie: { file: 'head-beanie.webp?v=v28.7.0', x: 285, y: 20.4, w: 200, h: 225.6 },
-  earmuffs: { file: 'head-earmuffs.webp?v=v28.7.0', x: 300.1, y: 98, w: 135, h: 245.3 },
-  santa: { file: 'head-santa.webp?v=v28.7.0', x: 172.5, y: 40.1, w: 290, h: 234.9 },
-  plume: { file: 'head-plume.webp?v=v28.7.0', x: 267, y: 69.8, w: 175, h: 169.6 },
-  starpin: { file: 'head-starpin.webp?v=v28.7.0', x: 336.3, y: 190.9, w: 85, h: 48.2 },
+  hat: { file: 'head-hat.webp?v=v28.7.1', x: 220.8, y: 130, w: 360, h: 280.9 },
+  crown: { file: 'head-crown.webp?v=v28.7.1', x: 279.5, y: 143.5, w: 205, h: 128.1 },
+  glasses: { file: 'head-glasses.webp?v=v28.7.1', x: 224.2, y: 224.6, w: 210, h: 101 },
+  beanie: { file: 'head-beanie.webp?v=v28.7.1', x: 272, y: 13.7, w: 220, h: 248.2 },
+  earmuffs: { file: 'head-earmuffs.webp?v=v28.7.1', x: 278.3, y: 137.2, w: 118, h: 214.5 },
+  santa: { file: 'head-santa.webp?v=v28.7.1', x: 107.5, y: 6.2, w: 370, h: 299.7 },
+  plume: { file: 'head-plume.webp?v=v28.7.1', x: 245, y: 78.9, w: 215, h: 208.4 },
+  starpin: { file: 'head-starpin.webp?v=v28.7.1', x: 336.3, y: 190.9, w: 85, h: 48.2 },
 };
 
 // 이 동작 동안은 장식을 흐리게 한다 — 머리를 몸에 파묻거나(hide) 몸이 1.5배로 부풀어(proud) 머리 따라가기로 못 맞춘다
