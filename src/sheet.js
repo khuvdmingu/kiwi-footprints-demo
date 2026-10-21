@@ -38,3 +38,19 @@ export function standCell(ctx, sheet, n, x, y, h) {
   ctx.drawImage(sheet.img, b.x, b.y, b.w, b.h, x - w / 2, y - h, w, h);
   return true;
 }
+// 둥근 창: 칸을 가운데 원으로 잘라 가장자리를 흐리게 (물로 꽉 찬 네모 타일을 해도 위 동그란 그림으로 — 바다 위의 곳)
+const rounds = new WeakMap();
+export function roundCell(ctx, sheet, n, x, y, size) {
+  if (!sheet || n == null || !sheet.boxes) return false;
+  let m = rounds.get(sheet); if (!m) rounds.set(sheet, m = {});
+  if (!m[n]) {
+    const b = sheet.boxes[n], s = Math.min(b.w, b.h), cv = document.createElement('canvas'); cv.width = cv.height = s;
+    const c = cv.getContext('2d'); c.drawImage(sheet.img, b.x + (b.w - s) / 2, b.y + (b.h - s) / 2, s, s, 0, 0, s, s);
+    const g = c.createRadialGradient(s / 2, s / 2, s * 0.28, s / 2, s / 2, s * 0.5);
+    g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    c.globalCompositeOperation = 'destination-in'; c.fillStyle = g; c.fillRect(0, 0, s, s);
+    m[n] = cv;
+  }
+  ctx.drawImage(m[n], x - size / 2, y - size / 2, size, size);
+  return true;
+}

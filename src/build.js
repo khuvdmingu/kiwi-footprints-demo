@@ -8,7 +8,7 @@
 //  그림: assets/catch-sheet.webp 의 10~15 칸 (fishing.js 와 같은 장). 없으면 코드 그림.
 //  기록은 이 기기에만 (localStorage 'builds').
 
-import { standCell } from './sheet.js?v=v28.2.0';
+import { standCell } from './sheet.js?v=v28.3.0';
 
 export const BUILDS = [
   { id: 'flag', min: 15, cell: 10, ko: '깃발', note: '여기 우리가 있었다는 표시.', x: 0.17, h: 0.11 },
@@ -19,8 +19,22 @@ export const BUILDS = [
   { id: 'light', min: 400, cell: 15, ko: '등대', note: '밤바다로 나간 배가 돌아올 길.', x: 0.07, h: 0.24, glow: 1 },
 ];
 export const BUILD = Object.fromEntries(BUILDS.map(b => [b.id, b]));
-const ZEN = { light: { ko: '석등', note: '자갈 정원을 밝히는 돌 등.', h: 0.16 } };
-export const buildFor = (b, map) => (map === 'zen' && ZEN[b.id] ? { ...b, ...ZEN[b.id] } : b);
+// 장소마다 바꿔 세우는 것 (v28.3 — extra-sheet.webp 칸). sheet: 'extra' 면 보충 격자에서 그린다
+export const VARIANTS = {
+  zen: {
+    light: { ko: '석등', note: '자갈 정원을 밝히는 돌 등.', h: 0.16, sheet: 'extra', cell: 8 },
+    hut: { ko: '찻집', note: '자갈 소리를 들으며 차를 마신다.', sheet: 'extra', cell: 9 },
+    fire: { ko: '물확', note: '대나무 대롱에서 물이 똑똑 떨어진다.', h: 0.09, sheet: 'extra', cell: 10, glow: 0 },
+    bench: { ko: '돌 벤치', note: '햇볕에 데워진 납작한 돌.', sheet: 'extra', cell: 11 },
+  },
+  snow: {
+    hut: { ko: '통나무집', note: '지붕에 눈이 두툼하게 쌓였다.', sheet: 'extra', cell: 12 },
+    flag: { ko: '눈사람', note: '빨간 목도리를 둘렀다.', h: 0.12, sheet: 'extra', cell: 13 },
+  },
+  fall: { hut: { ko: '단풍 오두막', note: '지붕을 단풍잎으로 덮었다.', sheet: 'extra', cell: 14 } },
+  nz: { hut: { ko: '고사리 오두막', note: '고사리 잎을 엮어 지붕을 얹었다.', sheet: 'extra', cell: 15 } },
+};
+export const buildFor = (b, map) => (VARIANTS[map]?.[b.id] ? { ...b, ...VARIANTS[map][b.id] } : b);
 
 export class Builds {
   constructor(load, save) {
@@ -58,7 +72,7 @@ export function nextText(builds, map) {
 }
 
 // 섬 위에 그리기 (main.js draw — 물가 물건 다음, 키위 그림자 앞). pop = { id, t0 } 새로 선 것의 뿅 효과
-export function drawBuilds(ctx, beach, map, level, sheet, night = 0, pop = null) {
+export function drawBuilds(ctx, beach, map, level, sheets, night = 0, pop = null) {
   if (!level) return;
   const { W, H, t } = beach, S = Math.min(W, H);
   for (let i = 0; i < level; i++) {
@@ -68,7 +82,7 @@ export function drawBuilds(ctx, beach, map, level, sheet, night = 0, pop = null)
     ctx.save(); ctx.translate(x, y); ctx.scale(k, k);
     // 바닥 그림자
     ctx.fillStyle = 'rgba(40,30,20,0.18)'; ctx.beginPath(); ctx.ellipse(0, 0, h * 0.42, h * 0.08, 0, 0, 6.29); ctx.fill();
-    if (!(b.id === 'light' && map === 'zen') && standCell(ctx, sheet, b.cell, 0, h * 0.04, h)) { /* 그림 격자 (석등은 칸이 없어 코드 그림) */ }
+    if (standCell(ctx, sheets?.[b.sheet || 'catch'], b.cell, 0, h * 0.04, h)) { /* 그림 격자 */ }
     else drawCode(ctx, b.id, h, t, map);
     ctx.restore();
     if (b.glow && night > 0.2) glow(ctx, b, x, y, h, night, t);

@@ -32,7 +32,7 @@ export const MAPS = {
     shoreFrom: 0.45,
     leaves: true,                    // 물 위 단풍은 그림이 아니라 따로 떠다닌다 (leaves.js)
     moss: true,                      // 이끼 낀 바위: 물과 밝기가 같아 붉은 기로 찾고, 붉은 기 없는 물속 그림자 덩어리는 버린다 (plate.js)
-    art: false,                      // 밤·노을·새벽 그림 판은 아직 없다 — 코드 빛만 (싸게 먼저, GRAPHICS.md §5)
+    // 밤·노을·새벽 그림 판 18장 (v28.3, Higgsfield GPT Image 2 — 그 전에는 코드 빛만)
     unlock: 'map-fall',
     steps: 20000,                    // 큰 걸음 목표: 눈밭(5,000) 다음
   },
@@ -45,7 +45,7 @@ export const MAPS = {
     lineGap: 26.5,                   // 그림 속 가로 갈퀴 줄 간격(판 px, 가로·세로 판 모두 실측) — 다시 긋는 줄을 여기에 맞춘다
     ground: 'gravel',                // 숲 줄 찾기·발자국 색이 자갈 기준
     finds: ['pebble', 'heart', 'gold', 'pearl'],   // 물가 물건 중 정원에 어울리는 것만
-    art: false,
+    // 밤·노을·새벽 그림 판 6장 (v28.3) — 판이 한 장이라 시간대도 한 장씩 (plate.js loadSet)
     unlock: 'map-zen',
     steps: 35000,
   },

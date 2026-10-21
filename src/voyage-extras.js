@@ -7,13 +7,13 @@
 //   · extras.drawIsland(ctx, beach, mapId, night) — 섬 장면에 지은 것을 그린다
 //  규칙·저장은 chart.js · fishing.js · build.js 에, 화면 칸(바구니 › 해도 · 장소·소리 · 도감, 집중 창 안내)은 index.html 에.
 
-import { Chart, ISLET, SPOT, drawChart, routeLine, josa, SHEET as CHART_SHEET } from './chart.js?v=v28.2.0';
-import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v28.2.0';
-import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v28.2.0';
-import { loadSheet } from './sheet.js?v=v28.2.0';
+import { Chart, ISLET, SPOT, drawChart, routeLine, josa, SHEET as CHART_SHEET } from './chart.js?v=v28.3.0';
+import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v28.3.0';
+import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v28.3.0';
+import { loadSheet } from './sheet.js?v=v28.3.0';
 
 // 그림 격자가 assets/ 에 들어오면 true 로 (없을 때 404 를 내지 않게 — 그동안은 코드 그림)
-export const ART = { chart: true, catch: true };   // 2026-10-21 Higgsfield 격자 2장 (docs/GRAPHICS-PROMPTS.md v28)
+export const ART = { chart: true, catch: true, extra: true };   // 2026-10-21 Higgsfield 격자 2장 (docs/GRAPHICS-PROMPTS.md v28)
 
 export function mountExtras(env) {
   const { saved, save, voyage, voyScene, mapOpen, placeName, toast, unlockAll = false } = env;
@@ -21,9 +21,9 @@ export function mountExtras(env) {
   const catches = new Catches(() => saved('catch'), v => save('catch', v));
   const builds = new Builds(() => saved('builds'), v => save('builds', v));
   const base = new URL('../assets/', import.meta.url).href;
-  const sheets = { chart: null, catch: null };
+  const sheets = { chart: null, catch: null, extra: null };
   const load = (k, f) => { if (ART[k]) loadSheet(base + f).then(s => { if (s) { sheets[k] = s; paintAll(); } }); };
-  load('chart', CHART_SHEET); load('catch', CATCH_SHEET);
+  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v28.3.0');   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
   const $ = id => document.getElementById(id);
   const later = []; let busy = false;   // 알림 줄 (도착 알림 뒤에 차례로)
   const say = (text, ms = 3200) => { later.push([text, ms]); if (!busy) { busy = true; setTimeout(next, 4400); } };
@@ -67,7 +67,7 @@ export function mountExtras(env) {
     const lv = builds.level(map); if (!lv) return;
     if (builds.fresh[map]) { pop = { id: builds.fresh[map], t0: beach.t }; builds.seenFresh(map); }
     ctx.save();
-    try { drawBuilds(ctx, beach, map, lv, sheets.catch, night, pop); }
+    try { drawBuilds(ctx, beach, map, lv, sheets, night, pop); }
     catch (e) { if (!drawIsland.warned) { drawIsland.warned = true; console.warn('지은 것 그리기를 건너뜁니다:', e); } }   // 장면은 멈추지 않는다
     ctx.restore();
   }
@@ -78,7 +78,7 @@ export function mountExtras(env) {
     const box = $('chartBox'), w = Math.max(200, Math.min(560, box.clientWidth || 320)), dpr = Math.min(2, devicePixelRatio || 1);
     if (cv.width !== Math.round(w * dpr)) { cv.width = cv.height = Math.round(w * dpr); cv.style.width = cv.style.height = w + 'px'; }
     const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
-    drawChart(c, w, { chart, log: voyage.log, home: voyage.at || env.mapId(), sailedMs: voyage.sailedMs, open: mapOpen, placeName, sheet: sheets.chart, builds: id => builds.level(id), t: 0 });
+    drawChart(c, w, { chart, log: voyage.log, home: voyage.at || env.mapId(), sailedMs: voyage.sailedMs, open: mapOpen, placeName, sheet: sheets.chart, extra: sheets.extra, builds: id => builds.level(id), t: 0 });
     const n = chart.next(voyage.sailedMs), tot = chart.total(voyage.sailedMs);
     const note = `지금까지 ${tot.toFixed(1)}해리 · 찾은 섬 ${chart.islets.length} · 바다 위의 곳 ${chart.spots.length}` + (n ? ` · 다음 ${n.kind === 'islet' ? '섬' : '곳'}까지 ${n.left.toFixed(1)}해리` : ' · 지도를 다 그렸어요');
     $('chartNote').textContent = note;

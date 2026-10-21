@@ -8,9 +8,9 @@
 //  기록은 이 기기에만 (localStorage 'chart'). 항해 기록(voyage.log)은 voyage.js 가 갖고, 여기는 발견·이름만 갖는다.
 //  그리기: 그림 격자(assets/chart-sheet.webp, 4×4)가 있으면 칸을 잘라 쓰고, 없으면 코드로 그린다.
 
-import { fitCell } from './sheet.js?v=v28.2.0';
+import { fitCell, roundCell } from './sheet.js?v=v28.3.0';
 
-export const SHEET = 'chart-sheet.webp?v=v28.2.0';
+export const SHEET = 'chart-sheet.webp?v=v28.3.0';
 // 격자 칸 (4×4): 0~4 큰 섬 · 5~12 작은 섬 · 13 나침반 · 14 배 표시 · 15 안개 덩이
 export const CELL = { beach: 0, nz: 1, snow: 2, fall: 3, zen: 4, compass: 13, boat: 14, fog: 15 };
 
@@ -34,17 +34,17 @@ export const ISLETS = [
   { id: 'i-hut', need: 14, cell: 11, ko: '빈 오두막 섬', note: '누가 살다 간 오두막. 문은 열려 있었다.' },
   { id: 'i-spring', need: 18, cell: 12, ko: '샘물 섬', note: '바다 한가운데서 단물이 솟는다.' },
   // 그림 칸이 없는 섬 — 격자 한 장을 더 뽑을 때까지 코드 그림 (cell null)
-  { id: 'i-twin', need: 22, cell: null, ko: '쌍둥이 섬', note: '똑같이 생긴 섬 둘이 마주 보고 있다.' },
-  { id: 'i-lantern', need: 27, cell: null, ko: '등불 섬', note: '해가 지면 바위 틈에서 불빛이 샌다.' },
-  { id: 'i-turtle', need: 33, cell: null, ko: '거북 등 섬', note: '가까이 가니 섬이 천천히 숨을 쉬었다.' },
-  { id: 'i-end', need: 40, cell: null, ko: '지도 끝 섬', note: '여기서부터는 아직 아무도 안 그렸다.' },
+  { id: 'i-twin', need: 22, cell: null, xcell: 0, ko: '쌍둥이 섬', note: '똑같이 생긴 섬 둘이 마주 보고 있다.' },
+  { id: 'i-lantern', need: 27, cell: null, xcell: 1, ko: '등불 섬', note: '해가 지면 바위 틈에서 불빛이 샌다.' },
+  { id: 'i-turtle', need: 33, cell: null, xcell: 2, ko: '거북 등 섬', note: '가까이 가니 섬이 천천히 숨을 쉬었다.' },
+  { id: 'i-end', need: 40, cell: null, xcell: 3, ko: '지도 끝 섬', note: '여기서부터는 아직 아무도 안 그렸다.' },
 ];
 // 바다 위의 곳 — 지나가면 일기 한 줄 · 낚시가 달라진다 (fishing.js)
 export const SPOTS = [
-  { id: 's-reef', need: 3, kind: 'reef', ko: '산호초', note: '물 밑이 분홍빛이다. 낚싯줄에 뭐가 더 잘 걸린다.', line: '산호초 위를 지났다. 물 밑이 분홍빛이었다.' },
-  { id: 's-current', need: 7, kind: 'current', ko: '따뜻한 해류', note: '배가 저절로 조금 빨리 간다.', line: '따뜻한 물살이 배를 밀어 주었다.' },
-  { id: 's-fog', need: 12, kind: 'fog', ko: '안개 띠', note: '늘 안개가 걸려 있는 바다.', line: '안개 띠를 지나는 동안 서로 이름을 불렀다.' },
-  { id: 's-whale', need: 20, kind: 'whale', ko: '고래 길', note: '고래들이 지나다니는 길이다.', line: '고래 길을 건넜다. 물이 깊게 울렸다.' },
+  { id: 's-reef', need: 3, xcell: 4, kind: 'reef', ko: '산호초', note: '물 밑이 분홍빛이다. 낚싯줄에 뭐가 더 잘 걸린다.', line: '산호초 위를 지났다. 물 밑이 분홍빛이었다.' },
+  { id: 's-current', need: 7, xcell: 5, kind: 'current', ko: '따뜻한 해류', note: '배가 저절로 조금 빨리 간다.', line: '따뜻한 물살이 배를 밀어 주었다.' },
+  { id: 's-fog', need: 12, xcell: 6, kind: 'fog', ko: '안개 띠', note: '늘 안개가 걸려 있는 바다.', line: '안개 띠를 지나는 동안 서로 이름을 불렀다.' },
+  { id: 's-whale', need: 20, xcell: 7, kind: 'whale', ko: '고래 길', note: '고래들이 지나다니는 길이다.', line: '고래 길을 건넜다. 물이 깊게 울렸다.' },
 ];
 export const ISLET = Object.fromEntries(ISLETS.map(i => [i.id, i]));
 export const SPOT = Object.fromEntries(SPOTS.map(s => [s.id, s]));
@@ -165,11 +165,11 @@ export function drawChart(ctx, S, o) {
   }
   ctx.setLineDash([]);
   // 바다 위의 곳 (작은 표시)
-  for (const s of chart.spots) drawSpot(ctx, s, P(chart.found[s.id]), S, t);
+  for (const s of chart.spots) { const [x, y] = P(chart.found[s.id]); if (!roundCell(ctx, o.extra, s.xcell, x, y, S * 0.1)) drawSpot(ctx, s, [x, y], S, t); }
   // 작은 섬
   for (const i of chart.islets) {
     const [x, y] = P(chart.found[i.id]), r = S * 0.045;
-    if (!cell(ctx, sheet, i.cell, x, y, r * 2.1)) drawIslet(ctx, x, y, r, hash(i.id));
+    if (!cell(ctx, sheet, i.cell, x, y, r * 2.1) && !cell(ctx, o.extra, i.xcell, x, y, r * 2.1)) drawIslet(ctx, x, y, r, hash(i.id));
     if (chart.named(i.id)) label(ctx, chart.name(i.id), x, y + r * 1.05, S * 0.024, '#3d2b1c');   // 이름 지은 섬만 지도에 쓴다 (안 지은 섬은 아래 목록에)
     else label(ctx, '?', x + r * 0.9, y - r * 0.9, S * 0.022, 'rgba(150,60,40,0.75)');
   }
