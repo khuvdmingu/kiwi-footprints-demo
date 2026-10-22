@@ -7,34 +7,34 @@
 //  옷 입은 키위: 머리 장식(모자·화관·안경 등, headwear.js)은 v28.7 부터 얹는 그림이라 함께 움직인다. 몸을 감싸는 옷은 아직 몸째 그린 그림이라 동작하지 않는다.
 
 export const ACTS = {
-  stretch: { file: 'kiwi-act-stretch.webp?v=v28.9.0', n: 53, cols: 8, fps: 15, fw: 334, fh: 293, ox: 25.6, oy: -87.1, w: 667.7, h: 585.2 },
-  nibble: { file: 'kiwi-act-nibble.webp?v=v28.9.0', n: 69, cols: 8, fps: 15, fw: 271, fh: 191, ox: 81.1, oy: 141.9, w: 541.2, h: 381.9 },
-  lookup: { file: 'kiwi-act-lookup.webp?v=v28.9.0', n: 71, cols: 8, fps: 15, fw: 266, fh: 204, ox: 81.1, oy: 83.6, w: 532.6, h: 408.9 },
-  tilt: { file: 'kiwi-act-tilt.webp?v=v28.9.0', n: 41, cols: 8, fps: 15, fw: 258, fh: 167, ox: 81.1, oy: 157.5, w: 517.0, h: 334.9 },
-  nod: { file: 'kiwi-act-nod.webp?v=v28.9.0', n: 58, cols: 8, fps: 15, fw: 258, fh: 201, ox: 81.1, oy: 157.5, w: 517.0, h: 401.8 },
-  startle: { file: 'kiwi-act-startle.webp?v=v28.9.0', n: 49, cols: 8, fps: 15, fw: 278, fh: 224, ox: 55.5, oy: 55.1, w: 555.4, h: 447.3 },
-  back: { file: 'kiwi-act-back.webp?v=v28.9.0', n: 75, cols: 8, fps: 15, fw: 284, fh: 199, ox: 78.2, oy: 100.6, w: 568.2, h: 397.5 },
-  shiver: { file: 'kiwi-act-shiver.webp?v=v28.9.0', n: 60, cols: 8, fps: 15, fw: 287, fh: 173, ox: 79.6, oy: 156.1, w: 573.9, h: 346.3 },
-  yawn: { file: 'kiwi-act-yawn.webp?v=v28.9.0', n: 55, cols: 8, fps: 15, fw: 270, fh: 185, ox: 81.1, oy: 123.4, w: 539.7, h: 369.1 },
-  rest: { file: 'kiwi-act-rest.webp?v=v28.9.0', n: 85, cols: 8, fps: 15, fw: 286, fh: 170, ox: 81.1, oy: 157.5, w: 571.0, h: 339.2, legs: false },
-  joy: { file: 'kiwi-act-joy.webp?v=v28.9.0', n: 69, cols: 8, fps: 15, fw: 312, fh: 337, ox: 56.9, oy: -81.4, w: 623.6, h: 674.8, legs: false },
-  blink: { file: 'kiwi-act-blink.webp?v=v28.9.0', n: 74, cols: 8, fps: 15, fw: 266, fh: 175, ox: 68.3, oy: 149.0, w: 531.2, h: 350.6 },   // 숨 고르기 — 눈을 지그시 감았다 뜸 (rest 1차 영상)
-  sniff: { file: 'kiwi-act-sniff.webp?v=v28.9.0', n: 67, cols: 8, fps: 15, fw: 316, fh: 184, ox: 79.6, oy: 156.1, w: 632.2, h: 367.6 },   // 킁킁 — 부리 끝을 땅에 대고 냄새
-  probe: { file: 'kiwi-act-probe.webp?v=v28.9.0', n: 72, cols: 8, fps: 15, fw: 268, fh: 206, ox: 79.6, oy: 157.5, w: 536.9, h: 411.7 },   // 땅 파기 — 부리를 깊이 꽂았다 빼기
-  lookaround: { file: 'kiwi-act-lookaround.webp?v=v28.9.0', n: 69, cols: 8, fps: 15, fw: 266, fh: 202, ox: 81.1, oy: 89.2, w: 531.2, h: 403.2 },   // 두리번 — 뒤돌아보고 정면도 한 번
-  brace: { file: 'kiwi-act-brace.webp?v=v28.9.0', n: 72, cols: 8, fps: 15, fw: 282, fh: 186, ox: 81.1, oy: 126.2, w: 563.9, h: 371.9 },   // 바람 버티기 — 몸을 낮춰 바람 쪽으로 (SOLO=1 로 바람 줄기 걷어 냄)
-  sneeze: { file: 'kiwi-act-sneeze.webp?v=v28.9.0', n: 45, cols: 8, fps: 15, fw: 286, fh: 241, ox: 79.6, oy: 58.0, w: 572.4, h: 482.8 },   // 재채기
+  stretch: { file: 'kiwi-act-stretch.webp?v=v28.10.0', n: 53, cols: 8, fps: 15, fw: 334, fh: 293, ox: 25.6, oy: -87.1, w: 667.7, h: 585.2 },
+  nibble: { file: 'kiwi-act-nibble.webp?v=v28.10.0', n: 69, cols: 8, fps: 15, fw: 271, fh: 191, ox: 81.1, oy: 141.9, w: 541.2, h: 381.9 },
+  lookup: { file: 'kiwi-act-lookup.webp?v=v28.10.0', n: 71, cols: 8, fps: 15, fw: 266, fh: 204, ox: 81.1, oy: 83.6, w: 532.6, h: 408.9 },
+  tilt: { file: 'kiwi-act-tilt.webp?v=v28.10.0', n: 41, cols: 8, fps: 15, fw: 258, fh: 167, ox: 81.1, oy: 157.5, w: 517.0, h: 334.9 },
+  nod: { file: 'kiwi-act-nod.webp?v=v28.10.0', n: 58, cols: 8, fps: 15, fw: 258, fh: 201, ox: 81.1, oy: 157.5, w: 517.0, h: 401.8 },
+  startle: { file: 'kiwi-act-startle.webp?v=v28.10.0', n: 49, cols: 8, fps: 15, fw: 278, fh: 224, ox: 55.5, oy: 55.1, w: 555.4, h: 447.3 },
+  back: { file: 'kiwi-act-back.webp?v=v28.10.0', n: 75, cols: 8, fps: 15, fw: 284, fh: 199, ox: 78.2, oy: 100.6, w: 568.2, h: 397.5 },
+  shiver: { file: 'kiwi-act-shiver.webp?v=v28.10.0', n: 60, cols: 8, fps: 15, fw: 287, fh: 173, ox: 79.6, oy: 156.1, w: 573.9, h: 346.3 },
+  yawn: { file: 'kiwi-act-yawn.webp?v=v28.10.0', n: 55, cols: 8, fps: 15, fw: 270, fh: 185, ox: 81.1, oy: 123.4, w: 539.7, h: 369.1 },
+  rest: { file: 'kiwi-act-rest.webp?v=v28.10.0', n: 85, cols: 8, fps: 15, fw: 286, fh: 170, ox: 81.1, oy: 157.5, w: 571.0, h: 339.2, legs: false },
+  joy: { file: 'kiwi-act-joy.webp?v=v28.10.0', n: 69, cols: 8, fps: 15, fw: 312, fh: 337, ox: 56.9, oy: -81.4, w: 623.6, h: 674.8, legs: false },
+  blink: { file: 'kiwi-act-blink.webp?v=v28.10.0', n: 74, cols: 8, fps: 15, fw: 266, fh: 175, ox: 68.3, oy: 149.0, w: 531.2, h: 350.6 },   // 숨 고르기 — 눈을 지그시 감았다 뜸 (rest 1차 영상)
+  sniff: { file: 'kiwi-act-sniff.webp?v=v28.10.0', n: 67, cols: 8, fps: 15, fw: 316, fh: 184, ox: 79.6, oy: 156.1, w: 632.2, h: 367.6 },   // 킁킁 — 부리 끝을 땅에 대고 냄새
+  probe: { file: 'kiwi-act-probe.webp?v=v28.10.0', n: 72, cols: 8, fps: 15, fw: 268, fh: 206, ox: 79.6, oy: 157.5, w: 536.9, h: 411.7 },   // 땅 파기 — 부리를 깊이 꽂았다 빼기
+  lookaround: { file: 'kiwi-act-lookaround.webp?v=v28.10.0', n: 69, cols: 8, fps: 15, fw: 266, fh: 202, ox: 81.1, oy: 89.2, w: 531.2, h: 403.2 },   // 두리번 — 뒤돌아보고 정면도 한 번
+  brace: { file: 'kiwi-act-brace.webp?v=v28.10.0', n: 72, cols: 8, fps: 15, fw: 282, fh: 186, ox: 81.1, oy: 126.2, w: 563.9, h: 371.9 },   // 바람 버티기 — 몸을 낮춰 바람 쪽으로 (SOLO=1 로 바람 줄기 걷어 냄)
+  sneeze: { file: 'kiwi-act-sneeze.webp?v=v28.10.0', n: 45, cols: 8, fps: 15, fw: 286, fh: 241, ox: 79.6, oy: 58.0, w: 572.4, h: 482.8 },   // 재채기
   // 변형: variantOf 가 있으면 그 동작이 나올 때 무작위로 함께 고른다 (같은 상황·같은 사건, 모습만 다르게)
-  sneezeB: { file: 'kiwi-act-sneeze-b.webp?v=v28.9.0', n: 58, cols: 8, fps: 15, fw: 295, fh: 259, ox: 81.1, oy: -11.7, w: 590.9, h: 518.4, variantOf: 'sneeze' },   // 재채기 뒤 눈이 동그래지고 입이 벌어지는 놀란 얼굴
-  braceB: { file: 'kiwi-act-brace-b.webp?v=v28.9.0', n: 59, cols: 8, fps: 15, fw: 344, fh: 190, ox: -54.0, oy: 131.9, w: 687.6, h: 379.0, variantOf: 'brace' },   // 센 돌풍 — 깃털이 크게 날림
+  sneezeB: { file: 'kiwi-act-sneeze-b.webp?v=v28.10.0', n: 58, cols: 8, fps: 15, fw: 295, fh: 259, ox: 81.1, oy: -11.7, w: 590.9, h: 518.4, variantOf: 'sneeze' },   // 재채기 뒤 눈이 동그래지고 입이 벌어지는 놀란 얼굴
+  braceB: { file: 'kiwi-act-brace-b.webp?v=v28.10.0', n: 59, cols: 8, fps: 15, fw: 344, fh: 190, ox: -54.0, oy: 131.9, w: 687.6, h: 379.0, variantOf: 'brace' },   // 센 돌풍 — 깃털이 크게 날림
   // preen(깃털 고르기)은 뺌 — 목이 너무 길어짐(사용자 지적), 다시 뽑은 4편도 확대·배경 바뀜으로 실패 (후보는 _apps/kiwi-motion-lab)
   // v28.6 — 기존 동작과 겹치지 않는 것만 (인사≈꾸벅·안도의 숨≈앉아 쉬기·딸꾹≈깜짝·킥킥≈통통은 뺌, 후보는 stock/acts/hold)
-  wiggle: { file: 'kiwi-act-wiggle.webp?v=v28.9.0', n: 68, cols: 8, fps: 15, fw: 287, fh: 179, ox: 71.1, oy: 137.6, w: 573.9, h: 357.7 },   // 살랑 춤 — 머리를 앞뒤로 까딱 리듬
-  proud: { file: 'kiwi-act-proud.webp?v=v28.9.0', n: 71, cols: 8, fps: 15, fw: 338, fh: 338, ox: -8.5, oy: -139.7, w: 676.3, h: 676.3 },   // 뿌듯 — 풍선처럼 부풀며 부리를 하늘로
-  hide: { file: 'kiwi-act-hide.webp?v=v28.9.0', n: 73, cols: 8, fps: 15, fw: 258, fh: 185, ox: 81.1, oy: 157.5, w: 515.6, h: 369.1 },   // 숨기 — 얼굴을 몸에 파묻어 털공 → 빼꼼
-  wag: { file: 'kiwi-act-wag.webp?v=v28.9.0', n: 67, cols: 8, fps: 15, fw: 259, fh: 171, ox: 79.6, oy: 150.4, w: 518.4, h: 342.0 },   // 엉덩이 들썩 — 꼬리 없이 둥근 뒤가 푸딩처럼
-  wobble: { file: 'kiwi-act-wobble.webp?v=v28.9.0', n: 71, cols: 8, fps: 15, fw: 276, fh: 231, ox: 59.7, oy: 45.2, w: 551.1, h: 461.5 },   // 오뚝이 — 뒤로 젖혔다 앞뒤로 흔들리며 잦아듦
-  shake: { file: 'kiwi-act-shake.webp?v=v28.9.0', n: 58, cols: 8, fps: 15, fw: 270, fh: 182, ox: 59.7, oy: 129.1, w: 539.7, h: 364.8 },   // 빗물 털기 — 둥근 몸을 작게 흔듦 (Codex facility-rain shake-retry 영상, 빠른 털기 5편은 번져서 뺌)
+  wiggle: { file: 'kiwi-act-wiggle.webp?v=v28.10.0', n: 68, cols: 8, fps: 15, fw: 287, fh: 179, ox: 71.1, oy: 137.6, w: 573.9, h: 357.7 },   // 살랑 춤 — 머리를 앞뒤로 까딱 리듬
+  proud: { file: 'kiwi-act-proud.webp?v=v28.10.0', n: 71, cols: 8, fps: 15, fw: 338, fh: 338, ox: -8.5, oy: -139.7, w: 676.3, h: 676.3 },   // 뿌듯 — 풍선처럼 부풀며 부리를 하늘로
+  hide: { file: 'kiwi-act-hide.webp?v=v28.10.0', n: 73, cols: 8, fps: 15, fw: 258, fh: 185, ox: 81.1, oy: 157.5, w: 515.6, h: 369.1 },   // 숨기 — 얼굴을 몸에 파묻어 털공 → 빼꼼
+  wag: { file: 'kiwi-act-wag.webp?v=v28.10.0', n: 67, cols: 8, fps: 15, fw: 259, fh: 171, ox: 79.6, oy: 150.4, w: 518.4, h: 342.0 },   // 엉덩이 들썩 — 꼬리 없이 둥근 뒤가 푸딩처럼
+  wobble: { file: 'kiwi-act-wobble.webp?v=v28.10.0', n: 71, cols: 8, fps: 15, fw: 276, fh: 231, ox: 59.7, oy: 45.2, w: 551.1, h: 461.5 },   // 오뚝이 — 뒤로 젖혔다 앞뒤로 흔들리며 잦아듦
+  shake: { file: 'kiwi-act-shake.webp?v=v28.10.0', n: 58, cols: 8, fps: 15, fw: 270, fh: 182, ox: 59.7, oy: 129.1, w: 539.7, h: 364.8 },   // 빗물 털기 — 둥근 몸을 작게 흔듦 (Codex facility-rain shake-retry 영상, 빠른 털기 5편은 번져서 뺌)
 };
 //  legs: false = 그동안 코드 다리를 숨긴다 (몸이 바닥에서 뜨거나 주저앉는 동작)
 
@@ -70,10 +70,10 @@ const WEIGHT = {
 //  만들기: 자세 칸을 1024 초록 판에 1:1 로 놓고(작업장 voyage/offsets.txt) BX·BY 를 준 make-act.sh
 //  voyage-scene.js 가 그 자세를 그릴 차례에 rest 초 쉬었다 한 번씩 되풀이한다 (키위마다 엇갈려서)
 export const CREW_ACTS = {
-  up: { file: 'kiwi-act-crew-up.webp?v=v28.9.0', n: 47, cols: 8, fps: 15, fw: 394, fh: 399, ox: -95.0, oy: -19.6, w: 787.2, h: 797.2, rest: 3 },   // 파도에 몸이 좌우로 기우뚱
-  wave: { file: 'kiwi-act-crew-wave.webp?v=v28.9.0', n: 69, cols: 8, fps: 15, fw: 350, fh: 323, ox: -16.1, oy: -2.2, w: 699.0, h: 646.4, rest: 1.5 },   // 고래에게 날개 흔들며 짹
-  sky: { file: 'kiwi-act-crew-sky.webp?v=v28.9.0', n: 55, cols: 8, fps: 15, fw: 371, fh: 475, ox: -3.9, oy: -168.0, w: 741.7, h: 950.8, rest: 2.5 },   // 별똥별 — 눈을 뜨고 따라봄
-  sleep: { file: 'kiwi-act-crew-sleep.webp?v=v28.9.0', n: 23, cols: 8, fps: 15, fw: 362, fh: 305, ox: -5.2, oy: -16.1, w: 724.6, h: 610.8, rest: 1.2 },   // 뱃머리에서 조는 숨
+  up: { file: 'kiwi-act-crew-up.webp?v=v28.10.0', n: 47, cols: 8, fps: 15, fw: 394, fh: 399, ox: -95.0, oy: -19.6, w: 787.2, h: 797.2, rest: 3 },   // 파도에 몸이 좌우로 기우뚱
+  wave: { file: 'kiwi-act-crew-wave.webp?v=v28.10.0', n: 69, cols: 8, fps: 15, fw: 350, fh: 323, ox: -16.1, oy: -2.2, w: 699.0, h: 646.4, rest: 1.5 },   // 고래에게 날개 흔들며 짹
+  sky: { file: 'kiwi-act-crew-sky.webp?v=v28.10.0', n: 55, cols: 8, fps: 15, fw: 371, fh: 475, ox: -3.9, oy: -168.0, w: 741.7, h: 950.8, rest: 2.5 },   // 별똥별 — 눈을 뜨고 따라봄
+  sleep: { file: 'kiwi-act-crew-sleep.webp?v=v28.10.0', n: 23, cols: 8, fps: 15, fw: 362, fh: 305, ox: -5.2, oy: -16.1, w: 724.6, h: 610.8, rest: 1.2 },   // 뱃머리에서 조는 숨
 };
 
 // v27.6 기념사진 자세 — 프레임 번호(묶음 안). from 부터 재생해 셔터 순간에 hold 프레임에 멈춰 있게 (작업장 heads.json 으로 찾은 꼭짓점)
