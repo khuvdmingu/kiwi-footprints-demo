@@ -6,8 +6,8 @@
 //  사건(voyage.js 의 kind)을 받으면 12초쯤 그 장면을 보여 준다. snapshot() 은 같은 장면을 사진 한 장으로 다시 그린다
 //  (화면을 꺼 두었던 사이의 사건도 일기 사진을 남길 수 있게).
 
-import { CREW_ACTS } from './acts.js?v=v28.10.0';
-import { SeaGL } from './voyage-water.js?v=v28.10.0';
+import { CREW_ACTS } from './acts.js?v=v28.11.0';
+import { SeaGL } from './voyage-water.js?v=v28.11.0';
 
 export const SPEED = 0.05;   // 배가 가는 빠르기: 1초에 화면 짧은 변의 5% (물·잔물결·지나가는 것이 모두 이 빠르기로 흐른다)
 const WATER_SCALE = 0.75;     // 물은 화면보다 성기게 그린다 (배터리·발열 — 물결은 흐려도 티가 안 난다)
@@ -36,6 +36,16 @@ export const BOATS = [
   { id: 'longboat8', name: '긴 나무 보트', hours: 40, h: 1.2, seats: rows(8, 1.2, 0.2, 0.06) },
   { id: 'wicker9', name: '엮은 바구니 배', hours: 50, h: 1.22, seats: rows(9, 1.22, 0.24, 0.04) },
   { id: 'barge10', name: '큰 섬 배', hours: 60, h: 1.32, seats: rows(10, 1.32, 0.28, 0.06) },
+];
+// 돛 고르기 (2026-10-22): 잎 돛 말고 여섯. 그림은 assets/sail-<id>.webp — 꼭지(매는 곳)가 위 가운데, 몸이 아래로 늘어진 같은 구도
+export const SAILS = [
+  { id: 'leaf', name: '잎 돛', hours: 0 },
+  { id: 'banana', name: '바나나잎 돛', hours: 3 },
+  { id: 'maple', name: '단풍잎 돛', hours: 8 },
+  { id: 'patch', name: '조각천 돛', hours: 18 },
+  { id: 'fern', name: '고사리 돛', hours: 28 },
+  { id: 'feather', name: '깃털 돛', hours: 45 },
+  { id: 'monstera', name: '몬스테라 돛', hours: 55 },
 ];
 // 키위 자리 만들기 — 줄 사이는 배 크기와 상관없이 키위 한 마리 키쯤(화면 기준 bh × 0.16)이 되게 배 길이 비율로 바꾼다
 function rows(n, h, dx, mid) {
@@ -70,7 +80,7 @@ export class VoyageScene {
   async load(base = 'assets/') {
     this.base = base;
     const gen = this.gen = (this.gen || 0) + 1;
-    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v28.10.0', 'sea-tall.webp?v=v28.10.0', 'voyage-sprites.webp?v=v28.10.0', 'kiwi.webp?v=v28.10.0', 'kiwi-sleep.webp?v=v28.10.0', 'umbrellas.webp?v=v28.10.0', 'sea-night.webp?v=v28.10.0', 'sea-tall-night.webp?v=v28.10.0', 'voyage-crew.webp?v=v28.10.0', 'voyage-boat.webp?v=v28.10.0', 'voyage-sail.webp?v=v28.10.0'].map(f => img(base + f).catch(() => null)));
+    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v28.11.0', 'sea-tall.webp?v=v28.11.0', 'voyage-sprites.webp?v=v28.11.0', 'kiwi.webp?v=v28.11.0', 'kiwi-sleep.webp?v=v28.11.0', 'umbrellas.webp?v=v28.11.0', 'sea-night.webp?v=v28.11.0', 'sea-tall-night.webp?v=v28.11.0', 'voyage-crew.webp?v=v28.11.0', 'voyage-boat.webp?v=v28.11.0', 'voyage-sail.webp?v=v28.11.0'].map(f => img(base + f).catch(() => null)));
     if (gen !== this.gen) return false;
     if (!sea || !sheet) throw new Error('voyage art');
     Object.assign(this, { sea, tall: tall || sea, sheet, kiwi, sleep, umb, seaN, tallN: tallN || seaN, crewSheet });
@@ -83,6 +93,7 @@ export class VoyageScene {
     // 넓은 배 + 따로 흔들리는 잎 돛 (둘 다 있어야 쓴다 — 아니면 예전 한 장짜리 배)
     if (hull && sail) Object.assign(this, { hull, sail, hullBox: boxesOf(hull, 'hull', ['h'], 1, 1).h, sailBox: boxesOf(sail, 'sail', ['s'], 1, 1).s });
     this.alt = null; this.setBoat(this.boatId);
+    this.sailAlt = null; this.setSail(this.sailId);
     this.ready = true;
     return true;
   }
@@ -93,16 +104,27 @@ export class VoyageScene {
     if (!b || !b.h || !this.base) { this.alt = null; return; }
     if (this.alt?.id === id) return;
     const gen = this.gen;
-    img(this.base + 'boat-' + id + '.webp?v=v28.10.0').then(im => {
+    img(this.base + 'boat-' + id + '.webp?v=v28.11.0').then(im => {
       if (gen !== this.gen || this.boatId !== id) return;
       this.alt = { ...b, im, box: boxesOf(im, 'boat-' + id, ['b'], 1, 1).b };
+    }).catch(() => {});
+  }
+  // 고른 돛 (SAILS id) — 배와 같은 방식: 그림이 오기 전까지는 잎 돛
+  setSail(id) {
+    this.sailId = id;
+    if (!id || id === 'leaf' || !this.base) { this.sailAlt = null; return; }
+    if (this.sailAlt?.id === id) return;
+    const gen = this.gen;
+    img(this.base + 'sail-' + id + '.webp?v=v28.11.0').then(im => {
+      if (gen !== this.gen || this.sailId !== id) return;
+      this.sailAlt = { id, im, box: boxesOf(im, 'sail-' + id, ['s'], 1, 1).s };
     }).catch(() => {});
   }
   // 항해가 끝나면 그림·GPU 텍스처·그리기 버퍼를 놓아준다 — 항해하지 않는 동안은 바다 그림을 들고 있지 않는다 (2026-10-19)
   //  다음 항해 때 load() 로 다시 읽는다(기기 캐시에서). 노을 그림의 실패 기록도 이때 지워 다음 항해에 다시 시도한다
   unload() {
     this.gen = (this.gen || 0) + 1; this.ready = false;
-    for (const k of ['sea', 'tall', 'sheet', 'kiwi', 'sleep', 'umb', 'seaN', 'tallN', 'crewSheet', 'hull', 'sail', 'cells', 'crewCells', 'crewRef', 'crewActs', 'hullBox', 'sailBox', 'alt']) this[k] = null;
+    for (const k of ['sea', 'tall', 'sheet', 'kiwi', 'sleep', 'umb', 'seaN', 'tallN', 'crewSheet', 'hull', 'sail', 'cells', 'crewCells', 'crewRef', 'crewActs', 'hullBox', 'sailBox', 'alt', 'sailAlt']) this[k] = null;
     this.sunsets.clear(); this.dawns?.clear();
     this.water.release(); this.photoWater?.release();
     this.cv.width = 1; this.cv.height = 1; this.W = 0; this.H = 0;
@@ -120,7 +142,7 @@ export class VoyageScene {
   sunsetArt(tall) {
     if (!this.sunsets.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v28.10.0' : 'sea-sunset.webp?v=v28.10.0')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v28.11.0' : 'sea-sunset.webp?v=v28.11.0')).then(image => (entry.image = image)).catch(() => null);
       this.sunsets.set(tall, entry);
     }
     return this.sunsets.get(tall).promise;
@@ -129,7 +151,7 @@ export class VoyageScene {
   dawnArt(tall) {
     if (!this.dawns.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-dawn.webp?v=v28.10.0' : 'sea-dawn.webp?v=v28.10.0')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-dawn.webp?v=v28.11.0' : 'sea-dawn.webp?v=v28.11.0')).then(image => (entry.image = image)).catch(() => null);
       this.dawns.set(tall, entry);
     }
     return this.dawns.get(tall).promise;
@@ -237,7 +259,7 @@ export class VoyageScene {
   // 잎 돛: 진짜 돛처럼 — 꼭지를 돛대에 매고 잎맥을 붐 삼아 배 뒤쪽 옆으로 펼친다(순풍에 붐을 내민 모양).
   //  위에서 비스듬히 본 천처럼 폭을 좁히고, 바람을 받아 부풀었다 줄었다 한다. 붐 끝에서 고물로 줄 하나.
   sailSway(c, bw, bh, st, t, mastY = -bh * MAST_Y, hullW = bw) {
-    const sb = this.sailBox, wind = st.weather === 'wind' || st.weather === 'blossom' ? 1.8 : st.weather === 'rain' ? 1.4 : 1;
+    const sa = this.sailAlt, sb = sa ? sa.box : this.sailBox, sailIm = sa ? sa.im : this.sail, wind = st.weather === 'wind' || st.weather === 'blossom' ? 1.8 : st.weather === 'rain' ? 1.4 : 1;
     const mx = 0, my = mastY, sternY = -my * 0.44 / MAST_Y;   // 고른 배는 길이가 달라 돛대·고물 자리가 그 배를 따른다
     const a = -0.62 + wind * (0.05 * Math.sin(t * 0.7) + 0.025 * Math.sin(t * 1.9 + 1.1));   // 0 = 바로 뒤, 음수 = 오른쪽으로
     const lh = bh * 0.95, lw = lh * sb.w / sb.h, belly = 0.5 + wind * 0.08 * (0.6 + 0.4 * Math.sin(t * 1.3)) + 0.03 * Math.sin(t * 4.1);
@@ -248,7 +270,7 @@ export class VoyageScene {
     c.save(); c.translate(mx, my); c.rotate(a);
     c.scale(belly, 1);   // 비스듬히 본 천 — 바람에 부푼 만큼 넓어 보인다
     c.translate(lw * 0.18, 0);   // 잎이 붐(잎맥)의 바람 아래쪽으로 불룩하게
-    c.drawImage(this.sail, sb.x, sb.y, sb.w, sb.h, -lw * SAIL_STEM_X, -lh * 0.02, lw, lh);
+    c.drawImage(sailIm, sb.x, sb.y, sb.w, sb.h, -lw * SAIL_STEM_X, -lh * 0.02, lw, lh);
     c.restore();
     // 돛대 (잎 위로 살짝 보이게)
     c.fillStyle = '#6b4a2e'; c.beginPath(); c.arc(mx, my, bw * 0.045, 0, Math.PI * 2); c.fill();

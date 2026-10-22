@@ -62,6 +62,7 @@ export function mountIA() {
   put(/wearTitle|옷/, 'kiwi');
   put(/chartTitle|^해도/, 'chart', true);
   put(/boatTitle|^배/, 'chart');
+  put(/sailTitle|^돛/, 'chart');
   put(/placeTitle|^장소/, 'world', true);
   put(/buildTitle|지은 것/, 'world');
   put(/findTitle|주운 것/, 'dex', true);
