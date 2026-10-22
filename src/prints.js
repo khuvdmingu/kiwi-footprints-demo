@@ -9,7 +9,7 @@
 //  그림을 아직 못 읽었으면 beach.js 의 예전 선 발자국이 그대로 쓰인다.
 
 const CELL = 160, COLS = 4, FIT = 0.92;   // 칸 크기 · 칸 열 수 · 발자국이 칸에서 차지하는 비율(긴 변)
-const SHEETS = { kiwi: 'prints-kiwi-dark.webp?v=v28.13.0', a: 'prints-guests-a-dark.webp?v=v28.13.0', b: 'prints-guests-b-dark.webp?v=v28.13.0' };
+const SHEETS = { kiwi: 'prints-kiwi-dark.webp?v=v28.13.1', a: 'prints-guests-a-dark.webp?v=v28.13.1', b: 'prints-guests-b-dark.webp?v=v28.13.1' };
 // 손님 → [격자, 칸, 크기(f 배), 뒤집기]. 크기는 발자국 묶음 하나의 긴 변 · 뒤집기 1 = 그림의 발끝이 아래(물갈퀴 둘)
 export const GUEST_STAMP = {
   gull: ['a', 0, 2.0, 1], crab: ['a', 1, 2.2], weka: ['a', 2, 2.2], hedgehog: ['a', 3, 1.7], duck: ['a', 4, 2.0, 1],
@@ -20,7 +20,7 @@ export const GUEST_STAMP = {
 // 예전에 저장된 손님 발자국(동물 이름 없이 모양만 있는 것) → 닮은 도장
 const SHAPE_STAMP = { web: 'gull', crab: 'crab', bird: 'weka', paw: 'fox', hoof: 'deer', hop: 'rabbit', pair: 'sparrow' };
 const GROUND = {
-  sand: { dark: [104, 70, 40], lit: [255, 238, 205] },
+  sand: { dark: [86, 52, 24], lit: [255, 238, 205] },
   snow: { dark: [112, 128, 160], lit: [255, 255, 255] },
   gravel: { dark: [72, 66, 58], lit: [255, 250, 240] },
 };
@@ -64,7 +64,10 @@ export class Stamps {
     else if (p.kind === 'guest') {
       const g = GUEST_STAMP[p.g] || GUEST_STAMP[SHAPE_STAMP[p.shape]] || GUEST_STAMP.weka;
       p.st = { s: g[0], cell: g[1], size: p.f * g[2] / FIT, fx: 0, fy: 0, flip: g[3] ? Math.PI : 0 };
-    } else p.st = { s: 'kiwi', cell: h % 8, size: p.f * 1.62 / FIT, fx: c * p.f * 0.42, fy: s * p.f * 0.42 };   // 키위: (x, y) = 발꿈치 → 발 가운데는 조금 앞
+    } else {   // 키위: (x, y) = 발꿈치 → 발 가운데는 조금 앞. 글씨 발자국은 크고 굵게 (v28.13.1 — 얇아서 글씨가 안 읽혔다)
+      const k = p.tag != null ? 2.05 : 1.7;
+      p.st = { s: 'kiwi', cell: h % 8, size: p.f * k / FIT, fx: c * p.f * 0.5, fy: s * p.f * 0.5, bold: p.tag != null };
+    }
     return p.st;
   }
 
@@ -108,6 +111,7 @@ export class Stamps {
         c.globalAlpha = Math.min(1, p.alpha) * (pass ? (written ? 1 : 0.85) * (1 - 0.25 * nq) : litA);
         const sx = (st.cell % COLS) * CELL, sy = Math.floor(st.cell / COLS) * CELL, z = st.size;
         c.drawImage(im, sx, sy, CELL, CELL, -z / 2, -z / 2, z, z);
+        if (pass && st.bold) { const d = z * 0.025; c.drawImage(im, sx, sy, CELL, CELL, -z / 2 + d, -z / 2, z, z); c.drawImage(im, sx, sy, CELL, CELL, -z / 2 - d, -z / 2 + d, z, z); }   // 글씨 발자국: 두 번 더 비켜 찍어 발가락 선을 굵고 진하게
       }
     }
     c.globalAlpha = 1;
