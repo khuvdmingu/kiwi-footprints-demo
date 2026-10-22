@@ -8,29 +8,33 @@
 //  v12: 가만히 두면 편지(유리병)만 가끔 온다. 옷·장소(상자)는 집중 모드를 끝까지 하면 선물로 온다 (focus.js)
 //  v11: 장소도 상자에서 나온다 (kind 'map' — 열면 설정 창 「장소」에서 고를 수 있다. maps.js 의 unlock 과 짝)
 
-import { trackItems } from './tracks/index.js?v=v28.11.0';
+import { trackItems } from './tracks/index.js?v=v28.12.0';
 
 export const ITEMS = [
   { id: 'letter1', kind: 'letter', box: 'bottle', title: '첫 번째 편지', text: '파도가 글씨를 가져가도, 쓰고 싶었던 마음은 모래 속에 남아요.' },
-  { id: 'hat', kind: 'wear', box: 'crate', name: '밀짚모자', img: 'kiwi-hat.webp?v=v28.11.0', note: '햇볕 좋은 날 산책용.' },
+  { id: 'hat', kind: 'wear', box: 'crate', name: '밀짚모자', img: 'kiwi-hat.webp?v=v28.12.0', note: '햇볕 좋은 날 산책용.' },
   { id: 'letter2', kind: 'letter', box: 'bottle', title: '두 번째 편지', text: '키위는 날지 못해서 천천히 걸어요. 천천히 가도 결국 도착해요.' },
-  { id: 'scarf', kind: 'wear', box: 'crate', name: '빨간 목도리', img: 'kiwi-scarf.webp?v=v28.11.0', note: '밤바람이 차가울 때.' },
+  { id: 'scarf', kind: 'wear', box: 'crate', name: '빨간 목도리', img: 'kiwi-scarf.webp?v=v28.12.0', note: '밤바람이 차가울 때.' },
   { id: 'letter3', kind: 'letter', box: 'bottle', title: '세 번째 편지', text: '작은 발자국도 모이면 글자가 돼요. 오늘 찍은 한 걸음도요.' },
-  { id: 'crown', kind: 'wear', box: 'crate', name: '꽃 화관', img: 'kiwi-crown.webp?v=v28.11.0', note: '숲 가장자리에서 엮었대요.' },
+  { id: 'crown', kind: 'wear', box: 'crate', name: '꽃 화관', img: 'kiwi-crown.webp?v=v28.12.0', note: '숲 가장자리에서 엮었대요.' },
   { id: 'letter4', kind: 'letter', box: 'bottle', title: '네 번째 편지', text: '지워진 자리는 다음 문장을 위한 빈 모래예요.' },
-  { id: 'glasses', kind: 'wear', box: 'crate', name: '동그란 안경', img: 'kiwi-glasses.webp?v=v28.11.0', note: '글씨를 더 반듯하게 쓰고 싶어서.' },
+  { id: 'glasses', kind: 'wear', box: 'crate', name: '동그란 안경', img: 'kiwi-glasses.webp?v=v28.12.0', note: '글씨를 더 반듯하게 쓰고 싶어서.' },
   { id: 'letter5', kind: 'letter', box: 'bottle', title: '다섯 번째 편지', text: '여기까지 걸어온 당신에게. — 키위 일동' },
-  { id: 'backpack', kind: 'wear', box: 'crate', name: '작은 배낭', img: 'kiwi-backpack.webp?v=v28.11.0', note: '다음 장소로 떠날 준비.' },
-  { id: 'map-snow', kind: 'map', box: 'crate', map: 'snow', name: '눈밭', img: 'snow-card.webp?v=v28.11.0', note: '눈 덮인 숲 아래 호숫가. 발자국이 또렷하게 남아요.' },
+  { id: 'backpack', kind: 'wear', box: 'crate', name: '작은 배낭', img: 'kiwi-backpack.webp?v=v28.12.0', note: '다음 장소로 떠날 준비.' },
+  { id: 'map-snow', kind: 'map', box: 'crate', map: 'snow', name: '눈밭', img: 'snow-card.webp?v=v28.12.0', note: '눈 덮인 숲 아래 호숫가. 발자국이 또렷하게 남아요.' },
   // v11.1 겨울 옷 (두 번째 묶음 — 눈밭을 연 뒤에 떠내려온다)
-  { id: 'beanie', kind: 'wear', box: 'crate', name: '방울 털모자', img: 'kiwi-beanie.webp?v=v28.11.0', note: '눈밭 산책 필수품.' },
-  { id: 'earmuffs', kind: 'wear', box: 'crate', name: '분홍 귀마개', img: 'kiwi-earmuffs.webp?v=v28.11.0', note: '호수 바람이 찰 때.' },
-  { id: 'sweater', kind: 'wear', box: 'crate', name: '눈꽃 스웨터', img: 'kiwi-sweater.webp?v=v28.11.0', note: '눈송이 무늬 두꺼운 니트.' },
-  { id: 'blanket', kind: 'wear', box: 'crate', name: '체크 담요', img: 'kiwi-blanket.webp?v=v28.11.0', note: '글씨 쓰다 쉬어 갈 때 두르는 망토.' },
-  { id: 'santa', kind: 'wear', box: 'crate', name: '산타 모자', img: 'kiwi-santa.webp?v=v28.11.0', note: '12월이 오면.' },
-  { id: 'vest', kind: 'wear', box: 'crate', name: '패딩 조끼', img: 'kiwi-vest.webp?v=v28.11.0', note: '털 깃이 달린 따뜻한 조끼.' },
-  { id: 'map-fall', kind: 'map', box: 'crate', map: 'fall', name: '가을 호숫가', img: 'fall-card.webp?v=v28.11.0', note: '단풍 숲 아래 잔잔한 호수. 낙엽이 떠다녀요.' },
-  { id: 'map-zen', kind: 'map', box: 'crate', map: 'zen', name: '모래 정원', img: 'zen-card.webp?v=v28.11.0', note: '갈퀴 줄 그은 흰 자갈 정원. 파도 대신 갈퀴가 쓸어 지워요.' },
+  { id: 'beanie', kind: 'wear', box: 'crate', name: '방울 털모자', img: 'kiwi-beanie.webp?v=v28.12.0', note: '눈밭 산책 필수품.' },
+  { id: 'earmuffs', kind: 'wear', box: 'crate', name: '분홍 귀마개', img: 'kiwi-earmuffs.webp?v=v28.12.0', note: '호수 바람이 찰 때.' },
+  { id: 'sweater', kind: 'wear', box: 'crate', name: '눈꽃 스웨터', img: 'kiwi-sweater.webp?v=v28.12.0', note: '눈송이 무늬 두꺼운 니트.' },
+  { id: 'blanket', kind: 'wear', box: 'crate', name: '체크 담요', img: 'kiwi-blanket.webp?v=v28.12.0', note: '글씨 쓰다 쉬어 갈 때 두르는 망토.' },
+  { id: 'santa', kind: 'wear', box: 'crate', name: '산타 모자', img: 'kiwi-santa.webp?v=v28.12.0', note: '12월이 오면.' },
+  { id: 'vest', kind: 'wear', box: 'crate', name: '패딩 조끼', img: 'kiwi-vest.webp?v=v28.12.0', note: '털 깃이 달린 따뜻한 조끼.' },
+  // v28.12 할로윈 머리 장식 (상자에 담겨 온다)
+  { id: 'witch', kind: 'wear', box: 'crate', name: '마녀 모자', img: 'head-witch.webp?v=v28.12.0', note: '끝이 살짝 꺾인 보라 모자.' },
+  { id: 'pumpkin', kind: 'wear', box: 'crate', name: '호박 모자', img: 'head-pumpkin.webp?v=v28.12.0', note: '웃는 얼굴을 새긴 작은 호박.' },
+  { id: 'ghostpin', kind: 'wear', box: 'crate', name: '유령 머리핀', img: 'head-ghostpin.webp?v=v28.12.0', note: '눈만 콕콕, 겁 안 나는 유령.' },
+  { id: 'map-fall', kind: 'map', box: 'crate', map: 'fall', name: '가을 호숫가', img: 'fall-card.webp?v=v28.12.0', note: '단풍 숲 아래 잔잔한 호수. 낙엽이 떠다녀요.' },
+  { id: 'map-zen', kind: 'map', box: 'crate', map: 'zen', name: '모래 정원', img: 'zen-card.webp?v=v28.12.0', note: '갈퀴 줄 그은 흰 자갈 정원. 파도 대신 갈퀴가 쓸어 지워요.' },
   // v14 소리 (소라 껍데기에 담겨 온다 — 켜 두기만 해도, 편지 다음 순서). group: step = 발자국 소리, nature = 자연 배경 (sound.js)
   { id: 's-snow', kind: 'sound', box: 'conch', group: 'step', pack: 'snow', name: '눈 밟는 소리', note: '발자국마다 뽀드득 — 녹음 BigSoundBank (CC0).' },
   { id: 'n-birds', kind: 'sound', box: 'conch', group: 'nature', pack: 'birds', name: '숲 새소리', note: '숲속 새와 바람 — 녹음 BigSoundBank (CC0).' },
@@ -57,10 +61,10 @@ export const ITEMS = [
   { id: 'm-cozy-where', kind: 'sound', box: 'conch', group: 'music', pack: 'cozy-where', name: '어디쯤이었지', note: '직접 만든 생성 곡 — 포근한 선율: 플루트가 세 음을 묻는 가벼운 고리.' },
   { id: 'm-cozy-tea', kind: 'sound', box: 'conch', group: 'music', pack: 'cozy-tea', name: '찻잔 위 김', note: '직접 만든 생성 곡 — 포근한 선율: 느린 유리 소리 세 음.' },
   // v13.1 바꾸기: 물가에서 주운 것으로 만든다 (craft = 필요한 개수, shore.js 의 id). 떠내려오지 않는다
-  { id: 'necklace', kind: 'wear', name: '조개 목걸이', img: 'kiwi-necklace.webp?v=v28.11.0', note: '주운 조개를 꿰어 만들었어요.', craft: { scallop: 4, snail: 4 } },
-  { id: 'plume', kind: 'wear', name: '깃털 머리띠', img: 'kiwi-plume.webp?v=v28.11.0', note: '깃털과 유목을 엮었어요.', craft: { feather: 5, drift: 2 } },
-  { id: 'pendant', kind: 'wear', name: '바다 유리 펜던트', img: 'kiwi-pendant.webp?v=v28.11.0', note: '초록·파랑 바다 유리를 은실로 감았어요.', craft: { glassG: 4, glassB: 2 } },
-  { id: 'starpin', kind: 'wear', name: '불가사리 머리핀', img: 'kiwi-starpin.webp?v=v28.11.0', note: '하트 돌 구슬을 달았어요.', craft: { star: 2, heart: 1 } },
+  { id: 'necklace', kind: 'wear', name: '조개 목걸이', img: 'kiwi-necklace.webp?v=v28.12.0', note: '주운 조개를 꿰어 만들었어요.', craft: { scallop: 4, snail: 4 } },
+  { id: 'plume', kind: 'wear', name: '깃털 머리띠', img: 'kiwi-plume.webp?v=v28.12.0', note: '깃털과 유목을 엮었어요.', craft: { feather: 5, drift: 2 } },
+  { id: 'pendant', kind: 'wear', name: '바다 유리 펜던트', img: 'kiwi-pendant.webp?v=v28.12.0', note: '초록·파랑 바다 유리를 은실로 감았어요.', craft: { glassG: 4, glassB: 2 } },
+  { id: 'starpin', kind: 'wear', name: '불가사리 머리핀', img: 'kiwi-starpin.webp?v=v28.12.0', note: '하트 돌 구슬을 달았어요.', craft: { star: 2, heart: 1 } },
 ];
 // v16 곡(녹음)·새로 붙인 녹음 소리는 카탈로그(src/tracks/)에서 저절로 온다 — 소라 순서상 손으로 적은 소리 다음
 for (const it of trackItems()) if (!ITEMS.some(o => o.id === it.id)) ITEMS.push(it);

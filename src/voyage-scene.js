@@ -6,8 +6,8 @@
 //  사건(voyage.js 의 kind)을 받으면 12초쯤 그 장면을 보여 준다. snapshot() 은 같은 장면을 사진 한 장으로 다시 그린다
 //  (화면을 꺼 두었던 사이의 사건도 일기 사진을 남길 수 있게).
 
-import { CREW_ACTS } from './acts.js?v=v28.11.0';
-import { SeaGL } from './voyage-water.js?v=v28.11.0';
+import { CREW_ACTS, CREW_MORE } from './acts.js?v=v28.12.0';
+import { SeaGL } from './voyage-water.js?v=v28.12.0';
 
 export const SPEED = 0.05;   // 배가 가는 빠르기: 1초에 화면 짧은 변의 5% (물·잔물결·지나가는 것이 모두 이 빠르기로 흐른다)
 const WATER_SCALE = 0.75;     // 물은 화면보다 성기게 그린다 (배터리·발열 — 물결은 흐려도 티가 안 난다)
@@ -80,7 +80,7 @@ export class VoyageScene {
   async load(base = 'assets/') {
     this.base = base;
     const gen = this.gen = (this.gen || 0) + 1;
-    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v28.11.0', 'sea-tall.webp?v=v28.11.0', 'voyage-sprites.webp?v=v28.11.0', 'kiwi.webp?v=v28.11.0', 'kiwi-sleep.webp?v=v28.11.0', 'umbrellas.webp?v=v28.11.0', 'sea-night.webp?v=v28.11.0', 'sea-tall-night.webp?v=v28.11.0', 'voyage-crew.webp?v=v28.11.0', 'voyage-boat.webp?v=v28.11.0', 'voyage-sail.webp?v=v28.11.0'].map(f => img(base + f).catch(() => null)));
+    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v28.12.0', 'sea-tall.webp?v=v28.12.0', 'voyage-sprites.webp?v=v28.12.0', 'kiwi.webp?v=v28.12.0', 'kiwi-sleep.webp?v=v28.12.0', 'umbrellas.webp?v=v28.12.0', 'sea-night.webp?v=v28.12.0', 'sea-tall-night.webp?v=v28.12.0', 'voyage-crew.webp?v=v28.12.0', 'voyage-boat.webp?v=v28.12.0', 'voyage-sail.webp?v=v28.12.0'].map(f => img(base + f).catch(() => null)));
     if (gen !== this.gen) return false;
     if (!sea || !sheet) throw new Error('voyage art');
     Object.assign(this, { sea, tall: tall || sea, sheet, kiwi, sleep, umb, seaN, tallN: tallN || seaN, crewSheet });
@@ -90,6 +90,8 @@ export class VoyageScene {
     // v27.5 자세별 동작 묶음 — 없어도 되는 그림이라 뒤에서 읽고, 못 읽으면 정지 자세 그대로
     this.crewActs = {};
     for (const [pose, a] of Object.entries(CREW_ACTS)) img(base + a.file).then(im => { if (gen === this.gen) this.crewActs[pose] = im; }).catch(() => {});
+    this.crewMore = {};   // v28.12 배 위 동작 더 — 파일 이름으로
+    for (const list of Object.values(CREW_MORE)) for (const m of list) img(base + m.file).then(im => { if (gen === this.gen) this.crewMore[m.file] = im; }).catch(() => {});
     // 넓은 배 + 따로 흔들리는 잎 돛 (둘 다 있어야 쓴다 — 아니면 예전 한 장짜리 배)
     if (hull && sail) Object.assign(this, { hull, sail, hullBox: boxesOf(hull, 'hull', ['h'], 1, 1).h, sailBox: boxesOf(sail, 'sail', ['s'], 1, 1).s });
     this.alt = null; this.setBoat(this.boatId);
@@ -104,7 +106,7 @@ export class VoyageScene {
     if (!b || !b.h || !this.base) { this.alt = null; return; }
     if (this.alt?.id === id) return;
     const gen = this.gen;
-    img(this.base + 'boat-' + id + '.webp?v=v28.11.0').then(im => {
+    img(this.base + 'boat-' + id + '.webp?v=v28.12.0').then(im => {
       if (gen !== this.gen || this.boatId !== id) return;
       this.alt = { ...b, im, box: boxesOf(im, 'boat-' + id, ['b'], 1, 1).b };
     }).catch(() => {});
@@ -115,7 +117,7 @@ export class VoyageScene {
     if (!id || id === 'leaf' || !this.base) { this.sailAlt = null; return; }
     if (this.sailAlt?.id === id) return;
     const gen = this.gen;
-    img(this.base + 'sail-' + id + '.webp?v=v28.11.0').then(im => {
+    img(this.base + 'sail-' + id + '.webp?v=v28.12.0').then(im => {
       if (gen !== this.gen || this.sailId !== id) return;
       this.sailAlt = { id, im, box: boxesOf(im, 'sail-' + id, ['s'], 1, 1).s };
     }).catch(() => {});
@@ -124,7 +126,7 @@ export class VoyageScene {
   //  다음 항해 때 load() 로 다시 읽는다(기기 캐시에서). 노을 그림의 실패 기록도 이때 지워 다음 항해에 다시 시도한다
   unload() {
     this.gen = (this.gen || 0) + 1; this.ready = false;
-    for (const k of ['sea', 'tall', 'sheet', 'kiwi', 'sleep', 'umb', 'seaN', 'tallN', 'crewSheet', 'hull', 'sail', 'cells', 'crewCells', 'crewRef', 'crewActs', 'hullBox', 'sailBox', 'alt', 'sailAlt']) this[k] = null;
+    for (const k of ['sea', 'tall', 'sheet', 'kiwi', 'sleep', 'umb', 'seaN', 'tallN', 'crewSheet', 'hull', 'sail', 'cells', 'crewCells', 'crewRef', 'crewActs', 'hullBox', 'sailBox', 'alt', 'sailAlt', 'crewMore']) this[k] = null;
     this.sunsets.clear(); this.dawns?.clear();
     this.water.release(); this.photoWater?.release();
     this.cv.width = 1; this.cv.height = 1; this.W = 0; this.H = 0;
@@ -142,7 +144,7 @@ export class VoyageScene {
   sunsetArt(tall) {
     if (!this.sunsets.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v28.11.0' : 'sea-sunset.webp?v=v28.11.0')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v28.12.0' : 'sea-sunset.webp?v=v28.12.0')).then(image => (entry.image = image)).catch(() => null);
       this.sunsets.set(tall, entry);
     }
     return this.sunsets.get(tall).promise;
@@ -151,7 +153,7 @@ export class VoyageScene {
   dawnArt(tall) {
     if (!this.dawns.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-dawn.webp?v=v28.11.0' : 'sea-dawn.webp?v=v28.11.0')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-dawn.webp?v=v28.12.0' : 'sea-dawn.webp?v=v28.12.0')).then(image => (entry.image = image)).catch(() => null);
       this.dawns.set(tall, entry);
     }
     return this.dawns.get(tall).promise;
@@ -217,6 +219,7 @@ export class VoyageScene {
     }
     // 사건 (배 뒤쪽에 지나가는 것들)
     if (play) this.event(c, W, H, u, bx, by, bh, play, st);
+    this.halloween?.drawSea(c, W, H, u, t, n, SPEED);   // v28.12 할로윈 밤바다 호박 등불
     // 배 + 키위
     const rock = Math.sin(t * 1.1) * 0.035;
     c.save(); c.translate(bx, by); c.rotate(rock);
@@ -291,9 +294,16 @@ export class VoyageScene {
       const b = this.crewCells[pose] || this.crewCells.up, k2 = kh / this.crewRef, w = b.w * k2, h = b.h * k2, ax = CREW_AX[pose] ?? 0.5;
       const [x, y] = this.hullBox ? (seats || WIDE_SEATS)[i].map((v, j) => v * (j ? bh : bw)) : [-bw * 0.13 + (i % 2 ? bw * 0.06 : 0), -bh * 0.25 + i * bh * 0.2];
       // 그 자세의 동작이 있으면 rest 초 쉬었다 한 번 (키위마다 1.7초씩 엇갈려) — 동작 중엔 통통 뛰기를 멈춘다
-      const A = CREW_ACTS[pose], ai = A && this.crewActs?.[pose];
-      let f = -1;
-      if (ai) { const len = A.n / A.fps, ph = (t + i * 1.7) % (len + (A.rest ?? 2.5)); if (ph < len) f = Math.min(A.n - 1, Math.floor(ph * A.fps)); }
+      //  (v28.12) 사건이 없을 땐 그 자세의 다른 동작(CREW_MORE)과 7초 칸마다 번갈아 — 키위마다 다른 것을 고른다
+      const A0 = CREW_ACTS[pose], ai0 = A0 && this.crewActs?.[pose], opts = ai0 ? [[A0, ai0]] : [];
+      if (!k) for (const m of CREW_MORE[pose] || []) { const im = this.crewMore?.[m.file]; if (im) opts.push([m, im]); }
+      let f = -1, A = A0, ai = ai0;
+      if (opts.length === 1) { const len = A.n / A.fps, ph = (t + i * 1.7) % (len + (A.rest ?? 2.5)); if (ph < len) f = Math.min(A.n - 1, Math.floor(ph * A.fps)); }
+      else if (opts.length) {
+        const tt = t + i * 1.7, slot = Math.floor(tt / 7);
+        [A, ai] = opts[(slot * 5 + i * 3) % opts.length];
+        const ph = tt % 7, len = A.n / A.fps; if (ph < len) f = Math.min(A.n - 1, Math.floor(ph * A.fps));
+      }
       const hop = pose === 'sleep' || f >= 0 ? 0 : Math.max(0, Math.sin(t * 1.7 + i * 2.1)) * kh * 0.035;
       const dx = x - w * ax, dy = y + kh * 0.42 - h - hop;
       if (f >= 0) c.drawImage(ai, (f % A.cols) * A.fw, Math.floor(f / A.cols) * A.fh, A.fw, A.fh, dx + A.ox * k2, dy + A.oy * k2, A.w * k2, A.h * k2);
