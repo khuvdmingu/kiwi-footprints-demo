@@ -9,11 +9,11 @@
 //  믹서 값(소리 켜기·음악·환경음·효과음·발자국 음악)은 기기에 기억한다.
 //  브라우저는 사용자 동작 안에서만 소리를 열 수 있어서 unlock() 을 그때 부른다. 탭을 숨기면 멈춘다.
 
-import { Music } from './music.js?v=v28.13.1';
+import { Music } from './music.js?v=v28.14.0';
 
 // v16 아이템 소리·곡은 오픈소스 녹음 — 목록·출처는 카탈로그 한 곳 (src/tracks/index.js). assets/audio/ 에서 처음 고를 때 받는다
 //  STEP_SAMPLES: 0.5초 칸마다 한 걸음 · NATURE_LOOPS: 끝과 처음을 겹쳐 이음매 없이 도는 고리 · SONG_TRACKS: 곡 고리
-import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v28.13.1';
+import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v28.14.0';
 export { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, NATURAL_STEPS };
 const AUDIO = 'assets/audio/';
 // 곡·자연 배경 고리는 풀어 두면 한 곡에 수십 MB(48kHz 기준 최대 약 96MiB)라, 고리 자리마다 지금 것 + 바로 전 것만 들고 있는다 (2026-10-19)
@@ -21,6 +21,14 @@ const AUDIO = 'assets/audio/';
 //  · 못 받은 파일은 기록하지 않고 RETRY_MS 뒤 다시 받는다 (그 사이엔 걸음마다 다시 요청하지 않는다) · 인터넷이 돌아오면 바로 다시
 const LOOP_FILES = new Set([...Object.values(SONG_TRACKS), ...Object.values(NATURE_LOOPS)]);
 const LOOP_KEEP = 2, RETRY_MS = 15000, FADE_MS = 3000;
+// v28.14 항해 소리 — 같은 쓰임으로 Claude(stock/sound)·Codex(stock/audio/2026-10-21-hq)가 따로 만든 녹음을 무작위로 (사용자 2026-10-24 "둘 다 랜덤하게")
+//  a = Claude 쪽 · b = Codex 쪽. 효과음 −22 · 배 물소리 −26 LUFS 근처로 맞춤. 환경 소리라 amb 묶음으로 낸다(집중 중 '사건 소리만 끔'에도 들린다)
+export const VOY_FX = {
+  whale: ['voy-whale-a.mp3', 'voy-whale-b.mp3'],   // 고래 숨 뿜기
+  sail: ['voy-sail-a.mp3', 'voy-sail-b.mp3'],      // 출항 — 돛이 바람을 받음 / 돛과 밧줄
+  reel: ['voy-reel-a.mp3', 'voy-reel-b.mp3'],      // 낚싯줄에 걸린 것 — 릴 감기 / 찰박
+};
+export const VOY_BED = ['voy-boat-a.mp3', 'voy-boat-b.mp3'];   // 항해 중 배 물소리 고리 (나무배 삐걱 + 찰랑 / 잔물결)
 
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 const MIX_KEY = 'kiwi-footprints.mix';
@@ -421,6 +429,22 @@ export class Sound {
     src.start(t); if (fade) src.stop(t + fade + 1.3);
     return true;
   }
+  // v28.14 항해 소리 한 번: 받아 둔 판 중 무작위 (아직 하나도 못 받았으면 받기 시작하고 false)
+  voyFx(kind, vel = 0.6, rnd = Math.random) {
+    const list = VOY_FX[kind];
+    if (!list || !this.ctx) return false;
+    for (const f of list) this.loadBuf(f);
+    const ready = list.filter(f => this.got?.[f]);
+    if (!ready.length) return false;
+    const ctx = this.ctx, t = ctx.currentTime, src = ctx.createBufferSource(), g = ctx.createGain();
+    src.buffer = this.got[ready[Math.floor(rnd() * ready.length)]];
+    g.gain.value = vel;
+    src.connect(g); this.route(g, 'amb', 0, 0.2); src.start(t);
+    return true;
+  }
+  voyLoad() { if (this.ctx) for (const f of Object.values(VOY_FX).flat()) this.loadBuf(f); }
+  // 배 물소리 고리: 항해마다 두 판 중 하나, 내리면 끔
+  voyBed(on, rnd = Math.random) { this.playLoop('boat', on ? VOY_BED[Math.floor(rnd() * VOY_BED.length)] : null, 'amb', 0.55); }
   walkStep(x, flee = false) {
     if (this.onVoyage) return;
     if (this.natural) {   // v18.7 걷기는 고른 바닥, 도망칠 때는 동물 종종걸음

@@ -9,7 +9,7 @@
 //  그림을 아직 못 읽었으면 beach.js 의 예전 선 발자국이 그대로 쓰인다.
 
 const CELL = 160, COLS = 4, FIT = 0.92;   // 칸 크기 · 칸 열 수 · 발자국이 칸에서 차지하는 비율(긴 변)
-const SHEETS = { kiwi: 'prints-kiwi-dark.webp?v=v28.13.1', a: 'prints-guests-a-dark.webp?v=v28.13.1', b: 'prints-guests-b-dark.webp?v=v28.13.1' };
+const SHEETS = { kiwi: 'prints-kiwi-dark.webp?v=v28.14.0', a: 'prints-guests-a-dark.webp?v=v28.14.0', b: 'prints-guests-b-dark.webp?v=v28.14.0' };
 // 손님 → [격자, 칸, 크기(f 배), 뒤집기]. 크기는 발자국 묶음 하나의 긴 변 · 뒤집기 1 = 그림의 발끝이 아래(물갈퀴 둘)
 export const GUEST_STAMP = {
   gull: ['a', 0, 2.0, 1], crab: ['a', 1, 2.2], weka: ['a', 2, 2.2], hedgehog: ['a', 3, 1.7], duck: ['a', 4, 2.0, 1],
@@ -88,6 +88,7 @@ export class Stamps {
       this.paint(c, T, beach, ground, nq, false);
       this.sig = sig;
     }
+    if (!L.width || !L.height) return;   // v28.14 화면 크기가 0인 순간(항해로 넘어갈 때) — 그릴 것이 없다
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(L, 0, 0); ctx.restore();
   }
   // 층을 놓아준다 (창 크기를 바꾸거나 메모리가 모자랄 때)
