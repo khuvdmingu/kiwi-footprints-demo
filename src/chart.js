@@ -8,9 +8,9 @@
 //  기록은 이 기기에만 (localStorage 'chart'). 항해 기록(voyage.log)은 voyage.js 가 갖고, 여기는 발견·이름만 갖는다.
 //  그리기: 그림 격자(assets/chart-sheet.webp, 4×4)가 있으면 칸을 잘라 쓰고, 없으면 코드로 그린다.
 
-import { fitCell, roundCell } from './sheet.js?v=v28.14.0';
+import { fitCell, roundCell } from './sheet.js?v=v28.17.0';
 
-export const SHEET = 'chart-sheet.webp?v=v28.14.0';
+export const SHEET = 'chart-sheet.webp?v=v28.17.0';
 // 격자 칸 (4×4): 0~4 큰 섬 · 5~12 작은 섬 · 13 나침반 · 14 배 표시 · 15 안개 덩이
 export const CELL = { beach: 0, nz: 1, snow: 2, fall: 3, zen: 4, compass: 13, boat: 14, fog: 15 };
 
@@ -21,6 +21,8 @@ export const BIG = {
   snow: { x: 0.7, y: 0.2 },
   fall: { x: 0.8, y: 0.62 },
   zen: { x: 0.3, y: 0.8 },
+  cherry: { x: 0.12, y: 0.62 },   // v28.17 — 그림 칸이 없어 코드 그림(drawBig, BIG_INK 색)
+  oasis: { x: 0.86, y: 0.86 },
 };
 
 // 작은 섬 — need = 지금까지 바다 위에서 간 해리(누적). 25분 항해 = 2.5해리
@@ -214,7 +216,7 @@ function blob(ctx, x, y, r, seed, color, k = 0.18) {
   for (let i = 0; i <= 18; i++) { const a = i / 18 * Math.PI * 2, rr = r * (1 - k + 2 * k * rand()); i ? ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr * 0.72) : ctx.moveTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr * 0.72); }
   ctx.closePath(); ctx.fill();
 }
-const BIG_INK = { beach: ['#e7cf96', '#6f9a5b'], nz: ['#b9a074', '#3f6b48'], snow: ['#eef3f6', '#5f7f78'], fall: ['#d8b98a', '#c0662f'], zen: ['#e9e3d4', '#8a8f7c'] };
+const BIG_INK = { beach: ['#e7cf96', '#6f9a5b'], nz: ['#b9a074', '#3f6b48'], snow: ['#eef3f6', '#5f7f78'], fall: ['#d8b98a', '#c0662f'], cherry: ['#efdcc0', '#e7a7b8'], oasis: ['#e6c27a', '#5c8f54'], zen: ['#e9e3d4', '#8a8f7c'] };
 function drawBig(ctx, id, x, y, r) {
   const [sand, green] = BIG_INK[id] || BIG_INK.beach, s = hash(id);
   ctx.globalAlpha *= 0.9; blob(ctx, x, y + r * 0.08, r * 1.08, s, 'rgba(120,160,175,0.35)');

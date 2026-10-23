@@ -6,7 +6,7 @@
 //           그림: 낙엽은 가을 호숫가 물 위 단풍과 같은 낱장(assets/leaves.webp 4×2), 꽃잎은 assets/petals.webp(4×2, Higgsfield v23).
 //           그림을 아직 못 읽었거나(첫 순간·시험) 없으면 선으로 그린 잎으로 대신한다.
 
-import { clamp } from '../util.js?v=v28.14.0';
+import { clamp } from '../util.js?v=v28.17.0';
 
 export const EXTRA_WEATHERS = ['drizzle', 'blossom'];
 // atmos 의 날씨 값 열쇠(cloud·windK·amp·rain·snow·fog·wind·grey)에 drizzle·blossom 두 칸이 더 붙는다
@@ -21,7 +21,10 @@ export const blossomName = mapId => (leafy(mapId) ? '낙엽 바람' : '꽃잎 �
 const PETAL = ['#F6C9D3', '#F2B6C6', '#FBE3E8', '#EFA9BD', '#FFF1F3'];
 const LEAF = ['#C8582B', '#D9822B', '#E3A23A', '#A8442A', '#B86A2E', '#E8B04A'];
 
-const SHEETS = { leaf: 'assets/leaves.webp?v=v28.14.0', petal: 'assets/petals.webp?v=v28.14.0' };
+const SHEETS = { leaf: 'assets/leaves.webp?v=v28.17.0', petal: 'assets/petals.webp?v=v28.17.0', flip: 'assets/drift-flip.webp?v=v28.17.0' };
+// v28.15 앞뒷면 짝(drift-flip.webp 4×2): 팔랑이다 가장 납작해지는 순간 앞↔뒤로 바꿔 끼워 진짜 뒤집히는 것처럼
+//  꽃잎은 말린 꽃잎 짝(2·3)만 — 1행 1·2칸은 모양이 짝이 아니다(stock/README drift) · 낙엽은 단풍(4·5)·둥근 낙엽(6·7)
+const FLIP = { petal: [[2, 3]], leaf: [[4, 5], [6, 7]] };
 
 export class SkyExtra {
   constructor(rand = Math.random) { this.sprites = {}; this.rand = rand; this.mist = []; this.dots = []; this.petals = []; this.kind = 'petal'; this.t = 0; }
@@ -87,6 +90,7 @@ export class SkyExtra {
       rot: R() * 6.28, spin: (R() - 0.5) * 3, flap: R() * 6.28, flapSp: 3 + R() * 4,
       s: (leaf ? 5 + R() * 3 : 3.2 + R() * 1.8) * u, c: pal[Math.floor(R() * pal.length)],
       img: Math.floor(R() * 8), size: (leaf ? 26 + R() * 14 : 28 + R() * 12) * u,   // 그림으로 그릴 때의 칸 크기 (꽃잎은 칸의 40% 쯤만 차 있다)
+      pair: R() < 0.4 ? FLIP[leaf ? 'leaf' : 'petal'][Math.floor(R() * FLIP[leaf ? 'leaf' : 'petal'].length)] : null,   // 열에 넷은 앞뒷면 짝으로
     };
   }
 
@@ -111,11 +115,12 @@ export class SkyExtra {
       }
     }
     ctx.globalAlpha = 1;
-    const spr = this.petals.length ? this.sheet(this.kind) : null;
+    const spr = this.petals.length ? this.sheet(this.kind) : null, flip = this.petals.length ? this.sheet('flip') : null;
     for (const p of this.petals) {
       // 팔랑임: 한 축으로 납작해졌다 펴졌다 (뒤집히는 것처럼)
       const fl = 0.3 + 0.7 * Math.abs(Math.cos(p.flap));
       ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.scale(1, fl);
+      if (p.pair && flip) { const im = flip[Math.cos(p.flap) >= 0 ? p.pair[0] : p.pair[1]], s = p.size * 0.8; ctx.drawImage(im, -s / 2, -s / 2, s, s); ctx.restore(); continue; }
       if (spr) { const im = spr[p.img % spr.length]; ctx.drawImage(im, -p.size / 2, -p.size / 2, p.size, p.size); ctx.restore(); continue; }
       ctx.fillStyle = p.c;
       if (this.kind === 'leaf') {

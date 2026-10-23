@@ -25,6 +25,7 @@ const SEEN_WINDOW = 15000;          // ms: 사건 시각에서 이 안에 화면
 export const PLACES = {
   beach: { ko: '바닷가', en: 'the beach' }, nz: { ko: '뉴질랜드 숲', en: 'the fern forest' }, snow: { ko: '눈밭', en: 'the snowfield' },
   fall: { ko: '가을 호숫가', en: 'the autumn lake' }, zen: { ko: '모래 정원', en: 'the sand garden' },
+  cherry: { ko: '벚꽃 강변', en: 'the cherry riverbank' }, oasis: { ko: '사막 오아시스', en: 'the desert oasis' },
 };
 export const routeId = (from, to) => `${from}>${to}`;
 

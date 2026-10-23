@@ -49,5 +49,22 @@ export const MAPS = {
     unlock: 'map-zen',
     steps: 35000,
   },
+  // v28.17 재고 장소 2곳 (그림 Higgsfield GPT Image 2 4k, 2026-10-21 — 낮 판 6 + 밤·노을·새벽 18 씩, stock/places)
+  cherry: {
+    name: '벚꽃 강변',                 // 벚꽃·연둣빛 잎 숲 아래 옅은 모래 둑, 맑은 강이 불어나 지운다
+    wide: 'cherry', tall: 'cherry-tall',
+    gulls: false,
+    shoreFrom: 0.45,                 // 가을 호숫가와 같은 구도
+    unlock: 'map-cherry',
+    steps: 50000,
+  },
+  oasis: {
+    name: '사막 오아시스',              // 대추야자·관목 아래 금빛 사막 모래, 청록 웅덩이가 불어나 지운다
+    wide: 'oasis', tall: 'oasis-tall',
+    gulls: false,
+    shoreFrom: 0.45,
+    unlock: 'map-oasis',
+    steps: 70000,
+  },
 };
 export const MAP_IDS = Object.keys(MAPS);
