@@ -28,7 +28,7 @@
 </head>
 <body>
   <h1>해도 그림 비교</h1>
-  <p class="lead">같은 항해 기록을 앱의 실제 해도 그리기 코드로 두 번 그렸어요. 왼쪽은 지금 앱, 오른쪽은 새로 뽑아 둔 양피지·아이콘이에요.</p>
+  <p class="lead">v28.19 부터 앱은 B 를 써요. 같은 항해 기록을 앱의 실제 해도 그리기 코드로 두 번 그렸어요. 왼쪽은 지금 앱, 오른쪽은 새로 뽑아 둔 양피지·아이콘이에요.</p>
   <div class="bar" role="group" aria-label="해도 상태">
     <button type="button" data-state="early" aria-pressed="false">처음 몇 번 항해</button>
     <button type="button" data-state="all" aria-pressed="true">섬·바다 다 찾음</button>
@@ -39,14 +39,14 @@
   </div>
   <details><summary>새 아이콘 격자 전체 보기 (4×4)</summary><img src="assets/chart-sheet-2.webp" alt="새 해도 아이콘 16칸" /></details>
   <script type="module">
-    import { Chart, drawChart } from './src/chart.js';
+    import { Chart, drawChart, CHART_B } from './src/chart.js';
     import { loadSheet } from './src/sheet.js';
     import { PLACES } from './src/voyage.js';
     import { MAP_IDS } from './src/maps.js';
     const img = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = src; });
     const [sheet, extra, sheet2, paper] = await Promise.all([loadSheet('assets/chart-sheet.webp'), loadSheet('assets/extra-sheet.webp'), loadSheet('assets/chart-sheet-2.webp'), img('assets/chart-paper.webp')]);
     // 새 격자 칸: 1행 화산·폭포 절벽·거북·등대 / 2행 환초·쌍둥이·빙산·떠 있는 꽃섬 / 3행 고래 꼬리·바다뱀·난파선·병 / 4행 X·닻·별 항로·바람 구름
-    const alt = { sheet: sheet2, islet: { 'i-twin': 5, 'i-lantern': 3, 'i-turtle': 2, 'i-end': 6 }, spot: { 's-reef': 4, 's-current': 15, 's-whale': 8 } };
+    const alt = { ...CHART_B, sheet: sheet2 };   // 앱과 같은 칸 배치 (chart.js CHART_B)
     const trips = [['beach', 'nz'], ['nz', 'snow'], ['snow', 'fall'], ['fall', 'zen'], ['zen', 'beach'], ['beach', 'cherry'], ['cherry', 'oasis'], ['beach', 'fall'], ['beach', 'nz']];
     function make(state) {
       const chart = new Chart(() => null, () => {});
