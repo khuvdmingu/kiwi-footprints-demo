@@ -63,6 +63,7 @@ body.dressing #breathOffer { display: none; }
 #chartView .isleCard { position: absolute; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(340px, calc(100% - 32px)); padding: 12px 14px; border-radius: 14px; background: #fbf4e4; box-shadow: 0 8px 24px rgba(40, 30, 20, 0.28); }
 #chartView .isleCard[hidden] { display: none; }
 #chartView .isleCard .nm { display: block; font-size: 16px; }
+#chartView .isleCard .nmEdit { display: block; width: 100%; box-sizing: border-box; min-height: var(--tap-in, 40px); padding: 0 10px; font: inherit; font-size: 16px; font-weight: 600; border-radius: 10px; border: 1px solid rgba(61, 43, 28, 0.35); background: #fff; color: #3d2b1c; }   /* 16px: 폰이 입력 칸을 확대하지 않게 */
 #chartView .isleCard .tx { margin: 4px 0 10px; font-size: 13px; line-height: 1.5; opacity: 0.85; }
 #chartView .isleCard .btns { display: flex; gap: 8px; }
 #chartView .isleCard button { flex: 1; min-height: 42px; border-radius: 11px; border: 1px solid rgba(61, 43, 28, 0.28); background: transparent; color: inherit; font: inherit; font-weight: 600; cursor: pointer; }

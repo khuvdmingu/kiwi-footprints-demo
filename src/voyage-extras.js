@@ -7,10 +7,10 @@
 //   · extras.drawIsland(ctx, beach, mapId, night) — 섬 장면에 지은 것을 그린다
 //  규칙·저장은 chart.js · fishing.js · build.js 에, 화면 칸(바구니 › 해도 · 장소·소리 · 도감, 집중 창 안내)은 index.html 에.
 
-import { Chart, ISLET, SPOT, BIG, STOCK_ISLE_SHEETS, drawChart, drawChartLabel, routeLine, josa, SHEET as CHART_SHEET, CHART_B, BIG_ART } from './chart.js?v=v29.4.6';
-import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v29.4.6';
-import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v29.4.6';
-import { loadSheet } from './sheet.js?v=v29.4.6';
+import { Chart, ISLET, SPOT, BIG, STOCK_ISLE_SHEETS, drawChart, drawChartLabel, drawVoyageMark, voyagePoint, routeLine, josa, SHEET as CHART_SHEET, CHART_B, BIG_ART } from './chart.js?v=v29.4.7';
+import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v29.4.7';
+import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v29.4.7';
+import { loadSheet } from './sheet.js?v=v29.4.7';
 
 // 그림 격자가 assets/ 에 들어오면 true 로 (없을 때 404 를 내지 않게 — 그동안은 코드 그림)
 export const ART = { chart: true, catch: true, extra: true, kit: true, isles: true };   // isles: 재고 24곳 섬 그림 격자 chart-isles-a/b.webp (v29.4.1 Codex 그림)   // 2026-10-21 Higgsfield 격자 2장 (docs/GRAPHICS-PROMPTS.md v28)
@@ -23,7 +23,7 @@ export function mountExtras(env) {
   const base = new URL('../assets/', import.meta.url).href;
   const sheets = { chart: null, catch: null, extra: null, kit: null, chartB: null, paper: null };
   const load = (k, f) => { if (ART[k]) loadSheet(base + f).then(s => { if (s) { sheets[k] = s; paintAll(); } }); };
-  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v29.4.6'); load('kit', 'build-sheet-2.webp?v=v29.4.6');   // v28.20 벚꽃 강변·오아시스 건물   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
+  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v29.4.7'); load('kit', 'build-sheet-2.webp?v=v29.4.7');   // v28.20 벚꽃 강변·오아시스 건물   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
   // v28.19 해도 그림 B — 양피지 + 새 아이콘 (못 읽으면 지금 그림 그대로)
   loadSheet(base + CHART_B.sheet).then(s => { if (s) { sheets.chartB = s; paintAll(); } });
   // v29.4.5: 양피지 종이(틀 있는 그림)는 해도 창에서 안 쓴다 — 바탕이 화면 끝까지
@@ -50,7 +50,7 @@ export function mountExtras(env) {
     if (got) { lines.push(catchLine(item, trip.id)); if (item.bonus) chart.addBonus(item.bonus); }
     const found = chart.discover(sailedMs, { ...trip, from });
     for (const f of found) lines.push(f.kind === 'islet'
-      ? { ko: '지도에 없던 작은 섬을 봤다. 이름은 네가 지어 줘.', en: 'We saw a little island that is not on the map. You can name it.' }
+      ? { ko: `지도에 없던 작은 섬을 봤다. 해도에 「${chart.name(f.id)}」${josa(chart.name(f.id), '이라고', '라고')} 적어 뒀어. 눌러서 바꿀 수 있어.`, en: 'We saw a little island that is not on the map. It is on the chart now — tap it to rename.' }
       : { ko: `처음 보는 바다를 지났다. ${SPOT[f.id].ko}${josa(SPOT[f.id].ko, '이었다', '였다')}.`, en: '' });
     return { lines, catch: got ? item.id : null, found: found.map(f => f.id) };
   }
@@ -88,7 +88,7 @@ export function mountExtras(env) {
   // v29.4.5 (사용자 「스크롤이 끊긴다 · 종이 틀 없애 · 섬 사이 더 넓게」):
   //  K = 섬 자리를 넓히는 배수(섬 그림 크기는 그대로, 자리만 K배 멀리) · 종이 틀 없이 바탕이 화면 끝까지 · 바깥은 안개 색.
   //  보는 범위 = { cx, cy, z } · z = 해도 한 변(px) / 화면 긴 변. 섬 크기 = 해도 한 변 / K 기준.
-  const VIEW_KEY = 'chartView3', K = 1.7, PAD = 0.13 / K, COMFY = 1370, SW_MAX = 3600, OUT = '#ece2ce';
+  const VIEW_KEY = 'chartView3', K = 1.7, PAD = 0.13 / K, COMFY = 1370, SW_MAX = 3600, OUT = '#dfecec';
   let view = null, anim = 0, layout = null, userMoved = false, sel = null;   // sel = 누른 곳 { id, text } — 해도엔 그 이름만 쓴다
   const home = () => voyage.at || env.mapId();
   const boxSize = () => { const box = $('chartBox'); return [Math.max(120, box.clientWidth), Math.max(120, box.clientHeight)]; };
@@ -108,7 +108,7 @@ export function mountExtras(env) {
     const bw = Math.max(0.3, x1 - x0 + 2 * PAD), bh = Math.max(0.3, y1 - y0 + 2 * PAD);
     // v29.4.4: 다 넣으려고 물러서지 않는다 — 섬 지름 ≈ 110px 가 되는 배율로, 지금 섬을 가운데 두고 연다
     const fit = Math.min(W / bw, Hv / bh), S = Math.min(SW_MAX, Math.max(COMFY, fit));
-    const c = BIG[home()] || { x: (x0 + x1) / 2, y: (y0 + y1) / 2 };
+    const c = boatAt() || BIG[home()] || { x: (x0 + x1) / 2, y: (y0 + y1) / 2 };   // 항해 중이면 배를 가운데로
     return clampView({ cx: S > fit ? c.x : (x0 + x1) / 2, cy: (S > fit ? c.y : (y0 + y1) / 2) + (bot - top) / 2 / S, z: S / L });
   }
   // 해도 밖으로 너무 나가지 않게: 화면 가운데가 갈 수 있는 범위를 줄인다 (해도가 화면보다 좁은 쪽은 가운데)
@@ -118,7 +118,7 @@ export function mountExtras(env) {
     return { z, cx: hx >= 0.5 ? 0.5 : Math.min(1 - hx, Math.max(hx, v.cx)), cy: hy >= 0.5 ? 0.5 : Math.min(1 - hy, Math.max(hy, v.cy)) };
   }
   const geom = v => { const [W, H] = boxSize(), S = v.z * Math.max(W, H); return { S, ox: W / 2 - v.cx * S, oy: H / 2 - v.cy * S }; };
-  const chartOpts = () => ({ chart, log: voyage.log, home: home(), sailedMs: voyage.sailedMs, open: mapOpen, placeName, sheet: sheets.chart, extra: sheets.extra, bigArt: sheets.bigArt, alt: sheets.chartB && { ...CHART_B, sheet: sheets.chartB }, builds: id => builds.level(id), t: 0, all: true, isles: sheets.isles, spread: K, frameless: true, label: null });
+  const chartOpts = () => ({ chart, log: voyage.log, home: home(), sailedMs: voyage.sailedMs, open: mapOpen, placeName, sheet: sheets.chart, extra: sheets.extra, bigArt: sheets.bigArt, alt: sheets.chartB && { ...CHART_B, sheet: sheets.chartB }, builds: id => builds.level(id), t: 0, all: true, isles: sheets.isles, spread: K, frameless: true, label: null, atSea: !!voyage.trip });
   function prep() {
     const cv = $('chartCv'), [W, H] = boxSize(), dpr = dprOf();
     if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.width = W + 'px'; cv.style.height = H + 'px'; }
@@ -133,7 +133,28 @@ export function mountExtras(env) {
     drawChart(world.getContext('2d'), R / K, chartOpts());
     worldStale = false;
   }
-  const overlay = (c, g) => { c.save(); c.translate(g.ox, g.oy); drawChartLabel(c, g.S / K, { chart, label: sel, spread: K }); c.restore(); };
+  // 지금 항해 (내비게이션) — 해도 한 장 위에 매번 얹는다 (가볍다: 선 두 줄·배 하나)
+  const seaTrip = () => { const r = voyage.trip; return r && BIG[r.to] ? { from: r.from || 'beach', to: r.to, frac: voyage.frac() } : null; };
+  const navText = () => { const r = voyage.trip; if (!r) return ''; const m = Math.ceil(voyage.left() / 60000); return `${placeName(r.to)}까지 ${m}분${voyage.active ? '' : ' · 멈춤'}`; };
+  const overlay = (c, g) => {
+    c.save(); c.translate(g.ox, g.oy);
+    const s = seaTrip(); if (s) drawVoyageMark(c, g.S / K, { ...s, spread: K, t: performance.now() / 1000, sheet: sheets.chart, text: navText() });
+    drawChartLabel(c, g.S / K, { chart, label: sel, spread: K }); c.restore();
+  };
+  // 항해 중 해도가 열려 있으면 배가 움직이는 걸 보여 준다 — 손을 안 댔으면 배를 따라가고(내비), 둘러보는 중이면 그 자리에서 배만 움직인다
+  { let last = 0;
+    const tick = now => {
+      if (!$('chartView').hidden && seaTrip() && view && !kin && !frame) {
+        if (now - last > 66) { last = now;
+          if (!userMoved) { const p = boatAt(); if (p) view = clampView({ ...view, cx: p.x, cy: p.y + navShift() }); }
+          view = blit(view);
+        }
+      }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick); }
+  function boatAt() { const s = seaTrip(); return s && voyagePoint(s.from, s.to, s.frac); }
+  function navShift() { const [, H] = boxSize(), g = geom(view); return 40 / g.S * (H > 500 ? 1 : 0.5); }   // 배를 화면 가운데보다 조금 아래에 (위로 갈 길이 보이게)
   // 빠른 그리기: 해도 한 장 붙이기 + 누른 곳 이름
   function blit(v) {
     if (!world || worldStale) buildWorld();
@@ -195,9 +216,9 @@ export function mountExtras(env) {
       const row = document.createElement('div'); row.className = 'chartRow';
       const nm = document.createElement('b'); nm.textContent = chart.name(i.id);
       const sub = document.createElement('span'); sub.textContent = i.note;
-      const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'quiet'; btn.textContent = chart.named(i.id) ? '이름 바꾸기' : '이름 짓기';
+      const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'quiet'; btn.textContent = '이름 바꾸기';
       btn.addEventListener('click', () => {
-        const inp = document.createElement('input'); inp.type = 'text'; inp.maxLength = 16; inp.value = chart.named(i.id) ? chart.name(i.id) : ''; inp.placeholder = i.ko; inp.setAttribute('aria-label', '섬 이름');
+        const inp = document.createElement('input'); inp.type = 'text'; inp.maxLength = 16; inp.value = chart.name(i.id); inp.placeholder = chart.autoName(i.id); inp.setAttribute('aria-label', '섬 이름');
         const ok = () => { chart.rename(i.id, inp.value); paintChart(); };
         inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') ok(); if (ev.key === 'Escape') paintChart(); ev.stopPropagation(); });
         inp.addEventListener('blur', ok);
@@ -330,12 +351,32 @@ export function mountExtras(env) {
         else if (voyage.paused) { go.textContent = '멈춘 배가 있어요 — 이어 가기 · 그만두기'; go.onclick = () => env.planVoyage?.(voyage.paused.to); }
         else { go.textContent = '항해로 가기'; go.onclick = () => env.planVoyage?.(id); }
       }
-    } else if (kind === 'islet') { nm.textContent = chart.name(id); tx.textContent = ISLET[id].note + (chart.named(id) ? '' : ' · 아래 목록에서 이름을 지어 주세요'); }
+    } else if (kind === 'islet') {
+      const task = String(chart.found[id]?.task || '').trim();
+      nm.textContent = chart.name(id); tx.textContent = ISLET[id].note + (task ? ` · 「${task.slice(0, 24)}」 하던 항해에서 찾았어요` : '');
+      // 눌러서 이름 바꾸기 — 카드 안에서 바로 (비우면 기본 이름으로)
+      go.hidden = false; go.textContent = '이름 바꾸기';
+      go.onclick = () => {
+        const inp = document.createElement('input'); inp.type = 'text'; inp.maxLength = 16; inp.className = 'nmEdit'; inp.value = chart.name(id); inp.placeholder = chart.autoName(id); inp.setAttribute('aria-label', '섬 이름');
+        let done = false; const ok = keep => { if (done) return; done = true; if (keep) chart.rename(id, inp.value); inp.replaceWith(nm); paintChart(); if (!card.hidden) showIsle({ id, kind }); };
+        inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') ok(true); if (ev.key === 'Escape') ok(false); ev.stopPropagation(); });
+        inp.addEventListener('blur', () => ok(true));
+        nm.replaceWith(inp); inp.focus(); inp.select();
+      };
+    }
     else { nm.textContent = SPOT[id].ko; tx.textContent = SPOT[id].note; }
     sel = { id, text: nm.textContent }; card.hidden = false; repaint();
   }
   // 카드가 닫히면(✕·빈 바다·끌기·창 닫기) 지도 위 이름도 지운다
   new MutationObserver(() => { if (card.hidden && sel) { sel = null; repaint(); } }).observe(card, { attributes: true, attributeFilter: ['hidden'] });
+  // v29.4.7: 예전에 찾은 작은 섬엔 작업명이 안 적혀 있다 — 같은 때 끝난 항해 기록에서 찾아 채운다 (없으면 기본 이름 그대로)
+  { let fill = false;
+    for (const [id, f] of Object.entries(chart.found)) {
+      if (!ISLET[id] || 'task' in f) continue;
+      const e = voyage.log.filter(v => Math.abs((v.at || 0) - (f.at || 0)) < 120000).sort((a, b) => Math.abs(a.at - f.at) - Math.abs(b.at - f.at))[0];
+      f.task = String(e?.reason || '').trim().slice(0, 80); fill = true;
+    }
+    if (fill) chart.store(); }
   paintAll();
   return { chart, catches, builds, extra, arrived, focusDone, drawIsland, paintAll, paintChart };
 }
