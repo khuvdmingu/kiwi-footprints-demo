@@ -212,3 +212,25 @@ html[data-ui="paper"] :is(.uiWindow, #focusPanel, #chartView) :focus-visible { o
   #chartView .cvFoot .more summary { min-height: 32px; font-size: 12.5px; }
   #chartView .isleCard { bottom: calc(var(--edge, 12px) + env(safe-area-inset-bottom)); left: auto; right: max(var(--edge, 12px), env(safe-area-inset-right)); transform: none; }
 }
+
+/* ── v29.4.2 창 틀 통일: 너비·안쪽 여백·모서리를 값 셋으로 (설정 320 · 바구니 340 · 꾸미기 380 / 여백 14·12 / 모서리 16·18 이 섞여 있던 것) ──
+   폰(480px 이하)에선 창이 화면 좌우 끝에서 똑같이 --edge 만큼 떨어진다 (예전엔 왼쪽 39px · 오른쪽 16px). 종이 테마의 손으로 자른 모서리는 theme-paper.css 가 그대로 덮는다 */
+:root { --win-w: 360px; --win-pad: 14px; --win-r: 16px; }
+.uiWindow, #focusPanel { padding: var(--win-pad); border-radius: var(--win-r); }
+:is(.uiWindow:not(.wardrobe), #focusPanel) { width: min(var(--win-w), calc(100vw - 2 * var(--edge))); }
+.wardrobe { width: auto; padding: var(--win-pad) var(--win-pad) 0; border-radius: var(--win-r) var(--win-r) 0 0; }
+@media (min-width: 760px) { .wardrobe { width: var(--win-w); border-radius: var(--win-r); } }
+@media (max-width: 480px) { :is(.uiWindow:not(.wardrobe), #focusPanel) { left: max(var(--edge), env(safe-area-inset-left)); right: max(var(--edge), env(safe-area-inset-right)); width: auto; } }
+/* 창 안 탭도 누르는 칸 최소(--tap-in, 40px)를 지킨다 (예전 38px) */
+:is(.uiWindow, #focusPanel) > .tabs button { min-height: var(--tap-in); }
+/* 가로로 든 폰: 오른쪽 세로 레일 옆 (위 규칙이 레일 규칙을 덮지 않게 다시) */
+@media (orientation: landscape) and (max-height: 520px) {
+  :is(.uiWindow:not(.wardrobe), #focusPanel) { width: min(var(--win-w), calc(100vw - var(--rail) - 2 * var(--edge))); }
+  .wardrobe { width: min(var(--win-w), calc(100vw - var(--rail) - 2 * var(--edge))); border-radius: var(--win-r); }
+}
+/* v29.4.2 창 안 누르는 것 크기 통일 (폰 실측: 막대 16px · 켜고 끄기 줄 17px · 고르기 칸 25~34px · 테스트·만들기 단추 36px 이었다) */
+:is(.uiWindow, #focusPanel) :is(select, label.row, #tunePane .tbtns button, #craftList button) { min-height: var(--tap-in); }
+:is(.uiWindow, #focusPanel) input[type="range"] { min-height: var(--tap-in); margin-block: 0; }
+/* 도감 작은 칸: 폰에선 한 줄 8칸이면 34px 라 6칸으로 (칸 ≈ 48px) */
+@media (max-width: 480px) { .colgrid.finds { grid-template-columns: repeat(6, 1fr); } }
+:is(.uiWindow, #focusPanel) label.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }

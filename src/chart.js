@@ -8,19 +8,19 @@
 //  기록은 이 기기에만 (localStorage 'chart'). 항해 기록(voyage.log)은 voyage.js 가 갖고, 여기는 발견·이름만 갖는다.
 //  그리기: 그림 격자(assets/chart-sheet.webp, 4×4)가 있으면 칸을 잘라 쓰고, 없으면 코드로 그린다.
 
-import { fitCell, roundCell } from './sheet.js?v=v29.4.1';
+import { fitCell, roundCell } from './sheet.js?v=v29.4.2';
 
-export const SHEET = 'chart-sheet.webp?v=v29.4.1';
+export const SHEET = 'chart-sheet.webp?v=v29.4.2';
 // v28.19 해도 그림 B (사용자 2026-10-24 비교 페이지에서 고름): 양피지 종이(나침반 포함) + 새 아이콘 격자 4×4
 //  새 격자 칸: 1행 화산·폭포 절벽·거북·등대 / 2행 환초·쌍둥이·빙산·떠 있는 꽃섬 / 3행 고래 꼬리·바다뱀·난파선·병 / 4행 X·닻·별 항로·바람 구름
 //  그림 칸이 없던 섬·바다 표시만 새 칸으로 (나머지는 지금 격자 그대로)
 // v28.20 격자 칸이 없는 큰 섬은 낱장 그림 (Codex 그림, 흰 바탕을 뺀 투명 webp)
-import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v29.4.1';
-export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v29.4.1', oasis: 'chart-isle-oasis.webp?v=v29.4.1' };
+import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v29.4.2';
+export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v29.4.2', oasis: 'chart-isle-oasis.webp?v=v29.4.2' };
 // v29.4 재고 새 장소 24곳의 해도 섬 그림 (Codex 그림, 4×4 격자 두 장 — 위 세 줄에 12곳씩, STOCK_PLACES 순서). 못 읽으면 코드 그림
-export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v29.4.1', 'chart-isles-b.webp?v=v29.4.1'];
+export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v29.4.2', 'chart-isles-b.webp?v=v29.4.2'];
 export const stockIsleCell = id => { const i = STOCK_PLACES.findIndex(p => p.id === id); return i < 0 ? null : { sheet: Math.floor(i / 12), cell: i % 12 }; };
-export const CHART_B = { paper: 'chart-paper.webp?v=v29.4.1', sheet: 'chart-sheet-2.webp?v=v29.4.1',
+export const CHART_B = { paper: 'chart-paper.webp?v=v29.4.2', sheet: 'chart-sheet-2.webp?v=v29.4.2',
   islet: { 'i-twin': 5, 'i-lantern': 3, 'i-turtle': 2, 'i-end': 6 }, spot: { 's-reef': 4, 's-current': 15, 's-whale': 8 } };
 // 격자 칸 (4×4): 0~4 큰 섬 · 5~12 작은 섬 · 13 나침반 · 14 배 표시 · 15 안개 덩이
 export const CELL = { beach: 0, nz: 1, snow: 2, fall: 3, zen: 4, compass: 13, boat: 14, fog: 15 };
@@ -192,9 +192,10 @@ export function drawChart(ctx, S, o) {
     if (chart.named(i.id)) label(ctx, chart.name(i.id), x, y + r * 1.05, S * 0.024, '#3d2b1c');   // 이름 지은 섬만 지도에 쓴다 (안 지은 섬은 아래 목록에)
     else label(ctx, '?', x + r * 0.9, y - r * 0.9, S * 0.022, 'rgba(150,60,40,0.75)');
   }
-  // 큰 섬 + 도장
+  // 큰 섬 + 도장 — 이름은 모아 두었다가 섬·안개를 다 그린 뒤 겹치지 않는 자리에 쓴다 (v29.4.2)
+  const names = [], bodies = [];
   for (const [id, p] of Object.entries(BIG)) {
-    const [x, y] = P(p), open = o.open ? o.open(id) : true, r = S * 0.07;
+    const [x, y] = P(p), open = o.open ? o.open(id) : true, r = S * 0.062;   // v29.4.2 0.07 → 0.062: 섬 24곳이 늘며 서로 붙어 이름 자리가 없었다
     if (!open && STOCK_IDS.has(id) && !o.all) continue;   // 재고 새 장소는 열리기 전엔 안 그린다 (해도가 '?' 로 빽빽해지지 않게)
     // o.all (2026-10-24 해도 창): 잠긴 섬도 안개 밑에 흐리게 다 그린다 — 열린 섬만 맞춰 보다가 넓어지면 가장자리에서 드러난다
     if (!open) { ctx.globalAlpha = o.all ? 0.2 : 0.28; }
@@ -203,7 +204,8 @@ export function drawChart(ctx, S, o) {
     else if (!cell(ctx, sheet, CELL[id], x, y, r * 2.2)) { const sc = stockIsleCell(id); if (!(sc && cell(ctx, o.isles?.[sc.sheet], sc.cell, x, y, r * 2.2))) drawBig(ctx, id, x, y, r); }
     ctx.globalAlpha = 1;
     if (!open) { label(ctx, '?', x, y + r * 0.2, S * 0.05, 'rgba(61,43,28,0.45)'); continue; }
-    label(ctx, o.placeName ? o.placeName(id) : id, x, y + r * 1.15, S * 0.025, '#3d2b1c', S * 0.12);
+    bodies.push({ id, x, y, r: r * 0.95 });
+    names.push({ id, text: o.placeName ? o.placeName(id) : id, x, y, r });
     const n = visits[id] || 0;
     if (n) stamp(ctx, x + r * 0.95, y - r * 0.75, S * 0.028, stampInk(n), n);
     const b = o.builds ? o.builds(id) : 0;
@@ -213,12 +215,63 @@ export function drawChart(ctx, S, o) {
   if (o.home && BIG[o.home]) { const [x, y] = P(BIG[o.home]); if (!cell(ctx, sheet, CELL.boat, x - S * 0.07, y - S * 0.06, S * 0.05)) drawBoat(ctx, x - S * 0.07, y - S * 0.055, S * 0.022, t); }
   // 안개: 찾은 곳 둘레만 걷힌다 (덩이를 깔고 둘레를 지운다)
   drawFog(ctx, S, o, t);
+  placeNames(ctx, names, bodies, S);
   // 나침반
   if (!o.paper && !cell(ctx, sheet, CELL.compass, S * 0.9, S * 0.9, S * 0.12)) drawCompass(ctx, S * 0.9, S * 0.9, S * 0.045);   // 양피지엔 나침반이 그려져 있다
   ctx.restore();
 }
 
 const cell = (ctx, sheet, n, x, y, size) => fitCell(ctx, sheet, n, x, y, size);
+// 섬 이름 자리 (v29.4.2 — 섬이 몰린 곳에서 이름이 이웃 섬 그림에 덮이던 것):
+//  이름은 섬·안개를 다 그린 뒤 바탕을 깔고 맨 위에 쓴다(가려지지 않게). 자리는 제 섬 바로 아래가 기본이고,
+//  다른 이름과 부딪칠 때만 위 → 오른쪽 → 왼쪽으로 옮긴다.
+export function pickLabelSpot(box, cands, placed, bodies, selfId) {
+  const hit = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  const cover = (a) => bodies.reduce((sum, c) => {
+    if (c.id === selfId) return sum;
+    const nx = Math.max(a.x, Math.min(c.x, a.x + a.w)), ny = Math.max(a.y, Math.min(c.y, a.y + a.h)), d = Math.hypot(c.x - nx, c.y - ny);
+    return sum + Math.max(0, c.r - d);
+  }, 0);
+  let best = null, bestCost = Infinity;
+  cands.forEach(([cx, top], i) => {
+    const b = { x: cx - box.w / 2, y: top, w: box.w, h: box.h };
+    // 「이름은 제 섬 바로 아래」가 기본 — 읽는 사람이 배우는 규칙이 하나라 헷갈리지 않는다. 다른 이름과 부딪칠 때만 다음 자리로
+    const cost = (placed.some(q => hit(b, q)) ? 1e6 : 0) + i * 1e3 + cover(b);
+    if (cost < bestCost) { bestCost = cost; best = b; }
+  });
+  return best;
+}
+function labelLines(ctx, text, px, maxWidth) {
+  ctx.font = `600 ${Math.round(px)}px "Gowun Dodum", "Apple SD Gothic Neo", sans-serif`;
+  const lines = []; let line = '';
+  const words = String(text).split(' ');
+  const byWord = maxWidth && words.length > 1 && words.every(w => ctx.measureText(w).width <= maxWidth);
+  for (const part of byWord ? words : [...String(text)]) {
+    const next = line + (byWord && line ? ' ' : '') + part;
+    if (maxWidth && line && ctx.measureText(next).width > maxWidth) { lines.push(line.trim()); line = part; }
+    else line = next;
+  }
+  lines.push(line.trim());
+  return lines;
+}
+function placeNames(ctx, names, bodies, S) {
+  const px = S * 0.025, lh = Math.round(px * 1.25), pad = px * 0.35, placed = [];
+  for (const n of names) {
+    const lines = labelLines(ctx, n.text, px, S * 0.12);
+    const w = Math.max(...lines.map(l => ctx.measureText(l).width)) + pad * 2, h = lines.length * lh + pad * 1.4, gap = n.r * 0.08;
+    const cands = [[n.x, n.y + n.r * 1.05], [n.x, n.y - n.r * 1.05 - h], [n.x + n.r * 1.05 + w / 2, n.y - h / 2], [n.x - n.r * 1.05 - w / 2, n.y - h / 2]]
+      .map(([x, y]) => [x, y + (y > n.y ? gap : -gap)]);
+    const b = pickLabelSpot({ w, h }, cands, placed, bodies, n.id);
+    placed.push(b);
+    ctx.save();
+    ctx.fillStyle = 'rgba(248,239,218,0.82)'; ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(b.x, b.y, b.w, b.h, Math.min(b.h / 2, px * 0.8)); else ctx.rect(b.x, b.y, b.w, b.h);
+    ctx.fill();
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = '#3d2b1c';
+    lines.forEach((l, i) => ctx.fillText(l, b.x + b.w / 2, b.y + pad * 0.7 + i * lh));
+    ctx.restore();
+  }
+}
 function label(ctx, text, x, y, px, color, maxWidth) {
   ctx.font = `600 ${Math.round(px)}px "Gowun Dodum", "Apple SD Gothic Neo", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   // 섬이 많아져도 긴 이름이 옆 섬 이름과 겹치지 않도록 줄바꿈한다.
