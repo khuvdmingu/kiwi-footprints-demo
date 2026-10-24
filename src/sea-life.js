@@ -11,7 +11,7 @@
 export const LIFE = {
   turtle: { ko: '바다거북', w: 3, size: 0.2, swim: 0.02, sub: true, a: { atlas: 'claude-turtle' }, b: { atlas: 'codex-turtle' } },
   jelly: { ko: '해파리', w: 2, nightW: 4, size: 0.15, swim: 0.01, sub: true, glow: true, a: { atlas: 'claude-jelly' }, b: { atlas: 'codex-jelly', scale: 0.8, tentacles: true } },
-  dolphins: { ko: '돌고래', w: 3, nightW: 1, size: 0.26, swim: 0.085, a: { atlas: 'claude-dolphins' }, b: { atlas: 'codex-dolphins', pod: 3 } },
+  dolphins: { ko: '돌고래', w: 3, nightW: 1, size: 0.32, swim: 0.085, a: { atlas: 'claude-dolphins', spin: -0.42 }, b: { atlas: 'codex-dolphins', pod: 3 } },
   whale: { ko: '고래', w: 2, size: 0.34, swim: 0.012, a: { sprite: 'whale' }, b: { atlas: ['codex-whale', 'codex-whale-greet', 'codex-whale-tail'], scale: 1.3 } },
   manta: { ko: '만타가오리', w: 2, size: 0.22, swim: 0.02, sub: true, a: { atlas: 'claude-manta' }, b: { img: 'codex-manta', flap: true } },
   school: { ko: '작은 물고기 떼', w: 3, nightW: 1, size: 0.5, swim: 0.02, sub: true, a: { pieces: 'claude-school' }, b: { code: 'mill' } },
@@ -47,6 +47,11 @@ export class SeaLife {
     const items = String(spec).split(',').map(s => s.trim()).filter(Boolean).map(s => { const [id, v] = s.split('-'); return LIFE[id] ? { id, v: v === 'a' || v === 'b' ? v : null } : null; }).filter(Boolean);
     if (items.length) { this.force = items; this.next = 0; }
   }
+  // 테스트 탭: 지금 있는 것을 걷고 곧바로 한 무리 — 'random' 이면 평소처럼 고른 무리, 아니면 그 생물·판만 (한 번)
+  show(spec) {
+    this.list = []; this.pending = null; this.next = 0; this.force = null; this.announce = true;
+    this.once = spec === 'random' ? null : String(spec).split(',').map(x => { const [id, v] = x.trim().split('-'); return LIFE[id] ? { id, v: v === 'a' || v === 'b' ? v : null } : null; }).filter(Boolean);
+  }
   release() { this.cache.clear(); this.list = []; }
   // 그림 한 장 (json 묶음이면 칸 정보도). 실패하면 null 을 기억해 다시 안 부른다
   get(name) {
@@ -54,7 +59,7 @@ export class SeaLife {
     const rec = { ready: false, im: null, m: null };
     this.cache.set(name, rec);
     const json = /claude-(turtle|dolphins|manta|jelly|school|plankton)|codex-(turtle|jelly|dolphins|whale)/.test(name) && name !== 'codex-manta';
-    Promise.all([img(this.base + name + '.webp?v=v28.23.0'), json ? fetch(this.base + name + '.json').then(r => r.json()) : null])
+    Promise.all([img(this.base + name + '.webp?v=v28.24.0'), json ? fetch(this.base + name + '.json').then(r => r.json()) : null])
       .then(([im, m]) => Object.assign(rec, { im, m, ready: true }), () => Object.assign(rec, { ready: true, bad: true }));
     while (this.cache.size > 6) { const k = this.cache.keys().next().value; if (this.list.some(c => c.art === k)) break; this.cache.delete(k); }
     return rec;
@@ -73,7 +78,10 @@ export class SeaLife {
   rec(p) { return p.art ? this.get(p.art) : { ready: true }; }
   spawn(t, n, play) {
     const busy = new Set(this.list.map(c => c.id)), skip = new Set(play?.kind === 'whale' ? ['whale'] : []);
-    let group = this.force ? this.force.filter(f => !busy.has(f.id)).map(f => ({ id: f.id, v: f.v || (Math.random() < 0.5 ? 'a' : 'b') })) : planGroup(Math.random, { night: n, busy, skip });
+    const want = this.once || this.force; this.once = null;
+    let group = want ? want.filter(f => !busy.has(f.id)).map(f => ({ id: f.id, v: f.v || (Math.random() < 0.5 ? 'a' : 'b') })) : planGroup(Math.random, { night: n, busy, skip });
+    if (group.length && (want || this.announce)) this.onSpawn?.(group);   // 테스트로 부른 무리만 알린다
+    this.announce = false;
     if (!group.length) { this.next = t + 10; return; }
     const flip = Math.random() < 0.5 ? 0 : 1;   // 무리 안에서는 왼쪽·오른쪽을 번갈아
     this.pending = group.map((g, i) => {
@@ -123,7 +131,8 @@ export class SeaLife {
     for (let k = 0; k < pod; k++) {
       // 무리(B 돌고래): 한 마리 묶음을 셋이 조금씩 늦게, 비스듬히 줄 지어
       const ox = (k - (pod - 1) / 2) * w * 0.9, oy = Math.abs(k - (pod - 1) / 2) * h * 0.35 + Math.sin(age * 1.7 + k * 2) * h * 0.04;
-      c.save(); c.translate(x + ox, y + oy); c.rotate(rot + (k - 1) * 0.05 * (pod > 1));
+      // spin: 셋이 둥글게 놓인 묶음(A 돌고래)은 무리째 천천히 돌려 원을 그리며 헤엄치게 (그림 속 머리 방향 = 시계 반대)
+      c.save(); c.translate(x + ox, y + oy); c.rotate(rot + (k - 1) * 0.05 * (pod > 1) + (s.spin ? age * s.spin + cr.seed : 0));
       if (cr.spec.tentacles || (LIFE[cr.id].glow && n > 0.3)) this.halo(c, w, h, n, age);
       if (cr.spec.tentacles) this.tentacles(c, w, h, age);
       this.cell(c, r.im, m, (this.frame(m, age) + k * 7) % m.frames, w, h);

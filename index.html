@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#1A5C91" />
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v28.23.0" />
-  <link rel="stylesheet" href="memos.css?v=v28.23.0" />
-  <link rel="stylesheet" href="theme-paper.css?v=v28.23.0" />
+  <link rel="stylesheet" href="style.css?v=v28.24.0" />
+  <link rel="stylesheet" href="memos.css?v=v28.24.0" />
+  <link rel="stylesheet" href="theme-paper.css?v=v28.24.0" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -265,7 +265,9 @@
     <p class="hint">섬 — 진짜 사건을 일으켜 키위 반응을 봐요(창이 닫혀요).</p>
     <div class="tbtns"><button type="button" data-act="scMeteor">별똥별 · 하늘 보기</button><button type="button" data-act="scTap">누름 · 깜짝</button><button type="button" data-act="scJoy">집중 끝 · 통통</button><button type="button" data-act="scGuest">손님 · 두리번</button><button type="button" data-act="scSleep">잠들기</button><button type="button" data-act="scWake">깨우기 · 기지개</button></div>
     <p class="hint">항해 — 먼저 「항해 시험 시작」, 바다에서 사건을 골라 배 위 키위 동작을 봐요.</p>
-    <div class="tbtns"><button type="button" data-act="voySail">항해 시험 시작 (1분)</button><button type="button" data-act="voy:whale">고래 · 손 흔들기</button><button type="button" data-act="voy:meteor">별똥별</button><button type="button" data-act="voy:doze">조는 키위</button><button type="button" data-act="voy:seabird">바닷새</button><button type="button" data-act="voy:lighthouse">등대</button><button type="button" data-act="voy:leaf">잎 우산</button></div>
+    <div class="tbtns"><button type="button" data-act="voySail">항해 시험 시작 (1분)</button><button type="button" data-act="voySail10">항해 시험 시작 (10분)</button><button type="button" data-act="voy:whale">고래 · 손 흔들기</button><button type="button" data-act="voy:meteor">별똥별</button><button type="button" data-act="voy:doze">조는 키위</button><button type="button" data-act="voy:seabird">바닷새</button><button type="button" data-act="voy:lighthouse">등대</button><button type="button" data-act="voy:leaf">잎 우산</button></div>
+    <p class="hint">바다 생물 — 항해 중에 눌러요. A = Claude 판, B = Codex 판. 「무작위 무리」는 실제처럼 1~3종을 골라 바로 띄워요(평소엔 무리 사이 25~70초).</p>
+    <div class="tbtns"><button type="button" data-act="life:random">무작위 무리</button><button type="button" data-act="life:turtle-a">거북 A</button><button type="button" data-act="life:turtle-b">거북 B</button><button type="button" data-act="life:jelly-a">해파리 A</button><button type="button" data-act="life:jelly-b">해파리 B</button><button type="button" data-act="life:dolphins-a">돌고래 A</button><button type="button" data-act="life:dolphins-b">돌고래 B</button><button type="button" data-act="life:whale-a">고래 A</button><button type="button" data-act="life:whale-b">고래 B</button><button type="button" data-act="life:manta-a">만타 A</button><button type="button" data-act="life:manta-b">만타 B</button><button type="button" data-act="life:school-a">물고기 떼 A</button><button type="button" data-act="life:school-b">물고기 떼 B</button><button type="button" data-act="life:plankton-a">플랑크톤 A</button><button type="button" data-act="life:plankton-b">플랑크톤 B</button></div>
     <p class="hint">「지금 보기」는 고른 동작을 쉬고 있는 키위들에게 하나씩 나눠 바로 시켜요(창이 닫혀요). 「고른 것만 되풀이」를 켜면 멈출 때마다(90%) 고른 동작만 해요. 평소 빈도는 설정 「키위 몸짓」. 옷 입은 키위·글씨 쓰는 키위는 동작하지 않아요.</p>
     <h2 class="sep">번인 방지</h2>
     <div class="trow"><span>안 건드리면 키위 잠듦 · 버튼 숨김</span><output id="tSleepV"></output></div>
@@ -423,11 +425,11 @@
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v28.23.0"></script>
-  <script type="module" src="src/credits.js?v=v28.23.0"></script>
+  <script type="module" src="src/main.js?v=v28.24.0"></script>
+  <script type="module" src="src/credits.js?v=v28.24.0"></script>
   <!-- v26 UI 구조 개편(src/ia — 기존 버튼·창을 새 자리로 옮김, docs/IA.md) · 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/ia/ia.js?v=v28.23.0"></script>
-  <script type="module" src="src/taps.js?v=v28.23.0"></script>
+  <script type="module" src="src/ia/ia.js?v=v28.24.0"></script>
+  <script type="module" src="src/taps.js?v=v28.24.0"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.
