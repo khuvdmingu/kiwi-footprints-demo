@@ -8,10 +8,10 @@
 //  그림: assets/catch-sheet.webp 4×4 (0~9 낚은 것 · 10~15 섬 짓기, build.js 와 같은 장). 없으면 코드 그림.
 //  기록은 이 기기에만 (localStorage 'catch').
 
-import { RARITY } from './shore.js?v=v29.5.0';
-import { fitCell } from './sheet.js?v=v29.5.0';
+import { RARITY } from './shore.js?v=v29.6.0';
+import { fitCell } from './sheet.js?v=v29.6.0';
 
-export const SHEET = 'catch-sheet.webp?v=v29.5.0';
+export const SHEET = 'catch-sheet.webp?v=v29.6.0';
 export const CATCHES = [
   { id: 'kelp', r: 0, cell: 0, ko: '해초 리본', en: 'a kelp ribbon', note: '길고 반짝이는 해초. 키위들이 목에 감고 놀았다.' },
   { id: 'driftb', r: 0, cell: 1, ko: '유목 묶음', en: 'a bundle of driftwood', note: '잘 마른 나뭇가지 한 아름.', material: true },
@@ -73,6 +73,7 @@ export class Catches {
   }
   has(id) { return this.seen.has(id); }
   count(id) { return this.n[id] || 0; }
+  give(id) { if (!(this.n[id] > 0)) return false; this.n[id]--; this.store(); return true; }   // v29.6 답장 선물로 내준다
   get kinds() { return this.seen.size; }
 }
 export { RARITY };
