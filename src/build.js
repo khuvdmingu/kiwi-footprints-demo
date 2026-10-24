@@ -8,7 +8,7 @@
 //  그림: assets/catch-sheet.webp 의 10~15 칸 (fishing.js 와 같은 장). 없으면 코드 그림.
 //  기록은 이 기기에만 (localStorage 'builds').
 
-import { standCell } from './sheet.js?v=v28.19.0';
+import { standCell } from './sheet.js?v=v28.20.0';
 
 export const BUILDS = [
   { id: 'flag', min: 15, cell: 10, ko: '깃발', note: '여기 우리가 있었다는 표시.', x: 0.17, h: 0.11 },
@@ -33,6 +33,21 @@ export const VARIANTS = {
   },
   fall: { hut: { ko: '단풍 오두막', note: '지붕을 단풍잎으로 덮었다.', sheet: 'extra', cell: 14 } },
   nz: { hut: { ko: '고사리 오두막', note: '고사리 잎을 엮어 지붕을 얹었다.', sheet: 'extra', cell: 15 } },
+  // v28.20 벚꽃 강변 · 오아시스 (build-sheet-2.webp — 재고 stock/kit 격자, sheet: 'kit')
+  cherry: {
+    flag: { ko: '벚꽃 깃발', note: '꽃잎 무늬 천을 가지에 달았다.', sheet: 'kit', cell: 12 },
+    bench: { ko: '꽃잎 벤치', note: '앉으면 꽃잎이 내려앉는다.', sheet: 'kit', cell: 15 },
+    fire: { ko: '소풍 담요', note: '찻잔을 놓고 꽃 구경을 한다.', sheet: 'kit', cell: 13, glow: 0 },
+    hut: { ko: '벚꽃 정자', note: '지붕 위로 꽃이 쌓인다.', sheet: 'kit', cell: 9 },
+    light: { ko: '석등', note: '강물에 불빛이 흔들린다.', h: 0.16, sheet: 'kit', cell: 11 },
+  },
+  oasis: {
+    flag: { ko: '줄무늬 천막', note: '한낮의 해를 가린다.', sheet: 'kit', cell: 7 },
+    bench: { ko: '야자 섬유 벤치', note: '야자 섬유를 엮어 만들었다.', sheet: 'kit', cell: 6 },
+    fire: { ko: '주전자 모닥불', note: '밤 사막은 춥다. 차를 끓인다.', sheet: 'kit', cell: 14 },
+    hut: { ko: '야자잎 오두막', note: '모래바람이 들지 않게 촘촘히.', sheet: 'kit', cell: 4 },
+    light: { ko: '사암 망루', note: '멀리 사막 길을 비춘다.', sheet: 'kit', cell: 8 },
+  },
 };
 export const buildFor = (b, map) => (VARIANTS[map]?.[b.id] ? { ...b, ...VARIANTS[map][b.id] } : b);
 

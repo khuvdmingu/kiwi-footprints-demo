@@ -28,7 +28,25 @@ export const FINDS = [
   { id: 'gold', name: '금빛 깃털', r: 2, when: 'golden', hint: '해 뜰 녘 · 해 질 녘에만 밀려와요' },
   { id: 'nautilus', name: '앵무조개', r: 2, maps: ['beach'], hint: '바닷가에서 아주 가끔' },
   { id: 'pearl', name: '진주', r: 3, hint: '어디서든, 아주아주 가끔' },
+  // v28.20 벚꽃 강변 · 사막 오아시스 (재고 stock/kit, finds.webp 아래 4줄 — 칸 16~31)
+  { id: 'blossom', name: '벚꽃 한 송이', r: 0, maps: ['cherry'] },
+  { id: 'riverstone', name: '강돌', r: 0, maps: ['cherry'] },
+  { id: 'heartpetal', name: '하트 꽃잎', r: 1, maps: ['cherry'] },
+  { id: 'willowleaf', name: '버들잎', r: 0, maps: ['cherry'] },
+  { id: 'eggshell', name: '깨진 새알 껍데기', r: 1, maps: ['cherry'] },
+  { id: 'goldsnail', name: '금빛 달팽이 껍데기', r: 1, maps: ['cherry'] },
+  { id: 'amber', name: '꽃이 든 호박', r: 2, maps: ['cherry'], hint: '벚꽃 강변에서 아주 가끔' },
+  { id: 'berry', name: '버찌', r: 0, maps: ['cherry'] },
+  { id: 'desertrose', name: '사막 장미석', r: 1, maps: ['oasis'] },
+  { id: 'dateseed', name: '대추야자 씨', r: 0, maps: ['oasis'] },
+  { id: 'sandstone', name: '사암 조약돌', r: 0, maps: ['oasis'] },
+  { id: 'fossil', name: '조개 화석', r: 1, maps: ['oasis'] },
+  { id: 'obsidian', name: '흑요석', r: 1, maps: ['oasis'] },
+  { id: 'palmfiber', name: '야자 섬유', r: 0, maps: ['oasis'] },
+  { id: 'bluebead', name: '파란 유리구슬', r: 1, maps: ['oasis'] },
+  { id: 'goldstone', name: '금빛 돌', r: 2, maps: ['oasis'], hint: '오아시스에서 아주 가끔' },
 ].map((f, i) => ({ ...f, cell: i }));
+export const FIND_ROWS = 8;   // finds.webp = 4열 × 8줄 (v28.20)
 export const FIND = Object.fromEntries(FINDS.map(f => [f.id, f]));
 
 // 지금 나올 수 있는가 (env: { map, night 0~1, weather, hour })
@@ -94,7 +112,7 @@ export class Shore {
 
   draw(ctx, beach, night) {
     if (!this.sheet) return;
-    const { u, t } = beach, cw = this.sheet.naturalWidth / 4, ch = this.sheet.naturalHeight / 4;
+    const { u, t } = beach, cw = this.sheet.naturalWidth / 4, ch = this.sheet.naturalHeight / FIND_ROWS;
     for (const d of this.list) {
       const appear = Math.min(1, (t - d.born) / 1.2), fade = d.gone ? Math.max(0, 1 - (t - d.gone) / 0.8) : 1;
       const s = d.f.r >= 2 ? Math.max(50, 72 * u) : Math.max(44, 64 * u);   // 그림 칸 크기 (물건은 칸의 절반 남짓) — 휴대폰에서도 손가락으로 집을 만큼

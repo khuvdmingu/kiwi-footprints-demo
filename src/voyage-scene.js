@@ -6,8 +6,8 @@
 //  사건(voyage.js 의 kind)을 받으면 12초쯤 그 장면을 보여 준다. snapshot() 은 같은 장면을 사진 한 장으로 다시 그린다
 //  (화면을 꺼 두었던 사이의 사건도 일기 사진을 남길 수 있게).
 
-import { CREW_ACTS, CREW_MORE } from './acts.js?v=v28.19.0';
-import { SeaGL } from './voyage-water.js?v=v28.19.0';
+import { CREW_ACTS, CREW_MORE } from './acts.js?v=v28.20.0';
+import { SeaGL } from './voyage-water.js?v=v28.20.0';
 
 export const SPEED = 0.05;   // 배가 가는 빠르기: 1초에 화면 짧은 변의 5% (물·잔물결·지나가는 것이 모두 이 빠르기로 흐른다)
 const WATER_SCALE = 0.75;     // 물은 화면보다 성기게 그린다 (배터리·발열 — 물결은 흐려도 티가 안 난다)
@@ -64,6 +64,8 @@ export function voyageLight(hour = 12) {
 }
 
 const img = src => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; });
+// v28.20 항해 중 배 옆을 흘러가는 작은 섬 (위에서 본 그림, 재고 stock/voyage pass-islands → tools/cut-cells.mjs)
+const PASS_ISLANDS = ['pass-volcano.webp?v=v28.20.0', 'pass-arch.webp?v=v28.20.0', 'pass-turtle.webp?v=v28.20.0', 'pass-lighthouse.webp?v=v28.20.0', 'pass-atoll.webp?v=v28.20.0', 'pass-wreck.webp?v=v28.20.0'];
 
 export class VoyageScene {
   constructor(canvas) {
@@ -72,7 +74,7 @@ export class VoyageScene {
     // 물은 자기 캔버스에 화면으로 바로 그린다(배 장면 캔버스 바로 아래). 매 프레임 2D 로 복사하면 일부 브라우저에서
     // 새·옛 프레임이 띠처럼 섞이거나 검은 칸이 보였다 → 복사는 일기 사진을 찍을 때만 (사진용 물은 따로 하나)
     this.water = new SeaGL(); this.travel = 0; this.photoWater = null;
-    this.sunsets = new Map(); this.dawns = new Map();
+    this.sunsets = new Map(); this.dawns = new Map(); this.auroras = new Map();
     if (this.water.ok) { const w = this.water.cv; w.id = 'voyageSea'; w.setAttribute('aria-hidden', 'true'); canvas.parentNode.insertBefore(w, canvas); }
     this.rain = Array.from({ length: 90 }, () => ({ x: Math.random(), y: Math.random(), v: 0.8 + Math.random() * 0.6 }));
   }
@@ -80,7 +82,7 @@ export class VoyageScene {
   async load(base = 'assets/') {
     this.base = base;
     const gen = this.gen = (this.gen || 0) + 1;
-    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v28.19.0', 'sea-tall.webp?v=v28.19.0', 'voyage-sprites.webp?v=v28.19.0', 'kiwi.webp?v=v28.19.0', 'kiwi-sleep.webp?v=v28.19.0', 'umbrellas.webp?v=v28.19.0', 'sea-night.webp?v=v28.19.0', 'sea-tall-night.webp?v=v28.19.0', 'voyage-crew.webp?v=v28.19.0', 'voyage-boat.webp?v=v28.19.0', 'voyage-sail.webp?v=v28.19.0'].map(f => img(base + f).catch(() => null)));
+    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v28.20.0', 'sea-tall.webp?v=v28.20.0', 'voyage-sprites.webp?v=v28.20.0', 'kiwi.webp?v=v28.20.0', 'kiwi-sleep.webp?v=v28.20.0', 'umbrellas.webp?v=v28.20.0', 'sea-night.webp?v=v28.20.0', 'sea-tall-night.webp?v=v28.20.0', 'voyage-crew.webp?v=v28.20.0', 'voyage-boat.webp?v=v28.20.0', 'voyage-sail.webp?v=v28.20.0'].map(f => img(base + f).catch(() => null)));
     if (gen !== this.gen) return false;
     if (!sea || !sheet) throw new Error('voyage art');
     Object.assign(this, { sea, tall: tall || sea, sheet, kiwi, sleep, umb, seaN, tallN: tallN || seaN, crewSheet });
@@ -96,6 +98,11 @@ export class VoyageScene {
     if (hull && sail) Object.assign(this, { hull, sail, hullBox: boxesOf(hull, 'hull', ['h'], 1, 1).h, sailBox: boxesOf(sail, 'sail', ['s'], 1, 1).s });
     this.alt = null; this.setBoat(this.boatId);
     this.sailAlt = null; this.setSail(this.sailId);
+    // v28.20 지나가는 섬 6 (재고 stock/voyage pass-islands) — 뒤에서 읽고, 오기 전엔 안 지나간다
+    this.passArt = []; this.passers = []; this.nextPass = 25 + Math.random() * 30;
+    PASS_ISLANDS.forEach((f, i) => img(base + f).then(im => { if (gen === this.gen) this.passArt[i] = im; }).catch(() => {}));
+    // v28.20 맑은 밤 항해는 셋에 하나꼴로 오로라 바다 (항해마다 정한다)
+    this.auroraOn = Math.random() < 0.35;
     this.ready = true;
     return true;
   }
@@ -106,7 +113,7 @@ export class VoyageScene {
     if (!b || !b.h || !this.base) { this.alt = null; return; }
     if (this.alt?.id === id) return;
     const gen = this.gen;
-    img(this.base + 'boat-' + id + '.webp?v=v28.19.0').then(im => {
+    img(this.base + 'boat-' + id + '.webp?v=v28.20.0').then(im => {
       if (gen !== this.gen || this.boatId !== id) return;
       this.alt = { ...b, im, box: boxesOf(im, 'boat-' + id, ['b'], 1, 1).b };
     }).catch(() => {});
@@ -117,7 +124,7 @@ export class VoyageScene {
     if (!id || id === 'leaf' || !this.base) { this.sailAlt = null; return; }
     if (this.sailAlt?.id === id) return;
     const gen = this.gen;
-    img(this.base + 'sail-' + id + '.webp?v=v28.19.0').then(im => {
+    img(this.base + 'sail-' + id + '.webp?v=v28.20.0').then(im => {
       if (gen !== this.gen || this.sailId !== id) return;
       this.sailAlt = { id, im, box: boxesOf(im, 'sail-' + id, ['s'], 1, 1).s };
     }).catch(() => {});
@@ -144,7 +151,7 @@ export class VoyageScene {
   sunsetArt(tall) {
     if (!this.sunsets.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v28.19.0' : 'sea-sunset.webp?v=v28.19.0')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v28.20.0' : 'sea-sunset.webp?v=v28.20.0')).then(image => (entry.image = image)).catch(() => null);
       this.sunsets.set(tall, entry);
     }
     return this.sunsets.get(tall).promise;
@@ -153,11 +160,22 @@ export class VoyageScene {
   dawnArt(tall) {
     if (!this.dawns.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-dawn.webp?v=v28.19.0' : 'sea-dawn.webp?v=v28.19.0')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-dawn.webp?v=v28.20.0' : 'sea-dawn.webp?v=v28.20.0')).then(image => (entry.image = image)).catch(() => null);
       this.dawns.set(tall, entry);
     }
     return this.dawns.get(tall).promise;
   }
+
+  // v28.20 오로라 바다 — 맑은 밤, 이 항해가 오로라 항해일 때만 읽는다
+  auroraArt(tall) {
+    if (!this.auroras.has(tall)) {
+      const entry = { image: null };
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-aurora.webp?v=v28.20.0' : 'sea-aurora.webp?v=v28.20.0')).then(image => (entry.image = image)).catch(() => null);
+      this.auroras.set(tall, entry);
+    }
+    return this.auroras.get(tall).promise;
+  }
+  auroraNow(st) { return this.auroraOn && (st.weather || 'clear') === 'clear' && voyageLight(st.hour).night > 0.2; }
 
   // st = { frac, crew(명), hour, weather }
   frame(dt, st) {
@@ -168,6 +186,7 @@ export class VoyageScene {
     const h = st.hour ?? 12;
     if (h >= 16 && h < 20.5) this.sunsetArt(this.H > this.W);
     if (h >= 4.5 && h < 8.5) this.dawnArt(this.H > this.W);
+    if (this.auroraNow(st)) this.auroraArt(this.H > this.W);
     const c = this.cx; c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     this.paint(c, this.W, this.H, this.t, st, this.play, true);
   }
@@ -176,6 +195,7 @@ export class VoyageScene {
     if (!this.ready) return null;
     if (voyageLight(st.hour).sunset > 0) await this.sunsetArt(h > w);
     if (voyageLight(st.hour).dawn > 0) await this.dawnArt(h > w);
+    if (this.auroraNow(st)) await this.auroraArt(h > w);
     // 사진은 배 가까이: 더 넓게 그린 뒤 배와 사건이 들어오는 가운데만 잘라 낸다
     const Z = 0.62, BW = Math.round(w / Z), BH = Math.round(h / Z), big = document.createElement('canvas'); big.width = BW; big.height = BH;
     this.paint(big.getContext('2d'), BW, BH, 37, st, kind && kind !== 'quiet' ? { kind, t: PLAY_SECS * 0.42 } : null);
@@ -185,8 +205,25 @@ export class VoyageScene {
     return new Promise(ok => cv.toBlob(b => ok(b), 'image/webp', 0.86));
   }
 
+  // 지나가는 섬: 1~2분에 하나, 배 왼쪽·오른쪽 멀찍이 물과 같은 빠르기로 위에서 아래로 (밤엔 어둡게)
+  drawPassers(c, W, H, u, t, n) {
+    const art = this.passArt; if (!art?.length) return;
+    if (t > this.nextPass) {
+      this.nextPass = t + 60 + Math.random() * 70;
+      const ready = art.map((im, i) => (im ? i : -1)).filter(i => i >= 0);
+      if (ready.length) { const left = Math.random() < 0.5; this.passers.push({ i: ready[Math.floor(Math.random() * ready.length)], x: left ? 0.13 + Math.random() * 0.06 : 0.87 - Math.random() * 0.06, t0: t, s: 0.24 + Math.random() * 0.08 }); }
+    }
+    for (const p of this.passers) {
+      const im = art[p.i]; if (!im) continue;
+      const y = -u * 0.35 + (t - p.t0) * SPEED * u, w = u * p.s, h = w * im.height / im.width;
+      c.save(); c.globalAlpha = 1 - n * 0.45; c.drawImage(im, W * p.x - w / 2, y - h / 2, w, h); c.restore();
+    }
+    this.passers = this.passers.filter(p => -u * 0.35 + (t - p.t0) * SPEED * u < H + u * 0.4);
+  }
+
   paint(c, W, H, t, st, play, screen = false) {
-    const tallView = H > W, sea = tallView ? this.tall : this.sea, seaN = tallView ? this.tallN : this.seaN, u = Math.min(W, H);
+    const tallView = H > W, sea = tallView ? this.tall : this.sea, u = Math.min(W, H);
+    const aurora = this.auroraNow(st) ? this.auroras.get(tallView)?.image : null, seaN = aurora || (tallView ? this.tallN : this.seaN);   // v28.20 오로라 항해면 밤 판 대신
     const light = voyageLight(st.hour), n = light.night, sunset = this.sunsets.get(tallView)?.image, dawnImg = this.dawns?.get(tallView)?.image;
     const warm = sunset ? light.sunset : 0, pink = dawnImg && light.dawn ? light.dawn : 0;
     const tint = warm > 0 ? sunset : dawnImg, tintMix = warm || pink;   // 노을과 새벽은 겹치지 않는다
@@ -219,6 +256,7 @@ export class VoyageScene {
     }
     // 사건 (배 뒤쪽에 지나가는 것들)
     if (play) this.event(c, W, H, u, bx, by, bh, play, st);
+    if (screen) this.drawPassers(c, W, H, u, t, n);   // v28.20 지나가는 섬
     this.halloween?.drawSea(c, W, H, u, t, n, SPEED);   // v28.12 할로윈 밤바다 호박 등불
     this.season?.drawSea(c, W, H, u, t, n, SPEED);   // v28.15 계절 행사 (별 등·청사초롱·튜브)
     // 배 + 키위

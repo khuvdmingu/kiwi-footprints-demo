@@ -39,13 +39,14 @@
   </div>
   <details><summary>새 아이콘 격자 전체 보기 (4×4)</summary><img src="assets/chart-sheet-2.webp" alt="새 해도 아이콘 16칸" /></details>
   <script type="module">
-    import { Chart, drawChart, CHART_B } from './src/chart.js';
+    import { Chart, drawChart, CHART_B, BIG_ART } from './src/chart.js';
     import { loadSheet } from './src/sheet.js';
     import { PLACES } from './src/voyage.js';
     import { MAP_IDS } from './src/maps.js';
     const img = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = src; });
     const [sheet, extra, sheet2, paper] = await Promise.all([loadSheet('assets/chart-sheet.webp'), loadSheet('assets/extra-sheet.webp'), loadSheet('assets/chart-sheet-2.webp'), img('assets/chart-paper.webp')]);
     // 새 격자 칸: 1행 화산·폭포 절벽·거북·등대 / 2행 환초·쌍둥이·빙산·떠 있는 꽃섬 / 3행 고래 꼬리·바다뱀·난파선·병 / 4행 X·닻·별 항로·바람 구름
+    const bigArt = {}; await Promise.all(Object.entries(BIG_ART).map(async ([id, f]) => { const im = await img('assets/' + f); if (im) bigArt[id] = im; }));
     const alt = { ...CHART_B, sheet: sheet2 };   // 앱과 같은 칸 배치 (chart.js CHART_B)
     const trips = [['beach', 'nz'], ['nz', 'snow'], ['snow', 'fall'], ['fall', 'zen'], ['zen', 'beach'], ['beach', 'cherry'], ['cherry', 'oasis'], ['beach', 'fall'], ['beach', 'nz']];
     function make(state) {
@@ -61,7 +62,7 @@
       const o = make(state);
       for (const [id, extraO] of [['a', {}], ['b', { paper, alt }]]) {
         const cv = document.getElementById(id), c = cv.getContext('2d'); c.clearRect(0, 0, cv.width, cv.height);
-        drawChart(c, cv.width, { ...o, sheet, extra, ...extraO });
+        drawChart(c, cv.width, { ...o, sheet, extra, bigArt, ...extraO });
       }
     }
     for (const b of document.querySelectorAll('[data-state]')) b.addEventListener('click', () => paint(b.dataset.state));
