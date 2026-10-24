@@ -1,11 +1,11 @@
 // 항해의 합성 함수만 재사용한다. 바다 판·WebGL·동작 묶음은 읽지 않는 정지 미리보기.
-import { BOATS, SAILS, VoyageScene, boxesOf } from '../voyage-scene.js?v=v29.3.0';
+import { BOATS, SAILS, VoyageScene, boxesOf } from '../voyage-scene.js?v=v29.3.1';
 const loadImage = src => new Promise((resolve, reject) => {
   const im = new Image(); im.onload = () => resolve(im); im.onerror = () => reject(new Error('preview art')); im.src = src;
 });
 export const previewFiles = (boat, sail) => [
-  'voyage-boat.webp?v=v29.3.0', boat === 'dinghy' ? 'voyage-boat.webp?v=v29.3.0' : 'boat-' + boat + '.webp?v=v29.3.0',
-  sail === 'leaf' ? 'voyage-sail.webp?v=v29.3.0' : 'sail-' + sail + '.webp?v=v29.3.0', 'voyage-crew.webp?v=v29.3.0',
+  'voyage-boat.webp?v=v29.3.1', boat === 'dinghy' ? 'voyage-boat.webp?v=v29.3.1' : 'boat-' + boat + '.webp?v=v29.3.1',
+  sail === 'leaf' ? 'voyage-sail.webp?v=v29.3.1' : 'sail-' + sail + '.webp?v=v29.3.1', 'voyage-crew.webp?v=v29.3.1',
 ];
 
 export class BoatPreview {

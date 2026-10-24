@@ -4,7 +4,43 @@
 //  앞으로 가는 느낌 = 바다 판 자체가 배 뒤로 계속 흘러간다(거울 반복으로 이음매 없이) + 그 위를 흐르는 잔물결 빛·반짝임·거품 줄.
 //  배에 붙은 것: 뒤로 벌어지는 V 자 물살, 고물 뒤 흰 물보라, 뱃머리 물결. 이건 배를 따라오지만 물살 결은 물과 함께 흐른다.
 //  밤(night 0~1)엔 밤바다 판(sea-night)으로 바꾸고, 달빛 물길 · 은빛 반짝임 · 물에 떠 흐르는 야광 점 · 배가 휘저은 물의 야광 플랑크톤 · 뱃머리 등불 빛 웅덩이를 더한다.
-//  WebGL2 가 없으면 ok=false — voyage-scene 이 예전처럼 정지 그림으로 그린다.
+//  WebGL2 가 없거나 연결을 잃어도 drawSea2D 로 흐름을 이어 간다.
+
+// 같은 바다 그림을 아래로 흘려 보낸다. 가장자리는 거울 반복해 빈틈/끝 점프를 막는다.
+// 별도 큰 캔버스나 픽셀 읽기 없이 화면당 그림 2~3장과 작은 물결만 그린다.
+export function drawSea2D(c, img, W, H, { time = 0, travel = 0, nightImg = img, imageMix = 0, night = 0, boat = [W / 2, H * .6], boatSize = [W * .15, H * .2] } = {}) {
+  const u = Math.min(W, H);
+  const layer = (im, alpha) => {
+    const k = Math.max(W / im.width, H / im.height) * 1.08, sw = im.width * k, sh = im.height * k;
+    const offset = ((travel * u) % (sh * 2) + sh * 2) % (sh * 2);
+    const origin = (H - sh) / 2 + offset, x = (W - sw) / 2 + Math.sin(time * .29) * u * .004;
+    c.save(); c.globalAlpha = alpha;
+    for (let i = Math.floor(-origin / sh); origin + i * sh < H; i++) {
+      const flip = Math.abs(i % 2) === 1;
+      c.save(); c.translate(x, origin + i * sh + (flip ? sh : 0)); c.scale(1, flip ? -1 : 1);
+      c.drawImage(im, 0, 0, sw, sh); c.restore();
+    }
+    c.restore();
+  };
+  layer(img, 1);
+  if (nightImg !== img && imageMix > 0) layer(nightImg, imageMix);
+  c.save(); c.strokeStyle = night > .5 ? '#a8cbdc' : '#e2f2ee'; c.lineWidth = Math.max(.6, u * .0015); c.lineCap = 'round';
+  // 그림에 붙어 흐르는 잔물결 — 격자로 보이지 않게 서로 다른 위치/박자.
+  for (let i = 0; i < 28; i++) {
+    const x = ((i * .61803399) % 1) * W, y = (((i * .38196601 + travel * u / H) % 1) + 1) % 1 * H;
+    const s = u * (.009 + .005 * Math.sin(i * 2.3));
+    c.globalAlpha = (.10 + .09 * Math.sin(time * 1.3 + i * 2.1)) * (1 - night * .35);
+    c.beginPath(); c.moveTo(x - s, y); c.quadraticCurveTo(x, y - s * .3, x + s, y); c.stroke();
+  }
+  // 배 뒤 물살도 끊임없이 생겨 아래로 멀어진다.
+  for (let i = 0; i < 12; i++) {
+    const p = ((time * .22 + i / 12) % 1 + 1) % 1, y = boat[1] + boatSize[1] * .4 + p * u * .45;
+    const spread = boatSize[0] * .26 + p * u * .14, s = u * .018;
+    c.globalAlpha = (1 - p) * .3 * (1 - night * .4);
+    for (const side of [-1, 1]) { const x = boat[0] + side * spread; c.beginPath(); c.moveTo(x - s, y); c.quadraticCurveTo(x, y - s * .5, x + s, y); c.stroke(); }
+  }
+  c.restore();
+}
 
 const VS = `#version 300 es
 in vec2 p; out vec2 vUv;
@@ -106,7 +142,7 @@ export class SeaGL {
     this.cv = document.createElement('canvas');
     this.gl = this.cv.getContext('webgl2', { antialias: false, premultipliedAlpha: false, preserveDrawingBuffer: true });
     this.ok = false; this.tex = new Map();
-    // GPU 가 화면을 잃으면(오래 숨김·메모리 부족) 정지 그림으로 내려갔다가, 돌아오면 다시 만든다 — 투명한 바다가 보이지 않게
+    // GPU 가 화면을 잃으면(오래 숨김·메모리 부족) 움직이는 2D 로 내려갔다가, 돌아오면 다시 만든다.
     this.cv.addEventListener('webglcontextlost', e => { e.preventDefault(); this.ok = false; this.tex = new Map(); });
     this.cv.addEventListener('webglcontextrestored', () => this.init());
     this.init();
@@ -146,8 +182,12 @@ export class SeaGL {
     this.tex.set(img, t); return t;
   }
   // w,h = 그릴 픽셀 크기. travel = 지금까지 흘러간 거리(짧은 변 단위). boat·boatSize 는 같은 픽셀 좌표
-  render(img, w, h, { time, travel, boat, boatSize, calm = 1, night = 0, nightImg = null, imageMix = night, sunset = 0 }) {
+  render(img, w, h, options) {
     if (!this.ok || this.gl.isContextLost()) return null;
+    try { return this.draw(img, w, h, options); }
+    catch (e) { this.ok = false; console.warn('항해 물을 2D로 이어 그립니다:', e); return null; }
+  }
+  draw(img, w, h, { time, travel, boat, boatSize, calm = 1, night = 0, nightImg = null, imageMix = night, sunset = 0 }) {
     const gl = this.gl;
     if (this.cv.width !== w || this.cv.height !== h) { this.cv.width = w; this.cv.height = h; }
     gl.viewport(0, 0, w, h); gl.useProgram(this.pr);
