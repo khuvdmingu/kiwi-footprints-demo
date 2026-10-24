@@ -7,10 +7,10 @@
 //   · extras.drawIsland(ctx, beach, mapId, night) — 섬 장면에 지은 것을 그린다
 //  규칙·저장은 chart.js · fishing.js · build.js 에, 화면 칸(바구니 › 해도 · 장소·소리 · 도감, 집중 창 안내)은 index.html 에.
 
-import { Chart, ISLET, SPOT, BIG, drawChart, routeLine, josa, SHEET as CHART_SHEET, CHART_B, BIG_ART } from './chart.js?v=v29.1.0';
-import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v29.1.0';
-import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v29.1.0';
-import { loadSheet } from './sheet.js?v=v29.1.0';
+import { Chart, ISLET, SPOT, BIG, drawChart, routeLine, josa, SHEET as CHART_SHEET, CHART_B, BIG_ART } from './chart.js?v=v29.2.0';
+import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v29.2.0';
+import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v29.2.0';
+import { loadSheet } from './sheet.js?v=v29.2.0';
 
 // 그림 격자가 assets/ 에 들어오면 true 로 (없을 때 404 를 내지 않게 — 그동안은 코드 그림)
 export const ART = { chart: true, catch: true, extra: true, kit: true };   // 2026-10-21 Higgsfield 격자 2장 (docs/GRAPHICS-PROMPTS.md v28)
@@ -23,7 +23,7 @@ export function mountExtras(env) {
   const base = new URL('../assets/', import.meta.url).href;
   const sheets = { chart: null, catch: null, extra: null, kit: null, chartB: null, paper: null };
   const load = (k, f) => { if (ART[k]) loadSheet(base + f).then(s => { if (s) { sheets[k] = s; paintAll(); } }); };
-  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v29.1.0'); load('kit', 'build-sheet-2.webp?v=v29.1.0');   // v28.20 벚꽃 강변·오아시스 건물   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
+  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v29.2.0'); load('kit', 'build-sheet-2.webp?v=v29.2.0');   // v28.20 벚꽃 강변·오아시스 건물   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
   // v28.19 해도 그림 B — 양피지 + 새 아이콘 (못 읽으면 지금 그림 그대로)
   loadSheet(base + CHART_B.sheet).then(s => { if (s) { sheets.chartB = s; paintAll(); } });
   { const im = new Image(); im.onload = () => { sheets.paper = im; paintAll(); }; im.src = base + CHART_B.paper; }
@@ -89,7 +89,8 @@ export function mountExtras(env) {
     for (const v of Object.values(chart.found)) pts.push(v);
     if (!pts.length) return { cx: 0.5, cy: 0.5, span: 1 };
     let x0 = 1, x1 = 0, y0 = 1, y1 = 0; for (const p of pts) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y); }
-    const span = Math.min(1, Math.max(MIN_SPAN, Math.max(x1 - x0, y1 - y0) + 0.26));
+    // 가장자리 섬의 그림·이름도 종이 밖 여백 안에 들어와야 한다.
+    const span = Math.min(1 + 0.26, Math.max(MIN_SPAN, Math.max(x1 - x0, y1 - y0) + 0.26));
     const c = (a, b) => Math.min(1 - span / 2, Math.max(span / 2, (a + b) / 2));
     return { cx: span >= 1 ? 0.5 : c(x0, x1), cy: span >= 1 ? 0.5 : c(y0, y1), span };
   }

@@ -32,6 +32,33 @@ function tabs(panel, key, first) {
   return show;
 }
 
+// 꾸미기에서 바꿀 수 있는 값은 모두 같은 저장/되돌리기 경계를 쓴다.
+export function snapshotWardrobe(env) {
+  return { wear: [...env.col.wear], boat: env.voyScene.boatId, sail: env.voyScene.sailId, mix: { ...env.sound.mix },
+    members: env.flock.members.map(({ id, name, wear }) => ({ id, name, wear })) };
+}
+export function wardrobeChanged(n, d) {
+  return !!d && (JSON.stringify(n.wear.slice().sort()) !== JSON.stringify(d.wear.slice().sort()) ||
+    n.boat !== d.boat || n.sail !== d.sail || JSON.stringify(n.members) !== JSON.stringify(d.members) ||
+    ['voice', 'stepPack', 'natStep', 'findPack', 'nature', 'song'].some(k => n.mix[k] !== d.mix[k]));
+}
+export function restoreWardrobe(env, d) {
+  for (const id of [...env.col.wear]) if (!d.wear.includes(id)) env.setWear(id, false);
+  for (const id of d.wear) if (!env.col.wearing(id)) env.setWear(id, true);
+  if (env.voyScene.boatId !== d.boat) { env.voyScene.setBoat(d.boat); env.save('boat', d.boat); }
+  if (env.voyScene.sailId !== d.sail) { env.voyScene.setSail(d.sail); env.save('sail', d.sail); }
+  for (const m of d.members) {
+    if (!env.flock.get(m.id)) continue;
+    env.flock.rename(m.id, m.name); env.flock.setWear(m.id, m.wear);
+  }
+  env.syncFlock();
+  const m = d.mix, now = env.sound.mix;
+  const pick = {}; for (const k of ['voice', 'stepPack', 'natStep', 'findPack']) if (now[k] !== m[k]) pick[k] = m[k];
+  if (Object.keys(pick).length) env.sound.setMix(pick);
+  if (now.nature !== m.nature) env.sound.setNature(m.nature);
+  if (now.song !== m.song) env.sound.setSong(m.song);
+}
+
 export function mountShell(env) {
   const { closeOthers, paintCollection, paintPacks, onChart, unlock } = env;
   const basket = $('basket'), basketBtn = $('basketBtn');
@@ -51,25 +78,15 @@ export function mountShell(env) {
 
   // ── 꾸미기: 지금 상태를 적어 두고 → 마음껏 바꿔 보고 → 저장 or 되돌리기 ──
   let draft = null;
-  const snap = () => ({ wear: [...env.col.wear], boat: env.voyScene.boatId, sail: env.voyScene.sailId, mix: { ...env.sound.mix } });
-  function restore(d) {
-    for (const id of [...env.col.wear]) if (!d.wear.includes(id)) env.setWear(id, false);
-    for (const id of d.wear) if (!env.col.wearing(id)) env.setWear(id, true);
-    if (env.voyScene.boatId !== d.boat) { env.voyScene.setBoat(d.boat); env.save('boat', d.boat); }
-    if (env.voyScene.sailId !== d.sail) { env.voyScene.setSail(d.sail); env.save('sail', d.sail); }
-    const m = d.mix, now = env.sound.mix;
-    const pick = {}; for (const k of ['voice', 'stepPack', 'natStep', 'findPack']) if (now[k] !== m[k]) pick[k] = m[k];
-    if (Object.keys(pick).length) env.sound.setMix(pick);
-    if (now.nature !== m.nature) env.sound.setNature(m.nature);
-    if (now.song !== m.song) env.sound.setSong(m.song);
-  }
-  const changed = () => { if (!draft) return false; const n = snap(); return JSON.stringify(n.wear.slice().sort()) !== JSON.stringify(draft.wear.slice().sort()) || n.boat !== draft.boat || n.sail !== draft.sail || ['voice', 'stepPack', 'natStep', 'findPack', 'nature', 'song'].some(k => n.mix[k] !== draft.mix[k]); };
+  const snap = () => snapshotWardrobe(env);
+  const restore = d => restoreWardrobe(env, d);
+  const changed = () => wardrobeChanged(snap(), draft);
   function paintWardBar() { const c = changed(); $('wdSave').disabled = !c; $('wdCancel').textContent = c ? '되돌리기' : '닫기'; }
   function paintBoatStage() {
     const st = $('boatStage'); if (!st) return;
     const b = env.voyScene.boatId, s = env.voyScene.sailId;
-    st.querySelector('.hull').src = 'assets/' + (b === 'dinghy' ? 'voyage-boat.webp?v=v29.1.0' : 'boat-' + b + '.webp?v=v29.1.0');
-    st.querySelector('.sail').src = 'assets/' + (s === 'leaf' ? 'voyage-sail.webp?v=v29.1.0' : 'sail-' + s + '.webp?v=v29.1.0');
+    st.querySelector('.hull').src = 'assets/' + (b === 'dinghy' ? 'voyage-boat.webp?v=v29.2.0' : 'boat-' + b + '.webp?v=v29.2.0');
+    st.querySelector('.sail').src = 'assets/' + (s === 'leaf' ? 'voyage-sail.webp?v=v29.2.0' : 'sail-' + s + '.webp?v=v29.2.0');
   }
   function openWard(open, { save = false, tab } = {}) {
     if (open === !ward.hidden) { if (open && tab) wardTab(tab); return; }
@@ -91,6 +108,7 @@ export function mountShell(env) {
   $('wdSave').addEventListener('click', () => openWard(false, { save: true }));
   $('wdCancel').addEventListener('click', () => openWard(false));
   // 고를 때마다 저장 단추·배 그림을 갱신 (각 칸의 그리는 함수가 다시 그린 뒤)
+  for (const event of ['input', 'change']) ward.addEventListener(event, () => { if (!ward.hidden) paintWardBar(); });
   ward.addEventListener('click', () => setTimeout(() => { if (!ward.hidden) { paintBoatStage(); paintWardBar(); } }, 0));
 
   // ── 해도 ──

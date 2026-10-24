@@ -8,16 +8,16 @@
 //  기록은 이 기기에만 (localStorage 'chart'). 항해 기록(voyage.log)은 voyage.js 가 갖고, 여기는 발견·이름만 갖는다.
 //  그리기: 그림 격자(assets/chart-sheet.webp, 4×4)가 있으면 칸을 잘라 쓰고, 없으면 코드로 그린다.
 
-import { fitCell, roundCell } from './sheet.js?v=v29.1.0';
+import { fitCell, roundCell } from './sheet.js?v=v29.2.0';
 
-export const SHEET = 'chart-sheet.webp?v=v29.1.0';
+export const SHEET = 'chart-sheet.webp?v=v29.2.0';
 // v28.19 해도 그림 B (사용자 2026-10-24 비교 페이지에서 고름): 양피지 종이(나침반 포함) + 새 아이콘 격자 4×4
 //  새 격자 칸: 1행 화산·폭포 절벽·거북·등대 / 2행 환초·쌍둥이·빙산·떠 있는 꽃섬 / 3행 고래 꼬리·바다뱀·난파선·병 / 4행 X·닻·별 항로·바람 구름
 //  그림 칸이 없던 섬·바다 표시만 새 칸으로 (나머지는 지금 격자 그대로)
 // v28.20 격자 칸이 없는 큰 섬은 낱장 그림 (Codex 그림, 흰 바탕을 뺀 투명 webp)
-import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v29.1.0';
-export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v29.1.0', oasis: 'chart-isle-oasis.webp?v=v29.1.0' };
-export const CHART_B = { paper: 'chart-paper.webp?v=v29.1.0', sheet: 'chart-sheet-2.webp?v=v29.1.0',
+import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v29.2.0';
+export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v29.2.0', oasis: 'chart-isle-oasis.webp?v=v29.2.0' };
+export const CHART_B = { paper: 'chart-paper.webp?v=v29.2.0', sheet: 'chart-sheet-2.webp?v=v29.2.0',
   islet: { 'i-twin': 5, 'i-lantern': 3, 'i-turtle': 2, 'i-end': 6 }, spot: { 's-reef': 4, 's-current': 15, 's-whale': 8 } };
 // 격자 칸 (4×4): 0~4 큰 섬 · 5~12 작은 섬 · 13 나침반 · 14 배 표시 · 15 안개 덩이
 export const CELL = { beach: 0, nz: 1, snow: 2, fall: 3, zen: 4, compass: 13, boat: 14, fog: 15 };
@@ -200,7 +200,7 @@ export function drawChart(ctx, S, o) {
     else if (!cell(ctx, sheet, CELL[id], x, y, r * 2.2)) drawBig(ctx, id, x, y, r);
     ctx.globalAlpha = 1;
     if (!open) { label(ctx, '?', x, y + r * 0.2, S * 0.05, 'rgba(61,43,28,0.45)'); continue; }
-    label(ctx, o.placeName ? o.placeName(id) : id, x, y + r * 1.15, S * 0.028, '#3d2b1c');
+    label(ctx, o.placeName ? o.placeName(id) : id, x, y + r * 1.15, S * 0.025, '#3d2b1c', S * 0.12);
     const n = visits[id] || 0;
     if (n) stamp(ctx, x + r * 0.95, y - r * 0.75, S * 0.028, stampInk(n), n);
     const b = o.builds ? o.builds(id) : 0;
@@ -216,9 +216,20 @@ export function drawChart(ctx, S, o) {
 }
 
 const cell = (ctx, sheet, n, x, y, size) => fitCell(ctx, sheet, n, x, y, size);
-function label(ctx, text, x, y, px, color) {
+function label(ctx, text, x, y, px, color, maxWidth) {
   ctx.font = `600 ${Math.round(px)}px "Gowun Dodum", "Apple SD Gothic Neo", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-  ctx.lineWidth = px * 0.25; ctx.strokeStyle = 'rgba(245,234,210,0.9)'; ctx.strokeText(text, x, y); ctx.fillStyle = color; ctx.fillText(text, x, y);
+  // 섬이 많아져도 긴 이름이 옆 섬 이름과 겹치지 않도록 줄바꿈한다.
+  const lines = []; let line = '';
+  const words = String(text).split(' ');
+  const byWord = maxWidth && words.length > 1 && words.every(w => ctx.measureText(w).width <= maxWidth);
+  for (const part of byWord ? words : [...String(text)]) {
+    const next = line + (byWord && line ? ' ' : '') + part;
+    if (maxWidth && line && ctx.measureText(next).width > maxWidth) { lines.push(line.trim()); line = part; }
+    else line = next;
+  }
+  lines.push(line.trim());
+  ctx.lineWidth = px * 0.25; ctx.strokeStyle = 'rgba(245,234,210,0.9)'; ctx.fillStyle = color;
+  for (let i = 0; i < lines.length; i++) { const yy = y + i * Math.round(px * 1.25); ctx.strokeText(lines[i], x, yy); ctx.fillText(lines[i], x, yy); }
 }
 function stamp(ctx, x, y, r, ink, n) {
   ctx.save(); ctx.translate(x, y); ctx.rotate(-0.25);
@@ -280,6 +291,8 @@ function drawFog(ctx, S, o, t) {
   const hole = (x, y, r) => { const g = f.createRadialGradient(x * w, y * w, 0, x * w, y * w, r * w); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(0.65, 'rgba(0,0,0,0.9)'); g.addColorStop(1, 'rgba(0,0,0,0)'); f.fillStyle = g; f.beginPath(); f.arc(x * w, y * w, r * w, 0, 6.29); f.fill(); };
   const { routes } = tally(o.log, o.home), seen = new Set(o.home ? [o.home] : []);
   for (const k of Object.keys(routes)) for (const id of k.split('~')) seen.add(id);
+  // 열린 섬은 방문 전에도 이름과 그림이 보인다. 잠긴 섬의 안개는 유지한다.
+  for (const id of Object.keys(BIG)) if (o.open?.(id)) seen.add(id);
   for (const id of seen) if (BIG[id]) hole(BIG[id].x, BIG[id].y, 0.17);
   for (const k of Object.keys(routes)) {
     const [a, b] = k.split('~'); if (!BIG[a] || !BIG[b]) continue;
