@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>바다 생물 비교</title>
+  <!-- 2026-10-24 바다 생물 두 판 비교 — A = Claude 재고(stock/voyage/life 반복 영상 · sea-life-sheet), B = Codex 바다 미리보기(작업장 ocean-previews 움직임 묶음).
+       같은 항해 바다 그림 위에 나란히 움직인다. 생물마다 A · B · 둘 다 를 고르면 아래에 결과 한 줄이 나온다(이 기기에만 기억, 복사해서 보내 주면 그대로 붙인다).
+       재료 모으기: node tools/sea-lab-assets.mjs → lab/sea/ -->
+  <style>
+    :root { --bg: #f4ecdc; --ink: #3d2b1c; --soft: #8a7258; --line: #e2d3b6; --accent: #b4532a; --card: #fffaf0; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #1e1b17; --ink: #f1e6d2; --soft: #b9a68a; --line: #3a332a; --accent: #e08a5c; --card: #272219; } }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 16px; background: var(--bg); color: var(--ink); font: 15px/1.5 -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
+    h1 { margin: 0 0 4px; font-size: 20px; }
+    p.lead { margin: 0 0 12px; color: var(--soft); font-size: 14px; }
+    .bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; position: sticky; top: 0; z-index: 2; padding: 8px 0; background: var(--bg); }
+    button { min-height: 40px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line); background: transparent; color: var(--ink); font: inherit; cursor: pointer; }
+    button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+    section.row { margin: 0 0 22px; padding: 12px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+    section.row h2 { margin: 0 0 8px; font-size: 17px; }
+    .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 560px) { .pair { grid-template-columns: 1fr; } }
+    figure { margin: 0; }
+    canvas { display: block; width: 100%; aspect-ratio: 4 / 3; border-radius: 10px; background: #1c6f8a; }
+    figcaption { margin-top: 5px; font-size: 13px; color: var(--soft); }
+    figcaption b { color: var(--accent); }
+    .pick { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
+    .pick span { font-size: 13px; color: var(--soft); margin-right: 4px; }
+    .alt { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+    .alt button { min-height: 32px; padding: 0 10px; font-size: 13px; }
+    #result { margin: 6px 0 40px; padding: 12px; border-radius: 12px; border: 1px dashed var(--line); font-size: 14px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>바다 생물 비교</h1>
+  <p class="lead">같은 항해 바다 위에 두 판을 나란히 띄웠어요. 왼쪽 A는 Claude 재고, 오른쪽 B는 Codex 작업이에요. 생물마다 쓸 판을 골라 주세요.</p>
+  <div class="bar" role="group" aria-label="바다 시간">
+    <button type="button" data-sky="day" aria-pressed="true">낮 바다</button>
+    <button type="button" data-sky="night" aria-pressed="false">밤바다</button>
+    <button type="button" id="pause" aria-pressed="false">멈춤</button>
+  </div>
+  <div id="rows"></div>
+  <h2 style="font-size:16px;margin:0 0 4px">고른 결과</h2>
+  <div id="result" aria-live="polite"></div>
+  <button type="button" id="copy">결과 복사</button>
+  <script type="module">
+    // ── 재료 (lab/sea/) ──
+    //  A: video(key = 'magenta' 자홍 판 빼기 | 'screen' 어두운 판을 더하기로) · img(정지) · none
+    //  B: atlas(묶음 + json) · img(정지 그림, 코드가 살짝 흔듦) · shot(코드 효과의 미리보기 화면)
+    const ROWS = [
+      { id: 'turtle', ko: '바다거북', a: { video: 'claude-turtle.mp4', key: 'magenta', note: '반복 영상 5초 · 네 지느러미로 한 번 저어 헤엄' }, b: { atlas: ['codex-turtle'], note: '움직임 묶음 76장 · 지느러미가 따로 움직임' } },
+      { id: 'jelly', ko: '해파리', night: true, a: { video: 'claude-jelly.mp4', key: 'navy', note: '셋이 오므렸다 펴며 빛남 · 촉수가 중간에 옅어졌다 돌아옴' }, b: { atlas: ['codex-jelly'], scale: 0.42, note: '달해파리 몸통 묶음 · 게임에선 촉수 리본·빛을 코드가 더함' } },
+      { id: 'dolphins', ko: '돌고래', a: { video: 'claude-dolphins.mp4', key: 'magenta', note: '셋이 원을 그리며 위아래로' }, b: { atlas: ['codex-dolphins'], note: '한 마리 연속 유영 묶음 · 게임에선 여럿을 코드로 띄움' } },
+      { id: 'whale', ko: '고래', a: { img: 'claude-whale.webp', note: '지금 항해의 「고래」 사건 그림 그대로(정지 그림을 코드가 흔듦) — 새 고래 동작은 없어요' }, b: { atlas: ['codex-whale', 'codex-whale-greet', 'codex-whale-tail'], names: ['헤엄', '배 옆 인사', '꼬리 잠수'], note: '세 가지 동작' } },
+      { id: 'manta', ko: '만타가오리', a: { video: 'claude-manta.mp4', key: 'magenta', note: '넓은 날개를 한 번 물결치듯' }, b: { img: 'codex-manta.webp', note: '정지 그림 · 게임에선 코드가 날개를 흔들며 헤엄' } },
+      { id: 'school', ko: '작은 물고기 떼', a: { img: 'claude-school.webp', still: true, note: '물고기 떼 칸 그림(정지)' }, b: { shot: 'codex-school.jpg', note: '코드로 움직이는 물고기 떼 — 미리보기 화면' } },
+      { id: 'plankton', ko: '야광 플랑크톤·밤 무리', night: true, a: { img: 'claude-plankton.webp', still: true, note: '야광 플랑크톤 칸 그림(정지)' }, b: { shot: 'codex-plankton.jpg', note: '배 주변 빛 무리·해파리 떼 — 미리보기 화면' } },
+    ];
+    const base = 'lab/sea/';
+    const load = src => new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src; });
+    const [seaDay, seaNight] = await Promise.all([load('assets/sea.webp'), load('assets/sea-night.webp')]);
+    let sky = 'day', paused = false;
+    const saved = (() => { try { return JSON.parse(localStorage.getItem('kiwi-sea-lab') || '{}'); } catch (e) { return {}; } })();
+    const store = () => { try { localStorage.setItem('kiwi-sea-lab', JSON.stringify(saved)); } catch (e) {} };
+    const cells = [];
+
+    function sea(c, W, H, t, night) {
+      const im = night ? seaNight : seaDay; if (!im) { c.fillStyle = night ? '#0c2236' : '#1c6f8a'; c.fillRect(0, 0, W, H); return; }
+      // 바다 그림을 천천히 아래로 흘린다 (배가 앞으로 가는 것처럼)
+      const k = W / im.width, h = im.height * k, y = (t * 18) % h;
+      c.drawImage(im, 0, y - h, W, h); c.drawImage(im, 0, y, W, h); if (y + h < H) c.drawImage(im, 0, y + h, W, h);
+    }
+    // 자홍 판 빼기: 작은 캔버스에서 픽셀마다
+    const scratch = document.createElement('canvas'), sx = scratch.getContext('2d', { willReadFrequently: true });
+    function keyed(video, mode = 'magenta') {
+      const s = 320; scratch.width = scratch.height = s; sx.drawImage(video, 0, 0, s, s);
+      const d = sx.getImageData(0, 0, s, s), p = d.data;
+      if (mode === 'navy') { for (let i = 0; i < p.length; i += 4) { const v = p[i] + p[i + 1] + Math.max(0, p[i + 2] - 70); p[i + 3] = Math.min(255, Math.max(0, (v - 20) * 2.4)); } sx.putImageData(d, 0, 0); return scratch; }   // 짙은 남색 판: 밝은 만큼만 남긴다 (빛나는 해파리)
+      for (let i = 0; i < p.length; i += 4) { const r = p[i], g = p[i + 1], b = p[i + 2]; const m = Math.min(r, b) - g; if (m > 60) p[i + 3] = 0; else if (m > 25) p[i + 3] = Math.round(255 * (60 - m) / 35); }
+      sx.putImageData(d, 0, 0); return scratch;
+    }
+
+    const rowsEl = document.getElementById('rows');
+    for (const row of ROWS) {
+      const sec = document.createElement('section'); sec.className = 'row';
+      sec.innerHTML = `<h2>${row.ko}</h2><div class="pair"></div><div class="pick" role="group" aria-label="${row.ko} 고르기"><span>쓸 판</span></div>`;
+      const pair = sec.querySelector('.pair');
+      for (const side of ['a', 'b']) {
+        const spec = row[side], fig = document.createElement('figure'), cv = document.createElement('canvas'); cv.width = 480; cv.height = 360;
+        fig.append(cv); const cap = document.createElement('figcaption'); cap.innerHTML = `<b>${side === 'a' ? 'A · Claude' : 'B · Codex'}</b> — ${spec.none || spec.note}`; fig.append(cap);
+        const cell = { cv, c: cv.getContext('2d'), spec, row, side, cur: 0 };
+        if (spec.video) { const v = document.createElement('video'); v.src = base + spec.video; v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'auto'; v.play().catch(() => {}); cell.video = v; }
+        if (spec.img || spec.shot) load(base + (spec.img || spec.shot)).then(im => { cell.img = im; });
+        if (spec.atlas) {
+          cell.atlases = []; spec.atlas.forEach((n, i) => Promise.all([load(base + n + '.webp'), fetch(base + n + '.json').then(r => r.json())]).then(([im, m]) => { cell.atlases[i] = { im, m }; }));
+          if (spec.atlas.length > 1) { const alt = document.createElement('div'); alt.className = 'alt'; spec.names.forEach((nm, i) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = nm; b.setAttribute('aria-pressed', String(i === 0)); b.onclick = () => { cell.cur = i; cell.t0 = performance.now(); for (const x of alt.children) x.setAttribute('aria-pressed', String(x === b)); }; alt.append(b); }); fig.append(alt); }
+        }
+        cells.push(cell); pair.append(fig);
+      }
+      const pick = sec.querySelector('.pick');
+      for (const [v, label] of [['A', 'A 쓰기'], ['B', 'B 쓰기'], ['AB', '둘 다']]) {
+        const b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.dataset.v = v;
+        b.setAttribute('aria-pressed', String(saved[row.id] === v));
+        b.onclick = () => { saved[row.id] = saved[row.id] === v ? undefined : v; store(); for (const x of pick.querySelectorAll('button')) x.setAttribute('aria-pressed', String(saved[row.id] === x.dataset.v)); paintResult(); };
+        pick.append(b);
+      }
+      rowsEl.append(sec);
+    }
+    function paintResult() {
+      const name = { A: 'A(Claude)', B: 'B(Codex)', AB: '둘 다' };
+      const lines = ROWS.map(r => `${r.ko}: ${saved[r.id] ? name[saved[r.id]] : '아직'}`);
+      document.getElementById('result').textContent = '바다 생물 고른 결과\n' + lines.join('\n');
+    }
+    paintResult();
+    document.getElementById('copy').onclick = async () => { try { await navigator.clipboard.writeText(document.getElementById('result').textContent); document.getElementById('copy').textContent = '복사했어요'; } catch (e) { document.getElementById('copy').textContent = '복사가 막혔어요 — 직접 선택해 주세요'; } };
+    for (const b of document.querySelectorAll('[data-sky]')) b.onclick = () => { sky = b.dataset.sky; for (const x of document.querySelectorAll('[data-sky]')) x.setAttribute('aria-pressed', String(x === b)); };
+    document.getElementById('pause').onclick = e => { paused = !paused; e.currentTarget.setAttribute('aria-pressed', String(paused)); e.currentTarget.textContent = paused ? '다시 재생' : '멈춤'; for (const c of cells) c.video && (paused ? c.video.pause() : c.video.play().catch(() => {})); };
+
+    let t = 0, last = performance.now();
+    function frame(now) {
+      const dt = Math.min(0.1, (now - last) / 1000); last = now; if (!paused) t += dt;
+      for (const cell of cells) {
+        const { c, cv, spec, row } = cell, W = cv.width, H = cv.height, night = row.night || sky === 'night';
+        if (spec.shot) { c.fillStyle = '#0c2236'; c.fillRect(0, 0, W, H); if (cell.img) { const k = Math.max(W / cell.img.width, H / cell.img.height); c.drawImage(cell.img, (W - cell.img.width * k) / 2, (H - cell.img.height * k) / 2, cell.img.width * k, cell.img.height * k); } continue; }
+        sea(c, W, H, t, night);
+        if (spec.none) { c.fillStyle = 'rgba(0,0,0,.35)'; c.fillRect(0, 0, W, H); c.fillStyle = '#fff'; c.font = '600 16px sans-serif'; c.textAlign = 'center'; c.fillText('지금 앱의 고래 사건 그대로', W / 2, H / 2); continue; }
+        if (cell.video && cell.video.readyState >= 2) {
+          const s = H * 0.95;
+          c.drawImage(keyed(cell.video, spec.key), (W - s) / 2, (H - s) / 2, s, s);
+        }
+        if (cell.img) { const im = cell.img, s = H * 0.7, w = s * im.width / Math.max(im.width, im.height), h = s * im.height / Math.max(im.width, im.height); c.save(); c.translate(W / 2, H / 2 + Math.sin(t * 1.4) * 4); if (!spec.still) c.rotate(Math.sin(t * 0.8) * 0.05); c.drawImage(im, -w / 2, -h / 2, w, h); c.restore(); }
+        const a = cell.atlases?.[cell.cur];
+        if (a) {
+          const m = a.m, f = Math.floor(t * m.fps) % m.frames, fw = m.frameWidth, fh = m.frameHeight;
+          const s = Math.min(W * 0.8 / fw, H * 0.85 / fh) * (spec.scale || 1), w = fw * s, h = fh * s;
+          c.drawImage(a.im, (f % m.cols) * fw, Math.floor(f / m.cols) * fh, fw, fh, (W - w) / 2, (H - h) / 2, w, h);
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>
