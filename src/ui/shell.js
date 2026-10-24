@@ -1,3 +1,5 @@
+import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v29.3.0';
+import { BoatPreview } from './boat-preview.js?v=v29.3.0';
 // src/ui/shell.js — 2026-10-24 UI 구조 개편 (결정 10개: _views/html-views/2026-10-24_kiwi-ui-restructure.html)
 //
 //  마크업은 index.html 에 제자리로 있고(예전 src/ia/ia.js 처럼 뜬 뒤에 옮기지 않는다), 여기는 새 창 셋의 동작만 맡는다.
@@ -11,26 +13,6 @@ const $ = id => document.getElementById(id);
 const KEY = 'kiwi-footprints.';
 const get = k => { try { return localStorage.getItem(KEY + k); } catch (e) { return null; } };
 const put = (k, v) => { try { localStorage.setItem(KEY + k, v); } catch (e) {} };
-
-// 탭 묶음 (설정 창 wireTabs 와 같은 규칙: 화살표로 옮기고, 고른 탭을 기억)
-function tabs(panel, key, first) {
-  const list = [...panel.querySelectorAll(':scope > [role="tablist"] [role="tab"]')];
-  const show = id => {
-    if (!list.some(t => t.dataset.tab === id)) id = first || list[0].dataset.tab;
-    for (const t of list) { const on = t.dataset.tab === id; t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1; }
-    for (const p of panel.querySelectorAll(':scope > .pane')) p.hidden = p.dataset.pane !== id;
-    panel.scrollTop = 0; for (const p of panel.querySelectorAll(':scope > .pane')) p.scrollTop = 0;
-    put('tab.' + key, id);
-  };
-  for (const t of list) t.addEventListener('click', () => show(t.dataset.tab));
-  panel.querySelector(':scope > [role="tablist"]').addEventListener('keydown', e => {
-    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-    const i = list.findIndex(t => t.getAttribute('aria-selected') === 'true'), n = list[(i + (e.key === 'ArrowRight' ? 1 : list.length - 1)) % list.length];
-    show(n.dataset.tab); n.focus(); e.preventDefault();
-  });
-  show(get('tab.' + key) || first);
-  return show;
-}
 
 // 꾸미기에서 바꿀 수 있는 값은 모두 같은 저장/되돌리기 경계를 쓴다.
 export function snapshotWardrobe(env) {
@@ -64,15 +46,16 @@ export function mountShell(env) {
   const basket = $('basket'), basketBtn = $('basketBtn');
   const ward = $('wardrobe'), wardBtn = $('wardBtn');
   const chartView = $('chartView'), chartBtn = $('chartBtn');
-  const basketTab = tabs(basket, 'basket', 'photo');
-  const wardTab = tabs(ward, 'ward', 'kiwi');
+  const basketTab = wireTabs(basket, 'basket', { load: get, save: put, first: 'photo' });
+  const wardTab = wireTabs(ward, 'ward', { load: get, save: put, first: 'kiwi' });
 
   // ── 바구니 ──
   function openBasket(open) {
     if (open === !basket.hidden) return;
-    if (open) { closeAll(); closeOthers(); paintCollection(); }
+    if (open) { rememberOpener(basket, basketBtn); closeAll(); closeOthers(); paintCollection(); }
     basket.hidden = !open; basketBtn.setAttribute('aria-expanded', String(open));
     if (open) basket.querySelector('[role="tab"][aria-selected="true"]')?.focus();
+    else returnFocus(basket, basketBtn);
   }
   basketBtn.addEventListener('click', () => { unlock(); openBasket(basket.hidden); });
 
@@ -82,26 +65,32 @@ export function mountShell(env) {
   const restore = d => restoreWardrobe(env, d);
   const changed = () => wardrobeChanged(snap(), draft);
   function paintWardBar() { const c = changed(); $('wdSave').disabled = !c; $('wdCancel').textContent = c ? '되돌리기' : '닫기'; }
+  const preview = new BoatPreview($('boatPreview'), $('boatPreviewNote'));
   function paintBoatStage() {
-    const st = $('boatStage'); if (!st) return;
-    const b = env.voyScene.boatId, s = env.voyScene.sailId;
-    st.querySelector('.hull').src = 'assets/' + (b === 'dinghy' ? 'voyage-boat.webp?v=v29.2.0' : 'boat-' + b + '.webp?v=v29.2.0');
-    st.querySelector('.sail').src = 'assets/' + (s === 'leaf' ? 'voyage-sail.webp?v=v29.2.0' : 'sail-' + s + '.webp?v=v29.2.0');
+    if (ward.hidden || $('boatStage').closest('.pane').hidden) { preview.release(); return; }
+    preview.paint(env.voyScene.boatId, env.voyScene.sailId, env.previewCrew());
   }
   function openWard(open, { save = false, tab } = {}) {
     if (open === !ward.hidden) { if (open && tab) wardTab(tab); return; }
     if (open) {
+      rememberOpener(ward, $('menuBtn'));
       closeAll(); closeOthers();
-      draft = snap(); paintCollection(); paintPacks(); paintBoatStage(); paintWardBar();
+      draft = snap();
+      if (!env.wardrobeJournal?.begin(draft)) { draft = null; env.toast('저장 공간을 확인해 주세요 · 꾸미기를 열지 못했어요'); return; }
+      paintCollection(); paintPacks(); paintWardBar();
       if (tab) wardTab(tab);
     } else {
-      if (!save && draft && changed()) { restore(draft); env.toast('바꾼 것을 되돌렸어요'); }
-      else if (save && draft && changed()) env.toast('저장했어요');
+      if (!save && draft) { if (changed()) { restore(draft); env.toast('바꾼 것을 되돌렸어요'); } env.wardrobeJournal?.recover(); }
+      else if (save && draft) {
+        if (!env.wardrobeJournal?.commit(snap())) { env.toast('저장하지 못했어요 · 다시 시도해 주세요'); return; }
+        if (changed()) env.toast('저장했어요');
+      }
       draft = null; paintCollection();
     }
     ward.hidden = !open; wardBtn.setAttribute('aria-expanded', String(open));
     document.body.classList.toggle('dressing', open);
-    if (open) ward.querySelector('[role="tab"][aria-selected="true"]')?.focus();
+    if (open) { ward.querySelector('[role="tab"][aria-selected="true"]')?.focus(); paintBoatStage(); }
+    else { preview.release(); returnFocus(ward, $('menuBtn')); }
   }
   wardBtn.addEventListener('click', () => { unlock(); openWard(true); });
   $('toWardSound')?.addEventListener('click', () => { unlock(); openWard(true, { tab: 'sound' }); });
@@ -114,9 +103,10 @@ export function mountShell(env) {
   // ── 해도 ──
   function openChart(open) {
     if (open === !chartView.hidden) return;
-    if (open) { closeAll(); closeOthers(); }
+    if (open) { rememberOpener(chartView, chartBtn); closeAll(); closeOthers(); }
     chartView.hidden = !open; chartBtn.setAttribute('aria-expanded', String(open));
     if (open) { $('isleCard').hidden = true; onChart(); $('chartClose').focus(); }
+    else returnFocus(chartView, chartBtn);
   }
   chartBtn.addEventListener('click', () => { unlock(); openChart(chartView.hidden); });
   $('chartClose').addEventListener('click', () => { openChart(false); chartBtn.focus(); });
@@ -127,14 +117,25 @@ export function mountShell(env) {
     const t = e.target; if (onTop(t)) return;
     if (!basket.hidden && !basket.contains(t) && !basketBtn.contains(t)) openBasket(false);
   }, true);
-  addEventListener('keydown', e => {
-    if (e.key !== 'Escape' || $('found')?.hidden === false) return;
-    if (!chartView.hidden) { if (!$('isleCard').hidden) $('isleCard').hidden = true; else { openChart(false); chartBtn.focus(); } }
-    else if (!ward.hidden) { openWard(false); $('menuBtn').focus(); }
-    else if (!basket.hidden) { openBasket(false); basketBtn.focus(); }
-  });
+  for (const [button, panel] of Object.entries({ basketBtn: 'basket', chartBtn: 'chartView', wardBtn: 'wardrobe', toWardSound: 'wardrobe' })) $(button)?.setAttribute('aria-controls', panel);
+  const closeChartKey = () => {
+    if (!$('isleCard').hidden) { $('isleCard').hidden = true; $('chartClose').focus(); }
+    else openChart(false);
+  };
+  installDialogKeyboard([
+    { panel: $('found'), close: env.closeFound },
+    { panel: $('info'), close: env.closeInfo },
+    { panel: $('picker'), close: env.closePicker },
+    { panel: chartView, close: closeChartKey },
+    { panel: ward, close: () => openWard(false) },
+    { panel: basket, close: () => openBasket(false) },
+    { panel: $('settings'), close: env.closeSettings },
+    { panel: $('focusPanel'), close: env.closeFocus },
+  ]);
 
   function closeAll() { openBasket(false); openWard(false); openChart(false); }
+  // 새로고침·탭 종료·뒤로 가기 캐시에 들어가기 전에 현재 장면도 원래대로 돌린다.
+  addEventListener('pagehide', () => { if (!ward.hidden) openWard(false); });
 
   // ── 설정 › 풍경 › 시점 ──
   const viewRow = $('viewRow'), viewBtn = $('viewBtn');

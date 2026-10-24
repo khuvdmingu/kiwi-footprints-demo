@@ -121,7 +121,7 @@ body.info-open #say { opacity: 0; pointer-events: none; }
 #hideBtn .ui-show, body.clean #hideBtn .ui-hide { display: none; }
 body.clean #hideBtn .ui-show { display: inline; }
 body.clean .corner > :not(#hideBtn), body.clean #say, body.clean #toast, body.clean #focusHud,
-body.clean #settings, body.clean #basket, body.clean #mixer, body.clean #focusPanel, body.clean #info { display: none !important; }
+body.clean .uiWindow, body.clean #basket, body.clean #mixer, body.clean #focusPanel, body.clean #info { display: none !important; }
 /* v26.2: 정리하고 3초 뒤엔 아예 안 보인다 — 화면(그 근처 포함)을 누르면 3초 동안 다시. html 을 붙여 종이 테마의 .corner 투명도(0.95)보다 앞서게,
    :hover 는 마우스에서만(폰은 누른 자리에 hover 가 남아 버튼이 계속 보였다) */
 html body.clean .corner { opacity: 0; pointer-events: none; transition: opacity 0.6s var(--ease); }
@@ -167,12 +167,12 @@ body.typing #caption, body.info-open #caption { opacity: 0; }
   background: rgba(20, 47, 73, 0.78); border: 1px solid var(--panel-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 10px 30px rgba(var(--shadow), 0.35); font-size: 14px; }
 #mixer[hidden] { display: none; }
-/* 설정 창 (소리 창과 같은 모양) */
-#settings { position: fixed; z-index: 25; top: calc(var(--top) + var(--tap) + 10px); right: max(14px, env(safe-area-inset-right));
+/* 공용 창 틀: 설정 · 바구니 · 꾸미기 (자리 차이는 shell.css) */
+.uiWindow { position: fixed; z-index: 25; top: calc(var(--top) + var(--tap) + 10px); right: max(14px, env(safe-area-inset-right));
   width: min(300px, calc(100vw - 28px)); padding: 12px 12px 8px; border-radius: 14px;
   background: rgba(20, 47, 73, 0.78); border: 1px solid var(--panel-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 10px 30px rgba(var(--shadow), 0.35); font-size: 14px; }
-#settings[hidden] { display: none; }
+.uiWindow[hidden] { display: none; }
 /* v12 집중 모드: 창은 설정 창과 같은 모양, 진행 중에는 위 가운데 작은 알약 */
 #focusPanel { position: fixed; z-index: 25; top: calc(var(--top) + var(--tap) + 10px); right: max(14px, env(safe-area-inset-right));
   width: min(300px, calc(100vw - 28px)); padding: 12px 12px 10px; border-radius: 14px;
@@ -211,33 +211,33 @@ body.typing #caption, body.info-open #caption { opacity: 0; }
 #focusHud .t { font-weight: 600; letter-spacing: 0.04em; }
 #focusHud .s { font-size: 12.5px; opacity: 0.75; }
 #focusBtn.on { background: #e8972e; border-color: transparent; color: #fff; }
-#settings h2 { margin: 2px 4px 6px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; opacity: 0.75; }
-#settings .seg { display: grid; gap: 6px; }
-#settings .seg.four { grid-template-columns: repeat(2, 1fr); }
-#settings .seg.two { grid-template-columns: repeat(2, 1fr); }
-#settings h2.sep { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--panel-line); }
-#settings .seg.three { grid-template-columns: repeat(3, 1fr); margin-top: 4px; }
-#settings .seg label { position: relative; }
-#settings .seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
-#settings .seg span { display: block; text-align: center; padding: 9px 4px; border-radius: 10px; border: 1px solid var(--panel-line); font-weight: 500; white-space: nowrap; }
-#settings .seg.three span { padding: 7px 2px; font-size: 13px; }
-#settings .seg.five { grid-template-columns: repeat(5, 1fr); gap: 4px; }
-#settings .seg.five span { padding: 7px 0; font-size: 12.5px; }
+.uiWindow h2 { margin: 2px 4px 6px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; opacity: 0.75; }
+.uiWindow .seg { display: grid; gap: 6px; }
+.uiWindow .seg.four { grid-template-columns: repeat(2, 1fr); }
+.uiWindow .seg.two { grid-template-columns: repeat(2, 1fr); }
+.uiWindow h2.sep { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--panel-line); }
+.uiWindow .seg.three { grid-template-columns: repeat(3, 1fr); margin-top: 4px; }
+.uiWindow .seg label { position: relative; }
+.uiWindow .seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.uiWindow .seg span { display: block; text-align: center; padding: 9px 4px; border-radius: 10px; border: 1px solid var(--panel-line); font-weight: 500; white-space: nowrap; }
+.uiWindow .seg.three span { padding: 7px 2px; font-size: 13px; }
+.uiWindow .seg.five { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.uiWindow .seg.five span { padding: 7px 0; font-size: 12.5px; }
 #kiwiOpts { margin-top: 8px; }
 #kiwiOpts .lightNow { margin: 0 0 4px; font-weight: 500; font-variant-numeric: tabular-nums; }
 #kiwiOpts input[type="range"] { width: 100%; margin: 4px 0 4px; accent-color: var(--sand); }
-#settings .seg input:checked + span { background: var(--sand); color: #2a2016; border-color: transparent; }
-#settings .seg input:focus-visible + span { outline: 2px solid rgb(var(--ink)); outline-offset: 2px; }
+.uiWindow .seg input:checked + span { background: var(--sand); color: #2a2016; border-color: transparent; }
+.uiWindow .seg input:focus-visible + span { outline: 2px solid rgb(var(--ink)); outline-offset: 2px; }
 #clockOpts { padding: 0 2px; }
 /* v10 모은 것 */
-#settings { max-height: calc(100dvh - 90px); overflow-y: auto; }
+.uiWindow { max-height: calc(100dvh - 90px); overflow-y: auto; }
 .colgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 4px 2px 0; }
 .colgrid button { aspect-ratio: 1; padding: 0; border-radius: 10px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.06); color: inherit; font-size: 18px; position: relative; cursor: pointer; overflow: hidden; }
 .colgrid button img { width: 120%; height: 120%; object-fit: contain; margin: -10%; }
 .colgrid button.locked { opacity: 0.4; cursor: default; font-size: 14px; }
 .colgrid.finds { grid-template-columns: repeat(8, 1fr); gap: 4px; }
 .colgrid button.used i.find { opacity: 0.35; }
-#settings h2.sub { margin-top: 10px; }
+.uiWindow h2.sub { margin-top: 10px; }
 #craftList { display: grid; gap: 6px; margin: 0 2px; }
 #craftList .craft { display: grid; grid-template-columns: 42px 1fr auto; gap: 8px; align-items: center; padding: 4px 6px 4px 4px; border-radius: 10px; border: 1px solid var(--panel-line); }
 #craftList img { width: 42px; height: 42px; object-fit: contain; }
@@ -272,8 +272,8 @@ body.typing #caption, body.info-open #caption { opacity: 0; }
 .colgrid button.place img { width: 100%; height: 100%; margin: 0; object-fit: cover; }
 .colgrid button.place.on { outline: 2px solid var(--sand); outline-offset: -2px; }
 .colgrid button.place.on::after { right: 3px; bottom: 3px; width: 15px; height: 15px; line-height: 15px; border-radius: 50%; background: var(--sand); }
-#settings .seg label.locked span { opacity: 0.45; font-weight: 400; }
-#settings .seg label.locked input { cursor: default; }
+.uiWindow .seg label.locked span { opacity: 0.45; font-weight: 400; }
+.uiWindow .seg label.locked input { cursor: default; }
 .colgrid button.on { background: var(--sand); border-color: transparent; }
 .colgrid button.on::after { content: '✓'; position: absolute; right: 3px; bottom: 1px; font-size: 11px; color: #2a2016; font-weight: 700; }
 /* v10 떠내려온 것을 열었을 때의 카드 */
@@ -310,20 +310,20 @@ body.typing #caption, body.info-open #caption { opacity: 0; }
 #clockOpts .row span { font-weight: 500; }
 #clockOpts input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--sand); }
 #clockOpts .hint { margin: 8px 2px 2px; font-size: 12px; line-height: 1.5; opacity: 0.7; word-break: keep-all; }
-#mixer .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; }
-#mixer .row span { flex: none; font-weight: 500; }
-#mixer input[type="range"] { flex: 1; min-width: 0; accent-color: var(--sand); }
-#mixer input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--sand); }
-#mixer input:focus-visible { outline: 2px solid rgb(var(--ink)); outline-offset: 2px; }
-#mixer h3 { margin: 12px 0 6px; padding-top: 10px; border-top: 1px solid var(--panel-line); font-size: 12.5px; font-weight: 600; opacity: 0.75; }
-#mixer .packs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-#mixer .packs.voice { grid-template-columns: 1fr 1fr; margin-bottom: 8px; }   /* v18.7 키위 소리 두 갈래 */
-#mixer .packs.voice button { font-size: 13px; font-weight: 600; min-height: 38px; }
-#mixer .packs button { padding: 7px 2px; border-radius: 9px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; word-break: keep-all; }
-#mixer .packs button[aria-pressed="true"] { background: var(--sand); color: #2a2016; border-color: transparent; }
-#mixer .packs button:disabled { opacity: 0.4; cursor: default; }
+.soundControls .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; }
+.soundControls .row span { flex: none; font-weight: 500; }
+.soundControls input[type="range"] { flex: 1; min-width: 0; accent-color: var(--sand); }
+.soundControls input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--sand); }
+.soundControls input:focus-visible { outline: 2px solid rgb(var(--ink)); outline-offset: 2px; }
+.soundPicks h3 { margin: 12px 0 6px; padding-top: 10px; border-top: 1px solid var(--panel-line); font-size: 12.5px; font-weight: 600; opacity: 0.75; }
+.soundPicks .packs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.soundPicks .packs.voice { grid-template-columns: 1fr 1fr; margin-bottom: 8px; }   /* v18.7 키위 소리 두 갈래 */
+.soundPicks .packs.voice button { font-size: 13px; font-weight: 600; min-height: 38px; }
+.soundPicks .packs button { padding: 7px 2px; border-radius: 9px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; word-break: keep-all; }
+.soundPicks .packs button[aria-pressed="true"] { background: var(--sand); color: #2a2016; border-color: transparent; }
+.soundPicks .packs button:disabled { opacity: 0.4; cursor: default; }
 #found .art i.find { display: block; width: 150px; height: 150px; margin: 0 auto; background: url('assets/finds.webp') 33.333% 0 / 400% 800% no-repeat; }
-#mixer .hint { margin: 6px 0 2px; font-size: 12px; line-height: 1.5; opacity: 0.7; word-break: keep-all; }
+.soundPicks .hint { margin: 6px 0 2px; font-size: 12px; line-height: 1.5; opacity: 0.7; word-break: keep-all; }
 
 #info { position: fixed; inset: 0; z-index: 30; display: flex; padding: 24px 20px; overflow: auto; background: rgba(20, 47, 73, 0.72); }
 #info[hidden] { display: none; }
@@ -354,13 +354,13 @@ body.ready #boot { opacity: 0; visibility: hidden; }
 #mixer { max-height: calc(100dvh - 90px); overflow-y: auto; }
 
 /* ── v18.6 창 정리: 탭 · 모은 것 종류별 · 곡 묶음 ── */
-#settings .tabs, #mixer .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 3px; margin: 0 0 12px; border-radius: 11px; background: rgba(0, 0, 0, 0.18); }
-#settings .tabs button, #mixer .tabs button { padding: 7px 4px; border: 0; border-radius: 8px; background: transparent; color: inherit; font: inherit; font-size: 13px; font-weight: 600; opacity: 0.7; cursor: pointer; white-space: nowrap; }
-#settings .tabs button[aria-selected="true"], #mixer .tabs button[aria-selected="true"] { background: var(--sand); color: #2a2016; opacity: 1; }
-#settings .tabs button:focus-visible, #mixer .tabs button:focus-visible { outline: 2px solid rgb(var(--ink)); outline-offset: 1px; }
-#settings .pane[hidden], #mixer .pane[hidden] { display: none; }
-#settings .hint { margin: 6px 2px 2px; font-size: 12px; line-height: 1.5; opacity: 0.7; word-break: keep-all; }
-#settings .bagSum { margin: 0 2px 10px; font-size: 12.5px; opacity: 0.75; }
+.uiWindow .tabs, #mixer .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 3px; margin: 0 0 12px; border-radius: 11px; background: rgba(0, 0, 0, 0.18); }
+.uiWindow .tabs button, #mixer .tabs button { padding: 7px 4px; border: 0; border-radius: 8px; background: transparent; color: inherit; font: inherit; font-size: 13px; font-weight: 600; opacity: 0.7; cursor: pointer; white-space: nowrap; }
+.uiWindow .tabs button[aria-selected="true"], #mixer .tabs button[aria-selected="true"] { background: var(--sand); color: #2a2016; opacity: 1; }
+.uiWindow .tabs button:focus-visible, #mixer .tabs button:focus-visible { outline: 2px solid rgb(var(--ink)); outline-offset: 1px; }
+.uiWindow .pane[hidden], .soundPicks .pane[hidden] { display: none; }
+.uiWindow .hint { margin: 6px 2px 2px; font-size: 12px; line-height: 1.5; opacity: 0.7; word-break: keep-all; }
+.uiWindow .bagSum { margin: 0 2px 10px; font-size: 12.5px; opacity: 0.75; }
 /* 편지 목록: 유리병 그림 + 제목 + 첫 구절 */
 .letters { display: grid; gap: 6px; }
 .letters button { display: grid; grid-template-columns: 40px 1fr; gap: 8px; align-items: center; padding: 4px 10px 4px 4px; border-radius: 10px; border: 1px solid var(--panel-line);
@@ -387,14 +387,14 @@ body.ready #boot { opacity: 0; visibility: hidden; }
 .soundSum span { opacity: 0.8; word-break: keep-all; }
 .soundSum button { justify-self: start; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
 /* 소리 창 */
-#mixer .pane > h3:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
-#mixer .hint.top { margin: 0 0 8px; }
-#mixer .hint.foot { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--panel-line); }
-#mixer .packs .part { grid-column: 1 / -1; margin: 8px 0 0; font-size: 11.5px; font-weight: 600; opacity: 0.65; }
-#mixer .packs .part:first-child { margin-top: 0; }
+.soundPicks .pane > h3:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.soundPicks .hint.top { margin: 0 0 8px; }
+.soundPicks .hint.foot { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--panel-line); }
+.soundPicks .packs .part { grid-column: 1 / -1; margin: 8px 0 0; font-size: 11.5px; font-weight: 600; opacity: 0.65; }
+.soundPicks .packs .part:first-child { margin-top: 0; }
 #mixer { width: min(300px, calc(100vw - 28px)); }
 #songPacks { grid-template-columns: repeat(2, 1fr); }
-#mixer .packs button { display: grid; place-items: center; min-height: 34px; }
+.soundPicks .packs button { display: grid; place-items: center; min-height: 34px; }
 
 /* ── v18.6.1 집중 창 · 작품 설명 정리 ── */
 #focusPanel .note { margin: -2px 4px 10px; font-size: 12px; line-height: 1.5; opacity: 0.65; word-break: keep-all; }
@@ -587,20 +587,20 @@ body.clean #menu { display: none !important; }
 #info i[data-icon="menuBtn"] svg { stroke-width: 3; }
 
 /* 창 안쪽: 누르는 것은 모두 --tap-in(40px) 이상, 묶음 사이는 조금 더 띄움 */
-#settings, #focusPanel, #mixer { width: min(320px, calc(100vw - 2 * var(--edge))); padding: 14px 14px 12px; border-radius: 16px; right: var(--right); }
-#settings, #mixer { max-height: calc(100dvh - var(--top) - var(--tap) - 26px); }
+.uiWindow, #focusPanel, #mixer { width: min(320px, calc(100vw - 2 * var(--edge))); padding: 14px 14px 12px; border-radius: 16px; right: var(--right); }
+.uiWindow, #mixer { max-height: calc(100dvh - var(--top) - var(--tap) - 26px); }
 #focusPanel { max-height: calc(100dvh - var(--top) - var(--tap) - 26px); }
-#settings .tabs button, #mixer .tabs button { min-height: 38px; }
-#settings .seg, #focusPanel .seg { gap: 8px; }
-#settings .seg span, #settings .seg.three span, #settings .seg.five span, #focusPanel .seg span { display: grid; place-items: center; min-height: var(--tap-in); padding: 4px 2px; box-sizing: border-box; }
-#settings .seg.five { gap: 5px; }
-#settings h2.sep, #mixer h3 { margin-top: 18px; padding-top: 14px; }
+.uiWindow .tabs button, #mixer .tabs button { min-height: 38px; }
+.uiWindow .seg, #focusPanel .seg { gap: 8px; }
+.uiWindow .seg span, .uiWindow .seg.three span, .uiWindow .seg.five span, #focusPanel .seg span { display: grid; place-items: center; min-height: var(--tap-in); padding: 4px 2px; box-sizing: border-box; }
+.uiWindow .seg.five { gap: 5px; }
+.uiWindow h2.sep, .soundPicks h3 { margin-top: 18px; padding-top: 14px; }
 #lightOpts .chips { gap: 5px; }
 #lightOpts .chips button { min-height: 36px; padding: 0; }
-#clockOpts .row, #mixer .row { min-height: 46px; }
-#clockOpts input[type="checkbox"], #mixer input[type="checkbox"], #tunePane input[type="checkbox"] { width: 22px; height: 22px; }
-#mixer .packs { gap: 6px; }
-#mixer .packs button, #mixer .packs.voice button { min-height: var(--tap-in); }
+#clockOpts .row, .soundControls .row { min-height: 46px; }
+#clockOpts input[type="checkbox"], .soundControls input[type="checkbox"], #tunePane input[type="checkbox"] { width: 22px; height: 22px; }
+.soundPicks .packs { gap: 6px; }
+.soundPicks .packs button, .soundPicks .packs.voice button { min-height: var(--tap-in); }
 #tunePane .trow { min-height: 42px; }
 #tunePane select { min-height: 34px; }
 #tunePane .tbtns { gap: 8px; }
@@ -678,8 +678,8 @@ body.drowse #focusHud { opacity: 0.22; transition: opacity 4s var(--ease), trans
   .corner .grp { flex-direction: column; height: auto; width: var(--tap); }
   .corner .grp .round { width: 100%; height: calc(var(--tap) + 2px); }
   .corner .grp .round + .round::before { left: 25%; right: 25%; top: 0; bottom: auto; width: auto; height: 1px; }
-  #settings, #mixer, #focusPanel, #menu { top: var(--top); right: var(--rail); max-height: calc(100dvh - 2 * var(--top)); }
-  #settings, #mixer, #focusPanel { width: min(340px, calc(100vw - var(--rail) - 2 * var(--edge))); }
+  .uiWindow, #mixer, #focusPanel, #menu { top: var(--top); right: var(--rail); max-height: calc(100dvh - 2 * var(--top)); }
+  .uiWindow, #mixer, #focusPanel { width: min(340px, calc(100vw - var(--rail) - 2 * var(--edge))); }
   #picker.side::before { top: calc(var(--arrow, 50%) - 6px); left: auto; right: -6px; transform: rotate(135deg); }
   #toast { top: var(--top); }
   #focusHud { top: var(--top); right: var(--rail); }

@@ -1,3 +1,4 @@
+/* v29.3 보관용: index.html 에서 분리됨. 현행 창 규칙은 style.css·theme-paper.css 공용 클래스. */
 /* 자동 생성 — tools/win-css.py (손으로 고치지 말 것) */
 body.clean #basket, body.clean #wardrobe { display: none !important; }
 #basket, #wardrobe { position: fixed; z-index: 25; top: calc(var(--top) + var(--tap) + 10px); right: max(14px, env(safe-area-inset-right));

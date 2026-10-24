@@ -6,11 +6,10 @@
   <meta name="theme-color" content="#1A5C91" />
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v29.2.0" />
-  <link rel="stylesheet" href="memos.css?v=v29.2.0" />
-  <link rel="stylesheet" href="theme-paper.css?v=v29.2.0" />
-  <link rel="stylesheet" href="src/ui/win-gen.css?v=v29.2.0" />
-  <link rel="stylesheet" href="src/ui/shell.css?v=v29.2.0" />
+  <link rel="stylesheet" href="style.css?v=v29.3.0" />
+  <link rel="stylesheet" href="memos.css?v=v29.3.0" />
+  <link rel="stylesheet" href="theme-paper.css?v=v29.3.0" />
+  <link rel="stylesheet" href="src/ui/shell.css?v=v29.3.0" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -57,10 +56,10 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><g class="ui-hide"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" /><circle cx="12" cy="12" r="2.6" /><path d="M4 20 20 4" /></g><g class="ui-show"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" /><circle cx="12" cy="12" r="2.6" /></g></svg>
     </button>
     <div class="grp" role="group" aria-label="섬 바로 바꾸기">
-    <button id="modeBtn" type="button" class="round" aria-haspopup="dialog" aria-expanded="false" aria-label="글 모드 바꾸기" data-mode="free">
+    <button id="modeBtn" aria-controls="picker" type="button" class="round" aria-haspopup="dialog" aria-expanded="false" aria-label="글 모드 바꾸기" data-mode="free">
       <svg viewBox="0 0 24 24" aria-hidden="true"><g class="m-free"><path d="M4.5 19.5l3.8-.9L19 7.9a1.9 1.9 0 0 0 0-2.7l-.2-.2a1.9 1.9 0 0 0-2.7 0L5.4 15.7z" /><path d="M14.6 6.4l3 3" /></g><g class="m-clock"><circle cx="12" cy="12" r="8.3" /><path d="M12 7.6V12l2.9 1.9" /></g><g class="m-quote"><path d="M5.2 5.8h13.6a2.2 2.2 0 0 1 2.2 2.2v6.6a2.2 2.2 0 0 1-2.2 2.2h-6.5l-4.4 3.3v-3.3H5.2A2.2 2.2 0 0 1 3 14.6V8a2.2 2.2 0 0 1 2.2-2.2z" /><path d="M9.2 12.9c1-.4 1.5-1.1 1.5-2.4M13.6 12.9c1-.4 1.5-1.1 1.5-2.4" /></g><g class="m-word"><path d="M12 7.2c-2.1-1.4-5-1.8-8-1.2v11.8c3-.6 5.9-.2 8 1.2 2.1-1.4 5-1.8 8-1.2V6c-3-.6-5.9-.2-8 1.2z" /><path d="M12 7.2V19" /></g></svg>
     </button>
-    <button id="weatherBtn" type="button" class="round" aria-haspopup="dialog" aria-expanded="false" aria-label="날씨 바꾸기" data-weather="clear">
+    <button id="weatherBtn" aria-controls="picker" type="button" class="round" aria-haspopup="dialog" aria-expanded="false" aria-label="날씨 바꾸기" data-weather="clear">
       <svg viewBox="0 0 24 24" aria-hidden="true"><g class="w-clear"><circle cx="12" cy="12" r="4.3" /><path d="M19 12L20.9 12M16.95 16.95L18.29 18.29M12 19L12 20.9M7.05 16.95L5.71 18.29M5 12L3.1 12M7.05 7.05L5.71 5.71M12 5L12 3.1M16.95 7.05L18.29 5.71" /></g><g class="w-cloudy"><path d="M7 18.5h10a3.5 3.5 0 0 0 .3-6.99 5.2 5.2 0 0 0-10.1-1.1A3.8 3.8 0 0 0 7 18.5z" /></g><g class="w-drizzle"><path d="M7 14.5h10a3.5 3.5 0 0 0 .3-6.99 5.2 5.2 0 0 0-10.1-1.1A3.8 3.8 0 0 0 7 14.5z" /><path stroke-width="2.4" d="M8.6 18.2h.01M15.4 18.2h.01M12 19.4h.01M9.8 21.6h.01M14.2 21.6h.01" /></g><g class="w-rain"><path d="M7 14.5h10a3.5 3.5 0 0 0 .3-6.99 5.2 5.2 0 0 0-10.1-1.1A3.8 3.8 0 0 0 7 14.5z" /><path d="M9 17.4l-1.1 2.8M12.6 17.4l-1.1 2.8M16.2 17.4l-1.1 2.8" /></g><g class="w-snow"><path d="M12 12L12 3.4M12 12L19.45 7.7M12 12L19.45 16.3M12 12L12 20.6M12 12L4.55 16.3M12 12L4.55 7.7M12 6.4L13.9 4.5M12 6.4L10.1 4.5M16.85 9.2L19.45 9.9M16.85 9.2L17.55 6.6M16.85 14.8L17.55 17.4M16.85 14.8L19.45 14.1M12 17.6L10.1 19.5M12 17.6L13.9 19.5M7.15 14.8L4.55 14.1M7.15 14.8L6.45 17.4M7.15 9.2L6.45 6.6M7.15 9.2L4.55 9.9" /></g><g class="w-fog"><path d="M7.4 12.6h9.3a3.1 3.1 0 0 0 .2-6.2 4.7 4.7 0 0 0-9.1-.9 3.6 3.6 0 0 0-.4 7.1z" /><path d="M4 16.2h16M6.5 19.6h11" /></g><g class="w-wind"><path d="M3 9.2h10.2a2.6 2.6 0 1 0-2.6-2.6M3 13.2h14.6a2.9 2.9 0 1 1-2.9 2.9M3 17.2h6" /></g><g class="w-blossom"><path d="M11.6 14.6C10.4 10.7 11.6 7.4 14.1 6.5l1.8 1.6 1.9-1.2c2.4 1.7 1.9 5.9-6.2 7.7z" /><path d="M3 15.8h6M5 19.6h8" /></g></svg>
     </button>
     </div>
@@ -75,7 +74,7 @@
         <g class="v-breeze"><path d="M3 8h7M2.5 12h5" /><path d="M10.5 18.5c0-5.6 4.1-8.7 10.2-8.7 0 5.6-3.6 9.8-10.2 8.7zM10.5 18.5l5.2-4.6" /></g>
       </svg>
     </button>
-    <button id="focusBtn" type="button" class="round" aria-label="떠나기 — 섬에서 집중 · 항해" aria-expanded="false" aria-controls="focusPanel">
+    <button id="focusBtn" aria-controls="focusPanel" type="button" class="round" aria-label="떠나기 — 섬에서 집중 · 항해" aria-expanded="false" aria-controls="focusPanel">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.8 3.5h10.4M6.8 20.5h10.4" /><path d="M8 3.5c0 4.6 3 5.6 4 8.5-1 2.9-4 3.9-4 8.5M16 3.5c0 4.6-3 5.6-4 8.5 1 2.9 4 3.9 4 8.5" /><path d="M10 18.6c.7-.9 1.3-1.3 2-1.3s1.3.4 2 1.3" /></svg>
     </button>
     <button id="chartBtn" type="button" class="round" aria-label="해도 — 섬과 항로" aria-expanded="false" aria-controls="chartView">
@@ -84,15 +83,15 @@
     <button id="basketBtn" type="button" class="round" aria-label="바구니 — 일지 · 편지 · 도감" aria-expanded="false" aria-controls="basket">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5h17" /><path d="M5 10.5l1.4 7.9a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6l1.4-7.9" /><path d="M7.6 10.5a4.4 4.9 0 0 1 8.8 0" /><path d="M5.9 14.5h12.2M10.2 10.5l.4 9.5M13.8 10.5l-.4 9.5" /></svg>
     </button>
-    <button id="menuBtn" type="button" class="round" aria-label="메뉴 — 꾸미기 · 설정 · 소리 · 작품 설명" aria-haspopup="menu" aria-expanded="false" aria-controls="menu">
+    <button id="menuBtn" aria-controls="menu" type="button" class="round" aria-label="메뉴 — 꾸미기 · 설정 · 소리 · 작품 설명" aria-haspopup="menu" aria-expanded="false" aria-controls="menu">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path stroke-width="3.2" d="M5.8 12h.01M12 12h.01M18.2 12h.01" /></svg>
     </button>
   </div>
   <div id="menu" role="menu" aria-label="메뉴" hidden>
     <button id="wardBtn" type="button" role="menuitem" aria-expanded="false" aria-controls="wardrobe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.2a1.9 1.9 0 1 1 1.9-1.9c0 1-.9 1.4-1.9 2.2v1.4" /><path d="M12 8.9 3.6 15.4a1.2 1.2 0 0 0 .7 2.1h15.4a1.2 1.2 0 0 0 .7-2.1z" /></svg><span>꾸미기</span><small>키위 옷 · 배·돛 · 소리</small></button>
-    <button id="setBtn" type="button" role="menuitem" aria-expanded="false" aria-controls="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.93 10.45 L21.17 10.43 L21.17 13.57 L18.93 13.55 L18.00 15.80 L19.59 17.37 L17.37 19.59 L15.80 18.00 L13.55 18.93 L13.57 21.17 L10.43 21.17 L10.45 18.93 L8.20 18.00 L6.63 19.59 L4.41 17.37 L6.00 15.80 L5.07 13.55 L2.83 13.57 L2.83 10.43 L5.07 10.45 L6.00 8.20 L4.41 6.63 L6.63 4.41 L8.20 6.00 L10.45 5.07 L10.43 2.83 L13.57 2.83 L13.55 5.07 L15.80 6.00 L17.37 4.41 L19.59 6.63 L18.00 8.20Z" /><circle cx="12" cy="12" r="3" /></svg><span>설정</span><small>풍경 · 시계·메모 · 화면 · 소리</small></button>
+    <button id="setBtn" aria-controls="settings" type="button" role="menuitem" aria-expanded="false" aria-controls="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.93 10.45 L21.17 10.43 L21.17 13.57 L18.93 13.55 L18.00 15.80 L19.59 17.37 L17.37 19.59 L15.80 18.00 L13.55 18.93 L13.57 21.17 L10.43 21.17 L10.45 18.93 L8.20 18.00 L6.63 19.59 L4.41 17.37 L6.00 15.80 L5.07 13.55 L2.83 13.57 L2.83 10.43 L5.07 10.45 L6.00 8.20 L4.41 6.63 L6.63 4.41 L8.20 6.00 L10.45 5.07 L10.43 2.83 L13.57 2.83 L13.55 5.07 L15.80 6.00 L17.37 4.41 L19.59 6.63 L18.00 8.20Z" /><circle cx="12" cy="12" r="3" /></svg><span>설정</span><small>풍경 · 시계·메모 · 화면 · 소리</small></button>
     <div class="menuRow" role="none">
-      <button id="soundBtn" type="button" role="menuitem" aria-pressed="true" aria-label="소리 크기 (설정)" aria-controls="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.6 9.3h2.9l4.6-3.9v13.2l-4.6-3.9H4.6a1.1 1.1 0 0 1-1.1-1.1V10.4a1.1 1.1 0 0 1 1.1-1.1z" /><path class="wave" d="M16.2 8.8a4.6 4.6 0 0 1 0 6.4M18.8 6.3a8.2 8.2 0 0 1 0 11.4" /><path class="mute" d="M16 9.5l4.5 5M20.5 9.5l-4.5 5" /></svg><span>소리</span><small>크기</small></button>
+      <button id="soundBtn" aria-controls="settings" type="button" role="menuitem" aria-pressed="true" aria-label="소리 크기 (설정)" aria-controls="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.6 9.3h2.9l4.6-3.9v13.2l-4.6-3.9H4.6a1.1 1.1 0 0 1-1.1-1.1V10.4a1.1 1.1 0 0 1 1.1-1.1z" /><path class="wave" d="M16.2 8.8a4.6 4.6 0 0 1 0 6.4M18.8 6.3a8.2 8.2 0 0 1 0 11.4" /><path class="mute" d="M16 9.5l4.5 5M20.5 9.5l-4.5 5" /></svg><span>소리</span><small>크기</small></button>
       <button id="muteBtn" type="button" class="mute" role="menuitemcheckbox" aria-checked="true" aria-label="소리 켜기/끄기">켜짐</button>
     </div>
     <button id="infoBtn" type="button" role="menuitem" aria-expanded="false" aria-controls="info"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.8" /><path d="M12 11v5.6" /><path stroke-width="2.6" d="M12 7.7h.01" /></svg><span>작품 설명</span><small>버튼 · 손으로 · 모이는 것</small></button>
@@ -187,7 +186,7 @@
     </section>
   </div>
   </div>
-  <div id="settings" role="dialog" aria-label="설정" hidden>
+  <div id="settings" class="uiWindow" role="dialog" aria-label="설정" hidden>
     <div class="tabs" role="tablist" aria-label="설정 묶음">
       <button type="button" role="tab" data-tab="scene" aria-selected="true">풍경</button>
       <button type="button" role="tab" data-tab="write" aria-selected="false">시계·메모</button>
@@ -270,7 +269,7 @@
     <button id="cleanBtn" type="button" class="wide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" /><circle cx="12" cy="12" r="2.6" /><path d="M4 20 20 4" /></svg><span>화면 정리</span><small>그림만 남기기</small></button>
     <p class="hint">버튼과 입력창을 숨기고 그림만 남겨요. 한동안 안 건드리면 버튼은 저절로도 숨어요.</p>
     </section>
-    <section class="pane" data-pane="sound" role="tabpanel" aria-label="소리" hidden>
+    <section class="pane soundControls" data-pane="sound" role="tabpanel" aria-label="소리" hidden>
     <h2>크기</h2>
     <label class="row switch"><span>소리</span><input id="mixOn" type="checkbox" /></label>
     <label class="row"><span>음악</span><input id="mix-music" type="range" min="0" max="100" step="1" /></label>
@@ -332,7 +331,7 @@
     <p class="hint">기록 지우기는 무리 · 손님 방명록 · 편지 · 집중 기록을 지워요. 모은 아이템과 설정은 그대로예요.</p>
     </section>
   </div>
-  <div id="basket" role="dialog" aria-label="바구니" hidden>
+  <div id="basket" class="uiWindow basket" role="dialog" aria-label="바구니" hidden>
     <p id="colTitle" class="bagSum"></p>
     <div class="tabs" role="tablist" aria-label="바구니 묶음">
       <button type="button" role="tab" data-tab="photo" aria-selected="true">일지</button>
@@ -368,7 +367,7 @@
     </section>
   </div>
   <!-- 꾸미기: 눌러서 바로 입혀 보고·들어 보고, 저장해야 남는다 (src/ui/shell.js) -->
-  <div id="wardrobe" role="dialog" aria-label="꾸미기" hidden>
+  <div id="wardrobe" class="uiWindow wardrobe" role="dialog" aria-label="꾸미기" hidden>
     <div class="wdHead"><h2>꾸미기</h2><p>눌러서 바로 입혀 보고 들어 봐요 · 저장해야 남아요</p></div>
     <div class="tabs" role="tablist" aria-label="꾸미기 묶음">
       <button type="button" role="tab" data-tab="kiwi" aria-selected="true">키위</button>
@@ -385,14 +384,14 @@
     <p class="hint">들른 날마다 한 마리씩 무리에 들어와요. 무리 키위가 먼저 나오고, 모자라면 손님 키위가 같이 써요. 이름을 눌러 바꿀 수 있어요.</p>
     </section>
     <section class="pane" data-pane="boat" role="tabpanel" aria-label="배·돛" hidden>
-    <div class="boatStage" id="boatStage" aria-hidden="true"><img class="hull" alt="" /><img class="sail" alt="" /></div>
+    <div class="boatStage" id="boatStage"><canvas id="boatPreview" role="img" aria-label="고른 배와 돛, 키위의 정지 미리보기"></canvas><span id="boatPreviewNote" class="hint" role="status">미리보기를 준비하고 있어요</span></div>
     <h2 id="boatTitle">배</h2>
     <div id="boatGrid" class="colgrid places boats"></div>
     <h2 class="sep" id="sailTitle">돛</h2>
     <div id="sailGrid" class="colgrid places boats"></div>
     <p class="hint">바다 위에서 보낸 시간만큼 새 배와 돛이 열려요. 눌러서 바꾸기</p>
     </section>
-    <section class="pane" data-pane="sound" role="tabpanel" aria-label="소리" hidden>
+    <section class="pane soundPicks" data-pane="sound" role="tabpanel" aria-label="소리" hidden>
     <h3>곡</h3>
     <p class="hint top">고르면 시간 따라 바뀌는 기본 음악 <b>대신</b> 흘러요.</p>
     <div id="songPacks" class="packs"></div>
@@ -419,7 +418,8 @@
   <div id="chartView" role="dialog" aria-label="해도" hidden>
     <div class="cvHead"><h2>해도</h2><span id="chartCount"></span><button id="chartClose" type="button" aria-label="해도 닫기">닫기</button></div>
     <div id="chartBox" class="chartBox"><canvas id="chartCv" aria-label="해도 — 다녀온 항로와 찾은 섬"></canvas></div>
-    <div id="isleCard" class="isleCard" hidden><b class="nm"></b><p class="tx"></p><div class="btns"><button type="button" class="go primary"></button><button type="button" class="x">닫기</button></div></div>
+    <div class="chartAccess"><label for="chartSelect">섬 이름으로 고르기</label><select id="chartSelect"></select><button id="chartSelectGo" type="button">섬 정보 보기</button></div>
+    <div id="isleCard" class="isleCard" role="group" aria-labelledby="isleName" hidden><b class="nm" id="isleName"></b><p class="tx"></p><div class="btns"><button type="button" class="go primary"></button><button type="button" class="x">닫기</button></div></div>
     <p class="note" id="chartNote"></p>
     <details class="more" id="chartMore"><summary>찾은 작은 섬 · 바다 위의 곳</summary><div id="chartList" class="chartList"></div></details>
   </div>
@@ -494,10 +494,10 @@
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v29.2.0"></script>
-  <script type="module" src="src/credits.js?v=v29.2.0"></script>
+  <script type="module" src="src/main.js?v=v29.3.0"></script>
+  <script type="module" src="src/credits.js?v=v29.3.0"></script>
   <!-- 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/taps.js?v=v29.2.0"></script>
+  <script type="module" src="src/taps.js?v=v29.3.0"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.

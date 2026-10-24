@@ -1,39 +1,41 @@
 /* src/ui/shell.css — 2026-10-24 UI 개편의 모양 (예전 src/ia/ia.css).
-   창 틀(바탕·글씨·탭·묶음)은 win-gen.css 가 설정 창 규칙을 #basket·#wardrobe 로 복사해 맡고, 여기는 새 자리·새 부품만. */
+   창 틀은 style.css·theme-paper.css 의 .uiWindow, 소리 부품은 .soundControls·.soundPicks 를 쓴다. 여기는 새 자리·새 부품만. */
 
 /* ── 위 버튼 줄: [글 모드·날씨] · 떠나기 · 해도 · 바구니 · ⋯ ── */
 #viewBtn[hidden] { display: none; }
-body.clean :is(#basket, #wardrobe, #chartView) { display: none !important; }
+body.clean :is(.basket, .wardrobe, #chartView) { display: none !important; }
 
 /* ── 바구니 (읽는 것) ── */
-#basket { width: min(340px, calc(100vw - 2 * var(--edge, 16px))); right: var(--right, 16px); top: calc(var(--top) + var(--tap) + 10px); max-height: calc(100dvh - var(--top) - var(--tap) - 26px); overflow-y: auto; overscroll-behavior: contain; padding: 14px 14px 12px; border-radius: 16px; }
-#basket[hidden], #wardrobe[hidden], #chartView[hidden] { display: none; }
-#basket #colTitle { margin: 0 2px 10px; font-size: 12.5px; opacity: 0.75; }
-#basket .pane > h2:first-child, #wardrobe .pane > h2:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.basket { width: min(340px, calc(100vw - 2 * var(--edge, 16px))); right: var(--right, 16px); top: calc(var(--top) + var(--tap) + 10px); max-height: calc(100dvh - var(--top) - var(--tap) - 26px); overflow-y: auto; overscroll-behavior: contain; padding: 14px 14px 12px; border-radius: 16px; }
+.basket[hidden], .wardrobe[hidden], #chartView[hidden] { display: none; }
+.basket #colTitle { margin: 0 2px 10px; font-size: 12.5px; opacity: 0.75; }
+.basket .pane > h2:first-child, .wardrobe .pane > h2:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
 
 /* ── 꾸미기: 폰에선 아래 시트(위쪽 섬이 보이게 = 입혀 본 키위가 보인다), 넓은 화면에선 오른쪽 세로 판 ── */
-#wardrobe { position: fixed; z-index: 26; left: 0; right: 0; bottom: 0; top: auto; width: auto; max-height: min(64dvh, 560px); display: flex; flex-direction: column; padding: 12px 14px 0; border-radius: 18px 18px 0 0; overflow: hidden; }
-#wardrobe .wdHead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 0 2px 8px; }
-#wardrobe .wdHead h2 { margin: 0; padding: 0; border: 0; font-size: 17px; }
-#wardrobe .wdHead p { margin: 0; font-size: 12px; opacity: 0.7; }
-#wardrobe > .tabs { flex: none; }
-#wardrobe > .pane { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 2px 10px; }
-#wardrobe .wdBar { flex: none; display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; margin: 0 -14px; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid var(--panel-line); }
-#wardrobe .wdBar button { min-height: var(--tap, 44px); border-radius: 12px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; font-weight: 600; cursor: pointer; }
-#wardrobe .wdBar .primary { background: var(--sand); color: #2a2016; border-color: transparent; }
-#wardrobe .wdBar .primary:disabled { opacity: 0.45; cursor: default; }
+.wardrobe { position: fixed; z-index: 26; left: 0; right: 0; bottom: 0; top: auto; width: auto; max-height: min(64dvh, 560px); display: flex; flex-direction: column; padding: 12px 14px 0; border-radius: 18px 18px 0 0; overflow: hidden; }
+.wardrobe .wdHead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 0 2px 8px; }
+.wardrobe .wdHead h2 { margin: 0; padding: 0; border: 0; font-size: 17px; }
+.wardrobe .wdHead p { margin: 0; font-size: 12px; opacity: 0.7; }
+.wardrobe > .tabs { flex: none; }
+.wardrobe > .pane { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 2px 10px; }
+.wardrobe .wdBar { flex: none; display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; margin: 0 -14px; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid var(--panel-line); }
+.wardrobe .wdBar button { min-height: var(--tap, 44px); border-radius: 12px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; font-weight: 600; cursor: pointer; }
+.wardrobe .wdBar .primary { background: var(--sand); color: #2a2016; border-color: transparent; }
+.wardrobe .wdBar .primary:disabled { opacity: 0.45; cursor: default; }
 body.dressing #say { display: none; }
 body.dressing #breathOffer { display: none; }
 @media (min-width: 760px) {
-  #wardrobe { left: auto; right: var(--right, 16px); top: calc(var(--top) + var(--tap) + 10px); bottom: var(--edge, 16px); width: 380px; max-height: none; border-radius: 16px; }
-  #wardrobe .wdBar { padding-bottom: 12px; }
+  .wardrobe { left: auto; right: var(--right, 16px); top: calc(var(--top) + var(--tap) + 10px); bottom: var(--edge, 16px); width: 380px; max-height: none; border-radius: 16px; }
+  .wardrobe .wdBar { padding-bottom: 12px; }
 }
-/* 배·돛 미리 보기: 지금 고른 배 + 돛 */
-#wardrobe .boatStage { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr); gap: 8px; align-items: center; height: 120px; overflow: hidden; margin: 0 0 10px; padding: 8px 10px; border-radius: 14px; background: linear-gradient(#bfe0ea, #7fb4c6); }
-#wardrobe .boatStage img { width: 100%; height: 100%; min-height: 0; max-height: 104px; object-fit: contain; filter: drop-shadow(0 3px 4px rgba(0, 40, 60, 0.25)); }
+/* 배·돛·키위 정지 합성: 항해의 배 그리기만 재사용, 무거운 바다 판은 읽지 않는다. */
+:root { --preview-water-top: #bfe0ea; --preview-water-bottom: #7fb4c6; }
+.wardrobe .boatStage { margin: 0 0 var(--gap); }
+.wardrobe .boatStage canvas { display: block; width: 100%; height: 120px; object-fit: contain; background: linear-gradient(var(--preview-water-top), var(--preview-water-bottom)); border-radius: 14px; }
+.wardrobe #boatPreviewNote { display: block; min-height: 1.5em; }
 
 /* ── 해도: 장소의 유일한 입구. 폰은 화면 전체, 넓은 화면은 큰 판 ── */
-#chartView { position: fixed; z-index: 27; inset: 0; display: flex; flex-direction: column; gap: 8px; padding: calc(10px + env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); background: #e9dab8; color: #3d2b1c; }
+#chartView { --chart-ink: #3d2b1c; --chart-paper: #e9dab8; position: fixed; z-index: 27; inset: 0; display: flex; flex-direction: column; gap: 8px; padding: calc(10px + env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); background: #e9dab8; color: #3d2b1c; }
 @media (min-width: 760px) {
   #chartView { inset: max(16px, 4dvh) max(16px, 6vw); border-radius: 20px; box-shadow: 0 18px 50px rgba(20, 30, 40, 0.35); padding: 14px 16px 12px; }
 }
@@ -119,14 +121,14 @@ button.wide span { font-weight: 600; } button.wide small { font-size: 12px; opac
 body.say-off #say { display: none !important; }
 
 /* 창 투명도: --win-a = 바탕 불투명도 (shell.js 가 설정 › 화면 막대로 정함) */
-html:not([data-ui="paper"]) :is(#settings, #basket, #wardrobe, #focusPanel) { background: rgba(20, 47, 73, var(--win-a, 0.78)); }
+html:not([data-ui="paper"]) :is(#settings, .basket, .wardrobe, #focusPanel) { background: rgba(20, 47, 73, var(--win-a, 0.78)); }
 html:not([data-ui="paper"]) :is(#menu, #picker) { background: rgba(20, 47, 73, calc(var(--win-a, 0.78) + 0.13)); }
 html:not([data-ui="paper"]) #picker::before { background: rgba(20, 47, 73, calc(var(--win-a, 0.78) + 0.13)); }
-html:not([data-ui="paper"]) #wardrobe { background: rgba(20, 47, 73, max(0.86, var(--win-a, 0.78))); }   /* 아래 시트는 섬 위에 겹쳐 글씨가 묻히지 않게 */
+html:not([data-ui="paper"]) .wardrobe { background: rgba(20, 47, 73, max(0.86, var(--win-a, 0.78))); }   /* 아래 시트는 섬 위에 겹쳐 글씨가 묻히지 않게 */
 html[data-ui="paper"] { --pp-rgb: 251, 244, 228; }
 html[data-ui="paper"][data-time="night"] { --pp-rgb: 214, 195, 158; }
-html[data-ui="paper"] :is(#settings, #basket, #wardrobe, #focusPanel, #menu, #picker) { background: var(--pp-grain), rgba(var(--pp-rgb), var(--win-a, 1)); }
-html[data-ui="paper"][data-win-see] :is(#settings, #basket, #wardrobe, #focusPanel, #menu, #picker) { backdrop-filter: blur(10px) saturate(1.05); -webkit-backdrop-filter: blur(10px) saturate(1.05); }
+html[data-ui="paper"] :is(#settings, .basket, .wardrobe, #focusPanel, #menu, #picker) { background: var(--pp-grain), rgba(var(--pp-rgb), var(--win-a, 1)); }
+html[data-ui="paper"][data-win-see] :is(#settings, .basket, .wardrobe, #focusPanel, #menu, #picker) { backdrop-filter: blur(10px) saturate(1.05); -webkit-backdrop-filter: blur(10px) saturate(1.05); }
 html[data-ui="paper"][data-win-see] #picker::before { background: rgba(var(--pp-rgb), var(--win-a, 1)); }
 
 /* 모던 아이콘 선 굵기 (밝은 그림 위에서 흐리지 않게) */
@@ -136,8 +138,8 @@ html:not([data-ui="paper"]) #menuBtn svg { stroke-width: 3.4; }
 
 /* 가로로 든 폰 (v24.3 레일과 같은 조건) */
 @media (orientation: landscape) and (max-height: 520px) {
-  #basket { top: var(--top); right: var(--rail); max-height: calc(100dvh - 2 * var(--top)); width: min(360px, calc(100vw - var(--rail) - 2 * var(--edge))); }
-  #wardrobe { left: auto; top: var(--top); bottom: var(--top); right: var(--rail); width: min(380px, calc(100vw - var(--rail) - 2 * var(--edge))); max-height: none; border-radius: 16px; }
+  .basket { top: var(--top); right: var(--rail); max-height: calc(100dvh - 2 * var(--top)); width: min(360px, calc(100vw - var(--rail) - 2 * var(--edge))); }
+  .wardrobe { left: auto; top: var(--top); bottom: var(--top); right: var(--rail); width: min(380px, calc(100vw - var(--rail) - 2 * var(--edge))); max-height: none; border-radius: 16px; }
   #chartView .isleCard { bottom: 64px; }
 }
 
@@ -158,10 +160,10 @@ html[data-ui="paper"] #menu .menuRow + button { border-top: 1px dashed var(--pp-
 html[data-ui="paper"] :is(.views .pick, button.wide) { border-color: rgba(74, 56, 38, 0.28); background: rgba(255, 255, 255, 0.35); color: var(--pp-ink); }
 html[data-ui="paper"] .views .pick[aria-pressed="true"] { background: var(--pp-stamp); color: var(--pp-stamp-ink); border-color: transparent; transform: rotate(-1.2deg); }
 html[data-ui="paper"] #settings #winSee { accent-color: var(--pp-stamp); }
-html[data-ui="paper"] #wardrobe .wdHead h2 { font-family: var(--pp-hand); font-size: 24px; }
-html[data-ui="paper"] #wardrobe .wdBar { border-top: 1px dashed var(--pp-edge); }
-html[data-ui="paper"] #wardrobe .wdBar button { border-color: rgba(74, 56, 38, 0.28); background: rgba(255, 255, 255, 0.35); color: var(--pp-ink); }
-html[data-ui="paper"] #wardrobe .wdBar .primary { background: var(--pp-stamp); color: var(--pp-stamp-ink); border-color: transparent; }
+html[data-ui="paper"] .wardrobe .wdHead h2 { font-family: var(--pp-hand); font-size: 24px; }
+html[data-ui="paper"] .wardrobe .wdBar { border-top: 1px dashed var(--pp-edge); }
+html[data-ui="paper"] .wardrobe .wdBar button { border-color: rgba(74, 56, 38, 0.28); background: rgba(255, 255, 255, 0.35); color: var(--pp-ink); }
+html[data-ui="paper"] .wardrobe .wdBar .primary { background: var(--pp-stamp); color: var(--pp-stamp-ink); border-color: transparent; }
 html[data-ui="paper"] #chartView .cvHead h2 { font-family: var(--pp-hand); font-size: 26px; }
 /* 종이 그림 아이콘 (theme-paper.css 표와 같은 방식 — 칸: B 판 4×4) */
 html[data-ui="paper"] :is(#basketBtn, #chartBtn, #wardBtn, #toWardSound, .views .pick, #info i[data-icon="basketBtn"], #info i[data-icon="chartBtn"]) svg { background-repeat: no-repeat; background-size: 400% 400%; background-image: url("../../assets/icons-paper-b.webp"); filter: drop-shadow(0 0 0.6px rgba(74, 56, 38, 0.5)); }
@@ -177,3 +179,17 @@ html[data-ui="paper"] .views .pick svg[data-ico="v-scope"] { background-position
 html[data-ui="paper"] .views .pick svg[data-ico="v-text"] { background-position: 0% 33.333%; }
 html[data-ui="paper"] .views .pick svg[data-ico="v-breeze"] { background-position: 33.333% 33.333%; }
 html[data-ui="paper"] body.clean #hideBtn svg { background-image: url("../../assets/icons-paper-b.webp"); background-position: 100% 100%; }
+
+/* 키보드 초점과 움직임 줄이기: 장면을 가리지 않는 창은 Tab을 가두지 않는다. */
+.uiWindow :is(button, input, select, textarea):focus-visible,
+#focusPanel :is(button, input, textarea):focus-visible,
+#chartView :is(button, select, canvas):focus-visible { outline: 2px solid rgb(var(--ink)); outline-offset: 2px; }
+html[data-ui="paper"] :is(.uiWindow, #focusPanel, #chartView) :focus-visible { outline-color: var(--pp-stamp); }
+@media (prefers-reduced-motion: reduce) {
+  :is(.uiWindow, #focusPanel, #chartView, #menu, #picker) *, .round { animation-duration: 0s !important; transition-duration: 0s !important; scroll-behavior: auto !important; }
+}
+
+/* 지도 이름 선택은 보조기술에 항상 제공하고, 키보드로 들어오면 지도 위에 펼친다. */
+#chartView .chartAccess { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+#chartView .chartAccess:focus-within { inset: calc(var(--tap) + var(--gap)) var(--edge) auto; width: auto; height: auto; padding: var(--gap); overflow: visible; clip-path: none; display: flex; gap: var(--gap); flex-wrap: wrap; align-items: center; border-radius: var(--edge); background: var(--chart-paper); color: var(--chart-ink); }
+#chartView .chartAccess :is(select, button) { min-height: var(--tap-in); font: inherit; color: inherit; background: transparent; border: 1px solid currentColor; border-radius: var(--gap); padding: 0 var(--gap); }
