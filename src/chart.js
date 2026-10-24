@@ -8,9 +8,9 @@
 //  기록은 이 기기에만 (localStorage 'chart'). 항해 기록(voyage.log)은 voyage.js 가 갖고, 여기는 발견·이름만 갖는다.
 //  그리기: 그림 격자(assets/chart-sheet.webp, 4×4)가 있으면 칸을 잘라 쓰고, 없으면 코드로 그린다.
 
-import { fitCell, roundCell } from './sheet.js?v=v28.17.0';
+import { fitCell, roundCell } from './sheet.js?v=v28.18.0';
 
-export const SHEET = 'chart-sheet.webp?v=v28.17.0';
+export const SHEET = 'chart-sheet.webp?v=v28.18.0';
 // 격자 칸 (4×4): 0~4 큰 섬 · 5~12 작은 섬 · 13 나침반 · 14 배 표시 · 15 안개 덩이
 export const CELL = { beach: 0, nz: 1, snow: 2, fall: 3, zen: 4, compass: 13, boat: 14, fog: 15 };
 
@@ -22,7 +22,7 @@ export const BIG = {
   fall: { x: 0.8, y: 0.62 },
   zen: { x: 0.3, y: 0.8 },
   cherry: { x: 0.12, y: 0.62 },   // v28.17 — 그림 칸이 없어 코드 그림(drawBig, BIG_INK 색)
-  oasis: { x: 0.86, y: 0.86 },
+  oasis: { x: 0.9, y: 0.4 },     // 오른쪽 아래는 나침반 자리
 };
 
 // 작은 섬 — need = 지금까지 바다 위에서 간 해리(누적). 25분 항해 = 2.5해리
@@ -146,17 +146,21 @@ export function drawChart(ctx, S, o) {
   const { chart, sheet } = o, t = o.t || 0, { visits, routes } = tally(o.log, o.home);
   const P = (p) => [p.x * S, p.y * S];
   ctx.save();
-  // 종이
-  const g = ctx.createRadialGradient(S * 0.5, S * 0.45, S * 0.1, S * 0.5, S * 0.5, S * 0.75);
-  g.addColorStop(0, '#f5ead2'); g.addColorStop(1, '#e2cfa6');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
-  // 바다 결 (가는 물결 줄)
-  ctx.strokeStyle = 'rgba(80,110,130,0.13)'; ctx.lineWidth = Math.max(1, S * 0.0022);
-  for (let r = 0; r < 14; r++) {
-    const y0 = S * (0.05 + r * 0.068); ctx.beginPath();
-    for (let x = 0; x <= S; x += S / 40) { const y = y0 + Math.sin(x / S * 9 + r * 1.7) * S * 0.006; x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
-    ctx.stroke();
+  // 종이 (v28.18 o.paper = 양피지 그림이 있으면 그걸로 — 비교 페이지 chart-lab.html)
+  if (o.paper) ctx.drawImage(o.paper, 0, 0, S, S);
+  else {
+    const g = ctx.createRadialGradient(S * 0.5, S * 0.45, S * 0.1, S * 0.5, S * 0.5, S * 0.75);
+    g.addColorStop(0, '#f5ead2'); g.addColorStop(1, '#e2cfa6');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
+    // 바다 결 (가는 물결 줄)
+    ctx.strokeStyle = 'rgba(80,110,130,0.13)'; ctx.lineWidth = Math.max(1, S * 0.0022);
+    for (let r = 0; r < 14; r++) {
+      const y0 = S * (0.05 + r * 0.068); ctx.beginPath();
+      for (let x = 0; x <= S; x += S / 40) { const y = y0 + Math.sin(x / S * 9 + r * 1.7) * S * 0.006; x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+      ctx.stroke();
+    }
   }
+  const alt = o.alt;   // v28.18 { sheet, islet: { id: 칸 }, spot: { id: 칸 } } — 그 섬·바다 표시만 다른 격자 칸으로
   // 항로 (다닌 만큼 굵게, 점선)
   ctx.setLineDash([S * 0.012, S * 0.01]); ctx.lineCap = 'round';
   for (const [k, n] of Object.entries(routes)) {
@@ -167,11 +171,11 @@ export function drawChart(ctx, S, o) {
   }
   ctx.setLineDash([]);
   // 바다 위의 곳 (작은 표시)
-  for (const s of chart.spots) { const [x, y] = P(chart.found[s.id]); if (!roundCell(ctx, o.extra, s.xcell, x, y, S * 0.1)) drawSpot(ctx, s, [x, y], S, t); }
+  for (const s of chart.spots) { const [x, y] = P(chart.found[s.id]); if (!cell(ctx, alt?.sheet, alt?.spot?.[s.id], x, y, S * 0.09) && !roundCell(ctx, o.extra, s.xcell, x, y, S * 0.1)) drawSpot(ctx, s, [x, y], S, t); }
   // 작은 섬
   for (const i of chart.islets) {
     const [x, y] = P(chart.found[i.id]), r = S * 0.045;
-    if (!cell(ctx, sheet, i.cell, x, y, r * 2.1) && !cell(ctx, o.extra, i.xcell, x, y, r * 2.1)) drawIslet(ctx, x, y, r, hash(i.id));
+    if (!cell(ctx, alt?.sheet, alt?.islet?.[i.id], x, y, r * 2.1) && !cell(ctx, sheet, i.cell, x, y, r * 2.1) && !cell(ctx, o.extra, i.xcell, x, y, r * 2.1)) drawIslet(ctx, x, y, r, hash(i.id));
     if (chart.named(i.id)) label(ctx, chart.name(i.id), x, y + r * 1.05, S * 0.024, '#3d2b1c');   // 이름 지은 섬만 지도에 쓴다 (안 지은 섬은 아래 목록에)
     else label(ctx, '?', x + r * 0.9, y - r * 0.9, S * 0.022, 'rgba(150,60,40,0.75)');
   }
@@ -193,7 +197,7 @@ export function drawChart(ctx, S, o) {
   // 안개: 찾은 곳 둘레만 걷힌다 (덩이를 깔고 둘레를 지운다)
   drawFog(ctx, S, o, t);
   // 나침반
-  if (!cell(ctx, sheet, CELL.compass, S * 0.9, S * 0.9, S * 0.12)) drawCompass(ctx, S * 0.9, S * 0.9, S * 0.045);
+  if (!o.paper && !cell(ctx, sheet, CELL.compass, S * 0.9, S * 0.9, S * 0.12)) drawCompass(ctx, S * 0.9, S * 0.9, S * 0.045);   // 양피지엔 나침반이 그려져 있다
   ctx.restore();
 }
 

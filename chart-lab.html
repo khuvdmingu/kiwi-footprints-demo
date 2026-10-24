@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>해도 그림 비교</title>
+  <!-- v28.18 해도 그림 두 판 비교 — 앱의 실제 drawChart 로 같은 해도를 그린다. A = 지금(코드 종이 + chart-sheet), B = 재고 새 재료(양피지 chart-paper + 아이콘 chart-sheet-2).
+       앱 코드·저장값은 건드리지 않는다. 고른 뒤 B 를 쓰기로 하면 voyage-extras.js 가 drawChart 에 paper·alt 를 넘기면 된다. -->
+  <style>
+    :root { --bg: #f4ecdc; --ink: #3d2b1c; --soft: #8a7258; --line: #e2d3b6; --accent: #b4532a; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #1e1b17; --ink: #f1e6d2; --soft: #b9a68a; --line: #3a332a; --accent: #e08a5c; } }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 16px; background: var(--bg); color: var(--ink); font: 15px/1.5 -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
+    h1 { margin: 0 0 4px; font-size: 20px; }
+    p.lead { margin: 0 0 14px; color: var(--soft); font-size: 14px; }
+    .bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .bar button { min-height: 40px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line); background: transparent; color: var(--ink); font: inherit; cursor: pointer; }
+    .bar button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+    .pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    figure { margin: 0; }
+    figcaption { margin: 6px 2px 0; font-size: 14px; }
+    figcaption b { color: var(--accent); }
+    figcaption span { display: block; color: var(--soft); font-size: 13px; }
+    canvas { display: block; width: 100%; aspect-ratio: 1; border-radius: 12px; box-shadow: 0 2px 10px rgba(40, 30, 10, .18); }
+    details { margin-top: 18px; }
+    details img { width: 100%; max-width: 640px; display: block; margin-top: 8px; border-radius: 8px; background: #fff; }
+  </style>
+</head>
+<body>
+  <h1>해도 그림 비교</h1>
+  <p class="lead">같은 항해 기록을 앱의 실제 해도 그리기 코드로 두 번 그렸어요. 왼쪽은 지금 앱, 오른쪽은 새로 뽑아 둔 양피지·아이콘이에요.</p>
+  <div class="bar" role="group" aria-label="해도 상태">
+    <button type="button" data-state="early" aria-pressed="false">처음 몇 번 항해</button>
+    <button type="button" data-state="all" aria-pressed="true">섬·바다 다 찾음</button>
+  </div>
+  <div class="pair">
+    <figure><canvas id="a" width="900" height="900" aria-label="지금 해도"></canvas><figcaption><b>A · 지금</b><span>코드로 그린 종이 + 지금 아이콘 격자. 아래 네 섬·바다 표시는 그림 칸이 없어 코드 그림.</span></figcaption></figure>
+    <figure><canvas id="b" width="900" height="900" aria-label="새 재료 해도"></canvas><figcaption><b>B · 새 재료</b><span>양피지 그림(나침반 포함) + 새 아이콘: 쌍둥이·등대·거북 등·빙산 섬, 산호초·해류·고래 길 표시.</span></figcaption></figure>
+  </div>
+  <details><summary>새 아이콘 격자 전체 보기 (4×4)</summary><img src="assets/chart-sheet-2.webp" alt="새 해도 아이콘 16칸" /></details>
+  <script type="module">
+    import { Chart, drawChart } from './src/chart.js';
+    import { loadSheet } from './src/sheet.js';
+    import { PLACES } from './src/voyage.js';
+    import { MAP_IDS } from './src/maps.js';
+    const img = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = src; });
+    const [sheet, extra, sheet2, paper] = await Promise.all([loadSheet('assets/chart-sheet.webp'), loadSheet('assets/extra-sheet.webp'), loadSheet('assets/chart-sheet-2.webp'), img('assets/chart-paper.webp')]);
+    // 새 격자 칸: 1행 화산·폭포 절벽·거북·등대 / 2행 환초·쌍둥이·빙산·떠 있는 꽃섬 / 3행 고래 꼬리·바다뱀·난파선·병 / 4행 X·닻·별 항로·바람 구름
+    const alt = { sheet: sheet2, islet: { 'i-twin': 5, 'i-lantern': 3, 'i-turtle': 2, 'i-end': 6 }, spot: { 's-reef': 4, 's-current': 15, 's-whale': 8 } };
+    const trips = [['beach', 'nz'], ['nz', 'snow'], ['snow', 'fall'], ['fall', 'zen'], ['zen', 'beach'], ['beach', 'cherry'], ['cherry', 'oasis'], ['beach', 'fall'], ['beach', 'nz']];
+    function make(state) {
+      const chart = new Chart(() => null, () => {});
+      const n = state === 'all' ? trips.length : 3, log = [];
+      for (let k = 0; k < n; k++) { const [from, to] = trips[k]; log.push({ from, to, at: k }); }
+      chart.discover((state === 'all' ? 60 : 3) * 3600000, { id: 'lab', from: 'beach', to: 'nz' }, 1);
+      const open = id => state === 'all' || ['beach', 'nz', 'snow', 'fall'].includes(id);
+      return { chart, log, home: 'beach', open, placeName: id => PLACES[id]?.ko || id, builds: id => (state === 'all' ? 3 : id === 'beach' ? 1 : 0), t: 0 };
+    }
+    function paint(state) {
+      for (const b of document.querySelectorAll('[data-state]')) b.setAttribute('aria-pressed', String(b.dataset.state === state));
+      const o = make(state);
+      for (const [id, extraO] of [['a', {}], ['b', { paper, alt }]]) {
+        const cv = document.getElementById(id), c = cv.getContext('2d'); c.clearRect(0, 0, cv.width, cv.height);
+        drawChart(c, cv.width, { ...o, sheet, extra, ...extraO });
+      }
+    }
+    for (const b of document.querySelectorAll('[data-state]')) b.addEventListener('click', () => paint(b.dataset.state));
+    paint('all');
+    void MAP_IDS;
+  </script>
+</body>
+</html>

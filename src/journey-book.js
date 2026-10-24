@@ -1,6 +1,7 @@
 // Voyage reader: result first, then each image and its record on the same page.
-import { PLACES, SIGHTS } from './voyage.js?v=v28.17.0';
-import { stamp } from './album.js?v=v28.17.0';
+import { PLACES, SIGHTS } from './voyage.js?v=v28.18.0';
+import { stamp } from './album.js?v=v28.18.0';
+import { pickIllus, arriveIllus } from './illus.js?v=v28.18.0';   // v28.18 키위가 그린 그림
 
 export function diaryLeaves(text, size = 90) {
   const chars = Array.from(text || ''), leaves = [];
@@ -35,7 +36,11 @@ export function journeyPages(shot, diarySize = 90) {
       caption: [stamp(sight.ts || shot.at), sight.blob ? '' : '사진 대신 남긴 기록'].filter(Boolean).join(' · '),
       blob: sight.blob || shot.blob, fallback: !sight.blob && !!sights.length,
     });
+    // v28.18 그 사건을 키위가 그린 그림 한 쪽 (항해 기록에만 — 예전 기록은 그대로)
+    const pic = shot.journey && pickIllus(sight.kind || 'quiet', `${sight.kind}:${sight.ts || shot.at}`);
+    if (pic) pages.push({ key: `illus-${i}`, title: `${name} · 키위의 그림`, caption: '키위가 일지 한쪽에 그려 둔 그림', src: pic });
   }
+  if (shot.journey) pages.push({ key: 'arrive', title: `${PLACES[shot.journey.to]?.ko || '섬'}에 닿았다`, caption: '키위가 일지 끝에 그려 둔 그림', src: arriveIllus(shot.journey.to) });
   return pages;
 }
 export function mountJourneyBook(root, host, shot, viewer) {
@@ -57,6 +62,11 @@ export function mountJourneyBook(root, host, shot, viewer) {
     animation?.cancel(); viewer.close(); if (url) URL.revokeObjectURL(url); url = ''; leaf.replaceChildren();
     const p = pages[index]; leaf.classList.toggle('summary', !!p.summary);
     const heading = document.createElement('h3'); heading.textContent = p.title; leaf.append(heading);
+    if (p.src && !p.blob) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'bookPhoto drawn'; b.setAttribute('aria-label', `${p.title} 크게 보기`);
+      const im = document.createElement('img'); im.src = 'assets/' + p.src; im.alt = p.title;
+      b.append(im); b.addEventListener('click', () => viewer.show(im.src, im.alt)); leaf.append(b);
+    }
     if (p.blob) {
       url = URL.createObjectURL(p.blob);
       const b = document.createElement('button'); b.type = 'button'; b.className = 'bookPhoto'; b.setAttribute('aria-label', `${p.title} 전체 화면으로 보기`);
