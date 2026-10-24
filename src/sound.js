@@ -9,12 +9,12 @@
 //  믹서 값(소리 켜기·음악·환경음·효과음·발자국 음악)은 기기에 기억한다.
 //  브라우저는 사용자 동작 안에서만 소리를 열 수 있어서 unlock() 을 그때 부른다. 탭을 숨기면 멈춘다.
 
-import { Music } from './music.js?v=v29.3.3';
-import { STOCK_PLACES } from './maps-stock.js?v=v29.3.3';
+import { Music } from './music.js?v=v29.4.0';
+import { STOCK_PLACES } from './maps-stock.js?v=v29.4.0';
 
 // v16 아이템 소리·곡은 오픈소스 녹음 — 목록·출처는 카탈로그 한 곳 (src/tracks/index.js). assets/audio/ 에서 처음 고를 때 받는다
 //  STEP_SAMPLES: 0.5초 칸마다 한 걸음 · NATURE_LOOPS: 끝과 처음을 겹쳐 이음매 없이 도는 고리 · SONG_TRACKS: 곡 고리
-import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v29.3.3';
+import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v29.4.0';
 export { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, NATURAL_STEPS };
 const AUDIO = 'assets/audio/';
 // 곡·자연 배경 고리는 풀어 두면 한 곡에 수십 MB(48kHz 기준 최대 약 96MiB)라, 고리 자리마다 지금 것 + 바로 전 것만 들고 있는다 (2026-10-19)

@@ -71,6 +71,6 @@ export function shotNames(shots) {
   return shots.map(s => {
     const d = new Date(s.at), base = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}_${String(s.reason || '집중').replace(/[\\/:*?"<>|.\s]+/g, ' ').trim().slice(0, 24) || '집중'}`;
     const n = (used.get(base) || 0) + 1; used.set(base, n);
-    return `${base}${n > 1 ? '-' + n : ''}.webp?v=v29.3.3`;
+    return `${base}${n > 1 ? '-' + n : ''}.webp?v=v29.4.0`;
   });
 }

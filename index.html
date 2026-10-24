@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#1A5C91" />
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v29.3.3" />
-  <link rel="stylesheet" href="memos.css?v=v29.3.3" />
-  <link rel="stylesheet" href="theme-paper.css?v=v29.3.3" />
-  <link rel="stylesheet" href="src/ui/shell.css?v=v29.3.3" />
+  <link rel="stylesheet" href="style.css?v=v29.4.0" />
+  <link rel="stylesheet" href="memos.css?v=v29.4.0" />
+  <link rel="stylesheet" href="theme-paper.css?v=v29.4.0" />
+  <link rel="stylesheet" href="src/ui/shell.css?v=v29.4.0" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -420,8 +420,11 @@
     <div id="chartBox" class="chartBox"><canvas id="chartCv" aria-label="해도 — 다녀온 항로와 찾은 섬"></canvas></div>
     <div class="chartAccess"><label for="chartSelect">섬 이름으로 고르기</label><select id="chartSelect"></select><button id="chartSelectGo" type="button">섬 정보 보기</button></div>
     <div id="isleCard" class="isleCard" role="group" aria-labelledby="isleName" hidden><b class="nm" id="isleName"></b><p class="tx"></p><div class="btns"><button type="button" class="go primary"></button><button type="button" class="x">닫기</button></div></div>
-    <p class="note" id="chartNote"></p>
-    <details class="more" id="chartMore"><summary>찾은 작은 섬 · 바다 위의 곳</summary><div id="chartList" class="chartList"></div></details>
+    <div class="cvFoot">
+      <p class="note" id="chartNote"></p>
+      <p class="cvHint">끌어서 둘러보기 · 두 손가락으로 확대 · 두 번 누르면 처음대로</p>
+      <details class="more" id="chartMore"><summary>찾은 작은 섬 · 바다 위의 곳</summary><div id="chartList" class="chartList"></div></details>
+    </div>
   </div>
   <!-- v28.18 부두 장면 (출항 · 도착) — 누르면 건너뛴다 (src/cutscene.js) -->
   <div id="cutscene" hidden aria-label="부두 장면"><video muted playsinline preload="none"></video><p class="cutCaption"></p><button type="button">건너뛰기</button></div>
@@ -494,10 +497,10 @@
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v29.3.3"></script>
-  <script type="module" src="src/credits.js?v=v29.3.3"></script>
+  <script type="module" src="src/main.js?v=v29.4.0"></script>
+  <script type="module" src="src/credits.js?v=v29.4.0"></script>
   <!-- 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/taps.js?v=v29.3.3"></script>
+  <script type="module" src="src/taps.js?v=v29.4.0"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.
