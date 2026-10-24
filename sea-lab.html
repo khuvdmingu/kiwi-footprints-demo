@@ -29,6 +29,12 @@
     .pick span { font-size: 13px; color: var(--soft); margin-right: 4px; }
     .alt { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
     .alt button { min-height: 32px; padding: 0 10px; font-size: 13px; }
+    .live { margin: 0 0 22px; padding: 12px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+    .live h2 { margin: 0 0 4px; font-size: 17px; }
+    .live p { margin: 0 0 8px; font-size: 13px; color: var(--soft); }
+    #liveCv { aspect-ratio: 16 / 10; }
+    @media (max-width: 560px) { #liveCv { aspect-ratio: 3 / 4; } }
+    #liveNow { margin-top: 6px; font-size: 13px; color: var(--soft); min-height: 20px; }
     #result { margin: 6px 0 40px; padding: 12px; border-radius: 12px; border: 1px dashed var(--line); font-size: 14px; white-space: pre-wrap; }
   </style>
 </head>
@@ -40,6 +46,13 @@
     <button type="button" data-sky="night" aria-pressed="false">밤바다</button>
     <button type="button" id="pause" aria-pressed="false">멈춤</button>
   </div>
+  <section class="live" aria-label="항해 미리보기">
+    <h2>항해에서는 이렇게 나와요</h2>
+    <p>앱과 같은 코드예요. 한 번에 한 종, 두 종, 가끔 세 종이 같이 나오고, 나올 때마다 A·B 중 하나를 무작위로 골라요. 같은 동물은 동시에 나오지 않아요. 앱에서는 무리 사이에 25~70초를 쉬어요.</p>
+    <canvas id="liveCv" width="800" height="500"></canvas>
+    <div class="pick"><button type="button" id="liveNext">다음 무리 바로 보기</button></div>
+    <div id="liveNow" aria-live="polite"></div>
+  </section>
   <div id="rows"></div>
   <h2 style="font-size:16px;margin:0 0 4px">고른 결과</h2>
   <div id="result" aria-live="polite"></div>
@@ -60,7 +73,18 @@
     const base = 'lab/sea/';
     const load = src => new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src; });
     const [seaDay, seaNight] = await Promise.all([load('assets/sea.webp'), load('assets/sea-night.webp')]);
+    const [tallDay, tallNight] = await Promise.all([load('assets/sea-tall.webp'), load('assets/sea-tall-night.webp')]);
     let sky = 'day', paused = false;
+    // ── 항해 미리보기: 앱의 바다 생물 모듈(src/sea-life.js) 그대로 ──
+    const { SeaLife, LIFE } = await import('./src/sea-life.js');
+    const { boxesOf } = await import('./src/voyage-scene.js');
+    const life = new SeaLife('assets/life/'), sprites = await load('assets/voyage-sprites.webp');
+    const scene = sprites ? { sheet: sprites, cells: boxesOf(sprites, 'sheet', ['boat', 'whale', 'tail', 'seabird', 'lighthouse', 'island']) } : {};
+    const qs = new URLSearchParams(location.search).get('life'); if (qs) life.preview(qs);
+    life.next = 1.5; window.seaLife = life;   // 콘솔에서 살펴보기용
+    const liveCv = document.getElementById('liveCv'), lc = liveCv.getContext('2d'), liveNow = document.getElementById('liveNow');
+    document.getElementById('liveNext').onclick = () => { life.list = []; life.pending = null; life.next = 0; };
+
     const saved = (() => { try { return JSON.parse(localStorage.getItem('kiwi-sea-lab') || '{}'); } catch (e) { return {}; } })();
     const store = () => { try { localStorage.setItem('kiwi-sea-lab', JSON.stringify(saved)); } catch (e) {} };
     const cells = [];
@@ -136,6 +160,21 @@
           const s = Math.min(W * 0.8 / fw, H * 0.85 / fh) * (spec.scale || 1), w = fw * s, h = fh * s;
           c.drawImage(a.im, (f % m.cols) * fw, Math.floor(f / m.cols) * fh, fw, fh, (W - w) / 2, (H - h) / 2, w, h);
         }
+      }
+      {
+        const r = liveCv.getBoundingClientRect(), W = Math.round(r.width), H = Math.round(r.height);
+        if (W && (liveCv.width !== W || liveCv.height !== H)) { liveCv.width = W; liveCv.height = H; }
+        const night = sky === 'night' ? 1 : 0, u = Math.min(liveCv.width, liveCv.height);
+        { // 바다 판을 화면에 맞춰 덮고 물 흐름만큼 아래로 — 위아래로 뒤집은 판을 번갈아 이어 이음매가 안 보이게
+          const W = liveCv.width, H = liveCv.height, im = H > W ? (night ? tallNight : tallDay) : (night ? seaNight : seaDay);
+          if (im) { const k = Math.max(W / im.width, H / im.height), w = im.width * k, h = im.height * k, off = (t * u * 0.05) % (2 * h);
+            for (let j = -2; j <= 1; j++) { const y = off + j * h; if (y > H || y + h < 0) continue; lc.save(); lc.translate((W - w) / 2, y); if (j % 2) { lc.translate(0, h); lc.scale(1, -1); } lc.drawImage(im, 0, 0, w, h); lc.restore(); } }
+        }
+        life.draw(lc, liveCv.width, liveCv.height, u, t, night, scene, null, 0.05);
+        if (night) { lc.fillStyle = 'rgba(12,22,52,0.22)'; lc.fillRect(0, 0, liveCv.width, liveCv.height); }
+        const now = life.list.map(c => `${LIFE[c.id].ko} ${c.v.toUpperCase()}`).join(' · ');
+        const txt = now ? '지금: ' + now : life.pending ? '나오는 중…' : `쉬는 중 — 다음 무리까지 ${Math.max(0, Math.ceil(life.next - t))}초`;
+        if (liveNow.textContent !== txt) liveNow.textContent = txt;
       }
       requestAnimationFrame(frame);
     }
