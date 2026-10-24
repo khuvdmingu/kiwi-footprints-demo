@@ -223,7 +223,7 @@ html[data-ui="paper"] :is(.uiWindow, #focusPanel, #chartView) :focus-visible { o
 @media (min-width: 760px) { .wardrobe { width: var(--win-w); border-radius: var(--win-r); } }
 @media (max-width: 480px) { :is(.uiWindow:not(.wardrobe), #focusPanel) { left: max(var(--edge), env(safe-area-inset-left)); right: max(var(--edge), env(safe-area-inset-right)); width: auto; } }
 /* 창 안 탭도 누르는 칸 최소(--tap-in, 40px)를 지킨다 (예전 38px) */
-:is(.uiWindow, #focusPanel) > .tabs button { min-height: var(--tap-in); }
+:is(.uiWindow, #focusPanel) > .tabs button, .uiWindow > .bagHead > .tabs button { min-height: var(--tap-in); }
 /* 가로로 든 폰: 오른쪽 세로 레일 옆 (위 규칙이 레일 규칙을 덮지 않게 다시) */
 @media (orientation: landscape) and (max-height: 520px) {
   :is(.uiWindow:not(.wardrobe), #focusPanel) { width: min(var(--win-w), calc(100vw - var(--rail) - 2 * var(--edge))); }
@@ -235,3 +235,37 @@ html[data-ui="paper"] :is(.uiWindow, #focusPanel, #chartView) :focus-visible { o
 /* 도감 작은 칸: 폰에선 한 줄 8칸이면 34px 라 6칸으로 (칸 ≈ 48px) */
 @media (max-width: 480px) { .colgrid.finds { grid-template-columns: repeat(6, 1fr); } }
 :is(.uiWindow, #focusPanel) label.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+/* ── v29.5 바구니: 제목·탭은 위에 고정, 아래 칸만 스크롤 (예전엔 창 전체가 스크롤돼 탭이 올라가 사라졌다) ──
+   여백은 창 틀 값(--win-pad) 하나로: 머리 · 칸 좌우 · 칸 아래 · 스크롤 막대는 창 가장자리에 붙는다 */
+#basket.basket:not([hidden]) { display: flex; flex-direction: column; overflow: hidden; padding: var(--win-pad) 0 0; }
+#basket > .bagHead { flex: none; padding: 0 var(--win-pad); }
+#basket > .bagHead .bagSum { margin: 0 2px 10px; }
+#basket > .bagHead .tabs { margin-bottom: 4px; }
+#basket > .pane { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 12px var(--win-pad) var(--win-pad); }
+#basket > .pane[hidden] { display: none; }
+#basket .pane > h2 { margin: 0 2px 8px; }
+#basket .pane > h2.sep { margin-top: 20px; padding-top: 16px; }
+#basket .pane > .hint { margin: 8px 2px 0; }
+#basket .colgrid { margin: 0; }
+#basket .letters { margin: 0; }
+/* 일지 묶어 보기: 탭보다 가벼운 칩 줄 */
+.shotBy { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 0 0 12px; }
+.shotBy button { min-height: var(--tap-in, 40px); border-radius: 999px; border: 1px solid var(--panel-line); background: transparent; color: inherit; font: inherit; font-size: 13px; font-weight: 600; opacity: 0.75; cursor: pointer; }
+.shotBy button[aria-pressed="true"] { background: rgba(255, 255, 255, 0.14); border-color: var(--sand); opacity: 1; }
+html[data-ui="paper"] .shotBy button { color: var(--pp-ink); border-color: var(--pp-edge); }
+html[data-ui="paper"] .shotBy button[aria-pressed="true"] { background: var(--pp-2); border-color: var(--pp-stamp); }
+#basket .shots { margin: 0; gap: 16px 12px; padding-top: 8px; }
+.shots .shotGroup { grid-column: 1 / -1; border-top: 1px solid var(--panel-line); }
+.shots .shotGroup:first-child { border-top: 0; }
+.shotGroup > summary { display: flex; align-items: baseline; gap: 8px; min-height: var(--tap-in, 40px); padding: 10px 2px; cursor: pointer; list-style: none; }
+.shotGroup > summary::-webkit-details-marker { display: none; }
+.shotGroup > summary::before { content: ''; width: 7px; height: 7px; margin-right: 2px; border: solid currentColor; border-width: 0 2px 2px 0; transform: translateY(-2px) rotate(-45deg); opacity: 0.6; transition: transform 0.15s; }
+.shotGroup[open] > summary::before { transform: translateY(-4px) rotate(45deg); }
+.shotGroup > summary b { font-size: 14px; }
+.shotGroup > summary small { font-size: 12px; opacity: 0.7; }
+.shotGroup > .shots { padding: 8px 0 16px; }
+html[data-ui="paper"] .shots .shotGroup { border-top: 1px dashed var(--pp-edge); }
+/* 쓰임이 있는 것(옷 재료 · 섬 짓기 재료 · 지도 조각): 귀퉁이 작은 점 */
+.colgrid button.mat::before { content: ''; position: absolute; left: 4px; top: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--sand); box-shadow: 0 0 0 1.5px rgba(20, 47, 73, 0.7); z-index: 1; }
+@media (orientation: landscape) and (max-height: 520px) { #basket > .pane { padding-top: 8px; } }

@@ -5,7 +5,7 @@
 //  · 공유: 폰의 공유 창(Web Share)으로 다른 앱에 파일을 넘긴다. 서버로 보내는 것 없음. 공유 창이 없는 브라우저는 내려받기.
 //  groupShots 는 DOM 없이 돌아서 node 시험에서 그대로 쓴다.
 
-import { photoDate, PHOTO_MONTHS } from './album.js?v=v29.4.9';
+import { photoDate, PHOTO_MONTHS } from './album.js?v=v29.5.0';
 
 export const RECENT = 6;
 
@@ -26,6 +26,27 @@ export function groupShots(list, now = Date.now(), n = RECENT) {
     g.shots.push(s);
   }
   return { recent, months };
+}
+
+// v29.5 일지 묶어 보기: 'year' | 'month' | 'day' → [{ key, label, shots, min }] (최신순 목록을 그대로 이어 묶는다)
+//  올해 것은 연도를 빼고 적는다 — 「10월」 · 「10월 24일 금요일」, 지난해부터 「2025년 10월」.
+export const ALBUM_BY = Object.freeze(['all', 'year', 'month', 'day']);
+const WEEK = '일월화수목금토';
+export function groupBy(list, by, now = Date.now()) {
+  const thisYear = new Date(now).getFullYear(), out = [];
+  for (const s of list) {
+    const d = new Date(s.at), y = d.getFullYear(), m = d.getMonth() + 1, dd = d.getDate(), yr = y === thisYear ? '' : `${y}년 `;
+    const key = by === 'year' ? `${y}` : by === 'month' ? `${y}-${m}` : `${y}-${m}-${dd}`;
+    let g = out[out.length - 1];
+    if (!g || g.key !== key) out.push(g = { key, label: by === 'year' ? `${y}년` : by === 'month' ? `${yr}${m}월` : `${yr}${m}월 ${dd}일 ${WEEK[d.getDay()]}요일`, shots: [], min: 0 });
+    g.shots.push(s); g.min += s.min || 0;
+  }
+  return out;
+}
+// 묶음 머리의 작은 글씨: 「5쪽 · 2시간 5분」
+export function groupNote(g) {
+  const h = Math.floor(g.min / 60), m = g.min % 60;
+  return [`${g.shots.length}쪽`, g.min ? (h ? `${h}시간` + (m ? ` ${m}분` : '') : `${m}분`) : ''].filter(Boolean).join(' · ');
 }
 
 // 공유 카드: 사진 + 아래 띠(이유 · 날짜 · 몇 분 집중 · 발자국 한글) → Promise<Blob(JPEG)>

@@ -1,9 +1,9 @@
-import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v29.4.9';
-import { BoatPreview } from './boat-preview.js?v=v29.4.9';
+import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v29.5.0';
+import { BoatPreview } from './boat-preview.js?v=v29.5.0';
 // src/ui/shell.js — 2026-10-24 UI 구조 개편 (결정 10개: _views/html-views/2026-10-24_kiwi-ui-restructure.html)
 //
 //  마크업은 index.html 에 제자리로 있고(예전 src/ia/ia.js 처럼 뜬 뒤에 옮기지 않는다), 여기는 새 창 셋의 동작만 맡는다.
-//   · 바구니 = 읽는 것(일지 · 편지 · 도감)
+//   · 바구니 = 읽는 것(일지 · 편지 · 모은 것)
 //   · 꾸미기 = 고르는 것(키위 옷 · 배·돛 · 소리 · 만들기). 누르면 바로 입혀 보고 들어 보고, 「저장」해야 남는다 — 다른 길로 닫으면 되돌린다
 //   · 해도  = 장소의 유일한 입구(그리기·누르기는 voyage-extras.js 의 paintChart · pickAt)
 //  그 밖에: 설정 › 풍경의 시점 줄 · 설정 › 화면의 창 투명도 · 아래 입력창 끄기 · 떠나기 창 「더 보기」 기억
