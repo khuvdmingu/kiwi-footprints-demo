@@ -1,5 +1,5 @@
-import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v29.3.2';
-import { BoatPreview } from './boat-preview.js?v=v29.3.2';
+import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v29.3.3';
+import { BoatPreview } from './boat-preview.js?v=v29.3.3';
 // src/ui/shell.js — 2026-10-24 UI 구조 개편 (결정 10개: _views/html-views/2026-10-24_kiwi-ui-restructure.html)
 //
 //  마크업은 index.html 에 제자리로 있고(예전 src/ia/ia.js 처럼 뜬 뒤에 옮기지 않는다), 여기는 새 창 셋의 동작만 맡는다.
@@ -70,19 +70,21 @@ export function mountShell(env) {
     if (ward.hidden || $('boatStage').closest('.pane').hidden) { preview.release(); return; }
     preview.paint(env.voyScene.boatId, env.voyScene.sailId, env.previewCrew());
   }
+  let journalOn = false;
   function openWard(open, { save = false, tab } = {}) {
     if (open === !ward.hidden) { if (open && tab) wardTab(tab); return; }
     if (open) {
       rememberOpener(ward, $('menuBtn'));
       closeAll(); closeOthers();
       draft = snap();
-      if (!env.wardrobeJournal?.begin(draft)) { draft = null; env.toast('저장 공간을 확인해 주세요 · 꾸미기를 열지 못했어요'); return; }
+      // 복구 기록은 안전망일 뿐 — 못 쓰면(사생활 보호 모드 등) 꾸미기는 그대로 열고, 저장·되돌리기는 지금 화면 기준으로만 (v29.3.3)
+      journalOn = !!env.wardrobeJournal?.begin(draft);
       paintCollection(); paintPacks(); paintWardBar();
       if (tab) wardTab(tab);
     } else {
-      if (!save && draft) { if (changed()) { restore(draft); env.toast('바꾼 것을 되돌렸어요'); } env.wardrobeJournal?.recover(); }
+      if (!save && draft) { if (changed()) { restore(draft); env.toast('바꾼 것을 되돌렸어요'); } if (journalOn) env.wardrobeJournal.recover(); }
       else if (save && draft) {
-        if (!env.wardrobeJournal?.commit(snap())) { env.toast('저장하지 못했어요 · 다시 시도해 주세요'); return; }
+        if (journalOn && !env.wardrobeJournal.commit(snap())) { env.toast('저장하지 못했어요 · 다시 시도해 주세요'); return; }
         if (changed()) env.toast('저장했어요');
       }
       draft = null; paintCollection();

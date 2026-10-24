@@ -10,6 +10,7 @@ export class WardrobeJournal {
   constructor(storage, prefix = 'kiwi-footprints.') { this.storage = storage; this.prefix = prefix; this.key = prefix + 'wardrobeDraft'; }
   begin(state) {
     if (!valid(state)) return false;
+    // 되살릴 수 있는 앞 기록은 덮지 않는다(다음 실행 때 다시 복구). 이때 꾸미기는 복구 기록 없이 열린다(shell.js)
     try { if (this.storage.getItem(this.key)) return false; this.storage.setItem(this.key, JSON.stringify({ version: 1, state })); return true; } catch { return false; }
   }
   commit(state) {
@@ -35,11 +36,12 @@ export class WardrobeJournal {
     try {
       const raw = this.storage.getItem(this.key); if (!raw) return { ok: true, recovered: false };
       const entry = object(raw), d = entry.state;
-      if (entry.version !== 1 || !valid(d)) return { ok: false, recovered: false };
+      if (entry.version !== 1 || !valid(d)) { this.drop(); return { ok: false, recovered: false }; }   // 되살릴 수 없는 기록은 치운다
       // 전체 값을 먼저 계산해 형식 오류 시에는 기존 저장을 건드리지 않는다.
       this.writeState(d);
       if (!this.commit()) return { ok: false, recovered: false };
       return { ok: true, recovered: true };
-    } catch { return { ok: false, recovered: false }; }
+    } catch (e) { if (e instanceof SyntaxError) this.drop(); return { ok: false, recovered: false }; }
   }
+  drop() { try { this.storage.removeItem(this.key); } catch { /* 저장 영역 없음 */ } }
 }

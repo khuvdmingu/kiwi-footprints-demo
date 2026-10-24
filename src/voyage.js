@@ -13,7 +13,7 @@
 //  이 파일은 "언제 어디까지 갔고 무슨 일이 있었나"만 정한다. 그리기·소리·사진은 main.js 가 결과를 받아 한다.
 //  기록은 이 기기에만 (localStorage 'voyage' · 'voyageRun').
 
-import { STOCK_PLACES } from './maps-stock.js?v=v29.3.2';
+import { STOCK_PLACES } from './maps-stock.js?v=v29.3.3';
 
 export const MODES = ['island', 'voyage'];
 export const MODE_NAME = { island: { ko: '섬에서 보기', en: 'Stay on the island' }, voyage: { ko: '항해하기', en: 'Set sail' } };

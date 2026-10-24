@@ -5,19 +5,19 @@
 //  고르는 법: 같은 기록은 언제 열어도 같은 그림 (기록 시각으로 정한다)
 
 export const ILLUS = {
-  whale: ['illus-whale.webp?v=v29.3.2', 'illus-whale-b.webp?v=v29.3.2'],
-  meteor: ['illus-meteor.webp?v=v29.3.2'],
-  lighthouse: ['illus-lighthouse.webp?v=v29.3.2'],
-  seabird: ['illus-seabird.webp?v=v29.3.2'],
-  doze: ['illus-doze.webp?v=v29.3.2'],
-  leaf: ['illus-leaf.webp?v=v29.3.2', 'illus-leaf-b.webp?v=v29.3.2'],
+  whale: ['illus-whale.webp?v=v29.3.3', 'illus-whale-b.webp?v=v29.3.3'],
+  meteor: ['illus-meteor.webp?v=v29.3.3'],
+  lighthouse: ['illus-lighthouse.webp?v=v29.3.3'],
+  seabird: ['illus-seabird.webp?v=v29.3.3'],
+  doze: ['illus-doze.webp?v=v29.3.3'],
+  leaf: ['illus-leaf.webp?v=v29.3.3', 'illus-leaf-b.webp?v=v29.3.3'],
   // 아무 일 없던 바다(quiet) — 키위가 상상으로 그린 바다
-  quiet: ['illus-flyingfish.webp?v=v29.3.2', 'illus-dolphins.webp?v=v29.3.2', 'illus-bottle.webp?v=v29.3.2', 'illus-plankton.webp?v=v29.3.2', 'illus-rainbow.webp?v=v29.3.2', 'illus-flyinghat.webp?v=v29.3.2'],
+  quiet: ['illus-flyingfish.webp?v=v29.3.3', 'illus-dolphins.webp?v=v29.3.3', 'illus-bottle.webp?v=v29.3.3', 'illus-plankton.webp?v=v29.3.3', 'illus-rainbow.webp?v=v29.3.3', 'illus-flyinghat.webp?v=v29.3.3'],
 };
 // 도착: 장소마다 (없으면 기본)
-export const ARRIVE = { snow: 'illus-snowkiwi.webp?v=v29.3.2', fall: 'illus-leafpile.webp?v=v29.3.2', default: 'illus-arrive.webp?v=v29.3.2' };
+export const ARRIVE = { snow: 'illus-snowkiwi.webp?v=v29.3.3', fall: 'illus-leafpile.webp?v=v29.3.3', default: 'illus-arrive.webp?v=v29.3.3' };
 // 손님의 마지막 편지에 손님 그림 대신
-export const GUEST_STORY = { gull: 'illus-gull.webp?v=v29.3.2', weka: 'illus-weka.webp?v=v29.3.2', cat: 'illus-cat.webp?v=v29.3.2', crab: 'illus-crab.webp?v=v29.3.2' };
+export const GUEST_STORY = { gull: 'illus-gull.webp?v=v29.3.3', weka: 'illus-weka.webp?v=v29.3.3', cat: 'illus-cat.webp?v=v29.3.3', crab: 'illus-crab.webp?v=v29.3.3' };
 
 const hash = s => { let h = 2166136261; for (const ch of String(s)) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return h >>> 0; };
 export function pickIllus(kind, seed) {
