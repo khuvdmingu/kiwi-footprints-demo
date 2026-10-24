@@ -1,22 +1,23 @@
 // chart.js — v28 해도: 다녀온 항로가 종이 지도에 선으로 남고, 쌓인 바닷길만큼 안개가 걷힌다
 //
 //  장소는 세 층 (2026-10-21 사용자 결정 — "섬을 계속 늘리는 것"이 아니라 "지도 위에 사연 놓기"):
-//   · 큰 섬    = maps.js 의 장소 5곳. 전체 장면이 있다. 해도 위 자리는 고정(BIG).
+//   · 큰 섬    = maps.js 의 장소(v28.22 재고 24곳 포함). 전체 장면이 있다. 해도 위 자리는 고정(BIG).
 //   · 작은 섬  = 해도에만 있다. 그림 한 칸 · 이름(사용자가 짓는다) · 일기 한 줄. 쌓인 해리가 문턱을 넘으면
 //                 그 항해의 항로 옆에 나타난다(ISLETS — 순서·문턱만 정해 두고 자리는 발견할 때 정한다).
 //   · 바다 위의 곳 = 산호초 · 해류 · 안개 띠 · 고래 길. 그림은 작은 표시만, 지나갈 때 일기·낚시가 달라진다(SPOTS).
 //  기록은 이 기기에만 (localStorage 'chart'). 항해 기록(voyage.log)은 voyage.js 가 갖고, 여기는 발견·이름만 갖는다.
 //  그리기: 그림 격자(assets/chart-sheet.webp, 4×4)가 있으면 칸을 잘라 쓰고, 없으면 코드로 그린다.
 
-import { fitCell, roundCell } from './sheet.js?v=v28.21.2';
+import { fitCell, roundCell } from './sheet.js?v=v28.22.0';
 
-export const SHEET = 'chart-sheet.webp?v=v28.21.2';
+export const SHEET = 'chart-sheet.webp?v=v28.22.0';
 // v28.19 해도 그림 B (사용자 2026-10-24 비교 페이지에서 고름): 양피지 종이(나침반 포함) + 새 아이콘 격자 4×4
 //  새 격자 칸: 1행 화산·폭포 절벽·거북·등대 / 2행 환초·쌍둥이·빙산·떠 있는 꽃섬 / 3행 고래 꼬리·바다뱀·난파선·병 / 4행 X·닻·별 항로·바람 구름
 //  그림 칸이 없던 섬·바다 표시만 새 칸으로 (나머지는 지금 격자 그대로)
 // v28.20 격자 칸이 없는 큰 섬은 낱장 그림 (Codex 그림, 흰 바탕을 뺀 투명 webp)
-export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v28.21.2', oasis: 'chart-isle-oasis.webp?v=v28.21.2' };
-export const CHART_B = { paper: 'chart-paper.webp?v=v28.21.2', sheet: 'chart-sheet-2.webp?v=v28.21.2',
+import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v28.22.0';
+export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v28.22.0', oasis: 'chart-isle-oasis.webp?v=v28.22.0' };
+export const CHART_B = { paper: 'chart-paper.webp?v=v28.22.0', sheet: 'chart-sheet-2.webp?v=v28.22.0',
   islet: { 'i-twin': 5, 'i-lantern': 3, 'i-turtle': 2, 'i-end': 6 }, spot: { 's-reef': 4, 's-current': 15, 's-whale': 8 } };
 // 격자 칸 (4×4): 0~4 큰 섬 · 5~12 작은 섬 · 13 나침반 · 14 배 표시 · 15 안개 덩이
 export const CELL = { beach: 0, nz: 1, snow: 2, fall: 3, zen: 4, compass: 13, boat: 14, fog: 15 };
@@ -31,6 +32,8 @@ export const BIG = {
   cherry: { x: 0.12, y: 0.62 },   // v28.17 — 격자 칸이 없어 낱장 그림(BIG_ART, v28.20 Codex) · 못 읽으면 코드 그림
   oasis: { x: 0.9, y: 0.4 },     // 오른쪽 아래는 나침반 자리
 };
+// v28.22 재고 새 장소 24곳 — 빈자리에 고르게(서로·기존 섬과 0.13 이상). 섬 그림이 없어 코드 그림(BIG_INK), 열린 곳만 해도에 보인다
+for (const p of STOCK_PLACES) BIG[p.id] = { x: p.at[0], y: p.at[1] };
 
 // 작은 섬 — need = 지금까지 바다 위에서 간 해리(누적). 25분 항해 = 2.5해리
 export const ISLETS = [
@@ -189,6 +192,7 @@ export function drawChart(ctx, S, o) {
   // 큰 섬 + 도장
   for (const [id, p] of Object.entries(BIG)) {
     const [x, y] = P(p), open = o.open ? o.open(id) : true, r = S * 0.07;
+    if (!open && STOCK_IDS.has(id)) continue;   // 재고 새 장소는 열리기 전엔 안 그린다 (해도가 '?' 로 빽빽해지지 않게)
     if (!open) { ctx.globalAlpha = 0.28; }
     const art = o.bigArt?.[id];
     if (art) { const s = r * 2.2 / Math.max(art.width, art.height); ctx.drawImage(art, x - art.width * s / 2, y - art.height * s / 2, art.width * s, art.height * s); }
@@ -230,6 +234,7 @@ function blob(ctx, x, y, r, seed, color, k = 0.18) {
   ctx.closePath(); ctx.fill();
 }
 const BIG_INK = { beach: ['#e7cf96', '#6f9a5b'], nz: ['#b9a074', '#3f6b48'], snow: ['#eef3f6', '#5f7f78'], fall: ['#d8b98a', '#c0662f'], cherry: ['#efdcc0', '#e7a7b8'], oasis: ['#e6c27a', '#5c8f54'], zen: ['#e9e3d4', '#8a8f7c'] };
+for (const p of STOCK_PLACES) BIG_INK[p.id] = p.ink;
 function drawBig(ctx, id, x, y, r) {
   const [sand, green] = BIG_INK[id] || BIG_INK.beach, s = hash(id);
   ctx.globalAlpha *= 0.9; blob(ctx, x, y + r * 0.08, r * 1.08, s, 'rgba(120,160,175,0.35)');

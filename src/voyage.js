@@ -13,6 +13,8 @@
 //  이 파일은 "언제 어디까지 갔고 무슨 일이 있었나"만 정한다. 그리기·소리·사진은 main.js 가 결과를 받아 한다.
 //  기록은 이 기기에만 (localStorage 'voyage' · 'voyageRun').
 
+import { STOCK_PLACES } from './maps-stock.js?v=v28.22.0';
+
 export const MODES = ['island', 'voyage'];
 export const MODE_NAME = { island: { ko: '섬에서 보기', en: 'Stay on the island' }, voyage: { ko: '항해하기', en: 'Set sail' } };
 export const NM_PER_MIN = 0.1;      // 1분 = 0.1해리 (6노트, 작은 돛배) — 25분 = 2.5해리
@@ -27,6 +29,8 @@ export const PLACES = {
   fall: { ko: '가을 호숫가', en: 'the autumn lake' }, zen: { ko: '모래 정원', en: 'the sand garden' },
   cherry: { ko: '벚꽃 강변', en: 'the cherry riverbank' }, oasis: { ko: '사막 오아시스', en: 'the desert oasis' },
 };
+// v28.22 재고 새 장소
+for (const p of STOCK_PLACES) PLACES[p.id] = { ko: p.ko, en: p.en };
 export const routeId = (from, to) => `${from}>${to}`;
 
 // 가는 길에 생기는 일 6가지. when(ctx) 가 거짓이면 그 시각엔 안 생긴다 (ctx = { hour, weather })

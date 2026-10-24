@@ -17,7 +17,7 @@ const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
   // 물 없는 장소(opts.rest — 젠 가든 v18): 물 뺀 판·바위 지운 판이 없다 → 같은 판 한 장을 세 자리에 쓴다
-  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v28.21.2').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v28.21.2'), load(name + '-dry.webp?v=v28.21.2'), load(name + '-sea.webp?v=v28.21.2')]);
+  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v28.22.0').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v28.22.0'), load(name + '-dry.webp?v=v28.22.0'), load(name + '-sea.webp?v=v28.22.0')]);
   const p = new Plate(img, dry, sea, opts);
   p.name = name; p.base = base;
   return p;
@@ -40,7 +40,12 @@ export class Plate {
     // 물 뺀 판과 비교: 두 그림이 크게 다른 곳이 물이다 (모래·흙·돌·통나무는 두 그림에서 같다)
     g.drawImage(this.dry, 0, 0, aw, ah);
     const dp = g.getImageData(0, 0, aw, ah).data;
-    const wet = (x, y) => { const i = (y * aw + x) * 4; return Math.abs(px[i] - dp[i]) + Math.abs(px[i + 1] - dp[i + 1]) + Math.abs(px[i + 2] - dp[i + 2]) > 60; };
+    const dif = (x, y) => { const i = (y * aw + x) * 4; return Math.abs(px[i] - dp[i]) + Math.abs(px[i + 1] - dp[i + 1]) + Math.abs(px[i + 2] - dp[i + 2]); };
+    // v28.22 재고 새 장소(opts.tone): 물 뺀 판을 Codex 가 다시 그려 바닥 색까지 조금 바뀐 판이 있다(피오르 세로는 흰 자갈이 잿빛으로).
+    //  바닥 띠(높이 25~42%)의 차이 중앙값을 바탕으로 빼고 보고, 어두운 늪·흙탕 물(차이가 작다)도 잡게 문턱을 낮춘다
+    let wetT = 60;
+    if (this.opts.tone) { const d = []; for (let y = Math.round(ah * 0.25); y < ah * 0.42; y += 3) for (let x = 0; x < aw; x += 3) d.push(dif(x, y)); d.sort((p, q) => p - q); wetT = Math.max(32, d[d.length >> 1] + 28); this.wetT = wetT; }
+    const wet = (x, y) => dif(x, y) > wetT;
     const runWet = (x, y0, n) => { for (let k = 0; k < n; k++) if (y0 + k >= ah || !wet(x, y0 + k)) return false; return true; };
     const leaf = ([r, gg, b]) => (gg >= r * 0.93 && b < gg * 0.9) || r + gg + b < 210;
     const sand = ([r, gg, b]) => r > 170 && r >= gg && gg >= b && r - b > 26 && !(gg >= r * 0.93);   // 바닷가 모래 · 창백한 강가 흙 둘 다
@@ -61,6 +66,8 @@ export class Plate {
     const from = Math.round(ah * (this.opts.shoreFrom ?? 0.4));
     // 물 없는 장소: 지우개(갈퀴)가 쉬는 줄을 판 높이 비율로 정해 둔다 — 그 아래(바위 섬)에는 글씨를 쓰지 않는다
     if (this.opts.rest) shore.fill(ah * this.opts.rest);
+    // 물이 흙탕이라 물 뺀 판과 거의 같은 재고 판(낙우송 늪·사바나 세로): 그림에서 잰 물가 높이로 둔다 (v28.22)
+    else if (this.opts.shoreFix) shore.fill(ah * this.opts.shoreFix);
     else for (let x = 0; x < aw; x++) {
       let s = ah * 0.62;
       for (let y = from; y < ah - RUN; y++) if (runWet(x, y, RUN)) { s = y; break; }
@@ -76,13 +83,28 @@ export class Plate {
     const shoreO = win(win(shore, Math.min), Math.max);
     const shoreS = box(box(median(shoreO, 12), 10), 10);
     // ② 숲 줄: 물가선에서 위로 올라가며 모래·흙이 끝나는 곳 (햇살 받은 잎을 모래로 읽어도 위쪽이라 상관없다)
+    // v28.22 재고 새 장소(opts.tone): 바닥 색이 제각각(검은 모래·붉은 흙·진흙·회색 자갈…)이라 색 규칙 대신
+    //  물가선 바로 위 띠(8~14%)의 중앙값을 그 장소 바닥 색으로 삼고, 그 색에 가까우면 바닥으로 본다
+    let toneRef = null;
+    if (this.opts.tone) {
+      const rs = [], gs = [], bs = [];
+      for (let x = 0; x < aw; x += 3) for (let y = Math.round(shoreS[x] - ah * 0.14); y < shoreS[x] - ah * 0.08; y += 3) { const c = at(x, Math.max(0, y)); rs.push(c[0]); gs.push(c[1]); bs.push(c[2]); }
+      const mid = a => a.sort((p, q) => p - q)[a.length >> 1];
+      toneRef = [mid(rs), mid(gs), mid(bs)];
+      this.toneRef = toneRef;
+    }
+    //  잎(초록이 빨강·파랑보다 뚜렷이 센 색)은 바닥 색이 어두워도(검은 모래) 바닥으로 치지 않는다
+    const greenish = c => c[1] > c[0] * 1.06 && c[1] > c[2] * 1.06;
+    const tone = c => (Math.abs(c[0] - toneRef[0]) + Math.abs(c[1] - toneRef[1]) + Math.abs(c[2] - toneRef[2]) < 75 && !greenish(c)) || (c[0] > 205 && c[1] > 200 && c[2] > 185);
     for (let x = 0; x < aw; x++) {
       let f = 0, cnt = 0;
       // 물가의 거품·젖은 띠를 건너뛰고(물가선 위 6% 부터), 흰 거품은 모래 쪽으로 친다
-      const ground = this.snowGround ? snowy : this.opts.ground === 'gravel' ? gravel : c => sand(c) || (c[0] > 205 && c[1] > 200 && c[2] > 185);
+      const ground = toneRef ? tone : this.snowGround ? snowy : this.opts.ground === 'gravel' ? gravel : c => sand(c) || (c[0] > 205 && c[1] > 200 && c[2] > 185);
       for (let y = Math.round(shoreS[x] - ah * 0.06); y >= 0; y--) { if (!ground(at(x, y))) { if (++cnt >= R2) { f = y + cnt; break; } } else cnt = 0; }
       forest[x] = Math.min(f, shoreS[x] - ah * 0.2);   // 글씨 쓸 바닥은 적어도 화면 높이의 20%
     }
+    // 재고 새 장소: 잎 그늘·바위에서 숲 줄이 아래로 좁게 뾰족하게 꺼지는 곳을 편다 (폭 6%보다 좁은 봉우리만, 물가선 골 지우기와 같은 열기)
+    if (this.opts.tone) { const fo = win(win(forest, Math.min), Math.max); for (let x = 0; x < aw; x++) forest[x] = fo[x]; }
     // 판 좌표(픽셀)로 저장
     const k = this.pw / aw;
     this.shoreP = shoreS.map(v => v * k - 2 * k);
@@ -255,7 +277,7 @@ export class Plate {
     if (!this._sets[kind] && Date.now() - (this._setFail[kind] ?? -Infinity) < SET_RETRY_MS) return Promise.resolve(null);
     if (!this._sets[kind]) {
       // 판이 한 장인 장소(rest — 모래 정원)는 시간대 판도 한 장 (v28.3)
-      const p = this._sets[kind] = (this.opts.rest ? load(`${this.name}-${kind}.webp?v=v28.21.2`).then(im => [im, im, im]) : Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v28.21.2`))))
+      const p = this._sets[kind] = (this.opts.rest ? load(`${this.name}-${kind}.webp?v=v28.22.0`).then(im => [im, im, im]) : Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v28.22.0`))))
         .then(([img, dry, sea]) => (this.sets[kind] = { img, dry, sea }))
         .catch(() => { if (this._sets[kind] === p) { delete this._sets[kind]; this._setFail[kind] = Date.now(); } return null; });
     }

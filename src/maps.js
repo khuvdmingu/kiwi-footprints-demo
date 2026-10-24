@@ -1,4 +1,5 @@
 // maps.js — 골라 쓰는 장소(맵)
+import { STOCK_PLACES, STOCK_STEPS0, STOCK_STEP } from './maps-stock.js?v=v28.22.0';
 //  장소마다 그림 판 한 벌(가로 wide · 세로 tall, 각각 본판·-dry·-sea 세 장)과 그 장소의 성격을 정한다.
 //  구조는 모두 같다: 위는 숲(키위가 숨었다 나온다), 가운데는 글씨를 쓰는 바닥, 아래는 물(불어나서 글씨를 지운다).
 
@@ -67,4 +68,20 @@ export const MAPS = {
     steps: 70000,
   },
 };
+// v28.22 재고 새 장소 24곳 (maps-stock.js) — ⚠ 재고판 그대로, 밤·노을·새벽 그림 판 없음(art: false · 코드 빛만). 그림 업데이트는 나중에
+STOCK_PLACES.forEach((p, i) => {
+  MAPS[p.id] = {
+    name: p.ko, wide: p.id, tall: p.id + '-tall',
+    gulls: false,
+    shoreFrom: 0.45,                 // 벚꽃 강변과 같은 구도(위 숲 · 가운데 바닥 · 아래 물)
+    tone: true,                      // 바닥 색이 장소마다 달라 숲 줄을 그 판의 바닥 색으로 찾는다 (plate.js)
+    ...(p.print === 'gravel' ? { ground: 'gravel' } : {}),   // 회색 자갈 바닥: 발자국 색
+    art: false,
+    like: p.like,
+    ...(p.shoreFix ? { shoreFix: p.shoreFix } : {}),   // 물가선을 못 읽는 판은 그림에서 잰 높이                    // 손님은 닮은 장소의 동물이 온다
+    stock: true,                     // 설정 창엔 열린 것만 보인다
+    unlock: 'map-' + p.id,
+    steps: STOCK_STEPS0 + i * STOCK_STEP,
+  };
+});
 export const MAP_IDS = Object.keys(MAPS);
