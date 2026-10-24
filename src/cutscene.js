@@ -20,17 +20,18 @@ export class Cutscene {
     this.video.addEventListener('error', skip);
   }
   get off() { return !this.enabled || matchMedia('(prefers-reduced-motion: reduce)').matches; }
-  play(kind, { caption = '' } = {}) {
-    const f = FILES[kind];
+  // v28.21 드문 순간: file(assets 안 이름, 확장자 없이) · rate · maxMs 를 따로 줄 수 있다
+  play(kind, { caption = '', file = null, rate = RATE, maxMs = MAX_MS } = {}) {
+    const f = file || FILES[kind];
     if (!f || this.off) return Promise.resolve(false);
     this.close();
     const v = this.video;
-    v.poster = `assets/${f}.webp?v=v28.20.0`; v.src = `assets/${f}.mp4`; v.muted = true; v.playsInline = true;
+    v.poster = `assets/${f}.webp?v=v28.21.0`; v.src = `assets/${f}.mp4`; v.muted = true; v.playsInline = true;
     const cap = this.root.querySelector('.cutCaption'); if (cap) cap.textContent = caption;
     this.root.hidden = false; this.root.classList.remove('out');
-    v.playbackRate = RATE;
-    v.play().then(() => { v.playbackRate = RATE; }).catch(() => this.close());
-    this.timer = setTimeout(() => this.close(), MAX_MS);
+    v.playbackRate = rate;
+    v.play().then(() => { v.playbackRate = rate; }).catch(() => this.close());
+    this.timer = setTimeout(() => this.close(), maxMs);
     return new Promise(res => { this.done = res; });
   }
   close() {

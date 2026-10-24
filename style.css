@@ -380,6 +380,8 @@ body.ready #boot { opacity: 0; visibility: hidden; }
 .colgrid.places button.place .nm { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 4px 3px; font-size: 11px; font-weight: 600; text-align: center; color: #fff;
   background: linear-gradient(transparent, rgba(10, 24, 36, 0.75)); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); }
 .colgrid.places button.place.on::after { top: 3px; bottom: auto; }
+.colgrid.moments button img { width: 100%; height: 100%; margin: 0; object-fit: cover; }   /* v28.21 드문 순간 */
+.colgrid.moments button.locked { font-size: 22px; }
 /* 소리 요약 → 소리 창으로 */
 .soundSum { display: grid; gap: 6px; margin: 0 2px; font-size: 12.5px; }
 .soundSum span { opacity: 0.8; word-break: keep-all; }

@@ -10,11 +10,11 @@
 //      그림을 처음 읽을 때 알파를 훑어 부리 끝·몸 바닥을 찾아 크기·콕 각도를 맞춘다 (setKiwiSprite).
 //  (x, y) = 발이 땅에 닿는 점. k = 몸 크기 단위 (꼬리 −0.41k ~ 부리 끝 +0.8k, 머리 꼭대기 −0.86k)
 
-import { angleDiff, clamp, dist, Path } from './util.js?v=v28.20.0';
-import { PAL as T, LIGHT } from './tokens.js?v=v28.20.0';
-import { ACTS, VARIANTS, WAKE_ACT, pickIdleAct } from './acts.js?v=v28.20.0';
-import { ACT_HEADS, HEAD_MODES, HEAD_REST } from './act-heads.js?v=v28.20.0';
-import { HEADWEAR, HEADWEAR_FADE } from './headwear.js?v=v28.20.0';
+import { angleDiff, clamp, dist, Path } from './util.js?v=v28.21.0';
+import { PAL as T, LIGHT } from './tokens.js?v=v28.21.0';
+import { ACTS, VARIANTS, WAKE_ACT, pickIdleAct } from './acts.js?v=v28.21.0';
+import { ACT_HEADS, HEAD_MODES, HEAD_REST } from './act-heads.js?v=v28.21.0';
+import { HEADWEAR, HEADWEAR_FADE } from './headwear.js?v=v28.21.0';
 
 let ID = 0;
 export let REACH = 0.8;             // 몸을 숙였을 때 부리 끝이 땅에 닿는 가로 거리 (k 배수) — 그림에서 다시 잰다
@@ -33,6 +33,8 @@ export function setKiwiSkins(map) { Object.assign(SKINS, map); }
 const HW_IMG = {};
 export function setKiwiHeadwear(map) { Object.assign(HW_IMG, map); }
 // 옷 때문에 동작을 못 하는가 (몸째 그린 옷 그림만 그렇다)
+let ON_ACT = null;   // v28.21 동작을 시작할 때 (머리 위 감정 표시 — bubbles.js)
+export function setKiwiOnAct(f) { ON_ACT = f; }
 export function stiffSkin(id) { return !!id && !HW_IMG[id]; }
 export function setKiwiSprite(img) {
   const w = img.naturalWidth, h = img.naturalHeight;
@@ -129,6 +131,7 @@ export class Kiwi {
     if (!ids.length) return false;
     this.state = 'act'; this.actId = ids[Math.floor(Math.random() * ids.length)];
     this.hold = opt.hold ?? null; this.holdUntil = opt.holdUntil ?? null; this.actT = opt.from ?? 0; this.v = 0; this.peck = 0;
+    if (!opt.hold) ON_ACT?.(this, id);   // 사진 자세(hold)는 조용히
     return true;
   }
 
