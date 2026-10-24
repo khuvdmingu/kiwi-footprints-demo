@@ -8,16 +8,16 @@
 //  기록은 이 기기에만 (localStorage 'chart'). 항해 기록(voyage.log)은 voyage.js 가 갖고, 여기는 발견·이름만 갖는다.
 //  그리기: 그림 격자(assets/chart-sheet.webp, 4×4)가 있으면 칸을 잘라 쓰고, 없으면 코드로 그린다.
 
-import { fitCell, roundCell } from './sheet.js?v=v28.24.0';
+import { fitCell, roundCell } from './sheet.js?v=v29.0.0';
 
-export const SHEET = 'chart-sheet.webp?v=v28.24.0';
+export const SHEET = 'chart-sheet.webp?v=v29.0.0';
 // v28.19 해도 그림 B (사용자 2026-10-24 비교 페이지에서 고름): 양피지 종이(나침반 포함) + 새 아이콘 격자 4×4
 //  새 격자 칸: 1행 화산·폭포 절벽·거북·등대 / 2행 환초·쌍둥이·빙산·떠 있는 꽃섬 / 3행 고래 꼬리·바다뱀·난파선·병 / 4행 X·닻·별 항로·바람 구름
 //  그림 칸이 없던 섬·바다 표시만 새 칸으로 (나머지는 지금 격자 그대로)
 // v28.20 격자 칸이 없는 큰 섬은 낱장 그림 (Codex 그림, 흰 바탕을 뺀 투명 webp)
-import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v28.24.0';
-export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v28.24.0', oasis: 'chart-isle-oasis.webp?v=v28.24.0' };
-export const CHART_B = { paper: 'chart-paper.webp?v=v28.24.0', sheet: 'chart-sheet-2.webp?v=v28.24.0',
+import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v29.0.0';
+export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v29.0.0', oasis: 'chart-isle-oasis.webp?v=v29.0.0' };
+export const CHART_B = { paper: 'chart-paper.webp?v=v29.0.0', sheet: 'chart-sheet-2.webp?v=v29.0.0',
   islet: { 'i-twin': 5, 'i-lantern': 3, 'i-turtle': 2, 'i-end': 6 }, spot: { 's-reef': 4, 's-current': 15, 's-whale': 8 } };
 // 격자 칸 (4×4): 0~4 큰 섬 · 5~12 작은 섬 · 13 나침반 · 14 배 표시 · 15 안개 덩이
 export const CELL = { beach: 0, nz: 1, snow: 2, fall: 3, zen: 4, compass: 13, boat: 14, fog: 15 };
@@ -192,8 +192,9 @@ export function drawChart(ctx, S, o) {
   // 큰 섬 + 도장
   for (const [id, p] of Object.entries(BIG)) {
     const [x, y] = P(p), open = o.open ? o.open(id) : true, r = S * 0.07;
-    if (!open && STOCK_IDS.has(id)) continue;   // 재고 새 장소는 열리기 전엔 안 그린다 (해도가 '?' 로 빽빽해지지 않게)
-    if (!open) { ctx.globalAlpha = 0.28; }
+    if (!open && STOCK_IDS.has(id) && !o.all) continue;   // 재고 새 장소는 열리기 전엔 안 그린다 (해도가 '?' 로 빽빽해지지 않게)
+    // o.all (2026-10-24 해도 창): 잠긴 섬도 안개 밑에 흐리게 다 그린다 — 열린 섬만 맞춰 보다가 넓어지면 가장자리에서 드러난다
+    if (!open) { ctx.globalAlpha = o.all ? 0.2 : 0.28; }
     const art = o.bigArt?.[id];
     if (art) { const s = r * 2.2 / Math.max(art.width, art.height); ctx.drawImage(art, x - art.width * s / 2, y - art.height * s / 2, art.width * s, art.height * s); }
     else if (!cell(ctx, sheet, CELL[id], x, y, r * 2.2)) drawBig(ctx, id, x, y, r);

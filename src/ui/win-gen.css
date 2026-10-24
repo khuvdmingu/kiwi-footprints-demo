@@ -1,0 +1,56 @@
+/* 자동 생성 — tools/win-css.py (손으로 고치지 말 것) */
+body.clean #basket, body.clean #wardrobe { display: none !important; }
+#basket, #wardrobe { position: fixed; z-index: 25; top: calc(var(--top) + var(--tap) + 10px); right: max(14px, env(safe-area-inset-right));
+  width: min(300px, calc(100vw - 28px)); padding: 12px 12px 8px; border-radius: 14px;
+  background: rgba(20, 47, 73, 0.78); border: 1px solid var(--panel-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 10px 30px rgba(var(--shadow), 0.35); font-size: 14px; }
+#basket h2, #wardrobe h2 { margin: 2px 4px 6px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; opacity: 0.75; }
+#basket h2.sep, #wardrobe h2.sep { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--panel-line); }
+#basket, #wardrobe { max-height: calc(100dvh - 90px); overflow-y: auto; }
+#basket h2.sub, #wardrobe h2.sub { margin-top: 10px; }
+#settings [data-pane="sound"] .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; }
+#settings [data-pane="sound"] .row span { flex: none; font-weight: 500; }
+#settings [data-pane="sound"] input[type="range"] { flex: 1; min-width: 0; accent-color: var(--sand); }
+#settings [data-pane="sound"] input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--sand); }
+#settings [data-pane="sound"] input:focus-visible { outline: 2px solid rgb(var(--ink)); outline-offset: 2px; }
+#wardrobe h3 { margin: 12px 0 6px; padding-top: 10px; border-top: 1px solid var(--panel-line); font-size: 12.5px; font-weight: 600; opacity: 0.75; }
+#wardrobe .packs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+#wardrobe .packs.voice { grid-template-columns: 1fr 1fr; margin-bottom: 8px; }
+#wardrobe .packs.voice button { font-size: 13px; font-weight: 600; min-height: 38px; }
+#wardrobe .packs button { padding: 7px 2px; border-radius: 9px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; word-break: keep-all; }
+#wardrobe .packs button[aria-pressed="true"] { background: var(--sand); color: #2a2016; border-color: transparent; }
+#wardrobe .packs button:disabled { opacity: 0.4; cursor: default; }
+#wardrobe .hint { margin: 6px 0 2px; font-size: 12px; line-height: 1.5; opacity: 0.7; word-break: keep-all; }
+#basket .tabs, #wardrobe .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 3px; margin: 0 0 12px; border-radius: 11px; background: rgba(0, 0, 0, 0.18); }
+#basket .tabs button, #wardrobe .tabs button { padding: 7px 4px; border: 0; border-radius: 8px; background: transparent; color: inherit; font: inherit; font-size: 13px; font-weight: 600; opacity: 0.7; cursor: pointer; white-space: nowrap; }
+#basket .tabs button[aria-selected="true"], #wardrobe .tabs button[aria-selected="true"] { background: var(--sand); color: #2a2016; opacity: 1; }
+#basket .tabs button:focus-visible, #wardrobe .tabs button:focus-visible { outline: 2px solid rgb(var(--ink)); outline-offset: 1px; }
+#wardrobe .pane[hidden] { display: none; }
+#basket .hint, #wardrobe .hint { margin: 6px 2px 2px; font-size: 12px; line-height: 1.5; opacity: 0.7; word-break: keep-all; }
+#basket .bagSum, #wardrobe .bagSum { margin: 0 2px 10px; font-size: 12.5px; opacity: 0.75; }
+#wardrobe .pane > h3:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+#wardrobe .hint.top { margin: 0 0 8px; }
+#wardrobe .hint.foot { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--panel-line); }
+#wardrobe .packs .part { grid-column: 1 / -1; margin: 8px 0 0; font-size: 11.5px; font-weight: 600; opacity: 0.65; }
+#wardrobe .packs .part:first-child { margin-top: 0; }
+#wardrobe .packs button { display: grid; place-items: center; min-height: 34px; }
+#basket, #wardrobe { width: min(320px, calc(100vw - 2 * var(--edge))); padding: 14px 14px 12px; border-radius: 16px; right: var(--right); }
+#basket, #wardrobe { max-height: calc(100dvh - var(--top) - var(--tap) - 26px); }
+#basket .tabs button, #wardrobe .tabs button { min-height: 38px; }
+#basket h2.sep, #wardrobe h2.sep, #wardrobe h3 { margin-top: 18px; padding-top: 14px; }
+#settings [data-pane="sound"] .row { min-height: 46px; }
+#settings [data-pane="sound"] input[type="checkbox"] { width: 22px; height: 22px; }
+#wardrobe .packs { gap: 6px; }
+#wardrobe .packs button, #wardrobe .packs.voice button { min-height: var(--tap-in); }
+html[data-ui="paper"] #basket, html[data-ui="paper"] #wardrobe { background: var(--pp-grain), var(--pp); color: var(--pp-ink); border: 1px solid var(--pp-edge);
+  border-radius: 18px 14px 17px 13px / 13px 17px 14px 18px;
+  box-shadow: var(--pp-shadow); backdrop-filter: none; -webkit-backdrop-filter: none; }
+html[data-ui="paper"] #basket h2, html[data-ui="paper"] #wardrobe h2, html[data-ui="paper"] #wardrobe h3 { font-family: var(--pp-hand); font-size: 18px; font-weight: 700; letter-spacing: 0.01em; opacity: 1; color: var(--pp-ink); }
+html[data-ui="paper"] #basket h2.sep, html[data-ui="paper"] #wardrobe h2.sep, html[data-ui="paper"] #wardrobe h3 { border-top: 1px dashed var(--pp-edge); }
+html[data-ui="paper"] #basket .tabs, html[data-ui="paper"] #wardrobe .tabs { background: var(--pp-2); box-shadow: inset 0 1px 2px rgba(80, 60, 30, 0.12); }
+html[data-ui="paper"] #basket .tabs button, html[data-ui="paper"] #wardrobe .tabs button { color: var(--pp-ink); opacity: 0.6; }
+html[data-ui="paper"] #basket .tabs button[aria-selected="true"], html[data-ui="paper"] #wardrobe .tabs button[aria-selected="true"] { background: var(--pp); color: var(--pp-ink); opacity: 1; box-shadow: 0 1px 3px rgba(80, 60, 30, 0.22); }
+html[data-ui="paper"] :is(#basket, html[data-ui="paper"] :is(#wardrobe, html[data-ui="paper"] #wardrobe .packs button { border: 1px solid rgba(74, 56, 38, 0.28); background: rgba(255, 255, 255, 0.35); color: var(--pp-ink); }
+html[data-ui="paper"] :is(#basket, html[data-ui="paper"] :is(#wardrobe, html[data-ui="paper"] #wardrobe .packs button[aria-pressed="true"] { background: var(--pp-stamp); color: var(--pp-stamp-ink); border-color: transparent;
+  transform: rotate(-1.2deg); box-shadow: inset 0 0 0 2px rgba(255, 240, 220, 0.35), 0 1px 0 rgba(120, 60, 20, 0.35); }
+html[data-ui="paper"] :is(#basket, html[data-ui="paper"] :is(#wardrobe { outline-color: var(--pp-stamp); }

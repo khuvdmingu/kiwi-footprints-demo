@@ -4,13 +4,13 @@
 //  · 서버로 아무것도 안 보낸다. localStorage 'kiwi-footprints.taps' 한 칸.
 //  · 테스트 탭 맨 위에 「누름 세기」: 많이 누른 순 목록 + 「텍스트로 복사」(붙여넣어 Claude 에게 보여 주면 빈도 표를 실측으로 바꾼다) + 「처음부터」.
 //  · 테스트 탭 안에서 누른 것은 세지 않는다(조절하느라 누른 게 섞이지 않게).
-//  · UI 개편 모듈(src/ia/)과 함께 쓰면 바뀐 구조 기준으로 센다 — 기록에 「구조: 개편/원래」를 적는다.
+//  · 2026-10-24 개편 구조(떠나기 · 해도 · 바구니 · 꾸미기) 기준으로 센다.
 
 export const KEY = 'kiwi-footprints.taps';
 const read = () => { try { const v = JSON.parse(localStorage.getItem(KEY) || 'null'); if (v && v.items) return v; } catch (e) {} return { since: Date.now(), items: {} }; };
 const write = v => { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) {} };
 
-const WHERE = [['#tunePane', null], ['#basket', '바구니'], ['#settings', '설정'], ['#mixer', '소리 창'], ['#focusPanel', '집중 창'], ['#menu', '메뉴'], ['#picker', '고르기 창'],
+const WHERE = [['#tunePane', null], ['#basket', '바구니'], ['#wardrobe', '꾸미기'], ['#chartView', '해도'], ['#settings', '설정'], ['#focusPanel', '떠나기 창'], ['#menu', '메뉴'], ['#picker', '고르기 창'],
   ['#found', '카드'], ['#photoViewer', '사진 보기'], ['#info', '작품 설명'], ['.corner', '화면 위'], ['#say', '입력창'], ['#touch', '그림'], ['#breathOffer', '권유']];
 const clip = s => (s || '').replace(/\s+/g, ' ').trim().slice(0, 28);
 
@@ -53,7 +53,7 @@ function mount() {
   const pane = document.getElementById('tunePane');
   if (!pane || document.getElementById('tapsBox')) return;
   let state = read();
-  const layout = () => (document.body.dataset.ia ? '개편' : '원래');
+  const layout = () => '2026-10-24 개편';
 
   const box = document.createElement('div'); box.id = 'tapsBox';
   box.innerHTML = `<h2>누름 세기</h2>

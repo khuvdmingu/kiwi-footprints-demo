@@ -6,9 +6,11 @@
   <meta name="theme-color" content="#1A5C91" />
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v28.24.0" />
-  <link rel="stylesheet" href="memos.css?v=v28.24.0" />
-  <link rel="stylesheet" href="theme-paper.css?v=v28.24.0" />
+  <link rel="stylesheet" href="style.css?v=v29.0.0" />
+  <link rel="stylesheet" href="memos.css?v=v29.0.0" />
+  <link rel="stylesheet" href="theme-paper.css?v=v29.0.0" />
+  <link rel="stylesheet" href="src/ui/win-gen.css?v=v29.0.0" />
+  <link rel="stylesheet" href="src/ui/shell.css?v=v29.0.0" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -54,14 +56,16 @@
     <button id="hideBtn" type="button" class="round" aria-pressed="false" aria-label="화면 정리 — 버튼·입력창 숨기기">
       <svg viewBox="0 0 24 24" aria-hidden="true"><g class="ui-hide"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" /><circle cx="12" cy="12" r="2.6" /><path d="M4 20 20 4" /></g><g class="ui-show"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" /><circle cx="12" cy="12" r="2.6" /></g></svg>
     </button>
-    <div class="grp" role="group" aria-label="풍경 바로 바꾸기">
+    <div class="grp" role="group" aria-label="섬 바로 바꾸기">
     <button id="modeBtn" type="button" class="round" aria-haspopup="dialog" aria-expanded="false" aria-label="글 모드 바꾸기" data-mode="free">
       <svg viewBox="0 0 24 24" aria-hidden="true"><g class="m-free"><path d="M4.5 19.5l3.8-.9L19 7.9a1.9 1.9 0 0 0 0-2.7l-.2-.2a1.9 1.9 0 0 0-2.7 0L5.4 15.7z" /><path d="M14.6 6.4l3 3" /></g><g class="m-clock"><circle cx="12" cy="12" r="8.3" /><path d="M12 7.6V12l2.9 1.9" /></g><g class="m-quote"><path d="M5.2 5.8h13.6a2.2 2.2 0 0 1 2.2 2.2v6.6a2.2 2.2 0 0 1-2.2 2.2h-6.5l-4.4 3.3v-3.3H5.2A2.2 2.2 0 0 1 3 14.6V8a2.2 2.2 0 0 1 2.2-2.2z" /><path d="M9.2 12.9c1-.4 1.5-1.1 1.5-2.4M13.6 12.9c1-.4 1.5-1.1 1.5-2.4" /></g><g class="m-word"><path d="M12 7.2c-2.1-1.4-5-1.8-8-1.2v11.8c3-.6 5.9-.2 8 1.2 2.1-1.4 5-1.8 8-1.2V6c-3-.6-5.9-.2-8 1.2z" /><path d="M12 7.2V19" /></g></svg>
     </button>
     <button id="weatherBtn" type="button" class="round" aria-haspopup="dialog" aria-expanded="false" aria-label="날씨 바꾸기" data-weather="clear">
       <svg viewBox="0 0 24 24" aria-hidden="true"><g class="w-clear"><circle cx="12" cy="12" r="4.3" /><path d="M19 12L20.9 12M16.95 16.95L18.29 18.29M12 19L12 20.9M7.05 16.95L5.71 18.29M5 12L3.1 12M7.05 7.05L5.71 5.71M12 5L12 3.1M16.95 7.05L18.29 5.71" /></g><g class="w-cloudy"><path d="M7 18.5h10a3.5 3.5 0 0 0 .3-6.99 5.2 5.2 0 0 0-10.1-1.1A3.8 3.8 0 0 0 7 18.5z" /></g><g class="w-drizzle"><path d="M7 14.5h10a3.5 3.5 0 0 0 .3-6.99 5.2 5.2 0 0 0-10.1-1.1A3.8 3.8 0 0 0 7 14.5z" /><path stroke-width="2.4" d="M8.6 18.2h.01M15.4 18.2h.01M12 19.4h.01M9.8 21.6h.01M14.2 21.6h.01" /></g><g class="w-rain"><path d="M7 14.5h10a3.5 3.5 0 0 0 .3-6.99 5.2 5.2 0 0 0-10.1-1.1A3.8 3.8 0 0 0 7 14.5z" /><path d="M9 17.4l-1.1 2.8M12.6 17.4l-1.1 2.8M16.2 17.4l-1.1 2.8" /></g><g class="w-snow"><path d="M12 12L12 3.4M12 12L19.45 7.7M12 12L19.45 16.3M12 12L12 20.6M12 12L4.55 16.3M12 12L4.55 7.7M12 6.4L13.9 4.5M12 6.4L10.1 4.5M16.85 9.2L19.45 9.9M16.85 9.2L17.55 6.6M16.85 14.8L17.55 17.4M16.85 14.8L19.45 14.1M12 17.6L10.1 19.5M12 17.6L13.9 19.5M7.15 14.8L4.55 14.1M7.15 14.8L6.45 17.4M7.15 9.2L6.45 6.6M7.15 9.2L4.55 9.9" /></g><g class="w-fog"><path d="M7.4 12.6h9.3a3.1 3.1 0 0 0 .2-6.2 4.7 4.7 0 0 0-9.1-.9 3.6 3.6 0 0 0-.4 7.1z" /><path d="M4 16.2h16M6.5 19.6h11" /></g><g class="w-wind"><path d="M3 9.2h10.2a2.6 2.6 0 1 0-2.6-2.6M3 13.2h14.6a2.9 2.9 0 1 1-2.9 2.9M3 17.2h6" /></g><g class="w-blossom"><path d="M11.6 14.6C10.4 10.7 11.6 7.4 14.1 6.5l1.8 1.6 1.9-1.2c2.4 1.7 1.9 5.9-6.2 7.7z" /><path d="M3 15.8h6M5 19.6h8" /></g></svg>
     </button>
-    <button id="viewBtn" type="button" class="round" aria-haspopup="dialog" aria-expanded="false" aria-label="시점 바꾸기">
+    </div>
+    <!-- 시점은 설정 › 풍경에서 고른다 (main.js 가 이름표를 갱신하는 숨은 버튼) -->
+    <button id="viewBtn" type="button" class="round" hidden aria-haspopup="dialog" aria-expanded="false" aria-label="시점 바꾸기">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <g class="v-top"><path d="M3.5 6.6l5.2-2.1 6.6 2.1 5.2-2.1v12.9l-5.2 2.1-6.6-2.1-5.2 2.1z" /><path d="M8.7 4.5v12.9M15.3 6.6v12.9" /><path d="M10.6 11.4l2.6 2.6M13.2 11.4l-2.6 2.6" opacity=".6" /></g>
         <g class="v-diorama"><path d="M3.5 19h17" /><path d="M5 19c1.6-3.3 12.4-3.3 14 0" /><path d="M12 16.2V9" /><path d="M12 9c-1.4-1.9-3.6-2.2-5.2-1.3M12 9c1.4-1.9 3.6-2.2 5.2-1.3M12 9c-.5-1.7-.1-3.2 1-4" /></g>
@@ -71,30 +75,39 @@
         <g class="v-breeze"><path d="M3 8h7M2.5 12h5" /><path d="M10.5 18.5c0-5.6 4.1-8.7 10.2-8.7 0 5.6-3.6 9.8-10.2 8.7zM10.5 18.5l5.2-4.6" /></g>
       </svg>
     </button>
-    </div>
-    <button id="soundBtn" type="button" class="round" aria-pressed="true" aria-label="소리 설정" aria-expanded="false" aria-controls="mixer">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.6 9.3h2.9l4.6-3.9v13.2l-4.6-3.9H4.6a1.1 1.1 0 0 1-1.1-1.1V10.4a1.1 1.1 0 0 1 1.1-1.1z" /><path class="wave" d="M16.2 8.8a4.6 4.6 0 0 1 0 6.4M18.8 6.3a8.2 8.2 0 0 1 0 11.4" /><path class="mute" d="M16 9.5l4.5 5M20.5 9.5l-4.5 5" /></svg>
-    </button>
-    <button id="focusBtn" type="button" class="round" aria-label="집중 모드" aria-expanded="false" aria-controls="focusPanel">
+    <button id="focusBtn" type="button" class="round" aria-label="떠나기 — 섬에서 집중 · 항해" aria-expanded="false" aria-controls="focusPanel">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.8 3.5h10.4M6.8 20.5h10.4" /><path d="M8 3.5c0 4.6 3 5.6 4 8.5-1 2.9-4 3.9-4 8.5M16 3.5c0 4.6-3 5.6-4 8.5 1 2.9 4 3.9 4 8.5" /><path d="M10 18.6c.7-.9 1.3-1.3 2-1.3s1.3.4 2 1.3" /></svg>
     </button>
-    <button id="menuBtn" type="button" class="round" aria-label="메뉴 — 설정 · 모은 것 · 화면 정리 · 작품 설명" aria-haspopup="menu" aria-expanded="false" aria-controls="menu">
+    <button id="chartBtn" type="button" class="round" aria-label="해도 — 섬과 항로" aria-expanded="false" aria-controls="chartView">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 6.6l5.2-2.1 6.6 2.1 5.2-2.1v12.9l-5.2 2.1-6.6-2.1-5.2 2.1z" /><path d="M8.7 4.5v12.9M15.3 6.6v12.9" /><path d="M10.6 11.4l2.6 2.6M13.2 11.4l-2.6 2.6" opacity=".6" /></svg>
+    </button>
+    <button id="basketBtn" type="button" class="round" aria-label="바구니 — 일지 · 편지 · 도감" aria-expanded="false" aria-controls="basket">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5h17" /><path d="M5 10.5l1.4 7.9a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6l1.4-7.9" /><path d="M7.6 10.5a4.4 4.9 0 0 1 8.8 0" /><path d="M5.9 14.5h12.2M10.2 10.5l.4 9.5M13.8 10.5l-.4 9.5" /></svg>
+    </button>
+    <button id="menuBtn" type="button" class="round" aria-label="메뉴 — 꾸미기 · 설정 · 소리 · 작품 설명" aria-haspopup="menu" aria-expanded="false" aria-controls="menu">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path stroke-width="3.2" d="M5.8 12h.01M12 12h.01M18.2 12h.01" /></svg>
     </button>
   </div>
   <div id="menu" role="menu" aria-label="메뉴" hidden>
-    <button id="setBtn" type="button" role="menuitem" aria-expanded="false" aria-controls="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.93 10.45 L21.17 10.43 L21.17 13.57 L18.93 13.55 L18.00 15.80 L19.59 17.37 L17.37 19.59 L15.80 18.00 L13.55 18.93 L13.57 21.17 L10.43 21.17 L10.45 18.93 L8.20 18.00 L6.63 19.59 L4.41 17.37 L6.00 15.80 L5.07 13.55 L2.83 13.57 L2.83 10.43 L5.07 10.45 L6.00 8.20 L4.41 6.63 L6.63 4.41 L8.20 6.00 L10.45 5.07 L10.43 2.83 L13.57 2.83 L13.55 5.07 L15.80 6.00 L17.37 4.41 L19.59 6.63 L18.00 8.20Z" /><circle cx="12" cy="12" r="3" /></svg><span>설정</span><small>풍경 · 글씨</small></button>
-    <button id="bagBtn" type="button" role="menuitem" aria-controls="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5h17" /><path d="M5 10.5l1.4 7.9a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6l1.4-7.9" /><path d="M7.6 10.5a4.4 4.9 0 0 1 8.8 0" /><path d="M5.9 14.5h12.2M10.2 10.5l.4 9.5M13.8 10.5l-.4 9.5" /></svg><span>모은 것</span><small>일지 · 키위 · 편지 · 옷</small></button>
-    <button id="cleanBtn" type="button" role="menuitem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" /><circle cx="12" cy="12" r="2.6" /><path d="M4 20 20 4" /></svg><span>화면 정리</span><small>그림만 남기기</small></button>
+    <button id="wardBtn" type="button" role="menuitem" aria-expanded="false" aria-controls="wardrobe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.2a1.9 1.9 0 1 1 1.9-1.9c0 1-.9 1.4-1.9 2.2v1.4" /><path d="M12 8.9 3.6 15.4a1.2 1.2 0 0 0 .7 2.1h15.4a1.2 1.2 0 0 0 .7-2.1z" /></svg><span>꾸미기</span><small>키위 옷 · 배·돛 · 소리</small></button>
+    <button id="setBtn" type="button" role="menuitem" aria-expanded="false" aria-controls="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.93 10.45 L21.17 10.43 L21.17 13.57 L18.93 13.55 L18.00 15.80 L19.59 17.37 L17.37 19.59 L15.80 18.00 L13.55 18.93 L13.57 21.17 L10.43 21.17 L10.45 18.93 L8.20 18.00 L6.63 19.59 L4.41 17.37 L6.00 15.80 L5.07 13.55 L2.83 13.57 L2.83 10.43 L5.07 10.45 L6.00 8.20 L4.41 6.63 L6.63 4.41 L8.20 6.00 L10.45 5.07 L10.43 2.83 L13.57 2.83 L13.55 5.07 L15.80 6.00 L17.37 4.41 L19.59 6.63 L18.00 8.20Z" /><circle cx="12" cy="12" r="3" /></svg><span>설정</span><small>풍경 · 시계·메모 · 화면 · 소리</small></button>
+    <div class="menuRow" role="none">
+      <button id="soundBtn" type="button" role="menuitem" aria-pressed="true" aria-label="소리 크기 (설정)" aria-controls="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.6 9.3h2.9l4.6-3.9v13.2l-4.6-3.9H4.6a1.1 1.1 0 0 1-1.1-1.1V10.4a1.1 1.1 0 0 1 1.1-1.1z" /><path class="wave" d="M16.2 8.8a4.6 4.6 0 0 1 0 6.4M18.8 6.3a8.2 8.2 0 0 1 0 11.4" /><path class="mute" d="M16 9.5l4.5 5M20.5 9.5l-4.5 5" /></svg><span>소리</span><small>크기</small></button>
+      <button id="muteBtn" type="button" class="mute" role="menuitemcheckbox" aria-checked="true" aria-label="소리 켜기/끄기">켜짐</button>
+    </div>
     <button id="infoBtn" type="button" role="menuitem" aria-expanded="false" aria-controls="info"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.8" /><path d="M12 11v5.6" /><path stroke-width="2.6" d="M12 7.7h.01" /></svg><span>작품 설명</span><small>버튼 · 손으로 · 모이는 것</small></button>
   </div>
   <button id="focusHud" type="button" hidden aria-controls="focusPanel"><span class="t">25:00</span><span class="s">0보</span></button>
-  <div id="focusPanel" role="dialog" aria-label="집중 모드" hidden>
+  <div id="focusPanel" role="dialog" aria-label="떠나기" hidden>
+    <div class="tabs" role="tablist" aria-label="떠나기 창 묶음">
+      <button type="button" role="tab" data-tab="go" aria-selected="true">떠나기</button>
+      <button type="button" role="tab" data-tab="rec" aria-selected="false">기록</button>
+    </div>
+    <section class="pane fpane" data-pane="go" role="tabpanel" aria-label="떠나기">
     <div class="idle">
-      <h2>집중하기</h2>
-      <div class="seg two fmode" role="radiogroup" aria-label="집중하는 곳">
-        <label><input type="radio" name="fmode" value="island" /><span>섬에서 보기</span></label>
-        <label><input type="radio" name="fmode" value="voyage" /><span>항해하기</span></label>
+      <div class="fmode" role="radiogroup" aria-label="어떻게 떠날까요">
+        <label class="fcard"><input type="radio" name="fmode" value="island" /><b>섬에서 집중</b><small>이 섬에 머물며 · 끝나면 선물 상자</small></label>
+        <label class="fcard"><input type="radio" name="fmode" value="voyage" /><b>항해</b><small>다른 섬으로 · 화면을 꺼도 배는 가요</small></label>
       </div>
       <div id="voyOpts" hidden>
         <div id="voyPaused" class="voyPaused" hidden>
@@ -103,11 +116,15 @@
         </div>
         <div id="voyNew">
           <h2 class="sub">어디로 갈까요</h2>
-          <div class="chips voyTo" id="voyTo"></div>
+          <div class="voyDest">
+            <b id="voyDestName"></b>
+            <button id="voyChartBtn" type="button" class="quiet">해도에서 고르기</button>
+          </div>
+          <div class="chips voyTo" id="voyTo" aria-label="가까운 섬 · 최근 간 섬"></div>
           <p class="note" id="voyChartNote"></p>
-          <button id="voyChartBtn" type="button" class="quiet">해도 보기</button>
         </div>
       </div>
+      <h2 class="sub">얼마나</h2>
       <div class="seg four" role="radiogroup" aria-label="집중 시간">
         <label><input type="radio" name="flen" value="15" /><span>15분</span></label>
         <label><input type="radio" name="flen" value="25" /><span>25분</span></label>
@@ -119,18 +136,21 @@
         <label><input id="focusMin" type="number" min="1" max="180" step="1" inputmode="numeric" aria-label="집중 시간(분)" /><span>분</span></label>
         <button type="button" data-step="1" aria-label="1분 늘리기">+</button>
       </div>
-      <h2 class="sub">집중하는 동안 소리</h2>
+      <h2 class="sub letterH">오늘의 한 줄 <small>일지에 남아요</small></h2>
+      <textarea id="focusLetter" maxlength="80" rows="2" placeholder="예) 포트폴리오 정리 (안 써도 돼요)" aria-label="오늘의 한 줄 — 끝까지 하면 키위들이 모래에 쓰고 일지로 남겨요"></textarea>
+      <p class="note snap">끝까지 하면(항해는 도착하면) 키위들이 이 한 줄과 날짜를 <b>모래에 쓰고 일지 한 쪽</b>으로 남겨요. 며칠 뒤엔 호박색 병에 담겨 돌아와요. <span>비워 두면 「집중 ○분」이라고 써요 · 모래엔 앞의 14자까지</span></p>
+      <button id="focusStart" type="button" class="primary">시작</button>
+      <details class="more" id="focusMore">
+        <summary>더 보기 <small>집중 중 소리 · 숨 고르기 · 규칙</small></summary>
+        <h2 class="sub">집중하는 동안 소리</h2>
       <div class="seg three" role="radiogroup" aria-label="집중하는 동안 소리">
         <label><input type="radio" name="fhush" value="events" /><span>배경만</span></label>
         <label><input type="radio" name="fhush" value="all" /><span>조용히</span></label>
         <label><input type="radio" name="fhush" value="off" /><span>그대로</span></label>
       </div>
       <p class="note" id="focusHushNote"></p>
-      <textarea id="focusLetter" maxlength="80" rows="2" placeholder="무엇을 위해 집중하나요? 한 줄 (선택)"></textarea>
-      <p class="note">끝까지 하면 키위들이 이 한 줄과 날짜를 모래에 쓰고 일지 한 쪽으로 남겨요. 며칠 뒤엔 호박색 병에 담겨 돌아와요.</p>
-      <button id="focusStart" type="button" class="primary">시작</button>
-      <button id="focusBreath" type="button" class="quiet">1분 숨 고르기</button>
-      <ul class="rules" id="voyRules" hidden>
+        <button id="focusBreath" type="button" class="quiet">1분 숨 고르기</button>
+        <ul class="rules" id="voyRules" hidden>
         <li><b>잠가도</b><span>화면을 끄거나 다른 앱으로 가도 배는 계속 가요</span></li>
         <li><b>바닷길</b><span>걸음 대신 바닷길로 세요 · 1분 0.1해리</span></li>
         <li><b>일기</b><span>가는 길에 만난 것을 키위가 일지에 그려 남겨요</span></li>
@@ -138,12 +158,13 @@
         <li><b>낚싯줄</b><span>배 뒤로 줄을 드리워요 · 오래 갈수록 드문 것이 걸려요</span></li>
         <li><b>해도</b><span>간 만큼 지도 안개가 걷히고 작은 섬이 나타나요</span></li>
       </ul>
-      <ul class="rules" id="islandRules">
+        <ul class="rules" id="islandRules">
         <li><b>선물</b><span>끝까지 켜 두면 옷·장소가 든 상자가 떠내려와요</span></li>
         <li><b>10초</b><span>다른 앱으로 가면 10초 안에 돌아와야 해요</span></li>
         <li><b>화면</b><span>집중하는 동안 꺼지지 않아요 — 충전하면서 두세요</span></li>
         <li><b>걸음</b><span>집중 1분 100보 · 그냥 켜 두기 1분 10보</span></li>
       </ul>
+      </details>
     </div>
     <div class="busy" hidden>
       <h2 id="focusBusyH">집중 중</h2>
@@ -152,6 +173,8 @@
       <button id="focusStop" type="button">그만하기</button>
       <p class="note" id="focusBusyNote">그만둬도 걸은 만큼은 쌓여요. 선물은 끝까지 했을 때만.</p>
     </div>
+    </section>
+    <section class="pane fpane" data-pane="rec" role="tabpanel" aria-label="기록" hidden>
     <div id="focusStats" class="stats"></div>
     <div id="focusCal" class="cal">
       <div class="calHead"><button id="calPrev" type="button" aria-label="지난달">‹</button><b id="calMonth"></b><button id="calNext" type="button" aria-label="다음 달">›</button></div>
@@ -159,26 +182,19 @@
       <div id="calGrid" class="calGrid"></div>
       <p id="calNote" class="note"></p>
     </div>
+    </section>
+  </div>
   </div>
   <div id="settings" role="dialog" aria-label="설정" hidden>
     <div class="tabs" role="tablist" aria-label="설정 묶음">
       <button type="button" role="tab" data-tab="scene" aria-selected="true">풍경</button>
-      <button type="button" role="tab" data-tab="write" aria-selected="false">글씨</button>
-      <button type="button" role="tab" data-tab="bag" aria-selected="false">모은 것</button>
+      <button type="button" role="tab" data-tab="write" aria-selected="false">시계·메모</button>
+      <button type="button" role="tab" data-tab="screen" aria-selected="false">화면</button>
+      <button type="button" role="tab" data-tab="sound" aria-selected="false">소리</button>
       <button type="button" role="tab" data-tab="test" aria-selected="false">테스트</button>
     </div>
     <section class="pane" data-pane="scene" role="tabpanel" aria-label="풍경">
-    <h2>장소</h2>
-    <div class="seg three" role="radiogroup" aria-label="장소">
-      <label><input type="radio" name="map" value="beach" /><span>바닷가</span></label>
-      <label><input type="radio" name="map" value="nz" /><span>뉴질랜드 숲</span></label>
-      <label><input type="radio" name="map" value="snow" /><span>눈밭</span></label>
-      <label><input type="radio" name="map" value="fall" /><span>가을 호숫가</span></label>
-      <label><input type="radio" name="map" value="cherry" /><span>벚꽃 강변</span></label>
-      <label><input type="radio" name="map" value="oasis" /><span>사막 오아시스</span></label>
-      <label><input type="radio" name="map" value="zen" /><span>모래 정원</span></label>
-    </div>
-    <h2 class="sep">시간대</h2>
+    <h2>시간대</h2>
     <div class="seg two" role="radiogroup" aria-label="시간대">
       <label><input type="radio" name="light" value="auto" /><span>지금 시각</span></label>
       <label><input type="radio" name="light" value="manual" /><span>직접 고르기</span></label>
@@ -191,15 +207,9 @@
       </div>
     </div>
     <p class="hint">지금 시각이면 하루 동안 빛이 천천히 바뀌어요. 직접 고르면 그 빛이 그대로 머물러요.</p>
-    <h2 class="sep">창 모양</h2>
-    <div class="seg two" role="radiogroup" aria-label="창 모양">
-      <label><input type="radio" name="uitheme" value="modern" /><span>모던</span></label>
-      <label><input type="radio" name="uitheme" value="paper" /><span>종이</span></label>
-    </div>
-    <p class="hint">종이는 바닷가 편지지처럼 — 크림색 종이 · 고른 것은 도장 · 밤엔 등불 아래 종이 톤. 버튼 자리·기능은 같아요.</p>
-    </section>
-    <section class="pane" data-pane="write" role="tabpanel" aria-label="글씨" hidden>
-    <h2>키위 수</h2>
+    <h2 class="sep">시점</h2>
+    <div class="views" id="viewRow" role="group" aria-label="시점"></div>
+    <h2 class="sep">키위 수</h2>
     <div class="seg five" role="radiogroup" aria-label="키위 수">
       <label><input type="radio" name="kiwis" value="one" /><span>한 마리</span></label>
       <label><input type="radio" name="kiwis" value="few" /><span>조금</span></label>
@@ -220,11 +230,10 @@
       <label><input type="radio" name="lively" value="rich" /><span>아주 풍부</span></label>
     </div>
     <p class="hint">쉬는 키위의 행동을 얼마나 풍부하게 할지. 차분은 대개 걸어 다니며 콕콕 쪼고, 위로 갈수록 멈춰 서서 기지개·하품·킁킁 같은 몸짓을 자주 해요(덜 걷고 더 오래 머물러요).</p>
-    <h2 class="sep">시간 메모</h2>
+    </section>
+    <section class="pane" data-pane="write" role="tabpanel" aria-label="시계·메모" hidden>
+    <h2>시간 메모</h2>
     <div id="memoHost"></div>
-    <h2 class="sep">이름</h2>
-    <form id="meForm" class="km-add km-me" autocomplete="off"><input type="text" maxlength="8" placeholder="이름이나 별명" aria-label="이름이나 별명" /><button type="submit" class="km-go">저장</button></form>
-    <p class="hint">처음 켤 때 키위들이 「안녕 ○○」 · 「Hello ○○」을 써 줘요. 이 기기에만 저장돼요.</p>
     <h2 class="sep">시계</h2>
     <div id="clockOpts">
       <label class="row switch"><span>초 표시</span><input id="optSec" type="checkbox" /></label>
@@ -238,9 +247,50 @@
       <p class="hint">세워 두고 쓰는 시계예요. 화면이 꺼지지 않고 버튼은 숨어요(누르면 잠깐 보여요). 밤 10시~아침 6시엔 어둡게, 글씨 자리는 한 시간마다 조금씩 옮겨요. 충전하면서 두세요.</p>
     </div>
     </section>
+    <section class="pane" data-pane="screen" role="tabpanel" aria-label="화면" hidden>
+    <h2>창 모양</h2>
+    <div class="seg two" role="radiogroup" aria-label="창 모양">
+      <label><input type="radio" name="uitheme" value="modern" /><span>모던</span></label>
+      <label><input type="radio" name="uitheme" value="paper" /><span>종이</span></label>
+    </div>
+    <p class="hint">종이는 바닷가 편지지처럼 — 크림색 종이 · 고른 것은 도장 · 밤엔 등불 아래 종이 톤. 버튼 자리·기능은 같아요.</p>
+    <h2 class="sep">창 투명도</h2>
+    <p class="lightNow seeNow" id="winSeeNow"></p>
+    <input type="range" min="0" max="70" step="5" id="winSee" aria-label="창 투명도" />
+    <p class="hint">설정·바구니·떠나기 같은 창의 바탕을 비치게 해요. 창 모양(모던·종이)마다 따로 기억해요.</p>
+    <h2 class="sep">입력창</h2>
+    <label class="row switch"><span>아래 입력창 보이기</span><input type="checkbox" id="optSay" /></label>
+    <p class="hint">끄면 화면 아래 「여기에 문장을 써 보세요」 칸이 사라져요. 글 모드(시계·명언·단어장)는 그대로예요.</p>
+    <h2 class="sep">이름</h2>
+    <form id="meForm" class="km-add km-me" autocomplete="off"><input type="text" maxlength="8" placeholder="이름이나 별명" aria-label="이름이나 별명" /><button type="submit" class="km-go">저장</button></form>
+    <p class="hint">처음 켤 때 키위들이 「안녕 ○○」 · 「Hello ○○」을 써 줘요. 이 기기에만 저장돼요.</p>
+    <h2 class="sep">화면 정리</h2>
+    <button id="cleanBtn" type="button" class="wide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" /><circle cx="12" cy="12" r="2.6" /><path d="M4 20 20 4" /></svg><span>화면 정리</span><small>그림만 남기기</small></button>
+    <p class="hint">버튼과 입력창을 숨기고 그림만 남겨요. 한동안 안 건드리면 버튼은 저절로도 숨어요.</p>
+    </section>
+    <section class="pane" data-pane="sound" role="tabpanel" aria-label="소리" hidden>
+    <h2>크기</h2>
+    <label class="row switch"><span>소리</span><input id="mixOn" type="checkbox" /></label>
+    <label class="row"><span>음악</span><input id="mix-music" type="range" min="0" max="100" step="1" /></label>
+    <label class="row"><span>파도·날씨</span><input id="mix-amb" type="range" min="0" max="100" step="1" /></label>
+    <label class="row"><span>효과음</span><input id="mix-sfx" type="range" min="0" max="100" step="1" /></label>
+    <h2 class="sep">고르기</h2>
+    <button id="toWardSound" type="button" class="wide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.2a1.9 1.9 0 1 1 1.9-1.9c0 1-.9 1.4-1.9 2.2v1.4" /><path d="M12 8.9 3.6 15.4a1.2 1.2 0 0 0 .7 2.1h15.4a1.2 1.2 0 0 0 .7-2.1z" /></svg><span>곡 · 발자국 소리 · 자연 배경</span><small>꾸미기에서 들어 보고 골라요</small></button>
+    </section>
     <section class="pane" data-pane="test" role="tabpanel" aria-label="테스트" hidden id="tunePane">
     <p class="hint top">테스트 기간에만 보이는 탭이에요. 바꾼 값은 이 기기에만 저장돼요.</p>
-    <h2>손님</h2>
+    <h2>장소 바로 가기</h2>
+    <p class="hint">평소엔 항해로만 섬을 옮겨요. 테스트할 때만 여기서 바로 가요(열린 섬만).</p>
+    <div class="seg three tplaces" role="radiogroup" aria-label="장소">
+      <label><input type="radio" name="map" value="beach" /><span>바닷가</span></label>
+      <label><input type="radio" name="map" value="nz" /><span>뉴질랜드 숲</span></label>
+      <label><input type="radio" name="map" value="snow" /><span>눈밭</span></label>
+      <label><input type="radio" name="map" value="fall" /><span>가을 호숫가</span></label>
+      <label><input type="radio" name="map" value="cherry" /><span>벚꽃 강변</span></label>
+      <label><input type="radio" name="map" value="oasis" /><span>사막 오아시스</span></label>
+      <label><input type="radio" name="map" value="zen" /><span>모래 정원</span></label>
+    </div>
+    <h2 class="sep">손님</h2>
     <div class="trow"><span>비우면 손님이 오는 시간</span><output id="tAwayV"></output></div>
     <input id="tAway" type="range" min="0" max="60" step="1" aria-label="비우면 손님이 오는 시간(분)" />
     <div class="trow"><span>켜 둔 채로도 손님</span><select id="tAuto" aria-label="켜 둔 채로도 손님 오는 간격"><option value="0">끔</option><option value="1">1분마다</option><option value="3">3분마다</option><option value="5">5분마다</option><option value="15">15분마다</option><option value="30">30분마다</option></select></div>
@@ -279,50 +329,97 @@
     <p class="hint"><a href="seed.html" style="color:inherit">더미 데이터 채우기 페이지</a> — 집중 달력·일지·무리·손님·병·도감을 가짜 기록으로 채워 보기 (게임 창을 닫고 채운 뒤 돌아와요, 되돌리기 있음)</p>
     <p class="hint">기록 지우기는 무리 · 손님 방명록 · 편지 · 집중 기록을 지워요. 모은 아이템과 설정은 그대로예요.</p>
     </section>
-    <section class="pane" data-pane="bag" role="tabpanel" aria-label="모은 것" hidden>
+  </div>
+  <div id="basket" role="dialog" aria-label="바구니" hidden>
     <p id="colTitle" class="bagSum"></p>
+    <div class="tabs" role="tablist" aria-label="바구니 묶음">
+      <button type="button" role="tab" data-tab="photo" aria-selected="true">일지</button>
+      <button type="button" role="tab" data-tab="letter" aria-selected="false">편지</button>
+      <button type="button" role="tab" data-tab="dex" aria-selected="false">도감</button>
+    </div>
+    <section class="pane" data-pane="photo" role="tabpanel" aria-label="일지">
     <h2 id="shotTitle">집중 일지</h2>
     <div id="shotGrid" class="shots"></div>
     <div id="shotTools" class="shotTools" hidden><button id="shotAll" type="button">전부 내려받기</button><span id="shotWarn"></span></div>
     <p class="hint">집중을 끝까지 하면 키위들이 이유와 날짜를 모래에 쓰고 한 장 남겨요(이 기기에만 저장). 모래에 쓴 글은 며칠 뒤 호박색 병에 담겨 돌아오고, 초록 병엔 키위들의 쪽지가 들어 있어요.</p>
-    <h2 class="sep" id="flockTitle">내 키위</h2>
-    <div id="flockList" class="flock"></div>
-    <p class="hint">들른 날마다 한 마리씩 무리에 들어와요. 무리 키위가 먼저 나오고, 모자라면 손님 키위가 같이 써요. 이름을 눌러 바꿀 수 있어요.</p>
-    <h2 class="sep" id="letterTitle">편지</h2>
+    </section>
+    <section class="pane" data-pane="letter" role="tabpanel" aria-label="편지" hidden>
+    <h2 id="letterTitle">편지</h2>
     <div id="letterList" class="letters"></div>
-    <h2 class="sep" id="wearTitle">옷</h2>
-    <div id="wearGrid" class="colgrid"></div>
-    <p class="hint">눌러서 입히기 · 벗기기</p>
-    <h2 class="sep" id="placeTitle">장소</h2>
-    <div id="placeGrid" class="colgrid places"></div>
-    <h2 class="sep" id="buildTitle">섬에서 지은 것</h2>
-    <div id="buildList" class="builds"></div>
-    <p class="hint">그 섬에서 끝까지 한 집중과 그 섬에 닿은 항해만큼 키위들이 하나씩 지어요. 낚아 온 유목 · 밧줄 · 판자는 하나에 15분어치예요.</p>
-    <h2 class="sep" id="chartTitle">해도</h2>
-    <div id="chartBox" class="chartBox"><canvas id="chartCv" aria-label="해도 — 다녀온 항로와 찾은 섬"></canvas></div>
-    <p class="note" id="chartNote"></p>
-    <div id="chartList" class="chartList"></div>
-    <h2 class="sep" id="boatTitle">배</h2>
-    <div id="boatGrid" class="colgrid places boats"></div>
-    <h2 class="sep" id="sailTitle">돛</h2>
-    <div id="sailGrid" class="colgrid places boats"></div>
-    <p class="hint">바다 위에서 보낸 시간만큼 새 배와 돛이 열려요. 눌러서 바꾸기</p>
-    <h2 class="sep" id="findTitle">주운 것</h2>
+    </section>
+    <section class="pane" data-pane="dex" role="tabpanel" aria-label="도감" hidden>
+    <h2 id="findTitle">주운 것</h2>
     <div id="findGrid" class="colgrid finds"></div>
     <p class="hint">켜 두면 몇 분에 한 번 물가에 작은 것이 밀려와요. 어떤 건 밤 · 비 · 해 질 녘 · 눈밭에서만.</p>
     <h2 class="sep" id="catchTitle">낚은 것</h2>
     <div id="catchGrid" class="colgrid finds"></div>
     <p class="hint">항해할 때 배 뒤로 드리운 줄에 걸려 와요. 오래 갈수록 · 산호초를 지날수록 드문 것이 걸려요.</p>
-    <h2 class="sub">바꾸기</h2>
-    <div id="craftList"></div>
-    <p class="hint">물 위로 유리병 · 상자 · 소라가 떠내려오면 눌러서 열어 보세요.</p>
     <h2 class="sep" id="momentTitle">드문 순간</h2>
     <div id="momentGrid" class="colgrid places moments"></div>
     <p class="hint">섬을 오래 지켜보고 있으면 아주 가끔, 그 시간·날씨·장소에 맞는 장면이 펼쳐져요. 본 장면은 눌러서 다시 볼 수 있어요.</p>
     <h2 class="sep" id="guestTitle">다녀간 손님</h2>
     <div id="guestGrid" class="colgrid guests"></div>
     <p class="hint">자리를 비운 사이(15분 넘게) 모래 위를 지나간 동물들. 동물마다 편지를 세 통씩 두고 가요 — 모래 위 쪽지를 눌러 읽고, 읽은 편지는 여기서 다시 읽어요. 장소마다 사는 동물이 달라요.</p>
+    <h2 class="sep" id="buildTitle">섬에서 지은 것</h2>
+    <div id="buildList" class="builds"></div>
+    <p class="hint">그 섬에서 끝까지 한 집중과 그 섬에 닿은 항해만큼 키위들이 하나씩 지어요. 낚아 온 유목 · 밧줄 · 판자는 하나에 15분어치예요.</p>
     </section>
+  </div>
+  <!-- 꾸미기: 눌러서 바로 입혀 보고·들어 보고, 저장해야 남는다 (src/ui/shell.js) -->
+  <div id="wardrobe" role="dialog" aria-label="꾸미기" hidden>
+    <div class="wdHead"><h2>꾸미기</h2><p>눌러서 바로 입혀 보고 들어 봐요 · 저장해야 남아요</p></div>
+    <div class="tabs" role="tablist" aria-label="꾸미기 묶음">
+      <button type="button" role="tab" data-tab="kiwi" aria-selected="true">키위</button>
+      <button type="button" role="tab" data-tab="boat" aria-selected="false">배·돛</button>
+      <button type="button" role="tab" data-tab="sound" aria-selected="false">소리</button>
+      <button type="button" role="tab" data-tab="craft" aria-selected="false">만들기</button>
+    </div>
+    <section class="pane" data-pane="kiwi" role="tabpanel" aria-label="키위">
+    <h2 id="wearTitle">옷</h2>
+    <div id="wearGrid" class="colgrid"></div>
+    <p class="hint">눌러서 입히기 · 벗기기</p>
+    <h2 class="sep" id="flockTitle">내 키위</h2>
+    <div id="flockList" class="flock"></div>
+    <p class="hint">들른 날마다 한 마리씩 무리에 들어와요. 무리 키위가 먼저 나오고, 모자라면 손님 키위가 같이 써요. 이름을 눌러 바꿀 수 있어요.</p>
+    </section>
+    <section class="pane" data-pane="boat" role="tabpanel" aria-label="배·돛" hidden>
+    <div class="boatStage" id="boatStage" aria-hidden="true"><img class="hull" alt="" /><img class="sail" alt="" /></div>
+    <h2 id="boatTitle">배</h2>
+    <div id="boatGrid" class="colgrid places boats"></div>
+    <h2 class="sep" id="sailTitle">돛</h2>
+    <div id="sailGrid" class="colgrid places boats"></div>
+    <p class="hint">바다 위에서 보낸 시간만큼 새 배와 돛이 열려요. 눌러서 바꾸기</p>
+    </section>
+    <section class="pane" data-pane="sound" role="tabpanel" aria-label="소리" hidden>
+    <h3>곡</h3>
+    <p class="hint top">고르면 시간 따라 바뀌는 기본 음악 <b>대신</b> 흘러요.</p>
+    <div id="songPacks" class="packs"></div>
+    <h3>키위 소리</h3>
+    <div id="voicePacks" class="packs voice" role="group" aria-label="키위 소리 갈래"></div>
+    <p id="stepHint" class="hint top">키위가 글씨를 밟을 때 칼림바 대신 그 바닥의 악기로 울려요.</p>
+    <div id="stepPacks" class="packs"></div>
+    <h3>찾았을 때</h3>
+    <p class="hint top">병·상자를 열거나 물가에서 주울 때.</p>
+    <div id="findPacks" class="packs"></div>
+    <h3>자연 배경</h3>
+    <p class="hint top">밤 벌레 소리 대신 흘러요(파도는 작게).</p>
+    <div id="naturePacks" class="packs"></div>
+    <p class="hint foot">못 모은 소리는 ? — 켜 두면 소라 껍데기가 떠내려와요.</p>
+    </section>
+    <section class="pane" data-pane="craft" role="tabpanel" aria-label="만들기" hidden>
+    <h2>주운 것으로 만들기</h2>
+    <div id="craftList"></div>
+    <p class="hint">물 위로 유리병 · 상자 · 소라가 떠내려오면 눌러서 열어 보세요.</p>
+    </section>
+    <div class="wdBar"><button id="wdCancel" type="button">되돌리기</button><button id="wdSave" type="button" class="primary">저장</button></div>
+  </div>
+  <!-- 해도: 장소의 유일한 입구. 열린 섬이 늘수록 지도가 넓어진다 (src/voyage-extras.js) -->
+  <div id="chartView" role="dialog" aria-label="해도" hidden>
+    <div class="cvHead"><h2>해도</h2><span id="chartCount"></span><button id="chartClose" type="button" aria-label="해도 닫기">닫기</button></div>
+    <div id="chartBox" class="chartBox"><canvas id="chartCv" aria-label="해도 — 다녀온 항로와 찾은 섬"></canvas></div>
+    <div id="isleCard" class="isleCard" hidden><b class="nm"></b><p class="tx"></p><div class="btns"><button type="button" class="go primary"></button><button type="button" class="x">닫기</button></div></div>
+    <p class="note" id="chartNote"></p>
+    <details class="more" id="chartMore"><summary>찾은 작은 섬 · 바다 위의 곳</summary><div id="chartList" class="chartList"></div></details>
   </div>
   <!-- v28.18 부두 장면 (출항 · 도착) — 누르면 건너뛴다 (src/cutscene.js) -->
   <div id="cutscene" hidden aria-label="부두 장면"><video muted playsinline preload="none"></video><p class="cutCaption"></p><button type="button">건너뛰기</button></div>
@@ -348,36 +445,6 @@
       <img alt="" draggable="false">
     </div>
   </dialog>
-  <div id="mixer" role="dialog" aria-label="소리 설정" hidden>
-    <div class="tabs" role="tablist" aria-label="소리 묶음">
-      <button type="button" role="tab" data-tab="vol" aria-selected="true">크기</button>
-      <button type="button" role="tab" data-tab="song" aria-selected="false">곡</button>
-      <button type="button" role="tab" data-tab="bed" aria-selected="false">발자국·배경</button>
-    </div>
-    <section class="pane" data-pane="vol" role="tabpanel" aria-label="크기">
-    <label class="row switch"><span>소리</span><input id="mixOn" type="checkbox" /></label>
-    <label class="row"><span>음악</span><input id="mix-music" type="range" min="0" max="100" step="1" /></label>
-    <label class="row"><span>파도·날씨</span><input id="mix-amb" type="range" min="0" max="100" step="1" /></label>
-    <label class="row"><span>효과음</span><input id="mix-sfx" type="range" min="0" max="100" step="1" /></label>
-    </section>
-    <section class="pane" data-pane="song" role="tabpanel" aria-label="곡" hidden>
-    <p class="hint top">고르면 시간 따라 바뀌는 기본 음악 <b>대신</b> 흘러요.</p>
-    <div id="songPacks" class="packs"></div>
-    </section>
-    <section class="pane" data-pane="bed" role="tabpanel" aria-label="발자국 소리와 자연 배경" hidden>
-    <h3>키위 소리</h3>
-    <div id="voicePacks" class="packs voice" role="group" aria-label="키위 소리 갈래"></div>
-    <p id="stepHint" class="hint top">키위가 글씨를 밟을 때 칼림바 대신 그 바닥의 악기로 울려요.</p>
-    <div id="stepPacks" class="packs"></div>
-    <h3>찾았을 때</h3>
-    <p class="hint top">병·상자를 열거나 물가에서 주울 때.</p>
-    <div id="findPacks" class="packs"></div>
-    <h3>자연 배경</h3>
-    <p class="hint top">밤 벌레 소리 대신 흘러요(파도는 작게).</p>
-    <div id="naturePacks" class="packs"></div>
-    </section>
-    <p class="hint foot">못 모은 소리는 ? — 켜 두면 소라 껍데기가 떠내려와요.</p>
-  </div>
   <div id="picker" role="dialog" hidden></div>
   <div id="toast" role="status" aria-live="polite"></div>
   <button id="breathOffer" type="button" hidden><img src="assets/flower.webp" alt="" /><span><b>1분 숨 고르기</b><span class="why"></span></span></button>
@@ -392,10 +459,10 @@
       <ul class="keys">
         <li><i data-icon="modeBtn"></i><b>글 모드</b><span>직접 쓰기 · 시계 · 명언 · 단어장</span></li>
         <li><i data-icon="weatherBtn"></i><b>날씨</b><span>맑음 · 흐림 · 보슬비 · 비 · 눈 · 안개 · 바람 · 꽃잎 바람(숲에선 낙엽)</span></li>
-        <li><i data-icon="viewBtn"></i><b>시점</b><span>위에서 · 디오라마 · 따라가기 · 쌍안경 · 글자 보기 · 바람결</span></li>
-        <li><i data-icon="soundBtn"></i><b>소리</b><span>크기 · 곡 · 발자국 소리 · 자연 배경</span></li>
-        <li><i data-icon="focusBtn"></i><b>집중</b><span>15 · 25 · 50분 또는 직접(5~180분), 끝까지 하면 선물 상자와 일지 한 쪽</span></li>
-        <li><i data-icon="menuBtn"></i><b>메뉴</b><span>설정(풍경 · 글씨) · 모은 것 · 화면 정리 · 작품 설명</span></li>
+        <li><i data-icon="focusBtn"></i><b>떠나기</b><span>섬에서 집중(끝까지 하면 선물 상자) · 항해(다른 섬으로 — 섬은 항해로만 옮겨요)</span></li>
+        <li><i data-icon="chartBtn"></i><b>해도</b><span>섬과 항로 · 열린 섬이 늘수록 지도가 넓어져요 · 섬을 눌러 항해</span></li>
+        <li><i data-icon="basketBtn"></i><b>바구니</b><span>일지 · 편지 · 도감(주운 것 · 낚은 것 · 드문 순간 · 손님 · 지은 것)</span></li>
+        <li><i data-icon="menuBtn"></i><b>메뉴</b><span>꾸미기(옷 · 배·돛 · 소리) · 설정(풍경 · 시계·메모 · 화면 · 소리) · 작품 설명</span></li>
       </ul>
       <h2>손으로</h2>
       <ul class="plain">
@@ -414,22 +481,21 @@
         <li>몇 분에 한 번 물가에 조개·바다 유리가 밀려와요 — 모으면 키위 옷으로 바꿀 수 있어요</li>
         <li>들른 날마다 이름 있는 키위가 한 마리씩 무리에 들어와요 — 누르면 이름이 떠요</li>
         <li>자리를 비운 사이 그 장소에 사는 동물이 다녀가요 — 발자국과 함께 편지를 두고 가요</li>
-        <li>집중한 날은 집중 창 달력에 발자국 도장이 찍혀요</li>
-        <li>모은 것은 메뉴 → 「모은 것」에서 다시 보고 입히고 골라요</li>
+        <li>집중한 날은 떠나기 창 › 기록 달력에 발자국 도장이 찍혀요</li>
+        <li>모은 것은 바구니에서 다시 보고, 입히고 고르는 건 메뉴 → 꾸미기에서 해요</li>
       </ul>
       <p class="small">빛은 실제 시각을 따라 새벽 · 낮 · 노을 · 밤으로 바뀌고, 밤엔 반딧불이가 떠요. 장소: 바닷가 · 뉴질랜드 숲 · 눈밭 · 가을 호숫가 · 모래 정원.</p>
-      <p class="credits">키위 스핀오프 v28.1 · 2026-10-21<span id="audio-credits"></span></p>
+      <p class="credits">키위 스핀오프 v29 · 2026-10-24<span id="audio-credits"></span></p>
       <button type="button" data-close>닫기</button>
     </div>
   </div>
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v28.24.0"></script>
-  <script type="module" src="src/credits.js?v=v28.24.0"></script>
-  <!-- v26 UI 구조 개편(src/ia — 기존 버튼·창을 새 자리로 옮김, docs/IA.md) · 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/ia/ia.js?v=v28.24.0"></script>
-  <script type="module" src="src/taps.js?v=v28.24.0"></script>
+  <script type="module" src="src/main.js?v=v29.0.0"></script>
+  <script type="module" src="src/credits.js?v=v29.0.0"></script>
+  <!-- 테스트 탭 누름 세기(src/taps.js) -->
+  <script type="module" src="src/taps.js?v=v29.0.0"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.
