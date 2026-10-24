@@ -1,5 +1,5 @@
-import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v29.3.1';
-import { BoatPreview } from './boat-preview.js?v=v29.3.1';
+import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v29.3.2';
+import { BoatPreview } from './boat-preview.js?v=v29.3.2';
 // src/ui/shell.js — 2026-10-24 UI 구조 개편 (결정 10개: _views/html-views/2026-10-24_kiwi-ui-restructure.html)
 //
 //  마크업은 index.html 에 제자리로 있고(예전 src/ia/ia.js 처럼 뜬 뒤에 옮기지 않는다), 여기는 새 창 셋의 동작만 맡는다.
