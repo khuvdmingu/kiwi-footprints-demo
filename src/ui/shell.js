@@ -68,8 +68,8 @@ export function mountShell(env) {
   function paintBoatStage() {
     const st = $('boatStage'); if (!st) return;
     const b = env.voyScene.boatId, s = env.voyScene.sailId;
-    st.querySelector('.hull').src = 'assets/' + (b === 'dinghy' ? 'voyage-boat.webp?v=v29.0.0' : 'boat-' + b + '.webp?v=v29.0.0');
-    st.querySelector('.sail').src = 'assets/' + (s === 'leaf' ? 'voyage-sail.webp?v=v29.0.0' : 'sail-' + s + '.webp?v=v29.0.0');
+    st.querySelector('.hull').src = 'assets/' + (b === 'dinghy' ? 'voyage-boat.webp?v=v29.1.0' : 'boat-' + b + '.webp?v=v29.1.0');
+    st.querySelector('.sail').src = 'assets/' + (s === 'leaf' ? 'voyage-sail.webp?v=v29.1.0' : 'sail-' + s + '.webp?v=v29.1.0');
   }
   function openWard(open, { save = false, tab } = {}) {
     if (open === !ward.hidden) { if (open && tab) wardTab(tab); return; }

@@ -81,6 +81,10 @@ body.dressing #breathOffer { display: none; }
 #focusPanel .snap b { font-weight: 700; color: var(--sand); }
 #focusPanel .snap span { display: block; margin-top: 2px; opacity: 0.75; }
 #focusPanel #focusStart { margin-top: 12px; }
+#focusPanel .busy #voyQuit { margin-top: 8px; }
+#focusPanel button.quit.armed { background: #b0473a; color: #fff8ec; border-color: transparent; opacity: 1; }
+#focusPanel .voyQuitNote { margin: 6px 2px 0; font-size: 12px; opacity: 0.75; }
+#focusPanel .voyPaused .tbtns button { flex: 1; }
 #focusPanel .more { margin: 10px 0 0; border-top: 1px solid var(--panel-line); padding-top: 4px; }
 .more summary { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 4px; cursor: pointer; font-weight: 600; font-size: 14px; list-style: none; white-space: nowrap; }
 .more summary::-webkit-details-marker { display: none; }
