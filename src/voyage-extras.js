@@ -7,10 +7,10 @@
 //   · extras.drawIsland(ctx, beach, mapId, night) — 섬 장면에 지은 것을 그린다
 //  규칙·저장은 chart.js · fishing.js · build.js 에, 화면 칸(바구니 › 해도 · 장소·소리 · 도감, 집중 창 안내)은 index.html 에.
 
-import { Chart, ISLET, SPOT, BIG, STOCK_ISLE_SHEETS, drawChart, routeLine, josa, SHEET as CHART_SHEET, CHART_B, BIG_ART } from './chart.js?v=v29.4.2';
-import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v29.4.2';
-import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v29.4.2';
-import { loadSheet } from './sheet.js?v=v29.4.2';
+import { Chart, ISLET, SPOT, BIG, STOCK_ISLE_SHEETS, drawChart, routeLine, josa, SHEET as CHART_SHEET, CHART_B, BIG_ART } from './chart.js?v=v29.4.3';
+import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v29.4.3';
+import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v29.4.3';
+import { loadSheet } from './sheet.js?v=v29.4.3';
 
 // 그림 격자가 assets/ 에 들어오면 true 로 (없을 때 404 를 내지 않게 — 그동안은 코드 그림)
 export const ART = { chart: true, catch: true, extra: true, kit: true, isles: true };   // isles: 재고 24곳 섬 그림 격자 chart-isles-a/b.webp (v29.4.1 Codex 그림)   // 2026-10-21 Higgsfield 격자 2장 (docs/GRAPHICS-PROMPTS.md v28)
@@ -23,7 +23,7 @@ export function mountExtras(env) {
   const base = new URL('../assets/', import.meta.url).href;
   const sheets = { chart: null, catch: null, extra: null, kit: null, chartB: null, paper: null };
   const load = (k, f) => { if (ART[k]) loadSheet(base + f).then(s => { if (s) { sheets[k] = s; paintAll(); } }); };
-  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v29.4.2'); load('kit', 'build-sheet-2.webp?v=v29.4.2');   // v28.20 벚꽃 강변·오아시스 건물   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
+  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v29.4.3'); load('kit', 'build-sheet-2.webp?v=v29.4.3');   // v28.20 벚꽃 강변·오아시스 건물   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
   // v28.19 해도 그림 B — 양피지 + 새 아이콘 (못 읽으면 지금 그림 그대로)
   loadSheet(base + CHART_B.sheet).then(s => { if (s) { sheets.chartB = s; paintAll(); } });
   { const im = new Image(); im.onload = () => { sheets.paper = im; paintAll(); }; im.src = base + CHART_B.paper; }
@@ -225,7 +225,8 @@ export function mountExtras(env) {
     // 화면 점 p 아래의 해도 점 m 이 그대로 남도록 z 를 바꾼다
     const zoomAt = (p, z) => { const [W, H] = boxSize(), L = Math.max(W, H), m = toMap(p), S = Math.min(Z_MAX, Math.max(1, z)) * L;
       view = drawView({ z: S / L, cx: m[0] - (p[0] - W / 2) / S, cy: m[1] - (p[1] - H / 2) / S }); };
-    const begin = () => { userMoved = true; cancelAnimationFrame(anim); $('isleCard').hidden = true; };
+    const begin = () => { userMoved = true; cancelAnimationFrame(anim); $('isleCard').hidden = true; if (!saved('chartHinted')) { save('chartHinted', '1'); $('chartView').querySelector('.cvHint')?.setAttribute('hidden', ''); } };
+    if (saved('chartHinted')) $('chartView').querySelector('.cvHint')?.setAttribute('hidden', '');   // 손으로 둘러본 적이 있으면 안내 줄은 처음부터 숨긴다 (아래 판을 낮게)
     cv.addEventListener('pointerdown', e => { if (!layout || !view) return; try { cv.setPointerCapture?.(e.pointerId); } catch { /* 이미 끝난 손가락 */ } pts.set(e.pointerId, local(e));
       if (pts.size === 1) { moved = 0; start = { p: local(e), v: { ...view } }; } else start = null; });
     cv.addEventListener('pointermove', e => { if (!pts.has(e.pointerId) || !layout) return; const prev = pts.get(e.pointerId), now = local(e);

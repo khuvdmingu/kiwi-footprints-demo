@@ -3,7 +3,7 @@
 //      날갯짓은 날개 방향으로 그림을 접었다 펴는 것, 물 위에는 흐린 그림자가 빛 방향으로 비켜 따라간다.
 //  한두 마리가 바다 위를 지나가고, 다 지나가면 잠시 뒤 다시 온다. 지나갈 때 가끔 운다(onCall).
 
-import { LIGHT, MOTION } from './tokens.js?v=v29.4.2';
+import { LIGHT, MOTION } from './tokens.js?v=v29.4.3';
 
 const HEAD = 0.654;      // 그림 속 갈매기가 향한 각 (오른쪽 위로 −0.654 rad) → 이만큼 돌리면 오른쪽을 본다
 const PIVOT = [0.478, 0.488];
