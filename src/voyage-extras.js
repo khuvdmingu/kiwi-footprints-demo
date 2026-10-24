@@ -7,10 +7,10 @@
 //   · extras.drawIsland(ctx, beach, mapId, night) — 섬 장면에 지은 것을 그린다
 //  규칙·저장은 chart.js · fishing.js · build.js 에, 화면 칸(바구니 › 해도 · 장소·소리 · 도감, 집중 창 안내)은 index.html 에.
 
-import { Chart, ISLET, SPOT, BIG, STOCK_ISLE_SHEETS, drawChart, routeLine, josa, SHEET as CHART_SHEET, CHART_B, BIG_ART } from './chart.js?v=v29.4.3';
-import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v29.4.3';
-import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v29.4.3';
-import { loadSheet } from './sheet.js?v=v29.4.3';
+import { Chart, ISLET, SPOT, BIG, STOCK_ISLE_SHEETS, drawChart, routeLine, josa, SHEET as CHART_SHEET, CHART_B, BIG_ART } from './chart.js?v=v29.4.4';
+import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v29.4.4';
+import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v29.4.4';
+import { loadSheet } from './sheet.js?v=v29.4.4';
 
 // 그림 격자가 assets/ 에 들어오면 true 로 (없을 때 404 를 내지 않게 — 그동안은 코드 그림)
 export const ART = { chart: true, catch: true, extra: true, kit: true, isles: true };   // isles: 재고 24곳 섬 그림 격자 chart-isles-a/b.webp (v29.4.1 Codex 그림)   // 2026-10-21 Higgsfield 격자 2장 (docs/GRAPHICS-PROMPTS.md v28)
@@ -23,7 +23,7 @@ export function mountExtras(env) {
   const base = new URL('../assets/', import.meta.url).href;
   const sheets = { chart: null, catch: null, extra: null, kit: null, chartB: null, paper: null };
   const load = (k, f) => { if (ART[k]) loadSheet(base + f).then(s => { if (s) { sheets[k] = s; paintAll(); } }); };
-  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v29.4.3'); load('kit', 'build-sheet-2.webp?v=v29.4.3');   // v28.20 벚꽃 강변·오아시스 건물   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
+  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v29.4.4'); load('kit', 'build-sheet-2.webp?v=v29.4.4');   // v28.20 벚꽃 강변·오아시스 건물   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
   // v28.19 해도 그림 B — 양피지 + 새 아이콘 (못 읽으면 지금 그림 그대로)
   loadSheet(base + CHART_B.sheet).then(s => { if (s) { sheets.chartB = s; paintAll(); } });
   { const im = new Image(); im.onload = () => { sheets.paper = im; paintAll(); }; im.src = base + CHART_B.paper; }
@@ -86,7 +86,10 @@ export function mountExtras(env) {
   //  보는 범위 = { cx, cy, z } · cx·cy = 화면 가운데의 해도 좌표(0~1), z = 종이 한 변 / 화면 긴 변(≥1).
   //  처음엔 열린 섬이 다 들어오게 맞추되(그래도 종이가 화면을 덮는 크기 이상), 손가락으로 끌어 둘러보고 두 손가락·휠로 확대.
   const VIEW_KEY = 'chartView2', PAD = 0.13, Z_MAX = 4;
-  let view = null, anim = 0, layout = null, userMoved = false;
+  let view = null, anim = 0, layout = null, userMoved = false, sel = null;   // sel = 누른 곳 { id, text } — 해도엔 그 이름만 쓴다
+  // v29.4.4 (사용자 S25 Ultra 세로 「안 보여」): 종이가 화면 긴 변을 덮게 하면 세로 폰에선 지도 좌우가 잘려 섬 절반이 화면 밖이었다.
+  //  이제 짧은 변까지 물러설 수 있다 — 세로 폰은 지도 폭 = 화면 폭, 위아래 남는 곳은 탁자 색.
+  const zMin = () => { const [W, H] = boxSize(); return Math.min(W, H) / Math.max(W, H); };
   const home = () => voyage.at || env.mapId();
   const boxSize = () => { const box = $('chartBox'); return [Math.max(120, box.clientWidth), Math.max(120, box.clientHeight)]; };
   function fitView() {
@@ -101,14 +104,17 @@ export function mountExtras(env) {
     const foot = $('chartBox').getBoundingClientRect().bottom - ($('chartView').querySelector('.cvFoot')?.getBoundingClientRect().top || H);
     const top = Math.max(0, head) + 8, bot = Math.max(0, foot) + 8, Hv = Math.max(120, H - top - bot);
     const bw = Math.max(0.3, x1 - x0 + 2 * PAD), bh = Math.max(0.3, y1 - y0 + 2 * PAD);
-    const S = Math.min(Z_MAX * L, Math.max(L, Math.min(W / bw, Hv / bh)));
-    return clampView({ cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 + (bot - top) / 2 / S, z: S / L });
+    // v29.4.4 (사용자 「한 화면에 다 담으려 해서 그렇다 — 자유롭게 탐색」): 다 넣으려고 물러서지 않는다.
+    //  섬 그림이 손가락으로 누르기 좋은 크기(지름 ≈ 110px)가 되는 배율로, 지금 있는 섬을 가운데 두고 연다. 나머지는 끌어서·두 손가락으로.
+    const COMFY = 820, fit = Math.min(W / bw, Hv / bh), S = Math.min(Z_MAX * L, Math.max(COMFY, L, fit));
+    const c = BIG[home()] || { x: (x0 + x1) / 2, y: (y0 + y1) / 2 };
+    return clampView({ cx: S > fit ? c.x : (x0 + x1) / 2, cy: (S > fit ? c.y : (y0 + y1) / 2) + (bot - top) / 2 / S, z: S / L });
   }
   // 종이 밖이 보이지 않게: 화면 가운데가 갈 수 있는 범위를 줄인다
   function clampView(v) {
-    const [W, H] = boxSize(), z = Math.min(Z_MAX, Math.max(1, v.z)), S = z * Math.max(W, H);
-    const hx = W / 2 / S, hy = H / 2 / S;
-    return { z, cx: Math.min(1 - hx, Math.max(hx, v.cx)), cy: Math.min(1 - hy, Math.max(hy, v.cy)) };
+    const [W, H] = boxSize(), z = Math.min(Z_MAX, Math.max(zMin(), v.z)), S = z * Math.max(W, H);
+    const hx = W / 2 / S, hy = H / 2 / S;   // 종이가 화면보다 좁은 쪽은 가운데에 둔다
+    return { z, cx: hx >= 0.5 ? 0.5 : Math.min(1 - hx, Math.max(hx, v.cx)), cy: hy >= 0.5 ? 0.5 : Math.min(1 - hy, Math.max(hy, v.cy)) };
   }
   // 한 장 그리기
   function drawView(v) {
@@ -118,9 +124,9 @@ export function mountExtras(env) {
     const S = v.z * Math.max(W, H), ox = W / 2 - v.cx * S, oy = H / 2 - v.cy * S;
     layout = { S, ox, oy };
     const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
-    c.fillStyle = '#e2cfa6'; c.fillRect(0, 0, W, H);
+    c.fillStyle = '#cdb68a'; c.fillRect(0, 0, W, H);   // 종이 밖(세로 폰 위아래) = 탁자
     c.translate(ox, oy);
-    drawChart(c, S, { chart, log: voyage.log, home: home(), sailedMs: voyage.sailedMs, open: mapOpen, placeName, sheet: sheets.chart, extra: sheets.extra, paper: sheets.paper, bigArt: sheets.bigArt, alt: sheets.chartB && { ...CHART_B, sheet: sheets.chartB }, builds: id => builds.level(id), t: 0, all: true, isles: sheets.isles });
+    drawChart(c, S, { chart, log: voyage.log, home: home(), sailedMs: voyage.sailedMs, open: mapOpen, placeName, sheet: sheets.chart, extra: sheets.extra, paper: sheets.paper, bigArt: sheets.bigArt, alt: sheets.chartB && { ...CHART_B, sheet: sheets.chartB }, builds: id => builds.level(id), t: 0, all: true, isles: sheets.isles, label: sel });
     return v;
   }
   let redraw = 0;
@@ -223,7 +229,7 @@ export function mountExtras(env) {
     const local = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
     const toMap = ([x, y]) => [(x - layout.ox) / layout.S, (y - layout.oy) / layout.S];
     // 화면 점 p 아래의 해도 점 m 이 그대로 남도록 z 를 바꾼다
-    const zoomAt = (p, z) => { const [W, H] = boxSize(), L = Math.max(W, H), m = toMap(p), S = Math.min(Z_MAX, Math.max(1, z)) * L;
+    const zoomAt = (p, z) => { const [W, H] = boxSize(), L = Math.max(W, H), m = toMap(p), S = Math.min(Z_MAX, Math.max(zMin(), z)) * L;
       view = drawView({ z: S / L, cx: m[0] - (p[0] - W / 2) / S, cy: m[1] - (p[1] - H / 2) / S }); };
     const begin = () => { userMoved = true; cancelAnimationFrame(anim); $('isleCard').hidden = true; if (!saved('chartHinted')) { save('chartHinted', '1'); $('chartView').querySelector('.cvHint')?.setAttribute('hidden', ''); } };
     if (saved('chartHinted')) $('chartView').querySelector('.cvHint')?.setAttribute('hidden', '');   // 손으로 둘러본 적이 있으면 안내 줄은 처음부터 숨긴다 (아래 판을 낮게)
@@ -255,7 +261,7 @@ export function mountExtras(env) {
     const near = (id, p, kind, rad) => { const d = Math.hypot(p.x - mx, p.y - my); if (d < rad && d < bd) { bd = d; best = { id, kind }; } };
     for (const [id, p] of Object.entries(BIG)) near(id, p, 'big', 0.075);
     for (const [id, p] of Object.entries(chart.found)) near(id, p, ISLET[id] ? 'islet' : 'spot', 0.05);
-    if (!best) { card.hidden = true; return; }
+    if (!best) { card.hidden = true; return; }   // 빈 바다 → 카드와 이름이 같이 사라진다 (아래 감시)
     showIsle(best);
   });
   card?.querySelector('.x').addEventListener('click', () => {
@@ -283,8 +289,10 @@ export function mountExtras(env) {
       }
     } else if (kind === 'islet') { nm.textContent = chart.name(id); tx.textContent = ISLET[id].note + (chart.named(id) ? '' : ' · 아래 목록에서 이름을 지어 주세요'); }
     else { nm.textContent = SPOT[id].ko; tx.textContent = SPOT[id].note; }
-    card.hidden = false;
+    sel = { id, text: nm.textContent }; card.hidden = false; repaint();
   }
+  // 카드가 닫히면(✕·빈 바다·끌기·창 닫기) 지도 위 이름도 지운다
+  new MutationObserver(() => { if (card.hidden && sel) { sel = null; repaint(); } }).observe(card, { attributes: true, attributeFilter: ['hidden'] });
   paintAll();
   return { chart, catches, builds, extra, arrived, focusDone, drawIsland, paintAll, paintChart };
 }
