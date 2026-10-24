@@ -7,10 +7,10 @@
 //   · extras.drawIsland(ctx, beach, mapId, night) — 섬 장면에 지은 것을 그린다
 //  규칙·저장은 chart.js · fishing.js · build.js 에, 화면 칸(바구니 › 해도 · 장소·소리 · 도감, 집중 창 안내)은 index.html 에.
 
-import { Chart, ISLET, SPOT, BIG, STOCK_ISLE_SHEETS, drawChart, drawChartLabel, drawVoyageMark, voyagePoint, routeLine, josa, SHEET as CHART_SHEET, CHART_B, BIG_ART } from './chart.js?v=v29.4.7';
-import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v29.4.7';
-import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v29.4.7';
-import { loadSheet } from './sheet.js?v=v29.4.7';
+import { Chart, ISLET, SPOT, BIG, STOCK_ISLE_SHEETS, drawChart, drawChartLabel, drawVoyageMark, voyagePoint, mutedSea, routeLine, josa, SHEET as CHART_SHEET, CHART_B, BIG_ART } from './chart.js?v=v29.4.8';
+import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v29.4.8';
+import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v29.4.8';
+import { loadSheet } from './sheet.js?v=v29.4.8';
 
 // 그림 격자가 assets/ 에 들어오면 true 로 (없을 때 404 를 내지 않게 — 그동안은 코드 그림)
 export const ART = { chart: true, catch: true, extra: true, kit: true, isles: true };   // isles: 재고 24곳 섬 그림 격자 chart-isles-a/b.webp (v29.4.1 Codex 그림)   // 2026-10-21 Higgsfield 격자 2장 (docs/GRAPHICS-PROMPTS.md v28)
@@ -23,11 +23,13 @@ export function mountExtras(env) {
   const base = new URL('../assets/', import.meta.url).href;
   const sheets = { chart: null, catch: null, extra: null, kit: null, chartB: null, paper: null };
   const load = (k, f) => { if (ART[k]) loadSheet(base + f).then(s => { if (s) { sheets[k] = s; paintAll(); } }); };
-  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v29.4.7'); load('kit', 'build-sheet-2.webp?v=v29.4.7');   // v28.20 벚꽃 강변·오아시스 건물   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
+  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v29.4.8'); load('kit', 'build-sheet-2.webp?v=v29.4.8');   // v28.20 벚꽃 강변·오아시스 건물   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
   // v28.19 해도 그림 B — 양피지 + 새 아이콘 (못 읽으면 지금 그림 그대로)
   loadSheet(base + CHART_B.sheet).then(s => { if (s) { sheets.chartB = s; paintAll(); } });
   // v29.4.5: 양피지 종이(틀 있는 그림)는 해도 창에서 안 쓴다 — 바탕이 화면 끝까지
   sheets.isles = [];   // v29.4 재고 24곳 섬 그림 격자 두 장
+  // v29.4.8 해도 바다 = Codex 가 섬 그림과 같은 붓질로 그린 물 한 장 (stock/chart-sea) — 해도 전체에 한 장으로 편다
+  { const im = new Image(); im.onload = () => { sheets.sea = im; paintAll(); }; im.src = base + 'chart-sea.webp?v=v29.4.8'; }
   if (ART.isles) STOCK_ISLE_SHEETS.forEach((f, i) => loadSheet(base + f).then(s => { if (s) { sheets.isles[i] = s; paintAll(); } }));
   sheets.bigArt = {};   // v28.20 격자 칸이 없는 큰 섬 (벚꽃 강변·오아시스)
   for (const [id, f] of Object.entries(BIG_ART)) { const im = new Image(); im.onload = () => { sheets.bigArt[id] = im; paintAll(); }; im.src = base + f; }
@@ -88,7 +90,7 @@ export function mountExtras(env) {
   // v29.4.5 (사용자 「스크롤이 끊긴다 · 종이 틀 없애 · 섬 사이 더 넓게」):
   //  K = 섬 자리를 넓히는 배수(섬 그림 크기는 그대로, 자리만 K배 멀리) · 종이 틀 없이 바탕이 화면 끝까지 · 바깥은 안개 색.
   //  보는 범위 = { cx, cy, z } · z = 해도 한 변(px) / 화면 긴 변. 섬 크기 = 해도 한 변 / K 기준.
-  const VIEW_KEY = 'chartView3', K = 1.7, PAD = 0.13 / K, COMFY = 1370, SW_MAX = 3600, OUT = '#dfecec';
+  const VIEW_KEY = 'chartView3', K = 1.7, PAD = 0.13 / K, COMFY = 1370, SW_MAX = 3600, OUT = '#d8e9e9';
   let view = null, anim = 0, layout = null, userMoved = false, sel = null;   // sel = 누른 곳 { id, text } — 해도엔 그 이름만 쓴다
   const home = () => voyage.at || env.mapId();
   const boxSize = () => { const box = $('chartBox'); return [Math.max(120, box.clientWidth), Math.max(120, box.clientHeight)]; };
@@ -112,17 +114,34 @@ export function mountExtras(env) {
     return clampView({ cx: S > fit ? c.x : (x0 + x1) / 2, cy: (S > fit ? c.y : (y0 + y1) / 2) + (bot - top) / 2 / S, z: S / L });
   }
   // 해도 밖으로 너무 나가지 않게: 화면 가운데가 갈 수 있는 범위를 줄인다 (해도가 화면보다 좁은 쪽은 가운데)
+  // v29.4.8 (사용자 「아래 있는 섬은 접근이 안 된다 — 지도 마진을 넓게」): 해도 끝이 화면 끝에서 멈추면 아래 안내 판·섬 카드에 가린 섬을 끌어올릴 수 없었다.
+  //  해도 가장자리를 화면 안쪽까지 끌어들일 수 있게 — 위는 제목 줄 + 15%, 아래는 안내 판 + 섬 카드 자리(화면 35%), 좌우 20%. 바깥은 물안개.
+  let chrome = { top: 64, bot: 110 };
+  const measureChrome = () => {
+    const box = $('chartBox')?.getBoundingClientRect(); if (!box) return;
+    const head = $('chartView').querySelector('.cvHead')?.getBoundingClientRect(), foot = $('chartView').querySelector('.cvFoot')?.getBoundingClientRect();
+    chrome = { top: Math.max(0, (head?.bottom || box.top) - box.top), bot: Math.max(0, box.bottom - (foot?.top || box.bottom)) };
+  };
   function clampView(v) {
     const [W, H] = boxSize(), z = Math.min(zMax(), Math.max(zMin(), v.z)), S = z * Math.max(W, H);
-    const hx = W / 2 / S, hy = H / 2 / S;
-    return { z, cx: hx >= 0.5 ? 0.5 : Math.min(1 - hx, Math.max(hx, v.cx)), cy: hy >= 0.5 ? 0.5 : Math.min(1 - hy, Math.max(hy, v.cy)) };
+    const mL = W * 0.2, mR = W * 0.2, mT = chrome.top + H * 0.15, mB = chrome.bot + H * 0.35;
+    const x0 = (W / 2 - mL) / S, x1 = 1 - (W / 2 - mR) / S, y0 = (H / 2 - mT) / S, y1 = 1 - (H / 2 - mB) / S;
+    return { z, cx: x0 > x1 ? 0.5 : Math.min(x1, Math.max(x0, v.cx)), cy: y0 > y1 ? 0.5 : Math.min(y1, Math.max(y0, v.cy)) };
   }
   const geom = v => { const [W, H] = boxSize(), S = v.z * Math.max(W, H); return { S, ox: W / 2 - v.cx * S, oy: H / 2 - v.cy * S }; };
-  const chartOpts = () => ({ chart, log: voyage.log, home: home(), sailedMs: voyage.sailedMs, open: mapOpen, placeName, sheet: sheets.chart, extra: sheets.extra, bigArt: sheets.bigArt, alt: sheets.chartB && { ...CHART_B, sheet: sheets.chartB }, builds: id => builds.level(id), t: 0, all: true, isles: sheets.isles, spread: K, frameless: true, label: null, atSea: !!voyage.trip });
-  function prep() {
+  const chartOpts = () => ({ chart, log: voyage.log, home: home(), sailedMs: voyage.sailedMs, open: mapOpen, placeName, sheet: sheets.chart, extra: sheets.extra, bigArt: sheets.bigArt, alt: sheets.chartB && { ...CHART_B, sheet: sheets.chartB }, builds: id => builds.level(id), t: 0, all: true, isles: sheets.isles, spread: K, frameless: true, sea: sheets.sea, label: null, atSea: !!voyage.trip });
+  function prep(g) {
     const cv = $('chartCv'), [W, H] = boxSize(), dpr = dprOf();
     if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.width = W + 'px'; cv.style.height = H + 'px'; }
     const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.fillStyle = OUT; c.fillRect(0, 0, W, H);
+    // 해도 밖: 같은 바다를 거울처럼 이어 붙이고(이음매 없음) 물안개를 덮는다 — 마진으로 끌어들여도 틀이 안 보이게
+    if (sheets.sea && g) {
+      const out = prep.sea || (prep.sea = mutedSea(sheets.sea));
+      for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
+        if (!i && !j) continue;
+        c.save(); c.translate(g.ox + (i + (i & 1 ? 1 : 0)) * g.S, g.oy + (j + (j & 1 ? 1 : 0)) * g.S); c.scale(i & 1 ? -1 : 1, j & 1 ? -1 : 1); c.drawImage(out, 0, 0, g.S, g.S); c.restore();
+      }
+    }
     return c;
   }
   // 손이 움직이는 동안 쓰는 해도 한 장 — 한 번 그려 두고 옮기고 늘이기만 한다 (그리기는 무겁다: 안개·섬 그림 31장·항로)
@@ -158,14 +177,14 @@ export function mountExtras(env) {
   // 빠른 그리기: 해도 한 장 붙이기 + 누른 곳 이름
   function blit(v) {
     if (!world || worldStale) buildWorld();
-    v = clampView(v); const c = prep(), g = geom(v); layout = g;
+    v = clampView(v); const g = geom(v), c = prep(g); layout = g;
     c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
     c.drawImage(world, g.ox, g.oy, g.S, g.S); overlay(c, g);
     return v;
   }
   // 또렷하게 다시 그리기 (멈췄을 때 · 해도 한 장보다 더 확대했을 때만)
   function drawView(v) {
-    v = clampView(v); const c = prep(), g = geom(v); layout = g;
+    v = clampView(v); const g = geom(v), c = prep(g); layout = g;
     c.save(); c.translate(g.ox, g.oy); drawChart(c, g.S / K, chartOpts()); c.restore(); overlay(c, g);
     return v;
   }
@@ -175,6 +194,7 @@ export function mountExtras(env) {
   const show = v => { view = clampView(v); if (!frame) frame = requestAnimationFrame(() => { frame = 0; view = blit(view); clearTimeout(idle); idle = setTimeout(sharpen, 160); }); };
   const repaint = () => { if (view) show(view); };
   function paintChart() {
+    measureChrome();
     const box = $('chartBox'); if (!$('chartCv') || !box || box.closest('[hidden]')) return;
     const want = fitView();
     let last = null; try { last = JSON.parse(saved(VIEW_KEY) || 'null'); } catch (e) { last = null; }

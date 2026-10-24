@@ -5,7 +5,7 @@
 //  · 버튼·입력창은 #world 밖에 있어서 사진에 안 들어간다. 확대·시점 이동과 상관없이 해변 전체가 찍힌다.
 //  · 저장: 이 기기 IndexedDB (사진은 localStorage 에 넣기엔 크다). 가로 최대 1600px webp.
 
-import { tintSnapshot } from './tint.js?v=v29.4.7';
+import { tintSnapshot } from './tint.js?v=v29.4.8';
 
 const DB = 'kiwi-footprints', STORE = 'shots', MAXW = 1600;
 

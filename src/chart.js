@@ -8,19 +8,19 @@
 //  기록은 이 기기에만 (localStorage 'chart'). 항해 기록(voyage.log)은 voyage.js 가 갖고, 여기는 발견·이름만 갖는다.
 //  그리기: 그림 격자(assets/chart-sheet.webp, 4×4)가 있으면 칸을 잘라 쓰고, 없으면 코드로 그린다.
 
-import { fitCell, roundCell } from './sheet.js?v=v29.4.7';
+import { fitCell, roundCell } from './sheet.js?v=v29.4.8';
 
-export const SHEET = 'chart-sheet.webp?v=v29.4.7';
+export const SHEET = 'chart-sheet.webp?v=v29.4.8';
 // v28.19 해도 그림 B (사용자 2026-10-24 비교 페이지에서 고름): 양피지 종이(나침반 포함) + 새 아이콘 격자 4×4
 //  새 격자 칸: 1행 화산·폭포 절벽·거북·등대 / 2행 환초·쌍둥이·빙산·떠 있는 꽃섬 / 3행 고래 꼬리·바다뱀·난파선·병 / 4행 X·닻·별 항로·바람 구름
 //  그림 칸이 없던 섬·바다 표시만 새 칸으로 (나머지는 지금 격자 그대로)
 // v28.20 격자 칸이 없는 큰 섬은 낱장 그림 (Codex 그림, 흰 바탕을 뺀 투명 webp)
-import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v29.4.7';
-export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v29.4.7', oasis: 'chart-isle-oasis.webp?v=v29.4.7' };
+import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v29.4.8';
+export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v29.4.8', oasis: 'chart-isle-oasis.webp?v=v29.4.8' };
 // v29.4 재고 새 장소 24곳의 해도 섬 그림 (Codex 그림, 4×4 격자 두 장 — 위 세 줄에 12곳씩, STOCK_PLACES 순서). 못 읽으면 코드 그림
-export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v29.4.7', 'chart-isles-b.webp?v=v29.4.7'];
+export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v29.4.8', 'chart-isles-b.webp?v=v29.4.8'];
 export const stockIsleCell = id => { const i = STOCK_PLACES.findIndex(p => p.id === id); return i < 0 ? null : { sheet: Math.floor(i / 12), cell: i % 12 }; };
-export const CHART_B = { paper: 'chart-paper.webp?v=v29.4.7', sheet: 'chart-sheet-2.webp?v=v29.4.7',
+export const CHART_B = { paper: 'chart-paper.webp?v=v29.4.8', sheet: 'chart-sheet-2.webp?v=v29.4.8',
   islet: { 'i-twin': 5, 'i-lantern': 3, 'i-turtle': 2, 'i-end': 6 }, spot: { 's-reef': 4, 's-current': 15, 's-whale': 8 } };
 // 격자 칸 (4×4): 0~4 큰 섬 · 5~12 작은 섬 · 13 나침반 · 14 배 표시 · 15 안개 덩이
 export const CELL = { beach: 0, nz: 1, snow: 2, fall: 3, zen: 4, compass: 13, boat: 14, fog: 15 };
@@ -165,6 +165,12 @@ export function drawChart(ctx, S, o) {
   // v29.4.5 o.frameless = 틀 없는 바탕 (해도 창: 끝까지 같은 색 + 물결 줄, 종이 가장자리·그늘 없음)
   if (o.frameless) {
     // v29.4.7 (사용자 「배경이 바닷물처럼」): 물빛 바탕 — 깊은 곳·얕은 곳 얼룩 + 흩어진 짧은 물결(가로줄 대신). 섬 그림의 옅은 하늘색 테두리와 이어지게
+    // v29.4.8 그림 바다(o.sea, Codex 붓질 물)가 있으면 그걸 펴고 섬 그림 결에 맞춰 채도를 낮춘다 — 없으면(읽기 전·실패) 아래 코드 바다
+    if (o.sea) {
+      ctx.drawImage(o.sea, 0, 0, W, W);
+      ctx.save(); ctx.globalCompositeOperation = 'saturation'; ctx.fillStyle = 'rgba(128,128,128,0.42)'; ctx.fillRect(0, 0, W, W);
+      ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = 'rgba(232,226,204,0.12)'; ctx.fillRect(0, 0, W, W); ctx.restore();   // 섬 그림처럼 살짝 따뜻하게
+    } else {
     const g = ctx.createLinearGradient(0, 0, W * 0.3, W); g.addColorStop(0, '#9fd0d3'); g.addColorStop(0.5, '#8cc3c9'); g.addColorStop(1, '#7fb6c0');
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
     const rnd = seeded(77);
@@ -177,6 +183,7 @@ export function drawChart(ctx, S, o) {
     for (let k = 0; k < Math.round(140 * (W / S) ** 2); k++) {   // 짧은 물결 「︶」 — 같은 넓이에 같은 수
       const x = rnd() * W, y = rnd() * W, w = S * (0.018 + rnd() * 0.022);
       ctx.strokeStyle = `rgba(240,252,250,${0.22 + rnd() * 0.2})`; ctx.beginPath(); ctx.moveTo(x - w, y); ctx.quadraticCurveTo(x - w / 2, y - w * 0.32, x, y); ctx.quadraticCurveTo(x + w / 2, y - w * 0.32, x + w, y); ctx.stroke();
+    }
     }
   }
   // 종이 (v28.18 o.paper = 양피지 그림이 있으면 그걸로 — 비교 페이지 chart-lab.html)
@@ -253,6 +260,15 @@ export function voyagePoint(from, to, u, spread = 1, S = 1) {
   const q = (a, b, c) => (1 - u) * (1 - u) * a + 2 * (1 - u) * u * b + u * u * c;
   const dx = 2 * (1 - u) * (mx - x1) + 2 * u * (x2 - mx), dy = 2 * (1 - u) * (my - y1) + 2 * u * (y2 - my);
   return { x: q(x1, mx, x2), y: q(y1, my, y2), a: Math.atan2(dy, dx), x1, y1, x2, y2, mx, my };
+}
+export const FOG_SEA = 'rgba(226,238,238,0.86)';   // 물빛 해도의 물안개 (해도 밖도 이 색으로 덮는다)
+// 해도 밖 바다: 그림 바다를 채도 낮춰 한 장 만들어 둔다 (해도 안과 같은 색)
+export function mutedSea(img) {
+  const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const x = c.getContext('2d');
+  x.drawImage(img, 0, 0); x.globalCompositeOperation = 'saturation'; x.fillStyle = 'rgba(128,128,128,0.42)'; x.fillRect(0, 0, c.width, c.height);
+  x.globalCompositeOperation = 'source-over'; x.fillStyle = 'rgba(232,226,204,0.12)'; x.fillRect(0, 0, c.width, c.height);
+  x.fillStyle = FOG_SEA; x.fillRect(0, 0, c.width, c.height);   // 해도 밖은 늘 물안개
+  return c;
 }
 export function drawVoyageMark(ctx, S, o) {
   const k = o.spread || 1, p = voyagePoint(o.from, o.to, Math.min(1, Math.max(0, o.frac)), k, S); if (!p) return;
@@ -413,7 +429,7 @@ function drawFog(ctx, S, o, t) {
   const c = drawFog.cv || (drawFog.cv = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(1, 1) : document.createElement('canvas'));
   const q = 0.5, w = Math.max(1, Math.round(S * q)); if (c.width !== w) { c.width = w; c.height = w; }
   const f = c.getContext('2d'); f.setTransform(1, 0, 0, 1, 0, 0); f.globalCompositeOperation = 'source-over'; f.clearRect(0, 0, w, w);
-  f.fillStyle = o.frameless ? 'rgba(226,238,238,0.86)' : 'rgba(236,226,206,0.9)'; f.fillRect(0, 0, w, w);   // 물빛 바탕엔 바다 안개(흰 물안개) 색
+  f.fillStyle = o.frameless ? FOG_SEA : 'rgba(236,226,206,0.9)'; f.fillRect(0, 0, w, w);   // 물빛 바탕엔 바다 안개(흰 물안개) 색
   // 안개 결
   for (let k = 0; k < 26; k++) { const r = seeded(k * 97 + 3); blob(f, r() * w, r() * w, w * (0.06 + r() * 0.08), k + 40, 'rgba(255,252,244,0.35)', 0.25); }
   f.globalCompositeOperation = 'destination-out';
@@ -428,6 +444,11 @@ function drawFog(ctx, S, o, t) {
     for (let i = 1; i < 8; i++) { const u = i / 8, x = BIG[a].x + (BIG[b].x - BIG[a].x) * u - (BIG[b].y - BIG[a].y) * 0.12 * 4 * u * (1 - u) * 0.5, y = BIG[a].y + (BIG[b].y - BIG[a].y) * u + (BIG[b].x - BIG[a].x) * 0.12 * 4 * u * (1 - u) * 0.5; hole(x, y, 0.08); }
   }
   for (const v of Object.values(o.chart.found)) hole(v.x, v.y, 0.11);
+  // v29.4.8 틀 없는 해도: 가장자리는 늘 물안개로 덮는다 — 해도 밖(같은 바다 + 같은 물안개)과 이음매 없이 이어지게
+  if (o.frameless) {
+    f.globalCompositeOperation = 'source-over'; const e = w * 0.06;
+    for (const [x0, y0, x1, y1] of [[0, 0, e, 0], [w, 0, w - e, 0], [0, 0, 0, e], [0, w, 0, w - e]]) { const g = f.createLinearGradient(x0, y0, x1, y1); g.addColorStop(0, FOG_SEA); g.addColorStop(1, 'rgba(226,238,238,0)'); f.fillStyle = g; f.fillRect(0, 0, w, w); }
+  }
   f.globalCompositeOperation = 'source-over';
   ctx.drawImage(c, 0, 0, S, S);
 }
