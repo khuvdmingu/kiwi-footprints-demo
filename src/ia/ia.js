@@ -68,6 +68,7 @@ export function mountIA() {
   put(/findTitle|주운 것/, 'dex', true);
   put(/catchTitle|낚은 것/, 'dex');
   put(/바꾸기/, 'dex');
+  put(/momentTitle|드문 순간/, 'dex');   // v28.21 드문 순간
   put(/guestTitle|손님/, 'dex');
   // 집중 기록 · 달력 → 바구니 › 사진 위
   // 집중 기록(통계·달력)은 집중 창의 「기록」 탭에 펼쳐 둔다 (아래 집중 창 절) — 바구니 › 사진은 사진·앨범만
