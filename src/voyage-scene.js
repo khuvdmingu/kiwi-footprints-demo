@@ -6,8 +6,8 @@
 //  사건(voyage.js 의 kind)을 받으면 12초쯤 그 장면을 보여 준다. snapshot() 은 같은 장면을 사진 한 장으로 다시 그린다
 //  (화면을 꺼 두었던 사이의 사건도 일기 사진을 남길 수 있게).
 
-import { CREW_ACTS, CREW_MORE } from './acts.js?v=v29.4.4';
-import { SeaGL, drawSea2D } from './voyage-water.js?v=v29.4.4';
+import { CREW_ACTS, CREW_MORE } from './acts.js?v=v29.4.5';
+import { SeaGL, drawSea2D } from './voyage-water.js?v=v29.4.5';
 
 export const SPEED = 0.05;   // 배가 가는 빠르기: 1초에 화면 짧은 변의 5% (물·잔물결·지나가는 것이 모두 이 빠르기로 흐른다)
 const WATER_SCALE = 0.75;     // 물은 화면보다 성기게 그린다 (배터리·발열 — 물결은 흐려도 티가 안 난다)
@@ -65,7 +65,7 @@ export function voyageLight(hour = 12) {
 
 const img = src => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; });
 // v28.20 항해 중 배 옆을 흘러가는 작은 섬 (위에서 본 그림, 재고 stock/voyage pass-islands → tools/cut-cells.mjs)
-const PASS_ISLANDS = ['pass-volcano.webp?v=v29.4.4', 'pass-arch.webp?v=v29.4.4', 'pass-turtle.webp?v=v29.4.4', 'pass-lighthouse.webp?v=v29.4.4', 'pass-atoll.webp?v=v29.4.4', 'pass-wreck.webp?v=v29.4.4'];
+const PASS_ISLANDS = ['pass-volcano.webp?v=v29.4.5', 'pass-arch.webp?v=v29.4.5', 'pass-turtle.webp?v=v29.4.5', 'pass-lighthouse.webp?v=v29.4.5', 'pass-atoll.webp?v=v29.4.5', 'pass-wreck.webp?v=v29.4.5'];
 
 export class VoyageScene {
   constructor(canvas) {
@@ -83,7 +83,7 @@ export class VoyageScene {
   async load(base = 'assets/') {
     this.base = base;
     const gen = this.gen = (this.gen || 0) + 1;
-    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v29.4.4', 'sea-tall.webp?v=v29.4.4', 'voyage-sprites.webp?v=v29.4.4', 'kiwi.webp?v=v29.4.4', 'kiwi-sleep.webp?v=v29.4.4', 'umbrellas.webp?v=v29.4.4', 'sea-night.webp?v=v29.4.4', 'sea-tall-night.webp?v=v29.4.4', 'voyage-crew.webp?v=v29.4.4', 'voyage-boat.webp?v=v29.4.4', 'voyage-sail.webp?v=v29.4.4'].map(f => img(base + f).catch(() => null)));
+    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v29.4.5', 'sea-tall.webp?v=v29.4.5', 'voyage-sprites.webp?v=v29.4.5', 'kiwi.webp?v=v29.4.5', 'kiwi-sleep.webp?v=v29.4.5', 'umbrellas.webp?v=v29.4.5', 'sea-night.webp?v=v29.4.5', 'sea-tall-night.webp?v=v29.4.5', 'voyage-crew.webp?v=v29.4.5', 'voyage-boat.webp?v=v29.4.5', 'voyage-sail.webp?v=v29.4.5'].map(f => img(base + f).catch(() => null)));
     if (gen !== this.gen) return false;
     if (!sea || !sheet) throw new Error('voyage art');
     Object.assign(this, { sea, tall: tall || sea, sheet, kiwi, sleep, umb, seaN, tallN: tallN || seaN, crewSheet });
@@ -114,7 +114,7 @@ export class VoyageScene {
     if (!b || !b.h || !this.base) { this.alt = null; return; }
     if (this.alt?.id === id) return;
     const gen = this.gen;
-    img(this.base + 'boat-' + id + '.webp?v=v29.4.4').then(im => {
+    img(this.base + 'boat-' + id + '.webp?v=v29.4.5').then(im => {
       if (gen !== this.gen || this.boatId !== id) return;
       this.alt = { ...b, im, box: boxesOf(im, 'boat-' + id, ['b'], 1, 1).b };
     }).catch(() => {});
@@ -125,7 +125,7 @@ export class VoyageScene {
     if (!id || id === 'leaf' || !this.base) { this.sailAlt = null; return; }
     if (this.sailAlt?.id === id) return;
     const gen = this.gen;
-    img(this.base + 'sail-' + id + '.webp?v=v29.4.4').then(im => {
+    img(this.base + 'sail-' + id + '.webp?v=v29.4.5').then(im => {
       if (gen !== this.gen || this.sailId !== id) return;
       this.sailAlt = { id, im, box: boxesOf(im, 'sail-' + id, ['s'], 1, 1).s };
     }).catch(() => {});
@@ -152,7 +152,7 @@ export class VoyageScene {
   sunsetArt(tall) {
     if (!this.sunsets.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v29.4.4' : 'sea-sunset.webp?v=v29.4.4')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v29.4.5' : 'sea-sunset.webp?v=v29.4.5')).then(image => (entry.image = image)).catch(() => null);
       this.sunsets.set(tall, entry);
     }
     return this.sunsets.get(tall).promise;
@@ -161,7 +161,7 @@ export class VoyageScene {
   dawnArt(tall) {
     if (!this.dawns.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-dawn.webp?v=v29.4.4' : 'sea-dawn.webp?v=v29.4.4')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-dawn.webp?v=v29.4.5' : 'sea-dawn.webp?v=v29.4.5')).then(image => (entry.image = image)).catch(() => null);
       this.dawns.set(tall, entry);
     }
     return this.dawns.get(tall).promise;
@@ -171,7 +171,7 @@ export class VoyageScene {
   auroraArt(tall) {
     if (!this.auroras.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-aurora.webp?v=v29.4.4' : 'sea-aurora.webp?v=v29.4.4')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-aurora.webp?v=v29.4.5' : 'sea-aurora.webp?v=v29.4.5')).then(image => (entry.image = image)).catch(() => null);
       this.auroras.set(tall, entry);
     }
     return this.auroras.get(tall).promise;

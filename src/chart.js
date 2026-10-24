@@ -8,19 +8,19 @@
 //  기록은 이 기기에만 (localStorage 'chart'). 항해 기록(voyage.log)은 voyage.js 가 갖고, 여기는 발견·이름만 갖는다.
 //  그리기: 그림 격자(assets/chart-sheet.webp, 4×4)가 있으면 칸을 잘라 쓰고, 없으면 코드로 그린다.
 
-import { fitCell, roundCell } from './sheet.js?v=v29.4.4';
+import { fitCell, roundCell } from './sheet.js?v=v29.4.5';
 
-export const SHEET = 'chart-sheet.webp?v=v29.4.4';
+export const SHEET = 'chart-sheet.webp?v=v29.4.5';
 // v28.19 해도 그림 B (사용자 2026-10-24 비교 페이지에서 고름): 양피지 종이(나침반 포함) + 새 아이콘 격자 4×4
 //  새 격자 칸: 1행 화산·폭포 절벽·거북·등대 / 2행 환초·쌍둥이·빙산·떠 있는 꽃섬 / 3행 고래 꼬리·바다뱀·난파선·병 / 4행 X·닻·별 항로·바람 구름
 //  그림 칸이 없던 섬·바다 표시만 새 칸으로 (나머지는 지금 격자 그대로)
 // v28.20 격자 칸이 없는 큰 섬은 낱장 그림 (Codex 그림, 흰 바탕을 뺀 투명 webp)
-import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v29.4.4';
-export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v29.4.4', oasis: 'chart-isle-oasis.webp?v=v29.4.4' };
+import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v29.4.5';
+export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v29.4.5', oasis: 'chart-isle-oasis.webp?v=v29.4.5' };
 // v29.4 재고 새 장소 24곳의 해도 섬 그림 (Codex 그림, 4×4 격자 두 장 — 위 세 줄에 12곳씩, STOCK_PLACES 순서). 못 읽으면 코드 그림
-export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v29.4.4', 'chart-isles-b.webp?v=v29.4.4'];
+export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v29.4.5', 'chart-isles-b.webp?v=v29.4.5'];
 export const stockIsleCell = id => { const i = STOCK_PLACES.findIndex(p => p.id === id); return i < 0 ? null : { sheet: Math.floor(i / 12), cell: i % 12 }; };
-export const CHART_B = { paper: 'chart-paper.webp?v=v29.4.4', sheet: 'chart-sheet-2.webp?v=v29.4.4',
+export const CHART_B = { paper: 'chart-paper.webp?v=v29.4.5', sheet: 'chart-sheet-2.webp?v=v29.4.5',
   islet: { 'i-twin': 5, 'i-lantern': 3, 'i-turtle': 2, 'i-end': 6 }, spot: { 's-reef': 4, 's-current': 15, 's-whale': 8 } };
 // 격자 칸 (4×4): 0~4 큰 섬 · 5~12 작은 섬 · 13 나침반 · 14 배 표시 · 15 안개 덩이
 export const CELL = { beach: 0, nz: 1, snow: 2, fall: 3, zen: 4, compass: 13, boat: 14, fog: 15 };
@@ -157,10 +157,17 @@ export function josa(w, a, b) { const c = (w || '').charCodeAt(w.length - 1) - 0
 // 해도 한 장을 ctx 에 그린다. o = { chart, log, home, sailedMs, open(mapId)→bool, sheet(Image|null), builds(mapId)→0~6, t, theme }
 export function drawChart(ctx, S, o) {
   const { chart, sheet } = o, t = o.t || 0, { visits, routes } = tally(o.log, o.home);
-  const P = (p) => [p.x * S, p.y * S];
+  // v29.4.5 o.spread = 섬 자리를 넓히는 배수: 그림·글자·선 굵기는 S 기준 그대로, 자리만 W = S × spread 위에 놓는다
+  const W = S * (o.spread || 1), P = (p) => [p.x * W, p.y * W];
   ctx.save();
+  // v29.4.5 o.frameless = 틀 없는 바탕 (해도 창: 끝까지 같은 색 + 물결 줄, 종이 가장자리·그늘 없음)
+  if (o.frameless) {
+    ctx.fillStyle = '#efe4ca'; ctx.fillRect(0, 0, W, W);
+    ctx.strokeStyle = 'rgba(80,110,130,0.11)'; ctx.lineWidth = Math.max(1, S * 0.0022);
+    for (let y0 = S * 0.04; y0 < W; y0 += S * 0.068) { ctx.beginPath(); for (let x = 0; x <= W; x += S / 40) { const y = y0 + Math.sin(x / S * 9 + y0 / S * 25) * S * 0.006; x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke(); }
+  }
   // 종이 (v28.18 o.paper = 양피지 그림이 있으면 그걸로 — 비교 페이지 chart-lab.html)
-  if (o.paper) ctx.drawImage(o.paper, 0, 0, S, S);
+  else if (o.paper) ctx.drawImage(o.paper, 0, 0, S, S);
   else {
     const g = ctx.createRadialGradient(S * 0.5, S * 0.45, S * 0.1, S * 0.5, S * 0.5, S * 0.75);
     g.addColorStop(0, '#f5ead2'); g.addColorStop(1, '#e2cfa6');
@@ -215,16 +222,21 @@ export function drawChart(ctx, S, o) {
   // 지금 있는 곳 (작은 배)
   if (o.home && BIG[o.home]) { const [x, y] = P(BIG[o.home]); if (!cell(ctx, sheet, CELL.boat, x - S * 0.07, y - S * 0.06, S * 0.05)) drawBoat(ctx, x - S * 0.07, y - S * 0.055, S * 0.022, t); }
   // 안개: 찾은 곳 둘레만 걷힌다 (덩이를 깔고 둘레를 지운다)
-  drawFog(ctx, S, o, t);
+  drawFog(ctx, W, o, t);
   for (const id of Object.keys(chart.found)) { const [x, y] = P(chart.found[id]); bodies.push({ id, x, y, r: S * 0.04 }); }   // 작은 섬·바다 위의 곳도 덮지 않게
   // v29.4.4 (사용자 2026-10-24 「처음엔 글자 없이 그림만, 누르면 글자」): o.label 을 주면 그 한 곳의 이름만 쓴다 (null = 하나도 안 씀)
-  if (o.label) { const p = BIG[o.label.id] || chart.found[o.label.id]; if (p) { const [x, y] = P(p); names.push({ id: o.label.id, text: o.label.text, x, y, r: S * (BIG[o.label.id] ? 0.062 : 0.045), rank: 1e6 }); } }
   placeNames(ctx, names.sort((a, b) => b.rank - a.rank), bodies, S);
   // 나침반
-  if (!o.paper && !cell(ctx, sheet, CELL.compass, S * 0.9, S * 0.9, S * 0.12)) drawCompass(ctx, S * 0.9, S * 0.9, S * 0.045);   // 양피지엔 나침반이 그려져 있다
+  if (!o.paper && !cell(ctx, sheet, CELL.compass, W - S * 0.1, W - S * 0.1, S * 0.12)) drawCompass(ctx, W - S * 0.1, W - S * 0.1, S * 0.045);   // 양피지엔 나침반이 그려져 있다
   ctx.restore();
 }
 
+// 누른 곳 이름 하나 (해도 창이 해도 그림 위에 따로 얹는다 — 끄는 동안엔 그림 한 장만 옮기므로)
+export function drawChartLabel(ctx, S, o) {
+  const l = o.label, p = l && (BIG[l.id] || o.chart.found[l.id]); if (!p) return;
+  const W = S * (o.spread || 1);
+  placeNames(ctx, [{ id: l.id, text: l.text, x: p.x * W, y: p.y * W, r: S * (BIG[l.id] ? 0.062 : 0.045), rank: 1e6 }], [], S);
+}
 const cell = (ctx, sheet, n, x, y, size) => fitCell(ctx, sheet, n, x, y, size);
 // 섬 이름 자리 (v29.4.2 — 섬이 몰린 곳에서 이름이 이웃 섬 그림에 덮이던 것):
 //  이름은 섬·안개를 다 그린 뒤 바탕을 깔고 맨 위에 쓴다(가려지지 않게). 자리는 제 섬 바로 아래가 기본이고,
