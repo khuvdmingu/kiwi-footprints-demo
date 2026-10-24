@@ -17,7 +17,7 @@ const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
   // 물 없는 장소(opts.rest — 젠 가든 v18): 물 뺀 판·바위 지운 판이 없다 → 같은 판 한 장을 세 자리에 쓴다
-  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v28.22.0').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v28.22.0'), load(name + '-dry.webp?v=v28.22.0'), load(name + '-sea.webp?v=v28.22.0')]);
+  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v28.22.1').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v28.22.1'), load(name + '-dry.webp?v=v28.22.1'), load(name + '-sea.webp?v=v28.22.1')]);
   const p = new Plate(img, dry, sea, opts);
   p.name = name; p.base = base;
   return p;
@@ -175,13 +175,16 @@ export class Plate {
       const landRock = !this.opts.ground && y < shoreY && a[i + 2] > a[i] * 0.78 && la < 165 && a[i + 1] < a[i] * 1.05;
       // 바위 색인지: 어둡거나, 빨강과 파랑이 비슷한 회보라 (모래·거품 조각을 바위로 잘못 잡지 않게)
       const rocky = la < 120 || (Math.abs(a[i] - a[i + 2]) < 45 && la < 170);
+      // 돌 통째로(opts.rockFill, 바닷가 2026-10-24): 위 판정은 돌의 어두운 쪽만 잡아 밝은 갈색 면은 물에 덮이고, 물에 잠긴 듯 그린 돌은
+      //  통째로 사라졌다(v8.1 부터 — 사용자 "처음과 다르다"). 물가선 아래에서 바다 판과 다르고 물보다 어둡거나 빨강이 파랑만큼 있으면(물은 청록) 돌
+      const fillRock = this.opts.rockFill && y > shoreY && diff > 60 && la < 205 && (lb - la > 12 || a[i] >= a[i + 2] * 0.85);
       // 개울 돌(opts.stones): 물보다 밝은 회색 돌도 제자리에 — 빨강·초록·파랑이 고르고 거품만큼 하얗지는 않다
       const grey = this.opts.stones && Math.abs(a[i] - a[i + 1]) < 38 && Math.abs(a[i + 1] - a[i + 2]) < 38 && la > 60 && la < 215;
       // 이끼 낀 바위(opts.moss, v17 가을 호숫가): 회녹색 윗면은 물과 밝기가 같아 "더 어둡다"로는 못 찾는다.
       //  대신 붉은 기: 바위는 빨강이 물(빨강 거의 0)보다 훨씬 크다. 거품(밝음)은 빼고 물가선 아래에서만.
       const warm = this.opts.moss && y > shoreY && a[i] - b[i] > 50 && la < 170;
       if (warm) hue[y * mw + x] = 1;
-      bin[y * mw + x] = !red && ((rocky && ((diff > 90 && lb - la > 20) || landRock)) || (grey && diff > 70) || (warm && diff > 90)) ? 1 : 0;
+      bin[y * mw + x] = !red && ((fillRock || (rocky && ((diff > 90 && lb - la > 20) || landRock))) || (grey && diff > 70) || (warm && diff > 90)) ? 1 : 0;
     }
     // 다듬기 (v16.2.3): 예전엔 네모 틀(9×9)로 깎았다 불려서 남은 조각이 전부 네모났다(물속 돌이 픽셀처럼 깨져 보임).
     //  ① 둥근 틀로 열기(흐림 + 문턱으로 깎고 불리기) — 가는 선(물결·거품 윤곽)·흩어진 점은 사라지고, 모서리는 둥글게 남는다
@@ -195,6 +198,11 @@ export class Plate {
       for (let x = 0; x < mw; x++) { let acc = 0; for (let y = yS - r; y <= yS + r; y++) acc += tmp[Math.min(mh - 1, Math.max(0, y)) * mw + x]; for (let y = yS; y < mh; y++) { soft[y * mw + x] = acc / n; acc += tmp[Math.min(mh - 1, y + r + 1) * mw + x] - tmp[Math.max(0, y - r) * mw + x]; } }
     };
     // 깎기: 흐린 뒤 0.75 넘는 곳만(촘촘히 바위인 곳) → 불리기: 그것을 다시 흐린 뒤 0.25 넘는 곳 = 둥근 틀로 연 것과 같다
+    // 돌 통째로: 깎기 전에 먼저 닫기(불렸다 깎기) — 돌 안의 밝은 면·잔무늬 구멍을 메워 돌 하나가 한 덩어리가 되게
+    if (this.opts.rockFill) {
+      blur(2); blur(2); for (let j = yS * mw; j < mw * mh; j++) soft[j] = soft[j] > 0.3 ? 1 : 0;
+      blur(2); blur(2); for (let j = yS * mw; j < mw * mh; j++) soft[j] = soft[j] > 0.7 ? 1 : 0;
+    }
     blur(3); blur(3);
     for (let j = yS * mw; j < mw * mh; j++) soft[j] = soft[j] > 0.75 ? 1 : 0;
     blur(3); blur(3);
@@ -277,7 +285,7 @@ export class Plate {
     if (!this._sets[kind] && Date.now() - (this._setFail[kind] ?? -Infinity) < SET_RETRY_MS) return Promise.resolve(null);
     if (!this._sets[kind]) {
       // 판이 한 장인 장소(rest — 모래 정원)는 시간대 판도 한 장 (v28.3)
-      const p = this._sets[kind] = (this.opts.rest ? load(`${this.name}-${kind}.webp?v=v28.22.0`).then(im => [im, im, im]) : Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v28.22.0`))))
+      const p = this._sets[kind] = (this.opts.rest ? load(`${this.name}-${kind}.webp?v=v28.22.1`).then(im => [im, im, im]) : Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v28.22.1`))))
         .then(([img, dry, sea]) => (this.sets[kind] = { img, dry, sea }))
         .catch(() => { if (this._sets[kind] === p) { delete this._sets[kind]; this._setFail[kind] = Date.now(); } return null; });
     }
