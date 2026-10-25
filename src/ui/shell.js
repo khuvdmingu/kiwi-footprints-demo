@@ -1,7 +1,7 @@
-import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v29.14.0';
-import { BoatPreview } from './boat-preview.js?v=v29.14.0';
-import { KiwiStage } from './kiwi-stage.js?v=v29.14.0';
-import { ITEMS } from '../items.js?v=v29.14.0';
+import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v29.15.0';
+import { BoatPreview } from './boat-preview.js?v=v29.15.0';
+import { KiwiStage } from './kiwi-stage.js?v=v29.15.0';
+import { ITEMS } from '../items.js?v=v29.15.0';
 // src/ui/shell.js — 2026-10-24 UI 구조 개편 (결정 10개: _views/html-views/2026-10-24_kiwi-ui-restructure.html)
 //
 //  마크업은 index.html 에 제자리로 있고(예전 src/ia/ia.js 처럼 뜬 뒤에 옮기지 않는다), 여기는 새 창 셋의 동작만 맡는다.
@@ -18,12 +18,12 @@ const put = (k, v) => { try { localStorage.setItem(KEY + k, v); } catch (e) {} }
 
 // 꾸미기에서 바꿀 수 있는 값은 모두 같은 저장/되돌리기 경계를 쓴다.
 export function snapshotWardrobe(env) {
-  return { wear: [...env.col.wear], boat: env.voyScene.boatId, sail: env.voyScene.sailId, mix: { ...env.sound.mix },
+  return { wear: [...env.col.wear], boat: env.voyScene.boatId, sail: env.voyScene.sailId, line: env.voyScene.line !== false, mix: { ...env.sound.mix },
     members: env.flock.members.map(({ id, name, wear }) => ({ id, name, wear })) };
 }
 export function wardrobeChanged(n, d) {
   return !!d && (JSON.stringify(n.wear.slice().sort()) !== JSON.stringify(d.wear.slice().sort()) ||
-    n.boat !== d.boat || n.sail !== d.sail || JSON.stringify(n.members) !== JSON.stringify(d.members) ||
+    n.boat !== d.boat || n.sail !== d.sail || n.line !== d.line || JSON.stringify(n.members) !== JSON.stringify(d.members) ||
     ['voice', 'stepPack', 'natStep', 'findPack', 'nature', 'song'].some(k => n.mix[k] !== d.mix[k]));
 }
 export function restoreWardrobe(env, d) {
@@ -31,6 +31,7 @@ export function restoreWardrobe(env, d) {
   for (const id of d.wear) if (!env.col.wearing(id)) env.setWear(id, true);
   if (env.voyScene.boatId !== d.boat) { env.voyScene.setBoat(d.boat); env.save('boat', d.boat); }
   if (env.voyScene.sailId !== d.sail) { env.voyScene.setSail(d.sail); env.save('sail', d.sail); }
+  if ('line' in d && (env.voyScene.line !== false) !== d.line) { env.voyScene.line = d.line; env.save('line', d.line ? 'on' : 'off'); }
   for (const m of d.members) {
     if (!env.flock.get(m.id)) continue;
     env.flock.rename(m.id, m.name); env.flock.setWear(m.id, m.wear);
@@ -70,7 +71,7 @@ export function mountShell(env) {
   const preview = new BoatPreview($('boatPreview'), $('boatPreviewNote'));
   function paintBoatStage() {
     if (ward.hidden || $('boatStage').closest('.pane').hidden) { preview.release(); return; }
-    preview.paint(env.voyScene.boatId, env.voyScene.sailId, env.previewCrew());
+    preview.paint(env.voyScene.boatId, env.voyScene.sailId, env.previewCrew(), env.voyScene.line !== false);
   }
   // v29.7 키위 탭 무대: 입힌 옷을 입은 키위들이 모래 위에서 움직인다
   const kiwiStage = new KiwiStage($('kiwiPreview'), $('kiwiPreviewNote'));

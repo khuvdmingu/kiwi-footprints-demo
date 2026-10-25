@@ -399,7 +399,7 @@ html[data-ui="paper"] .soundPicks h3:first-child { margin-top: 0; padding-top: 0
 .wardrobe > .kiwiStage { flex: none; }
 .wardrobe > .kiwiStage[hidden] { display: none; }
 /* v29.12 배·돛 미리보기: 칸을 붓질 바다로 꽉 채운다 (양옆 옅은 띠 없이) · 카드 이름은 어두운 띠 대신 종이 위 글씨 */
-.wardrobe .boatStage canvas#boatPreview { object-fit: cover; border-radius: 16px; }
+.wardrobe .boatStage canvas#boatPreview { width: 100%; height: auto; aspect-ratio: 2 / 1; object-fit: fill; border-radius: 16px; }   /* v29.15 잘라 채우지 않고 2:1 칸 그대로 (배가 다 보이게) */
 html[data-ui="paper"] .wardrobe .colgrid.places button { aspect-ratio: 1; }
 html[data-ui="paper"] .wardrobe .colgrid.places button .nm { background: none; color: var(--pp-ink); text-shadow: none; font-weight: 600; bottom: 6px; }
 html[data-ui="paper"] .wardrobe .colgrid.boats button img { padding: 8px 8px 26px; }
@@ -411,3 +411,10 @@ html[data-ui="paper"] #picker svg[data-ico="m-wash"] { background: none; filter:
 html[data-ui="paper"] #picker svg[data-ico="m-wash"] > * { visibility: visible; stroke: #4f8fa0; }
 /* 구경 중엔 입력 칸·자막을 숨긴다 */
 body.watching #say, body.watching #caption { display: none !important; }
+
+/* v29.15 낚싯줄 드리우기 · 걷기 (소리 고르기와 같은 종이 알약) */
+.wardrobe .packs.line { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.wardrobe .packs.line button { min-height: var(--tap-in, 40px); border-radius: 12px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+.wardrobe .packs.line button[aria-pressed="true"] { background: var(--sand); color: #2a2016; border-color: transparent; }
+html[data-ui="paper"] .wardrobe .packs.line button { border: 0; background: rgba(255, 255, 255, 0.32); color: var(--pp-ink); }
+html[data-ui="paper"] .wardrobe .packs.line button[aria-pressed="true"] { background: var(--pp-stamp); color: var(--pp-stamp-ink); }

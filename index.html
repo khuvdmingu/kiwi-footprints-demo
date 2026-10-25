@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#1A5C91" />
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v29.14.0" />
-  <link rel="stylesheet" href="memos.css?v=v29.14.0" />
-  <link rel="stylesheet" href="theme-paper.css?v=v29.14.0" />
-  <link rel="stylesheet" href="src/ui/shell.css?v=v29.14.0" />
+  <link rel="stylesheet" href="style.css?v=v29.15.0" />
+  <link rel="stylesheet" href="memos.css?v=v29.15.0" />
+  <link rel="stylesheet" href="theme-paper.css?v=v29.15.0" />
+  <link rel="stylesheet" href="src/ui/shell.css?v=v29.15.0" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -88,7 +88,7 @@
     </button>
   </div>
   <div id="menu" role="menu" aria-label="메뉴" hidden>
-    <button id="wardBtn" type="button" role="menuitem" aria-expanded="false" aria-controls="wardrobe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.2a1.9 1.9 0 1 1 1.9-1.9c0 1-.9 1.4-1.9 2.2v1.4" /><path d="M12 8.9 3.6 15.4a1.2 1.2 0 0 0 .7 2.1h15.4a1.2 1.2 0 0 0 .7-2.1z" /></svg><span>꾸미기</span><small>키위 옷 · 배·돛</small></button>
+    <button id="wardBtn" type="button" role="menuitem" aria-expanded="false" aria-controls="wardrobe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.2a1.9 1.9 0 1 1 1.9-1.9c0 1-.9 1.4-1.9 2.2v1.4" /><path d="M12 8.9 3.6 15.4a1.2 1.2 0 0 0 .7 2.1h15.4a1.2 1.2 0 0 0 .7-2.1z" /></svg><span>꾸미기</span><small>키위 옷 · 배</small></button>
     <button id="setBtn" aria-controls="settings" type="button" role="menuitem" aria-expanded="false" aria-controls="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.93 10.45 L21.17 10.43 L21.17 13.57 L18.93 13.55 L18.00 15.80 L19.59 17.37 L17.37 19.59 L15.80 18.00 L13.55 18.93 L13.57 21.17 L10.43 21.17 L10.45 18.93 L8.20 18.00 L6.63 19.59 L4.41 17.37 L6.00 15.80 L5.07 13.55 L2.83 13.57 L2.83 10.43 L5.07 10.45 L6.00 8.20 L4.41 6.63 L6.63 4.41 L8.20 6.00 L10.45 5.07 L10.43 2.83 L13.57 2.83 L13.55 5.07 L15.80 6.00 L17.37 4.41 L19.59 6.63 L18.00 8.20Z" /><circle cx="12" cy="12" r="3" /></svg><span>설정</span><small>풍경 · 시계·메모 · 화면 · 소리</small></button>
     <div class="menuRow" role="none">
       <button id="soundBtn" aria-controls="wardrobe" type="button" role="menuitem" aria-pressed="true" aria-label="소리 고르기 — 배경 소리 · 키위 소리"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.6 9.3h2.9l4.6-3.9v13.2l-4.6-3.9H4.6a1.1 1.1 0 0 1-1.1-1.1V10.4a1.1 1.1 0 0 1 1.1-1.1z" /><path class="wave" d="M16.2 8.8a4.6 4.6 0 0 1 0 6.4M18.8 6.3a8.2 8.2 0 0 1 0 11.4" /><path class="mute" d="M16 9.5l4.5 5M20.5 9.5l-4.5 5" /></svg><span>소리</span><small>배경 소리 · 키위 소리</small></button>
@@ -368,7 +368,7 @@
     <!-- v29.12 한 창을 두 얼굴로: 꾸미기 = 키위 · 배·돛 / 소리 = 배경 소리 · 키위 소리 (메뉴에서 따로 연다, src/ui/shell.js) -->
     <div class="tabs" role="tablist" aria-label="꾸미기 묶음">
       <button type="button" role="tab" data-tab="kiwi" data-mode="dress" aria-selected="true">키위</button>
-      <button type="button" role="tab" data-tab="boat" data-mode="dress" aria-selected="false">배·돛</button>
+      <button type="button" role="tab" data-tab="boat" data-mode="dress" aria-selected="false">배</button>
       <button type="button" role="tab" data-tab="bg" data-mode="sound" aria-selected="false">배경 소리</button>
       <button type="button" role="tab" data-tab="voice" data-mode="sound" aria-selected="false">키위 소리</button>
     </div>
@@ -384,13 +384,16 @@
     <div id="flockList" class="flock"></div>
     <p class="hint">들른 날마다 한 마리씩 무리에 들어와요. 무리 키위가 먼저 나오고, 모자라면 손님 키위가 같이 써요. 이름을 눌러 바꿀 수 있어요.</p>
     </section>
-    <section class="pane" data-pane="boat" role="tabpanel" aria-label="배·돛" hidden>
+    <section class="pane" data-pane="boat" role="tabpanel" aria-label="배" hidden>
     <div class="boatStage" id="boatStage"><canvas id="boatPreview" role="img" aria-label="고른 배와 돛, 키위의 정지 미리보기"></canvas><span id="boatPreviewNote" class="hint" role="status">미리보기를 준비하고 있어요</span></div>
     <h2 id="boatTitle">배</h2>
     <div id="boatGrid" class="colgrid places boats"></div>
     <h2 class="sep" id="sailTitle">돛</h2>
     <div id="sailGrid" class="colgrid places boats"></div>
     <p class="hint">바다 위에서 보낸 시간만큼 새 배와 돛이 열려요. 눌러서 바꾸기</p>
+    <h2 class="sep" id="lineTitle">낚싯줄</h2>
+    <div id="lineGrid" class="packs line" role="group" aria-label="낚싯줄"><button type="button" data-line="on">드리우기</button><button type="button" data-line="off">걷기</button></div>
+    <p class="hint">드리우면 항해 끝에 낚은 것이 하나 걸려 와요. 걷으면 배 뒤 줄과 찌가 없어지고, 그 항해엔 아무것도 안 걸려요.</p>
     </section>
     <section class="pane soundPicks" data-pane="bg" role="tabpanel" aria-label="배경 소리" hidden>
     <h3>곡</h3>
@@ -465,7 +468,7 @@
         <li><i data-icon="focusBtn"></i><b>떠나기</b><span>섬에서 집중(끝까지 하면 선물 상자) · 항해(다른 섬으로 — 섬은 항해로만 옮겨요)</span></li>
         <li><i data-icon="chartBtn"></i><b>해도</b><span>섬과 항로 · 열린 섬이 늘수록 지도가 넓어져요 · 섬을 눌러 항해</span></li>
         <li><i data-icon="basketBtn"></i><b>바구니</b><span>일지(걸음 · 드문 순간 · 연·월·일로 묶어 보기 · 달력) · 편지(손님 · 유리병) · 모은 것(주운 것 · 낚은 것)</span></li>
-        <li><i data-icon="menuBtn"></i><b>메뉴</b><span>꾸미기(옷 · 배·돛) · 소리(배경 소리 · 키위 소리) · 설정(풍경 · 시계·메모 · 화면 · 소리) · 작품 설명</span></li>
+        <li><i data-icon="menuBtn"></i><b>메뉴</b><span>꾸미기(옷 · 배) · 소리(배경 소리 · 키위 소리) · 설정(풍경 · 시계·메모 · 화면 · 소리) · 작품 설명</span></li>
       </ul>
       <h2>손으로</h2>
       <ul class="plain">
@@ -495,10 +498,10 @@
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v29.14.0"></script>
-  <script type="module" src="src/credits.js?v=v29.14.0"></script>
+  <script type="module" src="src/main.js?v=v29.15.0"></script>
+  <script type="module" src="src/credits.js?v=v29.15.0"></script>
   <!-- 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/taps.js?v=v29.14.0"></script>
+  <script type="module" src="src/taps.js?v=v29.15.0"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.
