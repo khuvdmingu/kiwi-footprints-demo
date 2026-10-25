@@ -14,7 +14,7 @@ export function returnFocus(panel, fallback) {
   });
 }
 export function wireTabs(panel, key, { load, save, first } = {}) {
-  const tabs = [...panel.querySelectorAll(':scope > [role="tablist"] [role="tab"], :scope > .bagHead > [role="tablist"] [role="tab"]')];
+  const tabs = [...panel.querySelectorAll(':scope > [role="tablist"] [role="tab"], :scope > .bagHead > [role="tablist"] [role="tab"], :scope > .k-win-head > [role="tablist"] [role="tab"]')];
   const panes = [...panel.querySelectorAll(':scope > .pane')];
   for (const tab of tabs) {
     const pane = panes.find(p => p.dataset.pane === tab.dataset.tab); if (!pane) continue;
@@ -28,7 +28,7 @@ export function wireTabs(panel, key, { load, save, first } = {}) {
     panel.scrollTop = 0; save?.('tab.' + key, name);
   };
   for (const t of tabs) t.addEventListener('click', () => show(t.dataset.tab));
-  panel.querySelector(':scope > [role="tablist"], :scope > .bagHead > [role="tablist"]').addEventListener('keydown', e => {
+  panel.querySelector(':scope > [role="tablist"], :scope > .bagHead > [role="tablist"], :scope > .k-win-head > [role="tablist"]').addEventListener('keydown', e => {
     if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(e.key)) return;
     const i = tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
     const next = e.key === 'Home' ? tabs[0] : e.key === 'End' ? tabs.at(-1) : tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];

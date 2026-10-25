@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ko" data-ui="paper">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>키위 디자인 시스템</title>
+  <!-- 카탈로그: 부품 전부를 한 장에서. 새 부품·변형을 parts.css 에 더하면 여기에도 한 칸 (docs/DESIGN_SYSTEM.md) -->
+  <link rel="stylesheet" href="style.css?v=v29.18.0-32a7847" />
+  <link rel="stylesheet" href="theme-paper.css?v=v29.18.0-32a7847" />
+  <link rel="stylesheet" href="src/ui/tokens.css?v=v29.18.0-32a7847" />
+  <link rel="stylesheet" href="src/ui/parts.css?v=v29.18.0-32a7847" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
+  <style>
+    /* 카탈로그 페이지 자체의 배치만 (부품 모양은 parts.css) */
+    body { margin: 0; min-height: 100vh; overflow: auto; background: url('assets/stage-sand.webp') center / cover fixed, var(--k-paper-2); font: 14px/1.4 var(--k-font); color: var(--k-ink); }
+    .cat { display: grid; gap: var(--k-s-4); max-width: 980px; margin: 0 auto; padding: var(--k-s-4); grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); align-items: start; }
+    .cat > header { grid-column: 1 / -1; }
+    .k-win.card:not([hidden]) { display: block; padding: var(--k-s-4); }
+    .card > .lbl { margin: 0 0 var(--k-s-2); font-size: var(--k-fs-s); color: var(--k-ink-soft); font-family: ui-monospace, monospace; }
+    .ctl { display: flex; flex-wrap: wrap; gap: var(--k-s-3); align-items: center; }
+    .ctl label { display: flex; gap: 6px; align-items: center; font-size: var(--k-fs-m); }
+    .sw { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+    .sw i { display: grid; place-items: end start; height: 44px; padding: 3px; border-radius: var(--k-r-s); box-shadow: var(--k-shadow-1); font: 9px/1 ui-monospace, monospace; font-style: normal; }
+    .scale > * { margin: 0 0 4px; }
+    .demo-win { position: static; max-height: 360px; }
+    .k-grid i.find { background-position: 0 0; }
+    .cat svg { fill: none; stroke: currentColor; stroke-width: 1.8; }   /* 견본 아이콘(실제 앱은 종이 아이콘 그림) */
+  </style>
+</head>
+<body>
+  <main class="cat">
+    <header class="k-win card">
+      <h1 class="k-h" style="font-size:24px">키위 디자인 시스템 · 카탈로그</h1>
+      <p class="k-hint">토큰 <code>src/ui/tokens.css</code> · 부품 <code>src/ui/parts.css</code> · 규칙 <code>docs/DESIGN_SYSTEM.md</code>. 새 화면은 여기 있는 부품만 쓰고, 없으면 부품을 먼저 더한다.</p>
+      <div class="ctl">
+        <label><input type="checkbox" id="night" /> 밤</label>
+        <label>창 투명도 <input type="range" id="see" min="0" max="70" step="5" value="0" /> <output id="seeOut">0%</output></label>
+      </div>
+    </header>
+
+    <section class="k-win card">
+      <p class="lbl">토큰 · 색 (--k-*)</p>
+      <div class="sw" id="swatches"></div>
+      <p class="lbl" style="margin-top:12px">글자 (--k-fs-xs … xl · --k-hand)</p>
+      <div class="scale">
+        <p style="font-size:var(--k-fs-xs)">xs 10.5 — 칸 안 숫자</p><p style="font-size:var(--k-fs-s)">s 12 — 안내·칸 이름</p>
+        <p style="font-size:var(--k-fs-m)">m 13 — 본문·버튼</p><p style="font-size:var(--k-fs-l);font-weight:700">l 15 — 강조 숫자</p>
+        <p class="k-h" style="margin:0">xl 18 — 제목(손글씨)</p>
+      </div>
+    </section>
+
+    <section class="k-win card">
+      <p class="lbl">.k-tabs · .k-seg · .k-btn · .k-hint</p>
+      <div class="k-tabs" role="tablist"><button role="tab" aria-selected="true">일지</button><button role="tab" aria-selected="false">편지</button><button role="tab" aria-selected="false">모은 것</button></div>
+      <div class="k-seg" style="margin-top:12px"><button aria-pressed="true">전체</button><button aria-pressed="false">연</button><button aria-pressed="false">월</button><button aria-pressed="false">일</button></div>
+      <button class="k-btn" type="button">전부 내려받기</button>
+      <p class="k-hint">안내 문구 — <b>강조</b>와 선물 표시 <i class="k-ico-gift"></i> 를 쓸 수 있어요.</p>
+      <h2 class="k-h sep">.k-h.sep 구분 제목</h2>
+    </section>
+
+    <section class="k-win card">
+      <p class="lbl">.k-stats</p>
+      <div class="k-stats"><div><b>1,240보</b><span>오늘</span></div><div><b>32,880보</b><span>지금까지 24.1km</span></div><div><b>7번</b><span>끝까지 한 집중</span></div></div>
+      <p class="lbl">.k-cal</p>
+      <div class="k-cal"><div class="calHead"><button>‹</button><b>2026년 10월</b><button disabled>›</button></div>
+        <div class="calDow"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+        <div class="calGrid" id="calDemo"></div><p class="note">날짜를 누르면 그날 일지를 펼쳐요.</p></div>
+    </section>
+
+    <section class="k-win card">
+      <p class="lbl">.k-grid (정사각) · .k-grid--items · 상태 .locked .on .waiting .mat .giftable · .cnt</p>
+      <div class="k-grid"><button><img src="assets/kiwi.webp" alt="" /></button><button class="on"><img src="assets/kiwi.webp" alt="" /></button><button class="waiting"><img src="assets/kiwi.webp" alt="" /></button><button class="locked">?</button><button class="mat giftable"><img src="assets/kiwi.webp" alt="" /><span class="cnt">3</span></button></div>
+      <div class="k-grid k-grid--items" style="margin-top:10px" id="itemsDemo"></div>
+    </section>
+
+    <section class="k-win card">
+      <p class="lbl">.k-grid--cards (그림 · .nm · .meta > .chip)</p>
+      <div class="k-grid k-grid--cards">
+        <button><i class="gpic" style="background-position:0 0"></i><span class="nm">갈매기</span><span class="meta"><span class="chip"><span class="bit">✉ 2</span><span class="bit">🎁 1</span></span></span></button>
+        <button class="waiting"><i class="gpic" style="background-position:33.333% 0"></i><span class="nm">게</span><span class="meta"><span class="chip">✉ 1</span></span></button>
+        <button class="locked">?<span class="nm">???</span><span class="meta"><span class="chip empty">✉ 0</span></span></button>
+      </div>
+    </section>
+
+    <section class="k-win card">
+      <p class="lbl">.k-grid--pics + .k-strip (옆으로 넘김)</p>
+      <div class="k-grid k-grid--pics k-strip"><button><img src="assets/stage-sea.webp" alt="" /><span class="nm">무지개 아래 고래</span></button><button><img src="assets/stage-sand.webp" alt="" /><span class="nm">아기 바다거북</span></button><button class="locked">?</button></div>
+      <p class="lbl">.k-list</p>
+      <div class="k-list"><button><img src="assets/kiwi.webp" alt="" /><span class="tx"><b>첫 번째 편지</b><span>파도가 글씨를 가져가도, 쓰고 싶었던 마음은 모래에…</span></span></button><button class="locked"><img src="assets/kiwi.webp" alt="" /><span class="tx"><b>???</b><span>아직 못 찾았어요</span></span></button></div>
+    </section>
+
+    <section class="k-win card">
+      <p class="lbl">.k-photos (.shot · .shotEmpty)</p>
+      <div class="k-photos"><button class="shot"><img src="assets/stage-sea.webp" alt="" /><span>바다 보며 25분</span></button><button class="shot"><img src="assets/stage-sand.webp" alt="" /><span>항해 · 벚꽃 강변</span></button></div>
+    </section>
+
+    <section class="k-win card">
+      <p class="lbl">.k-row · .k-now · 막대 · .k-trow · .k-chips · .k-wide</p>
+      <label class="k-row"><span>초 표시</span><input type="checkbox" checked /></label>
+      <label class="k-row"><span>음악</span><input type="range" value="60" /></label>
+      <p class="k-now">지금 오후 3:20 · 낮</p>
+      <div class="k-trow"><span>걷는 속도</span><output>1.0배</output></div>
+      <div class="k-trow"><span>간격</span><select><option>3분 (기본)</option></select></div>
+      <div class="k-chips"><button aria-pressed="true">지금 보기</button><button>전부</button><label><input type="checkbox" checked />콕콕</label><button class="warn">기록 지우기</button></div>
+      <button class="k-wide"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /></svg><span>화면 정리</span><small>버튼을 숨기고 그림만</small></button>
+    </section>
+
+    <section class="k-win card">
+      <p class="lbl">.k-opts (도장) · .k-choice · .k-stepper · .k-field</p>
+      <div class="k-opts k-opts--4"><label><input type="radio" name="o" checked /><span>15분</span></label><label><input type="radio" name="o" /><span>25분</span></label><label><input type="radio" name="o" /><span>50분</span></label><label><input type="radio" name="o" /><span>직접</span></label></div>
+      <div class="k-choice" style="margin-top:12px"><label><input type="radio" name="c" checked /><b>섬에서 집중</b><small>끝나면 선물 상자</small></label><label><input type="radio" name="c" /><b>항해</b><small>다른 섬으로</small></label></div>
+      <div class="k-stepper"><button>−</button><label><input type="number" value="30" /><span>분</span></label><button>+</button></div>
+      <textarea class="k-field" rows="2" placeholder="오늘의 한 줄"></textarea>
+      <button class="k-btn k-btn--block k-btn--primary">시작</button>
+    </section>
+
+    <section class="k-win card">
+      <p class="lbl">.k-pop.k-menu (.k-toggle) · .k-pop.k-picker</p>
+      <div class="k-pop k-menu"><button><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /></svg><span>꾸미기</span><small>키위 옷 · 배</small></button><div class="menuRow"><button><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /></svg><span>소리</span><small>배경 소리 · 키위 소리</small></button><button class="k-toggle" aria-checked="true">켜짐</button></div></div>
+      <div class="k-pop k-picker" style="margin-top:12px"><p class="ttl">날씨</p><div class="opts three"><button aria-pressed="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /></svg><span>맑음</span></button><button><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /></svg><span>흐림</span></button><button><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /></svg><span>비</span></button></div></div>
+    </section>
+
+    <section class="k-win card">
+      <p class="lbl">.k-entries (기록 줄) · .k-pill · .k-card</p>
+      <div class="k-entries"><div><b>작은 섬 · 물안개</b><button>이름 짓기</button><span>12.4해리 · 2026-10-25</span></div><div class="spot"><b>고래 길</b><span>바다 위의 곳</span></div></div>
+      <p style="margin:12px 0 6px"><span class="k-pill k-pill--title">해도</span> <span class="k-pill">열린 섬 36 / 36</span></p>
+      <div class="k-card"><b class="nm">벚꽃 강변</b><p class="k-hint">3번 닿음 · 다음 섬까지 1.0해리</p><div class="k-actions"><button class="k-btn k-btn--primary">항해로 가기</button><button class="k-btn">닫기</button></div></div>
+    </section>
+
+    <section class="uiWindow k-win demo-win" style="position:static">
+      <div class="k-win-head"><p class="k-sum">.k-win = .k-win-head(고정) + .k-win-body(이것만 스크롤)</p><div class="k-tabs" role="tablist"><button role="tab" aria-selected="true">하나</button><button role="tab" aria-selected="false">둘</button></div></div>
+      <div class="k-win-body"><h2 class="k-h">창 몸</h2><p class="k-hint">길어지면 이 칸만 스크롤돼요. 머리(요약·탭)는 위에 남아요.</p><p class="k-hint">…</p><p class="k-hint">…</p><p class="k-hint">…</p><p class="k-hint">…</p><p class="k-hint">…</p></div>
+    </section>
+    <section class="k-win card">
+      <p class="lbl">.k-round · .k-dock · .k-toast · .k-composer</p>
+      <div class="grp k-dock" role="group" aria-label="부품 예시 버튼 줄"><button class="round k-round" aria-label="글씨">✎</button><button class="round k-round" aria-label="날씨">☀</button></div>
+      <p class="k-toast on" style="position:static;transform:none;margin:12px 0">새 편지가 도착했어요</p>
+      <form class="k-composer" style="position:relative;left:auto;bottom:auto;transform:none;width:100%" onsubmit="event.preventDefault()"><input aria-label="입력 줄 예시" placeholder="여기에 문장을 써 보세요" /><button class="k-send" aria-label="예시 부탁하기">↵</button></form>
+      <div class="k-actions"><button class="k-btn" id="demoCardOpen">보상 카드</button><button class="k-btn" id="demoInfoOpen">읽는 창</button><button class="k-btn" id="demoPhotoOpen">사진 크게</button></div>
+    </section>
+  </main>
+  <div class="k-modal--center" id="demoCard" role="dialog" aria-modal="true" aria-labelledby="demoCardTitle" hidden>
+    <div class="card k-dialog"><div class="art"><img class="place" src="assets/hydrangea-water-card.webp" alt="수국 꽃해변" /></div><h2 class="k-dialog-title" id="demoCardTitle">수국 꽃해변</h2><p class="body">같은 종이·투명도·둥글기 토큰을 쓰는 카드예요.</p><div class="btns"><button class="k-btn--primary" data-demo-close>좋아요</button><button data-demo-close>닫기</button></div></div>
+  </div>
+  <div class="k-modal--reading" id="demoInfo" role="dialog" aria-modal="true" aria-labelledby="demoInfoTitle" hidden>
+    <div class="panel k-prose"><h1 id="demoInfoTitle">발자국 한글</h1><p class="lead">키위는 날지 못합니다. 그래서 걸어서 옵니다.</p><h2>읽는 창</h2><p>낮·밤과 창 투명도를 바꾸고 글자가 읽히는지 확인해요.</p><button data-demo-close>닫기</button></div>
+  </div>
+  <dialog class="k-viewer" id="demoPhoto" aria-labelledby="demoPhotoTitle"><div class="photoToolbar"><h2 id="demoPhotoTitle">사진 원본 보기</h2><div class="photoControls"><button data-demo-close>닫기</button></div></div><div class="photoViewport" tabindex="0" role="region" aria-label="사진 예시"><img src="assets/hydrangea-water.webp" alt="수국 꽃해변" style="width:100%;height:100%;object-fit:contain" /></div></dialog>
+  <script>
+    // 카탈로그 조작: 밤 · 창 투명도(앱과 같은 --win-a / data-win-see)
+    const de = document.documentElement, night = document.getElementById('night'), see = document.getElementById('see'), out = document.getElementById('seeOut');
+    night.onchange = () => { if (night.checked) de.dataset.time = 'night'; else delete de.dataset.time; paintSwatches(); };
+    see.oninput = () => { const v = +see.value; de.style.setProperty('--win-a', String(1 - v / 100)); de.toggleAttribute('data-win-see', v > 0); out.textContent = v + '%'; };
+    const SW = ['--k-paper', '--k-paper-2', '--k-paper-up', '--k-note', '--k-solid', '--k-edge', '--k-ink', '--k-ink-soft', '--k-accent', '--k-accent-wash', '--k-wash', '--k-mark'];
+    function paintSwatches() {
+      const box = document.getElementById('swatches'); box.textContent = '';
+      for (const v of SW) { const i = document.createElement('i'); i.style.background = `var(${v})`; i.textContent = v.slice(4); i.style.color = v.includes('ink') || v === '--k-accent' ? 'var(--k-on-accent)' : 'var(--k-ink)'; box.append(i); }
+    }
+    paintSwatches();
+    for (const [button, box] of [['demoCardOpen', 'demoCard'], ['demoInfoOpen', 'demoInfo'], ['demoPhotoOpen', 'demoPhoto']]) {
+      const target = document.getElementById(box), trigger = document.getElementById(button);
+      const close = () => { if (target instanceof HTMLDialogElement) target.close(); else target.hidden = true; trigger.focus(); };
+      trigger.onclick = () => { if (target instanceof HTMLDialogElement) target.showModal(); else { target.hidden = false; target.querySelector('button').focus(); } };
+      target.querySelectorAll('[data-demo-close]').forEach(b => b.onclick = close);
+      target.addEventListener('keydown', e => { if (e.key === 'Escape' && !(target instanceof HTMLDialogElement)) { e.preventDefault(); close(); } });
+    }
+    const cal = document.getElementById('calDemo');
+    for (let d = 1; d <= 21; d++) { const b = document.createElement('button'); b.className = 'day' + (d % 5 === 0 ? ' done' : '') + (d === 17 ? ' today' : '') + (d === 12 ? ' pick' : ''); b.innerHTML = `<span class="n">${d}</span>` + (d % 5 === 0 ? '<svg viewBox="0 0 24 24"><path d="M5 13l4 4 10-10"/></svg>' : d % 3 === 0 ? '<i></i>' : ''); cal.append(b); }
+    const items = document.getElementById('itemsDemo');
+    for (let k = 0; k < 12; k++) { const b = document.createElement('button'); if (k % 4 === 3) b.className = 'locked', b.textContent = '?'; else { const f = document.createElement('i'); f.className = 'find'; f.style.backgroundPosition = `${(k % 4) * 100 / 3}% ${Math.floor(k / 4) * 100 / 7}%`; b.append(f); if (k % 3 === 0) { const c = document.createElement('span'); c.className = 'cnt'; c.textContent = String(k + 1); b.append(c); } if (k === 1) b.classList.add('giftable'); if (k === 2) b.classList.add('mat'); } items.append(b); }
+  </script>
+</body>
+</html>

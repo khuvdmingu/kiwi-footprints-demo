@@ -1,3 +1,5 @@
+/* 디자인 시스템 전환 중: 이 파일은 옛 규칙 층(legacy) — src/ui/tokens.css · parts.css(층 없음)가 늘 이긴다. 옮긴 화면의 규칙은 여기서 지운다 (docs/DESIGN_SYSTEM.md) */
+@layer legacy {
 /* src/ui/shell.css — 2026-10-24 UI 개편의 모양 (예전 src/ia/ia.css).
    창 틀은 style.css·theme-paper.css 의 .uiWindow, 소리 부품은 .soundControls·.soundPicks 를 쓴다. 여기는 새 자리·새 부품만. */
 
@@ -9,30 +11,16 @@ body.clean :is(.basket, .wardrobe, #chartView) { display: none !important; }
 .basket { width: min(340px, calc(100vw - 2 * var(--edge, 16px))); right: var(--right, 16px); top: calc(var(--top) + var(--tap) + 10px); max-height: calc(100dvh - var(--top) - var(--tap) - 26px); overflow-y: auto; overscroll-behavior: contain; padding: 14px 14px 12px; border-radius: 16px; }
 .basket[hidden], .wardrobe[hidden], #chartView[hidden] { display: none; }
 .basket #colTitle { margin: 0 2px 10px; font-size: 12.5px; opacity: 0.75; }
-.basket .pane > h2:first-child, .wardrobe .pane > h2:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
 
 /* ── 꾸미기: 폰에선 아래 시트(위쪽 섬이 보이게 = 입혀 본 키위가 보인다), 넓은 화면에선 오른쪽 세로 판 ── */
 .wardrobe { position: fixed; z-index: 26; left: 0; right: 0; bottom: 0; top: auto; width: auto; max-height: min(64dvh, 560px); display: flex; flex-direction: column; padding: 12px 14px 0; border-radius: 18px 18px 0 0; overflow: hidden; }
-.wardrobe .wdHead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 0 2px 8px; }
-.wardrobe .wdHead h2 { margin: 0; padding: 0; border: 0; font-size: 17px; }
-.wardrobe .wdHead p { margin: 0; font-size: 12px; opacity: 0.7; }
-.wardrobe > .tabs { flex: none; }
-.wardrobe > .pane { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 2px 10px; }
-.wardrobe .wdBar { flex: none; display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; margin: 0 -14px; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid var(--panel-line); }
-.wardrobe .wdBar button { min-height: var(--tap, 44px); border-radius: 12px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; font-weight: 600; cursor: pointer; }
-.wardrobe .wdBar .primary { background: var(--sand); color: #2a2016; border-color: transparent; }
-.wardrobe .wdBar .primary:disabled { opacity: 0.45; cursor: default; }
 body.dressing #say { display: none; }
 body.dressing #breathOffer { display: none; }
 @media (min-width: 760px) {
   .wardrobe { left: auto; right: var(--right, 16px); top: calc(var(--top) + var(--tap) + 10px); bottom: var(--edge, 16px); width: 380px; max-height: none; border-radius: 16px; }
-  .wardrobe .wdBar { padding-bottom: 12px; }
 }
 /* 배·돛·키위 정지 합성: 항해의 배 그리기만 재사용, 무거운 바다 판은 읽지 않는다. */
 :root { --preview-water-top: #bfe0ea; --preview-water-bottom: #7fb4c6; }
-.wardrobe .boatStage { margin: 0 0 var(--gap); }
-.wardrobe .boatStage canvas { display: block; width: 100%; height: 120px; object-fit: contain; background: linear-gradient(var(--preview-water-top), var(--preview-water-bottom)); border-radius: 14px; }
-.wardrobe #boatPreviewNote { display: block; min-height: 1.5em; }
 
 /* ── 해도: 장소의 유일한 입구. 폰은 화면 전체, 넓은 화면은 큰 판 ── */
 #chartView { --chart-ink: #3d2b1c; --chart-paper: #e9dab8; position: fixed; z-index: 27; inset: 0; display: flex; flex-direction: column; gap: 8px; padding: calc(10px + env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); background: #e9dab8; color: #3d2b1c; }
@@ -43,65 +31,20 @@ body.dressing #breathOffer { display: none; }
 #chartView #chartCv:active { cursor: grabbing; }
 #chartView .cvHead { position: absolute; z-index: 2; top: calc(var(--edge, 12px) + env(safe-area-inset-top)); left: max(var(--edge, 12px), env(safe-area-inset-left)); right: max(var(--edge, 12px), env(safe-area-inset-right)); pointer-events: none; }
 #chartView .cvHead > * { pointer-events: auto; }
-#chartView .cvHead h2, #chartView #chartCount { padding: 6px 12px; border-radius: 999px; background: rgba(251, 244, 228, 0.88); box-shadow: 0 2px 8px rgba(61, 43, 28, 0.18); }
-#chartView #chartClose { background: rgba(251, 244, 228, 0.92); box-shadow: 0 2px 8px rgba(61, 43, 28, 0.18); }
 #chartView .cvFoot { position: absolute; z-index: 2; left: 50%; transform: translateX(-50%); bottom: calc(var(--edge, 12px) + env(safe-area-inset-bottom)); width: min(560px, calc(100% - 2 * var(--edge, 12px))); padding: 8px 12px; border-radius: 14px; background: rgba(251, 244, 228, 0.9); box-shadow: 0 4px 16px rgba(61, 43, 28, 0.22); }
-#chartView .cvFoot #chartNote { margin: 0; }
 #chartView .cvHint { margin: 2px 0 0; font-size: 11.5px; opacity: 0.65; }
 #chartView .cvFoot .more { max-height: 34dvh; }
 #chartView .isleCard { z-index: 3; bottom: calc(var(--edge, 12px) + 104px + env(safe-area-inset-bottom)); }
 #chartView .cvHead { display: flex; align-items: center; gap: 10px; flex: none; }
-#chartView .cvHead h2 { margin: 0; font-size: 18px; }
-#chartView #chartCount { font-size: 12.5px; opacity: 0.7; font-variant-numeric: tabular-nums; }
-#chartView #chartClose { margin-left: auto; min-height: 40px; min-width: 64px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(61, 43, 28, 0.3); background: rgba(255, 255, 255, 0.45); color: inherit; font: inherit; font-weight: 600; cursor: pointer; }
 #chartView .chartBox { flex: 1 1 auto; min-height: 0; width: auto; max-width: none; margin: 0; border: 0; position: relative; border-radius: 14px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(61, 43, 28, 0.18); }
 #chartView #chartCv { display: block; width: 100%; height: 100%; aspect-ratio: auto; cursor: grab; touch-action: none; }   /* v29.4.6: manipulation 이면 폰 브라우저가 끌기를 제 스크롤로 가져가 몇 px 만에 손가락이 끊겼다 */
-#chartView #chartNote { flex: none; margin: 0 2px; font-size: 12.5px; opacity: 0.8; }
 #chartView .more { flex: none; max-height: 32dvh; overflow-y: auto; }
-#chartView .more summary { min-height: 40px; display: flex; align-items: center; font-weight: 600; font-size: 13.5px; cursor: pointer; }
-#chartView .chartRow b, #chartView .chartRow span { color: #3d2b1c; }
 #chartView .isleCard { position: absolute; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(340px, calc(100% - 32px)); padding: 12px 14px; border-radius: 14px; background: #fbf4e4; box-shadow: 0 8px 24px rgba(40, 30, 20, 0.28); }
 #chartView .isleCard[hidden] { display: none; }
-#chartView .isleCard .nm { display: block; font-size: 16px; }
 #chartView .isleCard .nmEdit { display: block; width: 100%; box-sizing: border-box; min-height: var(--tap-in, 40px); padding: 0 10px; font: inherit; font-size: 16px; font-weight: 600; border-radius: 10px; border: 1px solid rgba(61, 43, 28, 0.35); background: #fff; color: #3d2b1c; }   /* 16px: 폰이 입력 칸을 확대하지 않게 */
-#chartView .isleCard .tx { margin: 4px 0 10px; font-size: 13px; line-height: 1.5; opacity: 0.85; }
-#chartView .isleCard .btns { display: flex; gap: 8px; }
-#chartView .isleCard button { flex: 1; min-height: 42px; border-radius: 11px; border: 1px solid rgba(61, 43, 28, 0.28); background: transparent; color: inherit; font: inherit; font-weight: 600; cursor: pointer; }
-#chartView .isleCard .go { flex: 1.5; background: #c0442c; color: #fff8ec; border-color: transparent; }
-#chartView .isleCard .go:disabled { opacity: 0.5; cursor: default; }
 #chartView .isleCard .go[hidden] { display: none; }
 
 /* ── 떠나기 창: 탭 [떠나기 | 기록] · 두 갈래 카드 · 목적지 한 줄 ── */
-#focusPanel > .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; padding: 3px; margin: 0 0 12px; border-radius: 11px; background: rgba(0, 0, 0, 0.18); }
-#focusPanel > .tabs button { min-height: 38px; padding: 6px 2px; border: 0; border-radius: 8px; background: transparent; color: inherit; font: inherit; font-size: 14px; font-weight: 600; opacity: 0.75; cursor: pointer; }
-#focusPanel > .tabs button[aria-selected="true"] { background: var(--sand); color: #2a2016; opacity: 1; }
-#focusPanel > .tabs button:focus-visible { outline: 2px solid rgb(var(--ink)); outline-offset: 1px; }
-#focusPanel > .pane[hidden] { display: none; }
-#focusPanel .pane[data-pane="rec"] .stats { margin-top: 2px; padding-top: 0; border-top: 0; }
-#focusPanel .fmode { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 6px; }
-#focusPanel .fcard { position: relative; display: grid; gap: 3px; align-content: start; min-height: 74px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.06); cursor: pointer; }
-#focusPanel .fcard input { position: absolute; opacity: 0; pointer-events: none; }
-#focusPanel .fcard b { font-size: 15px; }
-#focusPanel .fcard small { font-size: 11.5px; line-height: 1.4; opacity: 0.75; word-break: keep-all; }
-#focusPanel .fcard:has(input:checked) { background: var(--sand); color: #2a2016; border-color: transparent; }
-#focusPanel .fcard:has(input:focus-visible) { outline: 2px solid rgb(var(--ink)); outline-offset: 2px; }
-#focusPanel .voyDest { display: flex; align-items: center; gap: 10px; margin: 0 2px 8px; }
-#focusPanel .voyDest b { flex: 1 1 auto; min-width: 0; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#focusPanel .voyDest button.quiet { flex: none; width: auto; margin: 0; padding-left: 14px; padding-right: 14px; }
-#focusPanel .voyTo { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; }
-#focusPanel .voyTo button { width: auto; flex: 0 0 auto; margin: 0; white-space: nowrap; }
-#focusPanel .letterH { display: flex; align-items: baseline; gap: 8px; }
-#focusPanel .letterH small { font-family: var(--font); font-size: 11.5px; font-weight: 500; opacity: 0.65; }
-#focusPanel .snap { margin: 2px 4px 0; font-size: 12px; line-height: 1.5; opacity: 0.8; word-break: keep-all; }
-#focusPanel .snap b { font-weight: 700; color: var(--sand); }
-#focusPanel .snap span { display: block; margin-top: 2px; opacity: 0.75; }
-#focusPanel #focusStart { margin-top: 12px; }
-#focusPanel button[hidden] { display: none; }
-#focusPanel .busy #voyQuit { margin-top: 8px; }
-#focusPanel button.quit.armed { background: #b0473a; color: #fff8ec; border-color: transparent; opacity: 1; }
-#focusPanel .voyQuitNote { margin: 6px 2px 0; font-size: 12px; opacity: 0.75; }
-#focusPanel .voyPaused .tbtns button { flex: 1; }
-#focusPanel .more { margin: 10px 0 0; border-top: 1px solid var(--panel-line); padding-top: 4px; }
 .more summary { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 4px; cursor: pointer; font-weight: 600; font-size: 14px; list-style: none; white-space: nowrap; }
 .more summary::-webkit-details-marker { display: none; }
 .more summary::before { content: '▸'; font-size: 12px; opacity: 0.7; transition: transform 0.2s; }
@@ -109,10 +52,6 @@ body.dressing #breathOffer { display: none; }
 .more summary small { font-weight: 400; font-size: 12px; opacity: 0.6; white-space: normal; font-family: var(--font); line-height: 1.35; }
 
 /* ── 메뉴: 꾸미기 · 설정 · [소리 | 켜짐] · 작품 설명 ── */
-#menu .menuRow { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px; }
-#menu .menuRow #soundBtn { width: auto; height: auto; }
-#menu .mute { display: inline-flex; align-items: center; justify-content: center; width: auto; min-height: 36px; min-width: 64px; margin-right: 6px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--panel-line); background: transparent; color: inherit; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
-#menu .mute[aria-checked="true"] { background: var(--sand); color: #2a2016; border-color: transparent; }
 #soundBtn .mute, #soundBtn[data-on="0"] .wave { display: none; }
 #soundBtn[data-on="0"] .mute { display: inline; }
 
@@ -122,14 +61,7 @@ body.dressing #breathOffer { display: none; }
 .views .pick svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .views .pick span { font-size: 12.5px; font-weight: 600; white-space: nowrap; }
 .views .pick[aria-pressed="true"] { background: var(--sand); color: #2a2016; border-color: transparent; }
-button.wide { display: grid; grid-template-columns: 26px 1fr; grid-template-rows: auto auto; column-gap: 12px; align-items: center; width: 100%; min-height: 48px; padding: 6px 12px; margin: 2px 0 0; border-radius: 12px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; text-align: left; cursor: pointer; }
-button.wide svg { grid-row: 1 / 3; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 button.wide span { font-weight: 600; } button.wide small { font-size: 12px; opacity: 0.65; }
-#settings .seeNow { margin: 2px 2px 4px; font-weight: 500; font-variant-numeric: tabular-nums; }
-#settings #winSee { width: 100%; margin: 4px 0 4px; accent-color: var(--sand); }
-#settings .seg.five:has(input[value="one"]) { grid-template-columns: repeat(4, 1fr); }
-#settings .seg.five label:has(input[value="one"]:not(:checked)) { display: none; }
-#settings .tabs button { padding-left: 2px; padding-right: 2px; font-size: 12.5px; }
 body.say-off #say { display: none !important; }
 
 /* 창 투명도: --win-a = 바탕 불투명도 (shell.js 가 설정 › 화면 막대로 정함) */
@@ -137,10 +69,8 @@ html:not([data-ui="paper"]) :is(#settings, .basket, .wardrobe, #focusPanel) { ba
 html:not([data-ui="paper"]) :is(#menu, #picker) { background: rgba(20, 47, 73, calc(var(--win-a, 0.78) + 0.13)); }
 html:not([data-ui="paper"]) #picker::before { background: rgba(20, 47, 73, calc(var(--win-a, 0.78) + 0.13)); }
 html:not([data-ui="paper"]) .wardrobe { background: rgba(20, 47, 73, max(0.86, var(--win-a, 0.78))); }   /* 아래 시트는 섬 위에 겹쳐 글씨가 묻히지 않게 */
-html[data-ui="paper"] { --pp-rgb: 251, 244, 228; }
-html[data-ui="paper"][data-time="night"] { --pp-rgb: 214, 195, 158; }
-html[data-ui="paper"] :is(#settings, .basket, .wardrobe, #focusPanel, #menu, #picker) { background: var(--pp-grain), rgba(var(--pp-rgb), var(--win-a, 1)); }
-html[data-ui="paper"][data-win-see] :is(#settings, .basket, .wardrobe, #focusPanel, #menu, #picker) { backdrop-filter: blur(10px) saturate(1.05); -webkit-backdrop-filter: blur(10px) saturate(1.05); }
+html[data-ui="paper"] :is(#settings, .basket, .wardrobe, #focusPanel, #menu, #picker) { background: var(--k-surface); }   /* DS 토큰: 투명도 한 값 */
+html[data-ui="paper"] :is(#settings, .basket, .wardrobe, #focusPanel, #menu, #picker) { backdrop-filter: var(--k-blur); -webkit-backdrop-filter: var(--k-blur); }
 html[data-ui="paper"][data-win-see] #picker::before { background: rgba(var(--pp-rgb), var(--win-a, 1)); }
 
 /* 모던 아이콘 선 굵기 (밝은 그림 위에서 흐리지 않게) */
@@ -156,27 +86,10 @@ html:not([data-ui="paper"]) #menuBtn svg { stroke-width: 3.4; }
 }
 
 /* ── 종이 테마 ── */
-html[data-ui="paper"] #focusPanel > .tabs { background: var(--pp-2); box-shadow: inset 0 1px 2px rgba(80, 60, 30, 0.12); }
-html[data-ui="paper"] #focusPanel > .tabs button { color: var(--pp-ink); opacity: 0.6; }
-html[data-ui="paper"] #focusPanel > .tabs button[aria-selected="true"] { background: var(--pp); color: var(--pp-ink); opacity: 1; box-shadow: 0 1px 3px rgba(80, 60, 30, 0.22); }
-html[data-ui="paper"] #focusPanel .fcard { border-color: rgba(74, 56, 38, 0.28); background: rgba(255, 255, 255, 0.35); color: var(--pp-ink); }
-html[data-ui="paper"] #focusPanel .fcard b { font-family: var(--pp-hand); font-size: 20px; font-weight: 700; }
-html[data-ui="paper"] #focusPanel .fcard:has(input:checked) { background: var(--pp-stamp); color: var(--pp-stamp-ink); border-color: transparent; transform: rotate(-0.8deg); }
-html[data-ui="paper"] #focusPanel .snap b { color: var(--pp-stamp); }
-html[data-ui="paper"] #focusPanel .more { border-top: 1px dashed var(--pp-edge); }
 html[data-ui="paper"] .more summary { font-family: var(--pp-hand); font-size: 18px; }
 html[data-ui="paper"] .more summary small { font-family: var(--font); font-size: 12px; }
-html[data-ui="paper"] #menu .mute { border-color: rgba(74, 56, 38, 0.28); color: var(--pp-ink); border-radius: 999px; border-style: solid; border-top-width: 1px; }
-html[data-ui="paper"] #menu .mute[aria-checked="true"] { background: var(--pp-stamp); color: var(--pp-stamp-ink); border-color: transparent; }
-html[data-ui="paper"] #menu .menuRow + button { border-top: 1px dashed var(--pp-edge); box-shadow: none; }
 html[data-ui="paper"] :is(.views .pick, button.wide) { border-color: rgba(74, 56, 38, 0.28); background: rgba(255, 255, 255, 0.35); color: var(--pp-ink); }
 html[data-ui="paper"] .views .pick[aria-pressed="true"] { background: var(--pp-stamp); color: var(--pp-stamp-ink); border-color: transparent; transform: rotate(-1.2deg); }
-html[data-ui="paper"] #settings #winSee { accent-color: var(--pp-stamp); }
-html[data-ui="paper"] .wardrobe .wdHead h2 { font-family: var(--pp-hand); font-size: 24px; }
-html[data-ui="paper"] .wardrobe .wdBar { border-top: 1px dashed var(--pp-edge); }
-html[data-ui="paper"] .wardrobe .wdBar button { border-color: rgba(74, 56, 38, 0.28); background: rgba(255, 255, 255, 0.35); color: var(--pp-ink); }
-html[data-ui="paper"] .wardrobe .wdBar .primary { background: var(--pp-stamp); color: var(--pp-stamp-ink); border-color: transparent; }
-html[data-ui="paper"] #chartView .cvHead h2 { font-family: var(--pp-hand); font-size: 26px; }
 /* 종이 그림 아이콘 (theme-paper.css 표와 같은 방식 — 칸: B 판 4×4) */
 html[data-ui="paper"] :is(#basketBtn, #chartBtn, #wardBtn, #toWardSound, .views .pick, #info i[data-icon="basketBtn"], #info i[data-icon="chartBtn"]) svg { background-repeat: no-repeat; background-size: 400% 400%; background-image: url("../../assets/icons-paper-b.webp"); filter: drop-shadow(0 0 0.6px rgba(74, 56, 38, 0.5)); }
 html[data-ui="paper"] :is(#basketBtn, #chartBtn, #wardBtn, #toWardSound, .views .pick, #info i[data-icon="basketBtn"], #info i[data-icon="chartBtn"]) svg > * { visibility: hidden; }
@@ -193,12 +106,10 @@ html[data-ui="paper"] .views .pick svg[data-ico="v-breeze"] { background-positio
 html[data-ui="paper"] body.clean #hideBtn svg { background-image: url("../../assets/icons-paper-b.webp"); background-position: 100% 100%; }
 
 /* 키보드 초점과 움직임 줄이기: 장면을 가리지 않는 창은 Tab을 가두지 않는다. */
-.uiWindow :is(button, input, select, textarea):focus-visible,
-#focusPanel :is(button, input, textarea):focus-visible,
-#chartView :is(button, select, canvas):focus-visible { outline: 2px solid rgb(var(--ink)); outline-offset: 2px; }
+.uiWindow :is(button, input, select, textarea):focus-visible, #focusPanel :is(button, input, textarea):focus-visible, #chartView :is(button, select, canvas):focus-visible { outline: 2px solid rgb(var(--ink)); outline-offset: 2px; }
 html[data-ui="paper"] :is(.uiWindow, #focusPanel, #chartView) :focus-visible { outline-color: var(--pp-stamp); }
 @media (prefers-reduced-motion: reduce) {
-  :is(.uiWindow, #focusPanel, #chartView, #menu, #picker) *, .round { animation-duration: 0s !important; transition-duration: 0s !important; scroll-behavior: auto !important; }
+  :is(.uiWindow, #focusPanel, #chartView, #menu, #picker) * { animation-duration: 0s !important; transition-duration: 0s !important; scroll-behavior: auto !important; }
 }
 
 /* 지도 이름 선택은 보조기술에 항상 제공하고, 키보드로 들어오면 지도 위에 펼친다. */
@@ -206,8 +117,6 @@ html[data-ui="paper"] :is(.uiWindow, #focusPanel, #chartView) :focus-visible { o
 @media (max-height: 520px) {
   #chartView .cvFoot { left: max(var(--edge, 12px), env(safe-area-inset-left)); transform: none; width: min(340px, 46vw); padding: 6px 10px; }
   #chartView .cvHint { display: none; }
-  #chartView .cvFoot #chartNote { font-size: 11.5px; }
-  #chartView .cvFoot .more summary { min-height: 32px; font-size: 12.5px; }
   #chartView .isleCard { bottom: calc(var(--edge, 12px) + env(safe-area-inset-bottom)); left: auto; right: max(var(--edge, 12px), env(safe-area-inset-right)); transform: none; }
 }
 
@@ -233,120 +142,40 @@ html[data-ui="paper"] :is(.uiWindow, #focusPanel, #chartView) :focus-visible { o
 @media (max-width: 480px) { .colgrid.finds { grid-template-columns: repeat(6, 1fr); } }
 :is(.uiWindow, #focusPanel) label.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 
-/* ── v29.5 바구니: 제목·탭은 위에 고정, 아래 칸만 스크롤 (예전엔 창 전체가 스크롤돼 탭이 올라가 사라졌다) ──
-   여백은 창 틀 값(--win-pad) 하나로: 머리 · 칸 좌우 · 칸 아래 · 스크롤 막대는 창 가장자리에 붙는다 */
-#basket.basket:not([hidden]) { display: flex; flex-direction: column; overflow: hidden; padding: var(--win-pad) 0 0; }
-#basket > .bagHead { flex: none; padding: 0 var(--win-pad); }
-#basket > .bagHead .bagSum { margin: 0 2px 10px; }
-#basket > .bagHead .tabs { margin-bottom: 4px; }
-#basket > .pane { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 12px var(--win-pad) var(--win-pad); }
-#basket > .pane[hidden] { display: none; }
-#basket .pane > h2 { margin: 0 2px 8px; }
-#basket .pane > h2.sep { margin-top: 20px; padding-top: 16px; }
-#basket .pane > .hint { margin: 8px 2px 0; }
-#basket .colgrid { margin: 0; }
-#basket .letters { margin: 0; }
-/* 일지 묶어 보기: 탭보다 가벼운 칩 줄 */
-.shotBy { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 0 0 12px; }
-.shotBy button { min-height: var(--tap-in, 40px); border-radius: 999px; border: 1px solid var(--panel-line); background: transparent; color: inherit; font: inherit; font-size: 13px; font-weight: 600; opacity: 0.75; cursor: pointer; }
-.shotBy button[aria-pressed="true"] { background: rgba(255, 255, 255, 0.14); border-color: var(--sand); opacity: 1; }
-html[data-ui="paper"] .shotBy button { color: var(--pp-ink); border-color: var(--pp-edge); }
-html[data-ui="paper"] .shotBy button[aria-pressed="true"] { background: var(--pp-2); border-color: var(--pp-stamp); }
-#basket .shots { margin: 0; gap: 16px 12px; padding-top: 8px; }
-.shots .shotGroup { grid-column: 1 / -1; border-top: 1px solid var(--panel-line); }
-.shots .shotGroup:first-child { border-top: 0; }
-.shotGroup > summary { display: flex; align-items: baseline; gap: 8px; min-height: var(--tap-in, 40px); padding: 10px 2px; cursor: pointer; list-style: none; }
-.shotGroup > summary::-webkit-details-marker { display: none; }
-.shotGroup > summary::before { content: ''; width: 7px; height: 7px; margin-right: 2px; border: solid currentColor; border-width: 0 2px 2px 0; transform: translateY(-2px) rotate(-45deg); opacity: 0.6; transition: transform 0.15s; }
-.shotGroup[open] > summary::before { transform: translateY(-4px) rotate(45deg); }
-.shotGroup > summary b { font-size: 14px; }
-.shotGroup > summary small { font-size: 12px; opacity: 0.7; }
-.shotGroup > .shots { padding: 8px 0 16px; }
-html[data-ui="paper"] .shots .shotGroup { border-top: 1px dashed var(--pp-edge); }
 /* 쓰임이 있는 것(옷 재료 · 섬 짓기 재료 · 지도 조각): 귀퉁이 작은 점 */
 .colgrid button.mat::before { content: ''; position: absolute; left: 4px; top: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--sand); box-shadow: 0 0 0 1.5px rgba(20, 47, 73, 0.7); z-index: 1; }
-@media (orientation: landscape) and (max-height: 520px) { #basket > .pane { padding-top: 8px; } }
 
 /* ── v29.6 답장 선물: 편지 카드 안 고르기 칸 · 손님 칸 🎁 ── */
-#found .art .giftGrid { grid-template-columns: repeat(5, 1fr); gap: 6px; width: min(100%, 300px); max-height: 46dvh; overflow-y: auto; margin: 4px auto 0; padding: 2px; }
-#found .art .giftGrid button { min-height: 0; padding: 0; border-radius: 10px; border: 1px solid rgba(90, 65, 40, 0.25); background: rgba(255, 255, 255, 0.55); }
-#found .art .giftGrid button[aria-pressed="true"] { outline: 3px solid #d98a3a; outline-offset: -1px; background: #fff3dc; }
-#found .art .giftGrid .cnt { color: #fff; }
-#found #foundGift:disabled { opacity: 0.55; cursor: default; }
-.colgrid.guests button .gift { position: absolute; left: 2px; top: 1px; font-size: 9.5px; font-weight: 700; line-height: 1; padding: 1px 2px; border-radius: 4px; background: rgba(20, 47, 73, 0.75); }
-.colgrid.guests button.waiting { border-color: var(--sand); border-style: dashed; }
-#found .art .giftGrid i.find { position: absolute; inset: 8%; width: auto; height: auto; margin: 0; }
-#found .art .giftGrid canvas.catchIcon { position: absolute; inset: 6%; width: 88%; height: 88%; }
 
-/* ── v29.7 떠나기 창의 「기록」 → 바구니 › 일지: 걸음 칸 셋은 맨 위, 달력은 「일」 보기에서만 ── */
-#basket .stats { margin: 0 0 12px; padding-top: 0; border-top: 0; }
-#basket .cal { margin: 0 0 12px; padding: 10px 8px 4px; border-top: 0; border-radius: 12px; background: rgba(0, 0, 0, 0.12); }
-#basket .cal[hidden] { display: none; }
-html[data-ui="paper"] #basket .cal { background: var(--pp-2); }
-#focusPanel .recLink { display: block; width: 100%; margin-top: 10px; min-height: var(--tap-in, 40px); border: 0; background: transparent; color: inherit; font: inherit; font-size: 13px; opacity: 0.75; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 
-/* ── v29.7.1 드문 순간은 일지 맨 위 한 줄(옆으로 넘김), 지은 것은 해도 섬 카드 · 「더 보기」 ── */
-#basket h2.momH { margin: 0 2px 8px; }
-#basket .colgrid.moments.strip { display: grid; grid-auto-flow: column; grid-auto-columns: 38%; grid-template-columns: none; gap: 8px; margin: 0 calc(-1 * var(--win-pad)) 14px; padding: 0 var(--win-pad) 4px; overflow-x: auto; scroll-snap-type: x proximity; overscroll-behavior-x: contain; }
-#basket .colgrid.moments.strip > button { scroll-snap-align: start; }
 #chartView .isleCard .buildRow { margin: 2px 0 10px; color: #3d2b1c; }
 #chartView .isleCard .buildRow > b { font-size: 12.5px; font-weight: 600; opacity: 0.7; }
 #chartView .isleCard .buildRow .buildBar { background: rgba(61, 43, 28, 0.14); }
 #chartView .isleCard .buildRow .buildBar::after { background: #d98a3a; }
-#chartView .more .moreH { margin: 12px 0 6px; font-size: 12.5px; font-weight: 600; opacity: 0.75; }
 #chartView .more .builds { margin-bottom: 4px; }
 
 /* ── v29.8 모은 것 한 칸 카드: 큰 그림 · 쓰임 · 만들기로 · 누구에게 줄까요 ── */
-#found .art canvas.catchIcon.big { display: block; width: 150px; height: 150px; margin: 0 auto; }
-#found .art .giftToH { margin: 10px 0 6px; font-size: 13px; font-weight: 600; color: #5a4128; text-align: center; }
-#found .art .giftTo { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-height: 30dvh; overflow-y: auto; padding: 2px; }
-#found .art .giftTo button { display: grid; justify-items: center; gap: 2px; min-height: 0; padding: 4px 2px 6px; border-radius: 10px; border: 1px solid rgba(90, 65, 40, 0.22); background: rgba(255, 255, 255, 0.55); font-size: 11px; font-weight: 600; }
-#found .art .giftTo button[aria-pressed="true"] { outline: 3px solid #d98a3a; outline-offset: -1px; background: #fff3dc; }
-#found .art .giftTo i.gpic { width: 52px; height: 48px; margin: 0; }
-#found .art .giftTo span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
 
 /* ── v29.11 꾸미기: 폰에선 화면 전체 (아래 시트가 낮아 옷·곡 고르기에 집중하기 어려웠다) — 섬 대신 위 무대에서 미리 본다 ── */
 @media (max-width: 759px) and (not ((orientation: landscape) and (max-height: 520px))) {
-  .wardrobe { top: 0; bottom: 0; left: 0; right: 0; width: auto; max-height: none; z-index: 34; border-radius: 0; padding: calc(var(--win-pad) + env(safe-area-inset-top)) var(--win-pad) 0; }
-  .wardrobe .wdHead { margin-bottom: 12px; }
+  .wardrobe { top: 0; bottom: 0; left: 0; right: 0; width: auto; max-height: none; z-index: 34; --k-win-r: 0; --k-win-top: calc(var(--win-pad) + env(safe-area-inset-top)); }   /* DS: 모서리·위 여백은 k-win 변수로 */
 }
 /* 무대: 배경 띠 없이 키위만 (창 바탕 위에 선다) */
-.wardrobe .kiwiStage canvas { height: clamp(130px, 22dvh, 190px); background: #f0d9ad; border-radius: 16px; }
-.wardrobe .kiwiStage { margin: 0 0 6px; }
-.wardrobe #kiwiPreviewNote { display: block; margin: 2px 2px 14px; text-align: center; }
 /* 꾸미기 전체 화면(34) 위에서도 알림이 보이게 */
-#toast { z-index: 38; }
-/* v29.11 모던 UI 잠시 막음 (종이로 고정) */
-.seg label.off { opacity: 0.45; pointer-events: none; }
 
-/* ── v29.11 종이 바구니 다듬기 ── */
-/* 세로 리듬: 제목 → 10px → 내용 → 22px → 다음 묶음. 제목 아래 점선은 없앤다(걸음 칸에 붙어 보였다) */
-html[data-ui="paper"] #basket .pane > h2 { margin: 0 2px 10px; }
-html[data-ui="paper"] #basket .stats { border-top: 0; padding-top: 0; margin: 0 0 22px; }
-html[data-ui="paper"] #basket .stats div { border: 1px solid rgba(160, 130, 90, 0.18); }
-#basket .colgrid.moments.strip { margin: 0 0 22px; padding: 0 0 2px; grid-auto-columns: 42%; }
-#basket .shotBy { margin-bottom: 18px; }
-html[data-ui="paper"] #basket .pane > h2.sep { margin-top: 26px; padding-top: 18px; }
+/* v29.11 모던 UI 잠시 막음 (종이로 고정) */
+
 /* 창 투명도가 탭 줄에도 (예전엔 탭 홈·고른 탭이 불투명해 혼자 떠 보였다) */
-html[data-ui="paper"] { --pp-2-rgb: 244, 233, 210; }
-html[data-ui="paper"][data-time="night"] { --pp-2-rgb: 200, 179, 138; }
 html[data-ui="paper"] :is(.uiWindow, #focusPanel) .tabs { background: rgba(var(--pp-2-rgb), var(--win-a, 1)); }
 html[data-ui="paper"] :is(.uiWindow, #focusPanel) .tabs button[aria-selected="true"] { background: rgba(var(--pp-rgb), min(1, calc(var(--win-a, 1) + 0.25))); }
-html[data-ui="paper"] .shotBy button[aria-pressed="true"] { background: rgba(var(--pp-2-rgb), var(--win-a, 1)); }
-/* 손님 칸 표시: 크림 알약 + 선 아이콘 */
-.colgrid.guests button .badge { display: inline-flex; align-items: center; gap: 2px; padding: 1px 5px 1px 4px; border-radius: 999px; font-size: 10px; font-weight: 700; line-height: 14px; }
-.colgrid.guests button .badge svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-html[data-ui="paper"] .colgrid.guests button .badge { background: rgba(255, 250, 238, 0.95); color: var(--pp-ink); box-shadow: 0 0 0 1px var(--pp-edge); }
-.colgrid.guests button .cnt.badge { top: 3px; right: 3px; bottom: auto; }
-.colgrid.guests button .gift.badge { top: 3px; left: 3px; }
+
 /* 스크롤 막대는 숨긴다 (스크롤은 그대로 — 손가락·휠로) */
-:is(.uiWindow, #focusPanel, #chartView, #picker, #info, #found) :is(*), .uiWindow, #focusPanel, #info { scrollbar-width: none; }
-:is(.uiWindow, #focusPanel, #chartView, #picker, #info, #found) ::-webkit-scrollbar, .uiWindow::-webkit-scrollbar, #focusPanel::-webkit-scrollbar, #info::-webkit-scrollbar { display: none; width: 0; height: 0; }
+:is(.uiWindow, #focusPanel, #chartView, #picker, #info, #found) :is(*), .uiWindow, #focusPanel { scrollbar-width: none; }
+:is(.uiWindow, #focusPanel, #chartView, #picker, #info, #found) ::-webkit-scrollbar, .uiWindow::-webkit-scrollbar, #focusPanel::-webkit-scrollbar { display: none; width: 0; height: 0; }
 
 /* v29.11 「여기에 문장을 써 보세요」 가운데: 보이지 않는 보내기 단추가 오른쪽 44px 를 차지해 글이 왼쪽으로 밀렸다 → 단추는 겹쳐 띄우고 양쪽 여백을 같게 */
-#say { position: fixed; }
-#sayInput { padding-left: 44px; padding-right: 44px; }
-#saySend { position: absolute; right: 0; top: 50%; transform: translateY(-50%); }
+
 
 /* v29.11 새 종이 아이콘 (Codex, stock/icons-paper-c): 바구니 = 편지·조개가 든 바구니 · 꾸미기 = 목도리 걸린 옷걸이 (예전 빈 바구니 · 리본 선물상자) */
 html[data-ui="paper"] :is(#basketBtn, #info i[data-icon="basketBtn"], #wardBtn, #toWardSound) svg { background-image: url("../../assets/icons-paper-c.webp"); background-size: 200% 100%; }
@@ -354,55 +183,12 @@ html[data-ui="paper"] :is(#basketBtn, #info i[data-icon="basketBtn"]) svg { back
 html[data-ui="paper"] :is(#wardBtn, #toWardSound) svg { background-position: 100% 0%; }
 
 /* ── v29.11 항해 섬 고르기: 묶음 칩 + 두 줄 목록 (옆으로 넘기던 한 줄 대신) ── */
-#focusPanel .voyFilter { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 4px 0 8px; }
-#focusPanel .voyFilter button { min-height: 36px; padding: 0 4px; border-radius: 999px; border: 1px solid var(--panel-line); background: transparent; color: inherit; font: inherit; font-size: 13px; font-weight: 600; opacity: 0.7; cursor: pointer; }
-#focusPanel .voyFilter button[aria-pressed="true"] { opacity: 1; border-color: var(--sand); background: rgba(255, 255, 255, 0.12); }
-#focusPanel .voyList { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; max-height: 196px; overflow-y: auto; overscroll-behavior: contain; margin: 0 0 10px; }
-#focusPanel .voyList button { display: grid; gap: 1px; justify-items: start; min-height: 48px; margin: 0; padding: 7px 10px; border-radius: 12px; border: 1px solid var(--panel-line); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-#focusPanel .voyList button b { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-#focusPanel .voyList button small { font-size: 11.5px; opacity: 0.65; }
-#focusPanel .voyList button[aria-pressed="true"] { border-color: var(--sand); background: rgba(255, 255, 255, 0.12); }
-#focusPanel .voyList .note { grid-column: 1 / -1; margin: 6px 2px; }
-html[data-ui="paper"] #focusPanel :is(.voyFilter, .voyList) button { border-color: var(--pp-edge); color: var(--pp-ink); }
-html[data-ui="paper"] #focusPanel :is(.voyFilter, .voyList) button[aria-pressed="true"] { border-color: var(--pp-stamp); background: rgba(var(--pp-2-rgb), var(--win-a, 1)); box-shadow: inset 0 0 0 1px var(--pp-stamp); }
-html[data-ui="paper"] #basket .cal { border-top: 0; background: rgba(var(--pp-2-rgb), var(--win-a, 1)); }
-html[data-ui="paper"] #basket .calGrid .day svg { stroke: var(--pp-stamp); }
-html[data-ui="paper"] #basket .calGrid .day i { background: var(--pp-stamp); }
-html[data-ui="paper"] #basket .calGrid .day.done { background: rgba(217, 119, 43, 0.14); }
 
 /* ── v29.12 꾸미기·소리 종이 다듬기: 네모 안 네모를 걷는다 — 칸 테두리 대신 옅은 종이 면, 고른 것은 도장 테두리, 줄 사이는 점선 한 줄 ── */
-html[data-ui="paper"] .wardrobe .colgrid { gap: 8px; }
-html[data-ui="paper"] .wardrobe .colgrid button { border: 0; border-radius: 14px; background: rgba(255, 255, 255, 0.32); }
-html[data-ui="paper"] .wardrobe .colgrid button.on { background: rgba(217, 119, 43, 0.12); box-shadow: inset 0 0 0 2px var(--pp-stamp); }
-html[data-ui="paper"] .wardrobe .colgrid button.on::after { background: var(--pp-stamp); color: var(--pp-stamp-ink); width: 16px; height: 16px; line-height: 16px; border-radius: 50%; text-align: center; right: 4px; bottom: 4px; font-size: 10px; }
-html[data-ui="paper"] .wardrobe .colgrid button.locked { background: rgba(255, 255, 255, 0.16); }
 /* 내 키위 · 만들 수 있는 옷: 상자 없이 줄로 */
-html[data-ui="paper"] .flock { gap: 0; max-height: none; }
-html[data-ui="paper"] .flock .mate { border: 0; border-radius: 0; padding: 10px 2px; border-bottom: 1px dashed var(--pp-edge); grid-template-columns: 48px minmax(0, 1fr) auto; column-gap: 10px; }
-html[data-ui="paper"] .flock .mate:last-child { border-bottom: 0; }
-html[data-ui="paper"] .flock .mate img { width: 48px; height: 48px; }
-html[data-ui="paper"] .flock .mate .days { color: var(--pp-ink-soft); opacity: 1; }
-html[data-ui="paper"] .flock .mate select { border: 0; background: rgba(255, 255, 255, 0.35); border-radius: 10px; padding: 4px 10px; color: var(--pp-ink); }
-html[data-ui="paper"] #craftList { gap: 0; }
-html[data-ui="paper"] #craftList .craft { border: 0; border-radius: 0; padding: 10px 2px; border-bottom: 1px dashed var(--pp-edge); grid-template-columns: 48px 1fr auto; gap: 10px; }
-html[data-ui="paper"] #craftList .craft:last-child { border-bottom: 0; }
-html[data-ui="paper"] #craftList img { width: 48px; height: 48px; }
-html[data-ui="paper"] #craftList button { border: 0; padding: 0 16px; }
-html[data-ui="paper"] #craftList button.go { background: var(--pp-stamp); color: var(--pp-stamp-ink); }
 /* 소리 고르기: 테두리 없는 종이 알약 */
-html[data-ui="paper"] .soundPicks .packs { gap: 8px; }
-html[data-ui="paper"] .soundPicks .packs button { border: 0; border-radius: 12px; background: rgba(255, 255, 255, 0.32); }
-html[data-ui="paper"] .soundPicks .packs button[aria-pressed="true"] { transform: none; }
-html[data-ui="paper"] .soundPicks h3 { margin-top: 22px; padding-top: 16px; }
-html[data-ui="paper"] .soundPicks h3:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
 /* 무대는 탭 줄 아래 한 자리 (꾸미기 키위 · 소리 두 탭이 같이 쓴다) */
-.wardrobe > .kiwiStage { flex: none; }
-.wardrobe > .kiwiStage[hidden] { display: none; }
 /* v29.12 배·돛 미리보기: 칸을 붓질 바다로 꽉 채운다 (양옆 옅은 띠 없이) · 카드 이름은 어두운 띠 대신 종이 위 글씨 */
-.wardrobe .boatStage canvas#boatPreview { width: 100%; height: auto; aspect-ratio: 2 / 1; object-fit: fill; border-radius: 16px; }   /* v29.15 잘라 채우지 않고 2:1 칸 그대로 (배가 다 보이게) */
-html[data-ui="paper"] .wardrobe .colgrid.places button { aspect-ratio: 1; }
-html[data-ui="paper"] .wardrobe .colgrid.places button .nm { background: none; color: var(--pp-ink); text-shadow: none; font-weight: 600; bottom: 6px; }
-html[data-ui="paper"] .wardrobe .colgrid.boats button img { padding: 8px 8px 26px; }
 
 /* ── v29.14 글 모드: 구경(쌍안경) · 파도로 지우기(물결, Lucide binoculars·waves ISC) ── */
 #modeBtn[data-mode="watch"] .m-watch { display: inline; }
@@ -413,39 +199,7 @@ html[data-ui="paper"] #picker svg[data-ico="m-wash"] > * { visibility: visible; 
 body.watching #say, body.watching #caption { display: none !important; }
 
 /* v29.15 낚싯줄 드리우기 · 걷기 (소리 고르기와 같은 종이 알약) */
-.wardrobe .packs.line { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.wardrobe .packs.line button { min-height: var(--tap-in, 40px); border-radius: 12px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
-.wardrobe .packs.line button[aria-pressed="true"] { background: var(--sand); color: #2a2016; border-color: transparent; }
-html[data-ui="paper"] .wardrobe .packs.line button { border: 0; background: rgba(255, 255, 255, 0.32); color: var(--pp-ink); }
-html[data-ui="paper"] .wardrobe .packs.line button[aria-pressed="true"] { background: var(--pp-stamp); color: var(--pp-stamp-ink); }
-
-/* v29.15 창 투명도를 높이면 종이색 점선(--pp-edge)이 뒤 풍경에 묻혀 안 보였다 → 비칠수록 흰빛 쪽으로 (70% 비침 ≈ 흰색 70%) */
-html[data-ui="paper"][data-win-see] { --pp-edge: color-mix(in srgb, #e3d3b2 calc(var(--win-a, 1) * 100%), rgba(255, 255, 255, 0.92)); }
-html[data-ui="paper"][data-win-see][data-time="night"] { --pp-edge: color-mix(in srgb, #ad976d calc(var(--win-a, 1) * 100%), rgba(255, 250, 238, 0.85)); }
-
-/* ── v29.16 손님 칸: 위 그림 · 이름 · 편지·선물 칩 하나 (귀퉁이 표시가 얼굴을 가리던 것) — 한 줄 4칸, 키를 늘린다 ── */
-#basket .colgrid.guests { grid-template-columns: repeat(4, 1fr); gap: 8px; }
-#basket .colgrid.guests button { aspect-ratio: auto; display: grid; grid-template-rows: 58px auto 20px; justify-items: center; align-items: center; gap: 3px; padding: 8px 4px 8px; min-height: 104px; }
-#basket .colgrid.guests button.guest i.gpic { position: static; width: 64px; height: 58px; }
-#basket .colgrid.guests button .nm { position: static; font-size: 12px; line-height: 1.2; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-#basket .colgrid.guests button .meta { display: flex; justify-content: center; min-height: 20px; }
-#basket .colgrid.guests button .chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; line-height: 16px; background: rgba(20, 47, 73, 0.55); color: #fff; }
-#basket .colgrid.guests button .chip .bit { display: inline-flex; align-items: center; gap: 2px; }
-#basket .colgrid.guests button .chip svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-html[data-ui="paper"] #basket .colgrid.guests button { border: 0; border-radius: 14px; background: rgba(255, 255, 255, 0.32); }
-html[data-ui="paper"] #basket .colgrid.guests button.locked { background: rgba(255, 255, 255, 0.16); }
-html[data-ui="paper"] #basket .colgrid.guests button.waiting { box-shadow: inset 0 0 0 1.5px var(--pp-stamp); }
-html[data-ui="paper"] #basket .colgrid.guests button .chip { background: rgba(255, 250, 238, 0.95); color: var(--pp-ink); box-shadow: 0 0 0 1px var(--pp-edge); }
-
-/* ── v29.16 모은 것 칸: 개수는 크림 알약(검은 표시가 안 보였다) · 선물할 수 있는 것은 오른쪽 위 작은 선물 아이콘 (Lucide gift, ISC) ── */
-html[data-ui="paper"] #basket .colgrid .cnt { right: 3px; bottom: 3px; padding: 1px 5px; border-radius: 999px; font-size: 10.5px; line-height: 14px; background: rgba(255, 250, 238, 0.95); color: var(--pp-ink); box-shadow: 0 0 0 1px var(--pp-edge); }
-#basket .colgrid button.giftable::after { content: ''; position: absolute; right: 3px; top: 3px; width: 14px; height: 14px; border-radius: 50%; background: rgba(255, 250, 238, 0.95) center / 10px 10px no-repeat url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c8692a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='8' width='18' height='4' rx='1'/><path d='M12 8v13'/><path d='M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7'/><path d='M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5'/></svg>"); box-shadow: 0 0 0 1px rgba(200, 105, 42, 0.35); z-index: 1; }
-html[data-ui="paper"] #basket .colgrid { gap: 6px; }
-html[data-ui="paper"] #basket .colgrid.finds button { border: 0; border-radius: 12px; background: rgba(255, 255, 255, 0.32); }
-/* 안내 문구 속 작은 선물 표시 (칸 귀퉁이 표시와 같은 그림) */
-#basket .hint .gifthint { display: inline-block; width: 14px; height: 14px; margin: 0 3px -2px 1px; border-radius: 50%; background: rgba(255, 250, 238, 0.95) center / 10px 10px no-repeat url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c8692a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='8' width='18' height='4' rx='1'/><path d='M12 8v13'/><path d='M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7'/><path d='M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5'/></svg>"); box-shadow: 0 0 0 1px rgba(200, 105, 42, 0.35); }
-#basket .colgrid.guests button .chip.empty { opacity: 0.45; }
-#basket .colgrid.guests button.locked { font-size: 18px; }
 
 /* v29.16.2 글 모드·날씨 고르기 창의 마름모 꼬리 없앰 */
 #picker::before { display: none !important; }
+}

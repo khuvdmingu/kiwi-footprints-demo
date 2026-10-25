@@ -1,13 +1,13 @@
 // 항해의 합성 함수만 재사용한다. 바다 판·WebGL·동작 묶음은 읽지 않는 정지 미리보기.
-import { BOATS, SAILS, VoyageScene, boxesOf } from '../voyage-scene.js?v=v29.17.0-f12631c';
-import { drawLine } from '../fishing.js?v=v29.17.0-f12631c';
+import { BOATS, SAILS, VoyageScene, boxesOf } from '../voyage-scene.js?v=v29.18.0-32a7847';
+import { drawLine } from '../fishing.js?v=v29.18.0-32a7847';
 const loadImage = src => new Promise((resolve, reject) => {
   const im = new Image(); im.onload = () => resolve(im); im.onerror = () => reject(new Error('preview art')); im.src = src;
 });
-const SEA = typeof Image === 'undefined' ? null : Object.assign(new Image(), { src: new URL('../../assets/stage-sea.webp?v=v29.17.0-f12631c', import.meta.url).href });
+const SEA = typeof Image === 'undefined' ? null : Object.assign(new Image(), { src: new URL('../../assets/stage-sea.webp?v=v29.18.0-32a7847', import.meta.url).href });
 export const previewFiles = (boat, sail) => [
-  'voyage-boat.webp?v=v29.17.0-f12631c', boat === 'dinghy' ? 'voyage-boat.webp?v=v29.17.0-f12631c' : 'boat-' + boat + '.webp?v=v29.17.0-f12631c',
-  sail === 'leaf' || sail === 'none' ? 'voyage-sail.webp?v=v29.17.0-f12631c' : 'sail-' + sail + '.webp?v=v29.17.0-f12631c', 'voyage-crew.webp?v=v29.17.0-f12631c',
+  'voyage-boat.webp?v=v29.18.0-32a7847', boat === 'dinghy' ? 'voyage-boat.webp?v=v29.18.0-32a7847' : 'boat-' + boat + '.webp?v=v29.18.0-32a7847',
+  sail === 'leaf' || sail === 'none' ? 'voyage-sail.webp?v=v29.18.0-32a7847' : 'sail-' + sail + '.webp?v=v29.18.0-32a7847', 'voyage-crew.webp?v=v29.18.0-32a7847',
 ];
 
 export class BoatPreview {

@@ -8,12 +8,12 @@
 //  main.js 는 매 프레임 update(dt, kiwis, atmos.v, beach) 를 부르고, 그릴 때 drawLeaning(ctx, k, () => k.draw(ctx)) 로 감싸고
 //  drawUmbrella(ctx, k) · drawFeathers(ctx, u) 를 키위 위에 얹는다. 키위 그림(kiwi.js)은 건드리지 않는다.
 
-import { clamp } from '../util.js?v=v29.17.0-f12631c';
-import { headPose } from '../kiwi.js?v=v29.17.0-f12631c';
+import { clamp } from '../util.js?v=v29.18.0-32a7847';
+import { headPose } from '../kiwi.js?v=v29.18.0-32a7847';
 
 export const UMB_SHARE = 0.45;   // 우산을 드는 성격의 비율
-const SHEET = 'assets/umbrellas.webp?v=v29.17.0-f12631c';
-const HOODS = 'assets/hoods.webp?v=v29.17.0-f12631c';   // v27.7 머리에 얹는 잎 2×2 (Higgsfield nano_banana_pro: 토란잎 · 몬스테라 / 바나나잎 · 연잎, 옆에서 본 둥근 지붕 모양)
+const SHEET = 'assets/umbrellas.webp?v=v29.18.0-32a7847';
+const HOODS = 'assets/hoods.webp?v=v29.18.0-32a7847';   // v27.7 머리에 얹는 잎 2×2 (Higgsfield nano_banana_pro: 토란잎 · 몬스테라 / 바나나잎 · 연잎, 옆에서 본 둥근 지붕 모양)
 const HOOD_SHARE = 0.5;               // 우산을 드는 키위 가운데 머리에 얹는 성격의 비율
 const GREEN = [1, 1, 0], AUTUMN = [2, 3];   // 칸: 0 토란잎 · 1 열대 잎(양산 모양이라 더 자주) / 2 단풍 · 3 은행잎
 // 키위 그림 기준(k 배수, 오른쪽을 볼 때): 부리 끝 (0.79, −0.48) · 머리 꼭대기 (−0.07, −0.89) — kiwi.webp 에서 잰 값

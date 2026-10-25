@@ -10,11 +10,11 @@
 //      그림을 처음 읽을 때 알파를 훑어 부리 끝·몸 바닥을 찾아 크기·콕 각도를 맞춘다 (setKiwiSprite).
 //  (x, y) = 발이 땅에 닿는 점. k = 몸 크기 단위 (꼬리 −0.41k ~ 부리 끝 +0.8k, 머리 꼭대기 −0.86k)
 
-import { angleDiff, clamp, dist, Path } from './util.js?v=v29.17.0-f12631c';
-import { PAL as T, LIGHT } from './tokens.js?v=v29.17.0-f12631c';
-import { ACTS, VARIANTS, WAKE_ACT, pickIdleAct } from './acts.js?v=v29.17.0-f12631c';
-import { ACT_HEADS, HEAD_MODES, HEAD_REST } from './act-heads.js?v=v29.17.0-f12631c';
-import { HEADWEAR, HEADWEAR_FADE } from './headwear.js?v=v29.17.0-f12631c';
+import { angleDiff, clamp, dist, Path } from './util.js?v=v29.18.0-32a7847';
+import { PAL as T, LIGHT } from './tokens.js?v=v29.18.0-32a7847';
+import { ACTS, VARIANTS, WAKE_ACT, pickIdleAct } from './acts.js?v=v29.18.0-32a7847';
+import { ACT_HEADS, HEAD_MODES, HEAD_REST } from './act-heads.js?v=v29.18.0-32a7847';
+import { HEADWEAR, HEADWEAR_FADE } from './headwear.js?v=v29.18.0-32a7847';
 
 let ID = 0;
 export let REACH = 0.8;             // 몸을 숙였을 때 부리 끝이 땅에 닿는 가로 거리 (k 배수) — 그림에서 다시 잰다

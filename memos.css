@@ -1,3 +1,5 @@
+/* 디자인 시스템 전환 중: 이 파일은 옛 규칙 층(legacy) — src/ui/tokens.css · parts.css(층 없음)가 늘 이긴다. 옮긴 화면의 규칙은 여기서 지운다 (docs/DESIGN_SYSTEM.md) */
+@layer legacy {
 /* memos.css — 시간 메모 · 놓친 메모 · 이름 묻기 (memo-ui.js). km- 로 시작하는 이름만 쓴다.
    색·글꼴은 style.css 의 토큰(--ink · --panel-line · --sand · --font)을 그대로 쓴다. 연결: index.html 에 <link rel="stylesheet" href="memos.css"> */
 
@@ -75,3 +77,4 @@ html[data-ui="paper"] .km-add input:focus-visible { outline: 2px solid var(--pp-
 html[data-ui="paper"] .km-rep { color: var(--pp-ink); }
 html[data-ui="paper"] .km-rep input { accent-color: var(--pp-stamp); }
 html[data-ui="paper"] .km-err { color: #b0461c; }
+}

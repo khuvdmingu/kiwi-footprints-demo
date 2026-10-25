@@ -6,8 +6,8 @@
 //    nameCard(greeter, { onDone(name | null) })           → "뭐라고 불러 줄까요?" 카드 요소
 //  모양은 memos.css (km- 로 시작하는 이름만 쓴다 — 다른 창 스타일과 안 섞이게).
 
-import { MAX_TEXT, MAX_MEMOS, parseTime, sandTime } from './memos.js?v=v29.17.0-f12631c';
-import { MAX_NAME } from './greet.js?v=v29.17.0-f12631c';
+import { MAX_TEXT, MAX_MEMOS, parseTime, sandTime } from './memos.js?v=v29.18.0-32a7847';
+import { MAX_NAME } from './greet.js?v=v29.18.0-32a7847';
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 
@@ -77,7 +77,7 @@ export function nameCard(greeter, { onDone = () => {} } = {}) {
   box.append(el('span', 'km-name-hi', '처음 만났네요'), el('b', 'km-name-q', '뭐라고 불러 줄까요?'), el('p', 'km-hint', '키위들이 처음 켤 때 모래에 이름을 써 줘요. 이 기기에만 저장돼요.'));
   const inp = el('input'); inp.type = 'text'; inp.maxLength = MAX_NAME; inp.placeholder = '이름이나 별명'; inp.value = greeter.name; inp.setAttribute('aria-label', '이름이나 별명');
   const row = el('div', 'km-row');
-  const ok = el('button', 'km-go', '좋아요'); ok.type = 'submit';
+  const ok = el('button', 'km-go k-btn--primary', '좋아요'); ok.type = 'submit';
   const later = el('button', 'km-later', '나중에'); later.type = 'button';
   row.append(later, ok); box.append(inp, row);
   box.addEventListener('submit', e => { e.preventDefault(); const n = greeter.setName(inp.value); onDone(n || null); });
