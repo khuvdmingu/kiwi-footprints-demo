@@ -2,13 +2,17 @@
  *
  *  화면의 색·글자·둥글기·그림자·간격·투명도 값은 여기에만 쓴다. 부품(parts.css)과 기능 CSS 는 var(--k-*) 만 쓴다.
  *  지금은 종이 테마 한 벌. 낮(크림 종이·잉크)에서 밤(남색 종이·크림 글씨)으로 하루 빛을 따라 천천히 섞인다 —
- *  main.js 가 하루 빛(atmos.night 0~1)을 --k-night 로 넘기고, 색 토큰은 color-mix 로 그 비율만큼 밤 색을 섞는다.
+ *  main.js 가 하루 빛이 조금이라도 어두우면(새벽·노을 포함) --k-night 를 1, 아니면 0 으로 정하고, 바뀔 때 2.5초에 걸쳐 섞인다.
  *  모던은 MODERN_OFF 가 풀릴 때 같은 이름의 값 한 벌을 html[data-ui="modern"] 에 더한다.
  *  규칙·부품 목록: docs/DESIGN_SYSTEM.md · 카탈로그: ds.html
  *
  *  투명도는 한 값(--k-a)으로 모든 면이 함께 움직인다: 창 · 탭 · 떠 있는 버튼 · 고르기 창 · 칸.
  *  설정 › 화면 › 창 투명도 막대가 --win-a 를 바꾸면(shell.js) 아래 면 색이 전부 따라온다.
  */
+
+/* 밤 비율은 숫자로 등록해 바뀔 때 부드럽게 넘어가게 (등록을 모르는 브라우저는 바로 바뀐다) */
+@property --k-night { syntax: '<number>'; inherits: true; initial-value: 0; }
+html[data-ui="paper"] { transition: --k-night 2.5s ease; }
 
 html[data-ui="paper"] {
   /* ── 낮·밤 섞기: --k-night 0(낮)~1(밤), main.js 가 하루 빛에서 정한다 (2026-10-26 사용자: 밤엔 네이비·톤 다운) ── */
