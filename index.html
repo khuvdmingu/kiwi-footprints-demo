@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#1A5C91" />
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v29.10.0" />
-  <link rel="stylesheet" href="memos.css?v=v29.10.0" />
-  <link rel="stylesheet" href="theme-paper.css?v=v29.10.0" />
-  <link rel="stylesheet" href="src/ui/shell.css?v=v29.10.0" />
+  <link rel="stylesheet" href="style.css?v=v29.11.0" />
+  <link rel="stylesheet" href="memos.css?v=v29.11.0" />
+  <link rel="stylesheet" href="theme-paper.css?v=v29.11.0" />
+  <link rel="stylesheet" href="src/ui/shell.css?v=v29.11.0" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -116,7 +116,8 @@
             <b id="voyDestName"></b>
             <button id="voyChartBtn" type="button" class="quiet">해도에서 고르기</button>
           </div>
-          <div class="chips voyTo" id="voyTo" aria-label="가까운 섬 · 최근 간 섬"></div>
+          <div class="voyFilter" id="voyFilter" role="group" aria-label="섬 고르기 묶음"><button type="button" data-f="near" aria-pressed="true">가까운</button><button type="button" data-f="new" aria-pressed="false">안 가 본</button><button type="button" data-f="recent" aria-pressed="false">최근</button><button type="button" data-f="all" aria-pressed="false">전체</button></div>
+          <div class="voyList" id="voyTo" role="group" aria-label="갈 섬"></div>
           <p class="note" id="voyChartNote"></p>
         </div>
       </div>
@@ -239,10 +240,10 @@
     <section class="pane" data-pane="screen" role="tabpanel" aria-label="화면" hidden>
     <h2>창 모양</h2>
     <div class="seg two" role="radiogroup" aria-label="창 모양">
-      <label><input type="radio" name="uitheme" value="modern" /><span>모던</span></label>
+      <label class="off"><input type="radio" name="uitheme" value="modern" disabled /><span>모던 · 준비 중</span></label>
       <label><input type="radio" name="uitheme" value="paper" /><span>종이</span></label>
     </div>
-    <p class="hint">종이는 바닷가 편지지처럼 — 크림색 종이 · 고른 것은 도장 · 밤엔 등불 아래 종이 톤. 버튼 자리·기능은 같아요.</p>
+    <p class="hint">종이는 바닷가 편지지처럼 — 크림색 종이 · 고른 것은 도장 · 밤엔 등불 아래 종이 톤. 모던은 종이를 다 다듬은 뒤 다시 열어요.</p>
     <h2 class="sep">창 투명도</h2>
     <p class="lightNow seeNow" id="winSeeNow"></p>
     <input type="range" min="0" max="70" step="5" id="winSee" aria-label="창 투명도" />
@@ -492,10 +493,10 @@
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v29.10.0"></script>
-  <script type="module" src="src/credits.js?v=v29.10.0"></script>
+  <script type="module" src="src/main.js?v=v29.11.0"></script>
+  <script type="module" src="src/credits.js?v=v29.11.0"></script>
   <!-- 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/taps.js?v=v29.10.0"></script>
+  <script type="module" src="src/taps.js?v=v29.11.0"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.

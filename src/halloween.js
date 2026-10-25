@@ -7,6 +7,7 @@
 //  머리 장식 셋(마녀 모자 · 호박 모자 · 유령 머리핀)은 items.js · headwear.js 에.
 //  기간이 아니어도 주소 ?halloween=1 로 미리 볼 수 있다 (?halloween=0 이면 기간에도 끔).
 
+import { dropShadow } from './shadow.js?v=v29.11.0';
 export function isHalloween(now = new Date(), q = null) {
   if (q?.has('halloween')) return q.get('halloween') !== '0';
   const m = now.getMonth(), d = now.getDate();
@@ -23,11 +24,24 @@ const PROPS = [
   { k: 'pumpkin', x: 0.86, h: 0.06, glow: 0.45 },
 ];
 
+// v29.11 호박 등불·유령 그림엔 빛번짐이 반투명으로 구워져 있어 낮 모래 위에선 네모난 얼룩으로 보였다 →
+//  읽을 때 한 번, 옅은 알파(160 아래)를 걷어 내고 나머지를 다시 펼친다. 밤 빛은 glow() 가 따로 그린다
+const HALO = new Set(['pumpkin', 'ghost']), CUT = 160;
+function dehalo(im) {
+  try {
+    const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+    const g = c.getContext('2d'); g.drawImage(im, 0, 0);
+    const id = g.getImageData(0, 0, c.width, c.height), d = id.data;
+    for (let i = 3; i < d.length; i += 4) d[i] = d[i] < CUT ? 0 : Math.round((d[i] - CUT) * 255 / (255 - CUT));
+    g.putImageData(id, 0, 0); return c;
+  } catch (e) { return im; }
+}
+
 export class Halloween {
   constructor(on) { this.on = on; this.im = {}; this.bats = []; this.next = 4; this.t = 0; this.sea = []; }
   load(base = 'assets/') {
     if (!this.on) return;
-    for (const f of FILES) { const i = new Image(); i.onload = () => { this.im[f] = i; }; i.src = base + 'hw-' + f + '.webp?v=v29.10.0'; }
+    for (const f of FILES) { const i = new Image(); i.onload = () => { this.im[f] = HALO.has(f) ? dehalo(i) : i; }; i.src = base + 'hw-' + f + '.webp?v=v29.11.0'; }
   }
 
   // 박쥐: 해 질 녘(night > 0.25)부터 숲 위 하늘 띠를 가로지른다
@@ -55,7 +69,7 @@ export class Halloween {
       const im = this.im[p.k]; if (!im) continue;
       const x = W * p.x, y = beach.grass(x) + S * 0.05, h = S * p.h, w = h * im.width / im.height;
       if (!isFinite(x) || !isFinite(y)) continue;
-      ctx.fillStyle = 'rgba(40,30,20,0.16)'; ctx.beginPath(); ctx.ellipse(x, y, w * 0.42, h * 0.08, 0, 0, 6.29); ctx.fill();
+      dropShadow(ctx, im, x, y, w, h, { alpha: 0.2, squash: 0.18, lean: 0.9 });   // v29.11 동그란 그림자 대신 모양 따라 눕는 그림자
       ctx.drawImage(im, x - w / 2, y - h, w, h);
       if (p.glow && night > 0.15) glow(ctx, x, y - h * p.glow, h * 1.5, night, t + p.x * 7);
     }

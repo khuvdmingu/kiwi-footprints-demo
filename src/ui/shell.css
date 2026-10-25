@@ -304,3 +304,68 @@ html[data-ui="paper"] #basket .cal { background: var(--pp-2); }
 #found .art .giftTo button[aria-pressed="true"] { outline: 3px solid #d98a3a; outline-offset: -1px; background: #fff3dc; }
 #found .art .giftTo i.gpic { width: 52px; height: 48px; margin: 0; }
 #found .art .giftTo span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+/* ── v29.11 꾸미기: 폰에선 화면 전체 (아래 시트가 낮아 옷·곡 고르기에 집중하기 어려웠다) — 섬 대신 위 무대에서 미리 본다 ── */
+@media (max-width: 759px) and (not ((orientation: landscape) and (max-height: 520px))) {
+  .wardrobe { top: 0; bottom: 0; left: 0; right: 0; width: auto; max-height: none; z-index: 34; border-radius: 0; padding: calc(var(--win-pad) + env(safe-area-inset-top)) var(--win-pad) 0; }
+  .wardrobe .wdHead { margin-bottom: 12px; }
+}
+/* 무대: 배경 띠 없이 키위만 (창 바탕 위에 선다) */
+.wardrobe .kiwiStage canvas { height: clamp(130px, 22dvh, 190px); background: none; border-radius: 0; }
+.wardrobe .kiwiStage { margin: 0 0 6px; }
+.wardrobe #kiwiPreviewNote { display: block; margin: 2px 2px 14px; text-align: center; }
+/* 꾸미기 전체 화면(34) 위에서도 알림이 보이게 */
+#toast { z-index: 38; }
+/* v29.11 모던 UI 잠시 막음 (종이로 고정) */
+.seg label.off { opacity: 0.45; pointer-events: none; }
+
+/* ── v29.11 종이 바구니 다듬기 ── */
+/* 세로 리듬: 제목 → 10px → 내용 → 22px → 다음 묶음. 제목 아래 점선은 없앤다(걸음 칸에 붙어 보였다) */
+html[data-ui="paper"] #basket .pane > h2 { margin: 0 2px 10px; }
+html[data-ui="paper"] #basket .stats { border-top: 0; padding-top: 0; margin: 0 0 22px; }
+html[data-ui="paper"] #basket .stats div { border: 1px solid rgba(160, 130, 90, 0.18); }
+#basket .colgrid.moments.strip { margin: 0 0 22px; padding: 0 0 2px; grid-auto-columns: 42%; }
+#basket .shotBy { margin-bottom: 18px; }
+html[data-ui="paper"] #basket .pane > h2.sep { margin-top: 26px; padding-top: 18px; }
+/* 창 투명도가 탭 줄에도 (예전엔 탭 홈·고른 탭이 불투명해 혼자 떠 보였다) */
+html[data-ui="paper"] { --pp-2-rgb: 244, 233, 210; }
+html[data-ui="paper"][data-time="night"] { --pp-2-rgb: 200, 179, 138; }
+html[data-ui="paper"] :is(.uiWindow, #focusPanel) .tabs { background: rgba(var(--pp-2-rgb), var(--win-a, 1)); }
+html[data-ui="paper"] :is(.uiWindow, #focusPanel) .tabs button[aria-selected="true"] { background: rgba(var(--pp-rgb), min(1, calc(var(--win-a, 1) + 0.25))); }
+html[data-ui="paper"] .shotBy button[aria-pressed="true"] { background: rgba(var(--pp-2-rgb), var(--win-a, 1)); }
+/* 손님 칸 표시: 크림 알약 + 선 아이콘 */
+.colgrid.guests button .badge { display: inline-flex; align-items: center; gap: 2px; padding: 1px 5px 1px 4px; border-radius: 999px; font-size: 10px; font-weight: 700; line-height: 14px; }
+.colgrid.guests button .badge svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+html[data-ui="paper"] .colgrid.guests button .badge { background: rgba(255, 250, 238, 0.95); color: var(--pp-ink); box-shadow: 0 0 0 1px var(--pp-edge); }
+.colgrid.guests button .cnt.badge { top: 3px; right: 3px; bottom: auto; }
+.colgrid.guests button .gift.badge { top: 3px; left: 3px; }
+/* 스크롤 막대는 숨긴다 (스크롤은 그대로 — 손가락·휠로) */
+:is(.uiWindow, #focusPanel, #chartView, #picker, #info, #found) :is(*), .uiWindow, #focusPanel, #info { scrollbar-width: none; }
+:is(.uiWindow, #focusPanel, #chartView, #picker, #info, #found) ::-webkit-scrollbar, .uiWindow::-webkit-scrollbar, #focusPanel::-webkit-scrollbar, #info::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+/* v29.11 「여기에 문장을 써 보세요」 가운데: 보이지 않는 보내기 단추가 오른쪽 44px 를 차지해 글이 왼쪽으로 밀렸다 → 단추는 겹쳐 띄우고 양쪽 여백을 같게 */
+#say { position: fixed; }
+#sayInput { padding-left: 44px; padding-right: 44px; }
+#saySend { position: absolute; right: 0; top: 50%; transform: translateY(-50%); }
+
+/* v29.11 새 종이 아이콘 (Codex, stock/icons-paper-c): 바구니 = 편지·조개가 든 바구니 · 꾸미기 = 목도리 걸린 옷걸이 (예전 빈 바구니 · 리본 선물상자) */
+html[data-ui="paper"] :is(#basketBtn, #info i[data-icon="basketBtn"], #wardBtn, #toWardSound) svg { background-image: url("../../assets/icons-paper-c.webp"); background-size: 200% 100%; }
+html[data-ui="paper"] :is(#basketBtn, #info i[data-icon="basketBtn"]) svg { background-position: 0% 0%; }
+html[data-ui="paper"] :is(#wardBtn, #toWardSound) svg { background-position: 100% 0%; }
+
+/* ── v29.11 항해 섬 고르기: 묶음 칩 + 두 줄 목록 (옆으로 넘기던 한 줄 대신) ── */
+#focusPanel .voyFilter { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 4px 0 8px; }
+#focusPanel .voyFilter button { min-height: 36px; padding: 0 4px; border-radius: 999px; border: 1px solid var(--panel-line); background: transparent; color: inherit; font: inherit; font-size: 13px; font-weight: 600; opacity: 0.7; cursor: pointer; }
+#focusPanel .voyFilter button[aria-pressed="true"] { opacity: 1; border-color: var(--sand); background: rgba(255, 255, 255, 0.12); }
+#focusPanel .voyList { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; max-height: 196px; overflow-y: auto; overscroll-behavior: contain; margin: 0 0 10px; }
+#focusPanel .voyList button { display: grid; gap: 1px; justify-items: start; min-height: 48px; margin: 0; padding: 7px 10px; border-radius: 12px; border: 1px solid var(--panel-line); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+#focusPanel .voyList button b { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+#focusPanel .voyList button small { font-size: 11.5px; opacity: 0.65; }
+#focusPanel .voyList button[aria-pressed="true"] { border-color: var(--sand); background: rgba(255, 255, 255, 0.12); }
+#focusPanel .voyList .note { grid-column: 1 / -1; margin: 6px 2px; }
+html[data-ui="paper"] #focusPanel :is(.voyFilter, .voyList) button { border-color: var(--pp-edge); color: var(--pp-ink); }
+html[data-ui="paper"] #focusPanel :is(.voyFilter, .voyList) button[aria-pressed="true"] { border-color: var(--pp-stamp); background: rgba(var(--pp-2-rgb), var(--win-a, 1)); box-shadow: inset 0 0 0 1px var(--pp-stamp); }
+html[data-ui="paper"] #basket .cal { border-top: 0; background: rgba(var(--pp-2-rgb), var(--win-a, 1)); }
+html[data-ui="paper"] #basket .calGrid .day svg { stroke: var(--pp-stamp); }
+html[data-ui="paper"] #basket .calGrid .day i { background: var(--pp-stamp); }
+html[data-ui="paper"] #basket .calGrid .day.done { background: rgba(217, 119, 43, 0.14); }
