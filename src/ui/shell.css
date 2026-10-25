@@ -280,3 +280,10 @@ html[data-ui="paper"] .shots .shotGroup { border-top: 1px dashed var(--pp-edge);
 .colgrid.guests button.waiting { border-color: var(--sand); border-style: dashed; }
 #found .art .giftGrid i.find { position: absolute; inset: 8%; width: auto; height: auto; margin: 0; }
 #found .art .giftGrid canvas.catchIcon { position: absolute; inset: 6%; width: 88%; height: 88%; }
+
+/* ── v29.7 떠나기 창의 「기록」 → 바구니 › 일지: 걸음 칸 셋은 맨 위, 달력은 「일」 보기에서만 ── */
+#basket .stats { margin: 0 0 12px; padding-top: 0; border-top: 0; }
+#basket .cal { margin: 0 0 12px; padding: 10px 8px 4px; border-top: 0; border-radius: 12px; background: rgba(0, 0, 0, 0.12); }
+#basket .cal[hidden] { display: none; }
+html[data-ui="paper"] #basket .cal { background: var(--pp-2); }
+#focusPanel .recLink { display: block; width: 100%; margin-top: 10px; min-height: var(--tap-in, 40px); border: 0; background: transparent; color: inherit; font: inherit; font-size: 13px; opacity: 0.75; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }

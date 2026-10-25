@@ -1,5 +1,7 @@
-import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v29.6.0';
-import { BoatPreview } from './boat-preview.js?v=v29.6.0';
+import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v29.7.0';
+import { BoatPreview } from './boat-preview.js?v=v29.7.0';
+import { KiwiStage } from './kiwi-stage.js?v=v29.7.0';
+import { ITEMS } from '../items.js?v=v29.7.0';
 // src/ui/shell.js — 2026-10-24 UI 구조 개편 (결정 10개: _views/html-views/2026-10-24_kiwi-ui-restructure.html)
 //
 //  마크업은 index.html 에 제자리로 있고(예전 src/ia/ia.js 처럼 뜬 뒤에 옮기지 않는다), 여기는 새 창 셋의 동작만 맡는다.
@@ -70,6 +72,12 @@ export function mountShell(env) {
     if (ward.hidden || $('boatStage').closest('.pane').hidden) { preview.release(); return; }
     preview.paint(env.voyScene.boatId, env.voyScene.sailId, env.previewCrew());
   }
+  // v29.7 키위 탭 무대: 입힌 옷을 입은 키위들이 모래 위에서 움직인다
+  const kiwiStage = new KiwiStage($('kiwiPreview'), $('kiwiPreviewNote'));
+  function paintKiwiStage() {
+    if (ward.hidden || $('kiwiStage').closest('.pane').hidden) { kiwiStage.release(); return; }
+    kiwiStage.show(ITEMS.filter(it => it.kind === 'wear' && env.col.wearing(it.id)));
+  }
   let journalOn = false;
   function openWard(open, { save = false, tab } = {}) {
     if (open === !ward.hidden) { if (open && tab) wardTab(tab); return; }
@@ -91,8 +99,8 @@ export function mountShell(env) {
     }
     ward.hidden = !open; wardBtn.setAttribute('aria-expanded', String(open));
     document.body.classList.toggle('dressing', open);
-    if (open) { ward.querySelector('[role="tab"][aria-selected="true"]')?.focus(); paintBoatStage(); }
-    else { preview.release(); returnFocus(ward, $('menuBtn')); }
+    if (open) { ward.querySelector('[role="tab"][aria-selected="true"]')?.focus(); paintBoatStage(); paintKiwiStage(); }
+    else { preview.release(); kiwiStage.release(); returnFocus(ward, $('menuBtn')); }
   }
   wardBtn.addEventListener('click', () => { unlock(); openWard(true); });
   $('toWardSound')?.addEventListener('click', () => { unlock(); openWard(true, { tab: 'sound' }); });
@@ -100,7 +108,7 @@ export function mountShell(env) {
   $('wdCancel').addEventListener('click', () => openWard(false));
   // 고를 때마다 저장 단추·배 그림을 갱신 (각 칸의 그리는 함수가 다시 그린 뒤)
   for (const event of ['input', 'change']) ward.addEventListener(event, () => { if (!ward.hidden) paintWardBar(); });
-  ward.addEventListener('click', () => setTimeout(() => { if (!ward.hidden) { paintBoatStage(); paintWardBar(); } }, 0));
+  ward.addEventListener('click', () => setTimeout(() => { if (!ward.hidden) { paintBoatStage(); paintKiwiStage(); paintWardBar(); } }, 0));
 
   // ── 해도 ──
   function openChart(open) {

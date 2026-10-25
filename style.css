@@ -202,8 +202,8 @@ body.typing #caption, body.info-open #caption { opacity: 0; }
 #focusPanel button.primary { background: #e8972e; border-color: transparent; color: #fff; }
 #focusPanel .big { margin: 4px 4px 10px; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
 #focusPanel .hint { margin: 8px 4px 0; font-size: 12.5px; line-height: 1.5; opacity: 0.7; word-break: keep-all; }
-#focusPanel .stats { margin: 10px 4px 0; word-break: keep-all; line-height: 1.5; padding-top: 8px; border-top: 1px solid var(--panel-line); font-size: 12.5px; opacity: 0.8; font-variant-numeric: tabular-nums; }
-#focusPanel .stats:empty { display: none; }
+:is(#focusPanel, #basket) .stats { margin: 10px 4px 0; word-break: keep-all; line-height: 1.5; padding-top: 8px; border-top: 1px solid var(--panel-line); font-size: 12.5px; opacity: 0.8; font-variant-numeric: tabular-nums; }
+:is(#focusPanel, #basket) .stats:empty { display: none; }
 #focusHud { position: fixed; z-index: 19; left: 50%; top: calc(var(--top) + var(--tap) + 12px); transform: translateX(-50%);
   display: flex; gap: 10px; align-items: baseline; padding: 6px 14px; border-radius: 999px; background: var(--panel); border: 1px solid var(--panel-line);
   color: rgb(var(--ink)); font: inherit; font-size: 14px; font-variant-numeric: tabular-nums; cursor: pointer; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
@@ -405,11 +405,11 @@ body.ready #boot { opacity: 0; visibility: hidden; }
 #focusPanel .busy .big { margin: 6px 4px 0; font-size: 34px; font-weight: 600; line-height: 1.1; text-align: center; letter-spacing: 0.02em; }
 #focusPanel .busy .sub { margin: 2px 4px 12px; text-align: center; font-size: 13px; opacity: 0.75; font-variant-numeric: tabular-nums; }
 #focusPanel .busy .note { margin: 10px 4px 0; text-align: center; }
-#focusPanel .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 12px 0 0; padding: 10px 0 0; border-top: 1px solid var(--panel-line); opacity: 1; font-size: inherit; }
-#focusPanel .stats:empty { display: none; }
-#focusPanel .stats div { display: grid; gap: 2px; padding: 8px 6px; border-radius: 10px; background: rgba(255, 255, 255, 0.06); text-align: center; }
-#focusPanel .stats b { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
-#focusPanel .stats span { font-size: 10.5px; opacity: 0.7; line-height: 1.3; word-break: keep-all; }
+:is(#focusPanel, #basket) .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 12px 0 0; padding: 10px 0 0; border-top: 1px solid var(--panel-line); opacity: 1; font-size: inherit; }
+:is(#focusPanel, #basket) .stats:empty { display: none; }
+:is(#focusPanel, #basket) .stats div { display: grid; gap: 2px; padding: 8px 6px; border-radius: 10px; background: rgba(255, 255, 255, 0.06); text-align: center; }
+:is(#focusPanel, #basket) .stats b { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+:is(#focusPanel, #basket) .stats span { font-size: 10.5px; opacity: 0.7; line-height: 1.3; word-break: keep-all; }
 
 #info h2 { margin: 22px 0 8px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--sand); }
 #info ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
@@ -450,25 +450,25 @@ body.clean #picker { display: none !important; }
 
 /* v19 집중 기록 달력 — 날마다 발자국 도장 */
 #focusPanel { max-height: calc(100dvh - max(14px, env(safe-area-inset-top)) - 70px); overflow-y: auto; overscroll-behavior: contain; }
-#focusPanel .cal { margin: 10px 2px 0; padding-top: 8px; border-top: 1px solid var(--panel-line); }
-#focusPanel .cal button { display: grid; width: auto; padding: 0; border-radius: 8px; font-weight: 500; }
-#focusPanel .calHead { display: grid; grid-template-columns: 30px 1fr 30px; align-items: center; margin-bottom: 4px; }
-#focusPanel .calHead b { text-align: center; font-size: 13px; font-weight: 600; opacity: 0.85; }
-#focusPanel .calHead button { height: 28px; place-items: center; border-color: transparent; background: none; font-size: 18px; line-height: 1; }
-#focusPanel .calHead button:disabled { opacity: 0.25; cursor: default; }
-#focusPanel .calDow, #focusPanel .calGrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-#focusPanel .calDow span { text-align: center; font-size: 10.5px; opacity: 0.5; padding-bottom: 2px; }
-#focusPanel .calGrid .day { position: relative; aspect-ratio: 1; place-items: center; border: 1px solid transparent; background: rgba(255, 255, 255, 0.04); }
-#focusPanel .calGrid .day .n { position: absolute; left: 3px; top: 1px; font-size: 9.5px; opacity: 0.55; font-variant-numeric: tabular-nums; }
-#focusPanel .calGrid .day svg { width: 74%; height: 74%; margin-top: 10%; fill: none; stroke: var(--sand); stroke-width: 2.6; stroke-linecap: round; }
-#focusPanel .calGrid .day.try svg { opacity: 0.38; }
-#focusPanel .calGrid .day.done { background: rgba(232, 151, 46, 0.18); }
-#focusPanel .calGrid .day i { width: 5px; height: 5px; border-radius: 50%; background: var(--sand); opacity: 0.45; margin-top: 8%; }
-#focusPanel .calGrid .day em { position: absolute; right: 2px; bottom: 1px; font-style: normal; font-size: 9.5px; font-weight: 700; color: #e8972e; }
-#focusPanel .calGrid .day.today { border-color: rgba(var(--ink), 0.55); }
-#focusPanel .calGrid .day.pick { border-color: var(--sand); }
-#focusPanel .calGrid .day:disabled { opacity: 0.35; cursor: default; }
-#focusPanel .cal .note { margin: 6px 2px 0; font-size: 12px; line-height: 1.5; opacity: 0.75; word-break: keep-all; min-height: 1.5em; }
+:is(#focusPanel, #basket) .cal { margin: 10px 2px 0; padding-top: 8px; border-top: 1px solid var(--panel-line); }
+:is(#focusPanel, #basket) .cal button { display: grid; width: auto; padding: 0; border-radius: 8px; font-weight: 500; }
+:is(#focusPanel, #basket) .calHead { display: grid; grid-template-columns: 30px 1fr 30px; align-items: center; margin-bottom: 4px; }
+:is(#focusPanel, #basket) .calHead b { text-align: center; font-size: 13px; font-weight: 600; opacity: 0.85; }
+:is(#focusPanel, #basket) .calHead button { height: 28px; place-items: center; border-color: transparent; background: none; font-size: 18px; line-height: 1; }
+:is(#focusPanel, #basket) .calHead button:disabled { opacity: 0.25; cursor: default; }
+:is(#focusPanel, #basket) .calDow, :is(#focusPanel, #basket) .calGrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+:is(#focusPanel, #basket) .calDow span { text-align: center; font-size: 10.5px; opacity: 0.5; padding-bottom: 2px; }
+:is(#focusPanel, #basket) .calGrid .day { position: relative; aspect-ratio: 1; place-items: center; border: 1px solid transparent; background: rgba(255, 255, 255, 0.04); }
+:is(#focusPanel, #basket) .calGrid .day .n { position: absolute; left: 3px; top: 1px; font-size: 9.5px; opacity: 0.55; font-variant-numeric: tabular-nums; }
+:is(#focusPanel, #basket) .calGrid .day svg { width: 74%; height: 74%; margin-top: 10%; fill: none; stroke: var(--sand); stroke-width: 2.6; stroke-linecap: round; }
+:is(#focusPanel, #basket) .calGrid .day.try svg { opacity: 0.38; }
+:is(#focusPanel, #basket) .calGrid .day.done { background: rgba(232, 151, 46, 0.18); }
+:is(#focusPanel, #basket) .calGrid .day i { width: 5px; height: 5px; border-radius: 50%; background: var(--sand); opacity: 0.45; margin-top: 8%; }
+:is(#focusPanel, #basket) .calGrid .day em { position: absolute; right: 2px; bottom: 1px; font-style: normal; font-size: 9.5px; font-weight: 700; color: #e8972e; }
+:is(#focusPanel, #basket) .calGrid .day.today { border-color: rgba(var(--ink), 0.55); }
+:is(#focusPanel, #basket) .calGrid .day.pick { border-color: var(--sand); }
+:is(#focusPanel, #basket) .calGrid .day:disabled { opacity: 0.35; cursor: default; }
+:is(#focusPanel, #basket) .cal .note { margin: 6px 2px 0; font-size: 12px; line-height: 1.5; opacity: 0.75; word-break: keep-all; min-height: 1.5em; }
 
 /* v19.2 테스트 탭 */
 #tunePane .hint.top { margin: 0 2px 10px; }
@@ -609,9 +609,9 @@ body.clean #menu { display: none !important; }
 #focusPanel button.quiet { min-height: 42px; }
 #focusPanel .fcustom { grid-template-columns: var(--tap) 1fr var(--tap); }
 #focusPanel .fcustom button { height: var(--tap); min-height: 0; }
-#focusPanel .calHead { grid-template-columns: 40px 1fr 40px; }
-#focusPanel .calHead button { height: 36px; min-height: 0; }
-#focusPanel .cal button.day { min-height: 0; }
+:is(#focusPanel, #basket) .calHead { grid-template-columns: 40px 1fr 40px; }
+:is(#focusPanel, #basket) .calHead button { height: 36px; min-height: 0; }
+:is(#focusPanel, #basket) .cal button.day { min-height: 0; }
 .colgrid { gap: 8px; }
 .colgrid.finds { gap: 5px; }
 .letters, .flock { gap: 6px; }

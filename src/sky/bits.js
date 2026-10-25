@@ -8,7 +8,7 @@
 //  · 모래바람·마른 풀공: 사막 오아시스에서 바람이 있을 때(맑음 포함 가끔) 모래 위를 가로지른다
 //  · 아침 안개 띠: 5시~8시 반, 비·눈이 아니면 물가 위로 천천히 흘러간다
 
-const FILE = 'assets/weather-bits.webp?v=v29.6.0';
+const FILE = 'assets/weather-bits.webp?v=v29.7.0';
 const CELL = { bolt: 0, fork: 1, halo: 2, dust: 3, tumble: 4, mist: 5 };
 
 export class SkyBits {

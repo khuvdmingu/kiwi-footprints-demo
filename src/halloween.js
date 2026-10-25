@@ -27,7 +27,7 @@ export class Halloween {
   constructor(on) { this.on = on; this.im = {}; this.bats = []; this.next = 4; this.t = 0; this.sea = []; }
   load(base = 'assets/') {
     if (!this.on) return;
-    for (const f of FILES) { const i = new Image(); i.onload = () => { this.im[f] = i; }; i.src = base + 'hw-' + f + '.webp?v=v29.6.0'; }
+    for (const f of FILES) { const i = new Image(); i.onload = () => { this.im[f] = i; }; i.src = base + 'hw-' + f + '.webp?v=v29.7.0'; }
   }
 
   // 박쥐: 해 질 녘(night > 0.25)부터 숲 위 하늘 띠를 가로지른다

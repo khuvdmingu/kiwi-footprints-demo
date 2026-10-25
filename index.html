@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#1A5C91" />
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v29.6.0" />
-  <link rel="stylesheet" href="memos.css?v=v29.6.0" />
-  <link rel="stylesheet" href="theme-paper.css?v=v29.6.0" />
-  <link rel="stylesheet" href="src/ui/shell.css?v=v29.6.0" />
+  <link rel="stylesheet" href="style.css?v=v29.7.0" />
+  <link rel="stylesheet" href="memos.css?v=v29.7.0" />
+  <link rel="stylesheet" href="theme-paper.css?v=v29.7.0" />
+  <link rel="stylesheet" href="src/ui/shell.css?v=v29.7.0" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -98,11 +98,7 @@
   </div>
   <button id="focusHud" type="button" hidden aria-controls="focusPanel"><span class="t">25:00</span><span class="s">0보</span></button>
   <div id="focusPanel" role="dialog" aria-label="떠나기" hidden>
-    <div class="tabs" role="tablist" aria-label="떠나기 창 묶음">
-      <button type="button" role="tab" data-tab="go" aria-selected="true">떠나기</button>
-      <button type="button" role="tab" data-tab="rec" aria-selected="false">기록</button>
-    </div>
-    <section class="pane fpane" data-pane="go" role="tabpanel" aria-label="떠나기">
+    <section class="pane fpane" data-pane="go" aria-label="떠나기">
     <div class="idle">
       <div class="fmode" role="radiogroup" aria-label="어떻게 떠날까요">
         <label class="fcard"><input type="radio" name="fmode" value="island" /><b>섬에서 집중</b><small>이 섬에 머물며 · 끝나면 선물 상자</small></label>
@@ -165,6 +161,7 @@
         <li><b>걸음</b><span>집중 1분 100보 · 그냥 켜 두기 1분 10보</span></li>
       </ul>
       </details>
+      <button id="focusRecLink" type="button" class="quiet recLink">지난 기록 · 달력은 바구니 › 일지</button>
     </div>
     <div class="busy" hidden>
       <h2 id="focusBusyH">집중 중</h2>
@@ -173,15 +170,6 @@
       <button id="focusStop" type="button">그만하기</button>
       <button id="voyQuit" type="button" class="quiet quit" hidden>항해 그만두기</button>
       <p class="note" id="focusBusyNote">그만둬도 걸은 만큼은 쌓여요. 선물은 끝까지 했을 때만.</p>
-    </div>
-    </section>
-    <section class="pane fpane" data-pane="rec" role="tabpanel" aria-label="기록" hidden>
-    <div id="focusStats" class="stats"></div>
-    <div id="focusCal" class="cal">
-      <div class="calHead"><button id="calPrev" type="button" aria-label="지난달">‹</button><b id="calMonth"></b><button id="calNext" type="button" aria-label="다음 달">›</button></div>
-      <div class="calDow" aria-hidden="true"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
-      <div id="calGrid" class="calGrid"></div>
-      <p id="calNote" class="note"></p>
     </div>
     </section>
   </div>
@@ -342,7 +330,14 @@
     </div>
     <section class="pane" data-pane="photo" role="tabpanel" aria-label="일지">
     <h2 id="shotTitle">집중 일지</h2>
+    <div id="focusStats" class="stats"></div>
     <div id="shotBy" class="shotBy" role="group" aria-label="일지 묶어 보기"><button type="button" data-by="all" aria-pressed="true">전체</button><button type="button" data-by="year" aria-pressed="false">연</button><button type="button" data-by="month" aria-pressed="false">월</button><button type="button" data-by="day" aria-pressed="false">일</button></div>
+    <div id="focusCal" class="cal" hidden>
+      <div class="calHead"><button id="calPrev" type="button" aria-label="지난달">‹</button><b id="calMonth"></b><button id="calNext" type="button" aria-label="다음 달">›</button></div>
+      <div class="calDow" aria-hidden="true"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+      <div id="calGrid" class="calGrid"></div>
+      <p id="calNote" class="note"></p>
+    </div>
     <div id="shotGrid" class="shots"></div>
     <div id="shotTools" class="shotTools" hidden><button id="shotAll" type="button">전부 내려받기</button><span id="shotWarn"></span></div>
     <p class="hint">집중을 끝까지 하면(항해는 도착하면) 키위들이 그 한 줄과 날짜를 모래에 쓰고 한 쪽 남겨요 — 눌러서 크게 보고, 좌우로 넘겨요. 이 기기에만 저장돼요.</p>
@@ -380,9 +375,10 @@
       <button type="button" role="tab" data-tab="craft" aria-selected="false">만들기</button>
     </div>
     <section class="pane" data-pane="kiwi" role="tabpanel" aria-label="키위">
+    <div class="boatStage kiwiStage" id="kiwiStage"><canvas id="kiwiPreview" role="img" aria-label="입힌 옷을 입은 키위 미리보기"></canvas><span id="kiwiPreviewNote" class="hint" role="status">미리보기를 준비하고 있어요</span></div>
     <h2 id="wearTitle">옷</h2>
     <div id="wearGrid" class="colgrid"></div>
-    <p class="hint">눌러서 입히기 · 벗기기</p>
+    <p class="hint">눌러서 입히기 · 벗기기 — 위 무대에서 바로 보이고, 섬의 키위들도 갈아입어요</p>
     <h2 class="sep" id="flockTitle">내 키위</h2>
     <div id="flockList" class="flock"></div>
     <p class="hint">들른 날마다 한 마리씩 무리에 들어와요. 무리 키위가 먼저 나오고, 모자라면 손님 키위가 같이 써요. 이름을 눌러 바꿀 수 있어요.</p>
@@ -501,10 +497,10 @@
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v29.6.0"></script>
-  <script type="module" src="src/credits.js?v=v29.6.0"></script>
+  <script type="module" src="src/main.js?v=v29.7.0"></script>
+  <script type="module" src="src/credits.js?v=v29.7.0"></script>
   <!-- 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/taps.js?v=v29.6.0"></script>
+  <script type="module" src="src/taps.js?v=v29.7.0"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.
