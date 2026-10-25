@@ -16,62 +16,62 @@
 //     시간대·날씨에 따라 바뀌는 배경 음악(music.js), 좌우 위치·잔향, 다 쓰면 키위 합창, 믹서(소리 버튼).
 // v6 에서 픽셀 모드는 뺐다 (어떤 해상도에서도 선명한 벡터 원칙과 충돌). v2~v5 브랜치에 남아 있다.
 
-import { SeaLife, LIFE } from './sea-life.js?v=v29.11.0';
-import { layoutText, strokesOf, glyph } from './hangul.js?v=v29.11.0';
-import { Beach } from './beach.js?v=v29.11.0';
-import { Kiwi } from './kiwi.js?v=v29.11.0';
-import { Sound, SONG_TRACKS } from './sound.js?v=v29.11.0';
-import { KiwiWeather } from './sky/kiwi-react.js?v=v29.11.0';   // v23 날씨에 반응하는 키위 (잎 우산·비 피하기 · 바람에 기우뚱·깃털)
-import { loadPlate } from './plate.js?v=v29.11.0';
-import { MAPS, MAP_IDS } from './maps.js?v=v29.11.0';
-import { WaterGL, FlatWater } from './water.js?v=v29.11.0';
-import { setKiwiSprite, setKiwiSkins, setKiwiSleep, setKiwiActs, setActRate, setActOnly, setIdleScale, setKiwiHeadwear, stiffSkin, setKiwiOnAct } from './kiwi.js?v=v29.11.0';
-import { HEADWEAR } from './headwear.js?v=v29.11.0';
-import { ACTS, ACT_NAME, PHOTO_POSES, GAZE, pickIdleAct } from './acts.js?v=v29.11.0';
-import { Bottles, MIN_DAYS, mineTitle, mineNote } from './bottles.js?v=v29.11.0';
-import { Album, capture, stamp, sandDate, longDate, shortReason, voyageAlbumEntry, albumPhotos } from './album.js?v=v29.11.0';
-import { breathAt, ringSpot, ROUNDS, SQUASH } from './breath.js?v=v29.11.0';
-import { Doze } from './doze.js?v=v29.11.0';
-import { zipStore, zipBlob, shotNames } from './zip.js?v=v29.11.0';
-import { Voyage, PLACES, SIGHTS, distanceText, hourOf } from './voyage.js?v=v29.11.0';   // 항해 모드 (docs/VOYAGE.md)
-import { VoyageScene, BOATS, SAILS } from './voyage-scene.js?v=v29.11.0';
-import { mountExtras } from './voyage-extras.js?v=v29.11.0';
-import { BIG } from './chart.js?v=v29.11.0';
-import { mountShell } from './ui/shell.js?v=v29.11.0';   // 2026-10-24 UI 개편: 바구니 · 꾸미기 · 해도 창 · 시점 줄 · 창 투명도 (예전 src/ia/ia.js 를 대신)   // v28 해도 · 낚싯줄 · 섬 짓기
-import { groupBy, groupNote, ALBUM_BY, shareCard, shareFile } from './album-view.js?v=v29.11.0';
-import { mountPhotoViewer } from './photo-viewer.js?v=v29.11.0';
-import { mountJourneyBook } from './journey-book.js?v=v29.11.0';
-import { Memos } from './memos.js?v=v29.11.0';
-import { Greeter } from './greet.js?v=v29.11.0';
-import { mountMemoPanel, missedCard, nameCard } from './memo-ui.js?v=v29.11.0';
-import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v29.11.0';
-import { Leaves } from './leaves.js?v=v29.11.0';
-import { Rake } from './zen.js?v=v29.11.0';
-import { Clouds } from './clouds.js?v=v29.11.0';
-import { Gulls } from './gulls.js?v=v29.11.0';
-import { Halloween, isHalloween } from './halloween.js?v=v29.11.0';
-import { Season, pickSeason } from './seasons.js?v=v29.11.0';
-import { GUEST_STORY } from './illus.js?v=v29.11.0';   // v28.18 손님 마지막 편지의 이야기 그림
-import { Cutscene } from './cutscene.js?v=v29.11.0';   // v28.18 부두 승선·도착 영상
-import { Bubbles, ACT_EMOTE } from './bubbles.js?v=v29.11.0';   // v28.21 머리 위 감정 표시 · 꿈 말풍선
-import { Moments, MOMENTS, MOMENT } from './moments.js?v=v29.11.0';   // v28.21 드문 순간   // v28.15 크리스마스·설날·봄·여름 축제
-import { Stamps } from './prints.js?v=v29.11.0';
-import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v29.11.0';
-import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v29.11.0';
-import { clamp, dist } from './util.js?v=v29.11.0';
-import { Focus, Awake, LENGTHS, customMinutes, today } from './focus.js?v=v29.11.0';
-import { Flock } from './flock.js?v=v29.11.0';
-import { GUESTS, GUEST_IDS, Guestbook, guestCount, pickGuests, leaveTracks, NOTE_CELL, LETTER_TOTAL } from './guests.js?v=v29.11.0';
-import { dropShadow } from './shadow.js?v=v29.11.0';
-import { Gifts, invite, thanksText, rewardText, eul as giftEul } from './gifts.js?v=v29.11.0';
-import { animateGuest } from './guest-acts.js?v=v29.11.0';
-import { UNLOCK_ALL } from './config.js?v=v29.11.0';
-import { WardrobeJournal } from './ui/wardrobe-journal.js?v=v29.11.0';
-import { wireTabs as bindTabs, rememberOpener, returnFocus } from './ui/a11y.js?v=v29.11.0';
-import { Shore, Finds, FINDS, FIND, RARITY, FIND_ROWS } from './shore.js?v=v29.11.0';
-import { CATCHES, CATCH, MATERIAL_MIN } from './fishing.js?v=v29.11.0';
-import { mountRenderDiagnostics } from './render-diagnostics.js?v=v29.11.0';
-import { renderTint } from './tint.js?v=v29.11.0';
+import { SeaLife, LIFE } from './sea-life.js?v=v29.12.0';
+import { layoutText, strokesOf, glyph } from './hangul.js?v=v29.12.0';
+import { Beach } from './beach.js?v=v29.12.0';
+import { Kiwi } from './kiwi.js?v=v29.12.0';
+import { Sound, SONG_TRACKS } from './sound.js?v=v29.12.0';
+import { KiwiWeather } from './sky/kiwi-react.js?v=v29.12.0';   // v23 날씨에 반응하는 키위 (잎 우산·비 피하기 · 바람에 기우뚱·깃털)
+import { loadPlate } from './plate.js?v=v29.12.0';
+import { MAPS, MAP_IDS } from './maps.js?v=v29.12.0';
+import { WaterGL, FlatWater } from './water.js?v=v29.12.0';
+import { setKiwiSprite, setKiwiSkins, setKiwiSleep, setKiwiActs, setActRate, setActOnly, setIdleScale, setKiwiHeadwear, stiffSkin, setKiwiOnAct } from './kiwi.js?v=v29.12.0';
+import { HEADWEAR } from './headwear.js?v=v29.12.0';
+import { ACTS, ACT_NAME, PHOTO_POSES, GAZE, pickIdleAct } from './acts.js?v=v29.12.0';
+import { Bottles, MIN_DAYS, mineTitle, mineNote } from './bottles.js?v=v29.12.0';
+import { Album, capture, stamp, sandDate, longDate, shortReason, voyageAlbumEntry, albumPhotos } from './album.js?v=v29.12.0';
+import { breathAt, ringSpot, ROUNDS, SQUASH } from './breath.js?v=v29.12.0';
+import { Doze } from './doze.js?v=v29.12.0';
+import { zipStore, zipBlob, shotNames } from './zip.js?v=v29.12.0';
+import { Voyage, PLACES, SIGHTS, distanceText, hourOf } from './voyage.js?v=v29.12.0';   // 항해 모드 (docs/VOYAGE.md)
+import { VoyageScene, BOATS, SAILS } from './voyage-scene.js?v=v29.12.0';
+import { mountExtras } from './voyage-extras.js?v=v29.12.0';
+import { BIG } from './chart.js?v=v29.12.0';
+import { mountShell } from './ui/shell.js?v=v29.12.0';   // 2026-10-24 UI 개편: 바구니 · 꾸미기 · 해도 창 · 시점 줄 · 창 투명도 (예전 src/ia/ia.js 를 대신)   // v28 해도 · 낚싯줄 · 섬 짓기
+import { groupBy, groupNote, ALBUM_BY, shareCard, shareFile } from './album-view.js?v=v29.12.0';
+import { mountPhotoViewer } from './photo-viewer.js?v=v29.12.0';
+import { mountJourneyBook } from './journey-book.js?v=v29.12.0';
+import { Memos } from './memos.js?v=v29.12.0';
+import { Greeter } from './greet.js?v=v29.12.0';
+import { mountMemoPanel, missedCard, nameCard } from './memo-ui.js?v=v29.12.0';
+import { ITEMS, ITEM, Collection, Drifters } from './items.js?v=v29.12.0';
+import { Leaves } from './leaves.js?v=v29.12.0';
+import { Rake } from './zen.js?v=v29.12.0';
+import { Clouds } from './clouds.js?v=v29.12.0';
+import { Gulls } from './gulls.js?v=v29.12.0';
+import { Halloween, isHalloween } from './halloween.js?v=v29.12.0';
+import { Season, pickSeason } from './seasons.js?v=v29.12.0';
+import { GUEST_STORY } from './illus.js?v=v29.12.0';   // v28.18 손님 마지막 편지의 이야기 그림
+import { Cutscene } from './cutscene.js?v=v29.12.0';   // v28.18 부두 승선·도착 영상
+import { Bubbles, ACT_EMOTE } from './bubbles.js?v=v29.12.0';   // v28.21 머리 위 감정 표시 · 꿈 말풍선
+import { Moments, MOMENTS, MOMENT } from './moments.js?v=v29.12.0';   // v28.21 드문 순간   // v28.15 크리스마스·설날·봄·여름 축제
+import { Stamps } from './prints.js?v=v29.12.0';
+import { Atmos, WEATHERS, WEATHER_NAME, timeLight, artAt } from './atmos.js?v=v29.12.0';
+import { MODES, MODE_NAME, QUOTES, WORDS, Deck, clockText, isClock, CLOCK_FMTS } from './content.js?v=v29.12.0';
+import { clamp, dist } from './util.js?v=v29.12.0';
+import { Focus, Awake, LENGTHS, customMinutes, today } from './focus.js?v=v29.12.0';
+import { Flock } from './flock.js?v=v29.12.0';
+import { GUESTS, GUEST_IDS, Guestbook, guestCount, pickGuests, leaveTracks, NOTE_CELL, LETTER_TOTAL } from './guests.js?v=v29.12.0';
+import { dropShadow } from './shadow.js?v=v29.12.0';
+import { Gifts, invite, thanksText, rewardText, eul as giftEul } from './gifts.js?v=v29.12.0';
+import { animateGuest } from './guest-acts.js?v=v29.12.0';
+import { UNLOCK_ALL } from './config.js?v=v29.12.0';
+import { WardrobeJournal } from './ui/wardrobe-journal.js?v=v29.12.0';
+import { wireTabs as bindTabs, rememberOpener, returnFocus } from './ui/a11y.js?v=v29.12.0';
+import { Shore, Finds, FINDS, FIND, RARITY, FIND_ROWS } from './shore.js?v=v29.12.0';
+import { CATCHES, CATCH, MATERIAL_MIN } from './fishing.js?v=v29.12.0';
+import { mountRenderDiagnostics } from './render-diagnostics.js?v=v29.12.0';
+import { renderTint } from './tint.js?v=v29.12.0';
 
 // Sound·Collection·Flock 이 저장값을 읽기 전에 저장하지 않은 꾸미기만 복원한다.
 let wardrobeJournal = null;
@@ -1320,14 +1320,15 @@ const noteAt = p => { const x = clamp(p.rx * W, 30, W - 30), top = beach.grass(x
 const noteSize = () => Math.max(40, 66 * beach.u);
 // v29.10 놓아 둔 답장 선물: 손님이 가져가기 전까지 모래 위에 그 물건이 놓여 있다 (동물마다 자리 하나)
 //  v29.11 초록 잎 받침·동그란 그림자 → 물건 모양을 따라 모래에 눕는 그림자 (src/shadow.js)
-const giftSpot = gid => { let h = 0; for (const ch of gid) h = (h * 31 + ch.charCodeAt(0)) % 997; return { rx: 0.14 + (h % 72) / 100, ry: 0.5 + (h % 5) * 0.03 }; };
+// v29.12 자리 고정: 글씨가 놓이는 모래 가운데를 피해 물가 바로 위 오른쪽부터 한 칸씩 (놓은 순서대로)
+const giftSpot = gid => { const i = Math.max(0, Object.keys(gifts.waiting).indexOf(gid)); return { rx: 0.9 - (i % 6) * 0.1, ry: 0.9 - Math.floor(i / 6) * 0.07 }; };
 const giftIcons = new Map();
 let findSheetIm = null;
 function giftIcon(key) {
   if (giftIcons.has(key)) return giftIcons.get(key);
   const [t, id] = key.split(':'), px = 96;
   if (t === 'c') { const cv = extras.catchIcon(id, px); giftIcons.set(key, cv); return cv; }
-  if (!findSheetIm) { findSheetIm = new Image(); findSheetIm.onload = () => giftIcons.clear(); findSheetIm.src = 'assets/finds.webp?v=v29.11.0'; }
+  if (!findSheetIm) { findSheetIm = new Image(); findSheetIm.onload = () => giftIcons.clear(); findSheetIm.src = 'assets/finds.webp?v=v29.12.0'; }
   if (!findSheetIm.complete || !findSheetIm.naturalWidth) return null;
   const cv = document.createElement('canvas'); cv.width = cv.height = px;
   const c = FIND[id].cell, cw = findSheetIm.naturalWidth / 4, ch = findSheetIm.naturalHeight / FIND_ROWS;
@@ -1386,7 +1387,7 @@ function openNote(p) {
   if (collShown()) paintCollection();
 }
 const iGa = w => { const c = w.charCodeAt(w.length - 1) - 0xac00; return c >= 0 && c < 11172 && c % 28 ? '이' : '가'; };
-const guestPic = id => { const c = GUESTS[id].cell, i = document.createElement('i'); i.className = 'gpic'; i.style.backgroundPosition = `${(c % 4) * 100 / 3}% ${Math.floor(c / 4) * 50}%`; if (GUESTS[id].pic === 2) i.style.backgroundImage = "url('assets/guests2.webp?v=v29.11.0')"; return i; };
+const guestPic = id => { const c = GUESTS[id].cell, i = document.createElement('i'); i.className = 'gpic'; i.style.backgroundPosition = `${(c % 4) * 100 / 3}% ${Math.floor(c / 4) * 50}%`; if (GUESTS[id].pic === 2) i.style.backgroundImage = "url('assets/guests2.webp?v=v29.12.0')"; return i; };
 
 // v19 무리 키위 이름표: 처음 나올 때·누를 때 머리 위에 잠깐
 function drawTags(order) {
@@ -1494,7 +1495,7 @@ const paintSoundBtn = () => {
 };
 // 창 안의 탭 (v18.6): 설정은 풍경 · 글씨 · 모은 것, 소리 창은 크기 · 곡 · 발자국·배경 — 한 줄로 길게 섞여 있던 것을 나눴다
 function wireTabs(panel, key) { return bindTabs(panel, key, { load: saved, save }); }
-soundBtn.addEventListener('click', () => { unlock(); openSettingsAt('sound'); });
+soundBtn.addEventListener('click', () => { unlock(); shell.openWard(true, { mode: 'sound' }); });   // v29.12 메뉴 › 소리 = 소리 고르기 창 (크기는 설정 › 소리)
 muteBtn.addEventListener('click', e => { e.stopPropagation(); unlock(); mixOn.checked = !mixOn.checked; mixOn.dispatchEvent(new Event('change', { bubbles: true })); });
 const mixOn = document.getElementById('mixOn');
 mixOn.checked = sound.on;
@@ -1512,9 +1513,10 @@ const STEP_HINT = { inst: '글씨를 밟을 때마다 화음 안의 음으로 �
 const natItem = Object.fromEntries(ITEMS.filter(i => i.group === 'natstep').map(i => [i.pack, i.id]));
 sound.ownNat = { has: pack => !natItem[pack] || col.owns(natItem[pack]) };
 function setPack(group, pack, preview = true) {
-  if (group === 'natstep') { sound.setMix({ natStep: pack }); if (preview) sound.previewStep(pack); }
-  else if (group === 'find') { sound.setMix({ findPack: pack }); if (preview) sound.found(sound.stage.W / 2); }
-  else if (group === 'step') { sound.setMix({ stepPack: pack }); if (preview) sound.previewStep(pack); }
+  // v29.12 키위 소리는 위 무대 키위가 걸어 보거나(발자국) 콕 찍어 보며(찾았을 때) 들려준다
+  if (group === 'natstep') { sound.setMix({ natStep: pack }); if (preview) { sound.previewStep(pack); shell?.stageAct('walk'); } }
+  else if (group === 'find') { sound.setMix({ findPack: pack }); if (preview) { sound.found(sound.stage.W / 2); shell?.stageAct('peck'); } }
+  else if (group === 'step') { sound.setMix({ stepPack: pack }); if (preview) { sound.previewStep(pack); shell?.stageAct('walk'); } }
   else if (group === 'music') sound.setSong(pack);
   else sound.setNature(pack);
   paintPacks();
@@ -1525,7 +1527,7 @@ function paintPacks() {
   for (const v of VOICES) {
     const b = document.createElement('button'); b.type = 'button'; b.textContent = v.name;
     b.setAttribute('aria-pressed', String((sound.mix.voice || 'inst') === v.id));
-    b.addEventListener('click', () => { unlock(); sound.setMix({ voice: v.id }); paintPacks(); sound.previewStep(v.id === 'natural' ? sound.mix.natStep : sound.mix.stepPack); });
+    b.addEventListener('click', () => { unlock(); sound.setMix({ voice: v.id }); paintPacks(); sound.previewStep(v.id === 'natural' ? sound.mix.natStep : sound.mix.stepPack); shell?.stageAct('walk'); });
     vbox.append(b);
   }
   const natural = sound.mix.voice === 'natural';
@@ -1686,19 +1688,19 @@ async function boot() {
     }
     throw err;
   })();
-  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v29.11.0'), img('assets/gull.webp?v=v29.11.0'), img('assets/bottle.webp?v=v29.11.0'), img('assets/crate.webp?v=v29.11.0')]);
-  img('assets/finds.webp?v=v29.11.0').then(im => {
+  const [p, kiwiImg, gullImg, bottle, crate] = await Promise.all([first, img('assets/kiwi.webp?v=v29.12.0'), img('assets/gull.webp?v=v29.12.0'), img('assets/bottle.webp?v=v29.12.0'), img('assets/crate.webp?v=v29.12.0')]);
+  img('assets/finds.webp?v=v29.12.0').then(im => {
     shore.setSheet(im);
     const c = document.createElement('canvas'), cw = im.naturalWidth / 4; c.width = c.height = cw;
     c.getContext('2d').drawImage(im, cw * 1.15, cw * 0.15, cw * 0.7, cw * 0.7, 0, 0, cw, cw);   // 1번 칸 = 소라 껍데기 (가운데 70% — 칸 안 여백을 덜어 병·상자만큼 보이게)
     drifters.setSprites({ ...drifters.imgs, conch: c });
   }).catch(() => {});
   drifters.setSprites({ ...drifters.imgs, bottle, crate });
-  img('assets/bottle-mine.webp?v=v29.11.0').then(im => drifters.setSprites({ ...drifters.imgs, mine: im })).catch(() => {});
-  img('assets/bottle-cheer.webp?v=v29.11.0').then(im => drifters.setSprites({ ...drifters.imgs, cheer: im })).catch(() => {});
+  img('assets/bottle-mine.webp?v=v29.12.0').then(im => drifters.setSprites({ ...drifters.imgs, mine: im })).catch(() => {});
+  img('assets/bottle-cheer.webp?v=v29.12.0').then(im => drifters.setSprites({ ...drifters.imgs, cheer: im })).catch(() => {});
   // v28.20 물가에 닿은 병·상자는 모래에 반쯤 묻힌 그림으로 (재고 stock/drift-items)
-  { const sunk = {}; for (const k of ['bottle', 'mine', 'cheer', 'crate']) img('assets/sunk-' + k + '.webp?v=v29.11.0').then(im => { sunk[k] = im; drifters.setSunk(sunk); }).catch(() => {}); }
-  img('assets/kiwi-sleep.webp?v=v29.11.0').then(setKiwiSleep).catch(() => {});
+  { const sunk = {}; for (const k of ['bottle', 'mine', 'cheer', 'crate']) img('assets/sunk-' + k + '.webp?v=v29.12.0').then(im => { sunk[k] = im; drifters.setSunk(sunk); }).catch(() => {}); }
+  img('assets/kiwi-sleep.webp?v=v29.12.0').then(setKiwiSleep).catch(() => {});
   // v27 동작 그림 (없으면 그냥 안 한다) · ?act=1 이면 멈출 때마다 거의 늘 동작, ?act=nod 처럼 이름이면 그 동작만 (시험용)
   //  묶음이 모두 합쳐 약 4MB 라 첫 화면과 다투지 않게 조금 뒤에 하나씩 읽는다
   setTimeout(async () => {
@@ -1706,8 +1708,8 @@ async function boot() {
   }, q.has('act') ? 0 : 4000);
   if (q.has('act')) { setActRate(q.get('act') === '0' ? 0 : 0.9); setActOnly(q.get('act')); }
   else applyActs();   // 설정 「키위 몸짓」 + 테스트 탭 「고른 것만 되풀이」 (주소의 ?act= 가 있으면 그쪽)
-  img('assets/leaves.webp?v=v29.11.0').then(im => floaters.setSheet(im)).catch(() => {});
-  img('assets/guests.webp?v=v29.11.0').then(im => { guestSheet = im; }).catch(() => {});
+  img('assets/leaves.webp?v=v29.12.0').then(im => floaters.setSheet(im)).catch(() => {});
+  img('assets/guests.webp?v=v29.12.0').then(im => { guestSheet = im; }).catch(() => {});
   // 옷 입은 키위 그림은 뒤에서 천천히 읽는다 (없어도 맨몸으로 그린다)
   for (const it of ITEMS) if (it.kind === 'wear') img('assets/' + it.img).then(im => setKiwiSkins({ [it.id]: im })).catch(() => {});
   halloween.load();
@@ -2050,7 +2052,7 @@ function setWear(id, on) {
   paintCollection();
 }
 foundWear.addEventListener('click', () => {
-  if (foundItem?.kind === 'item') { closeFound(); shell.openWard(true, { tab: 'craft' }); return; }
+  if (foundItem?.kind === 'item') { closeFound(); shell.openWard(true, { mode: 'dress', tab: 'kiwi' }); setTimeout(() => document.getElementById('craftTitle')?.scrollIntoView({ block: 'start' }), 60); return; }
   if (foundItem?.kind === 'guest') { const read = Math.min(guestbook.read[foundItem.id] || 0, GUESTS[foundItem.id].letters.length); showFound({ ...foundItem, n: (foundItem.n + 1) % Math.max(1, read) }); return; }
   if (foundItem?.kind === 'shot') { const a = document.createElement('a'); a.href = foundItem.url; a.download = 'kiwi-focus_' + shotNames([foundItem])[0]; document.body.append(a); a.click(); a.remove(); return; }
   if (foundItem?.kind === 'map') { if (foundItem.map !== mapId) planVoyage(foundItem.map); }
@@ -2102,7 +2104,7 @@ function paintMoments() {
     const n = moments.seen[m.id] || 0, open = n || UNLOCK_ALL;
     const b = document.createElement('button'); b.type = 'button'; b.className = 'place';
     if (open) {
-      const im = document.createElement('img'); im.src = `assets/moment-${m.id}.webp?v=v29.11.0`; im.alt = '';
+      const im = document.createElement('img'); im.src = `assets/moment-${m.id}.webp?v=v29.12.0`; im.alt = '';
       const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = m.ko + (n > 1 ? ` · ${n}번` : '');
       b.append(im, nm); b.setAttribute('aria-label', `${m.ko} 다시 보기`);
       b.addEventListener('click', () => { openSettings(false); showMoment(m, false); });
@@ -2156,11 +2158,11 @@ function paintFlock() {
   for (const m of flock.members.slice().reverse()) {   // 새로 들어온 키위가 위에
     const row = document.createElement('div'); row.className = 'mate';
     const im = document.createElement('img'); im.alt = '';
-    im.src = m.wear !== 'auto' && m.wear !== 'none' && ITEM[m.wear] ? 'assets/' + ITEM[m.wear].img : 'assets/kiwi.webp?v=v29.11.0';
+    im.src = m.wear !== 'auto' && m.wear !== 'none' && ITEM[m.wear] ? 'assets/' + ITEM[m.wear].img : 'assets/kiwi.webp?v=v29.12.0';
     const nm = document.createElement('input'); nm.type = 'text'; nm.value = m.name; nm.maxLength = 8; nm.setAttribute('aria-label', `${m.name} 이름 바꾸기`);
     nm.addEventListener('input', e => { if (!e.isComposing) flock.rename(m.id, nm.value); });
     nm.addEventListener('change', () => { flock.rename(m.id, nm.value); nm.value = m.name; });
-    const dd = document.createElement('span'); dd.className = 'days'; dd.textContent = `${flock.daysWith(m)}일째`;
+    const dd = document.createElement('span'); dd.className = 'days'; dd.textContent = `함께한 지 ${flock.daysWith(m)}일`;   // v29.12 「N일째」만으론 뜻이 안 보였다
     const sel = document.createElement('select'); sel.setAttribute('aria-label', `${m.name} 옷`); wearOptions(sel, m.wear);
     sel.addEventListener('change', () => {
       flock.setWear(m.id, sel.value);
@@ -2422,7 +2424,7 @@ function paintCollection() {
   const ll = document.getElementById('letterList'); ll.textContent = '';
   for (const it of letters) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'letter';
-    const im = document.createElement('img'); im.src = 'assets/bottle.webp?v=v29.11.0'; im.alt = '';
+    const im = document.createElement('img'); im.src = 'assets/bottle.webp?v=v29.12.0'; im.alt = '';
     const tx = document.createElement('span'); tx.className = 'tx';
     const t = document.createElement('b'), q = document.createElement('span');
     if (col.owns(it.id)) {
@@ -2461,7 +2463,7 @@ function paintCollection() {
     for (const bt of BOATS) {
       const open = UNLOCK_ALL || hrs >= bt.hours; if (open) opened++;
       const b = document.createElement('button'); b.type = 'button'; b.className = 'place';
-      const im = document.createElement('img'); im.src = 'assets/' + (bt.id === 'dinghy' ? 'voyage-boat.webp?v=v29.11.0' : 'boat-' + bt.id + '.webp?v=v29.11.0'); im.alt = '';
+      const im = document.createElement('img'); im.src = 'assets/' + (bt.id === 'dinghy' ? 'voyage-boat.webp?v=v29.12.0' : 'boat-' + bt.id + '.webp?v=v29.12.0'); im.alt = '';
       const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = open ? `${bt.name} · ${bt.seats?.length || 3}` : `항해 ${bt.hours}시간`;
       b.append(im, nm);
       const on = voyScene.boatId === bt.id;
@@ -2479,7 +2481,7 @@ function paintCollection() {
     for (const sl of SAILS) {
       const open = UNLOCK_ALL || hrs >= sl.hours; if (open) opened++;
       const b = document.createElement('button'); b.type = 'button'; b.className = 'place';
-      const im = document.createElement('img'); im.src = 'assets/' + (sl.id === 'leaf' ? 'voyage-sail.webp?v=v29.11.0' : 'sail-' + sl.id + '.webp?v=v29.11.0'); im.alt = '';
+      const im = document.createElement('img'); im.src = 'assets/' + (sl.id === 'leaf' ? 'voyage-sail.webp?v=v29.12.0' : 'sail-' + sl.id + '.webp?v=v29.12.0'); im.alt = '';
       const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = open ? sl.name : `항해 ${sl.hours}시간`;
       b.append(im, nm);
       const on = voyScene.sailId === sl.id;
@@ -2940,7 +2942,7 @@ async function drawAlbum(seq, sig, grid, title) {
   document.getElementById('shotWarn').textContent = list.length >= ALBUM_WARN ? `${list.length}쪽 — 일지는 이 기기 저장 공간에 있어요. 아끼는 건 내려받아 두고, 지난 쪽은 지워도 돼요.` : '';
   if (!list.length) {
     const e = document.createElement('div'); e.className = 'shotEmpty';
-    const im = document.createElement('img'); im.src = 'assets/flower.webp?v=v29.11.0'; im.alt = '';
+    const im = document.createElement('img'); im.src = 'assets/flower.webp?v=v29.12.0'; im.alt = '';
     const t = document.createElement('span'); t.textContent = '아직 일지가 없어요. 집중을 끝까지 하면 키위들이 이유와 날짜를 모래에 써 주고, 그 순간이 여기 남아요.';
     e.append(im, t); grid.append(e); return;
   }

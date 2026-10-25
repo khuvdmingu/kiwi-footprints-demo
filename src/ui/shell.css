@@ -311,7 +311,7 @@ html[data-ui="paper"] #basket .cal { background: var(--pp-2); }
   .wardrobe .wdHead { margin-bottom: 12px; }
 }
 /* 무대: 배경 띠 없이 키위만 (창 바탕 위에 선다) */
-.wardrobe .kiwiStage canvas { height: clamp(130px, 22dvh, 190px); background: none; border-radius: 0; }
+.wardrobe .kiwiStage canvas { height: clamp(130px, 22dvh, 190px); background: #f0d9ad; border-radius: 16px; }
 .wardrobe .kiwiStage { margin: 0 0 6px; }
 .wardrobe #kiwiPreviewNote { display: block; margin: 2px 2px 14px; text-align: center; }
 /* 꾸미기 전체 화면(34) 위에서도 알림이 보이게 */
@@ -369,3 +369,37 @@ html[data-ui="paper"] #basket .cal { border-top: 0; background: rgba(var(--pp-2-
 html[data-ui="paper"] #basket .calGrid .day svg { stroke: var(--pp-stamp); }
 html[data-ui="paper"] #basket .calGrid .day i { background: var(--pp-stamp); }
 html[data-ui="paper"] #basket .calGrid .day.done { background: rgba(217, 119, 43, 0.14); }
+
+/* ── v29.12 꾸미기·소리 종이 다듬기: 네모 안 네모를 걷는다 — 칸 테두리 대신 옅은 종이 면, 고른 것은 도장 테두리, 줄 사이는 점선 한 줄 ── */
+html[data-ui="paper"] .wardrobe .colgrid { gap: 8px; }
+html[data-ui="paper"] .wardrobe .colgrid button { border: 0; border-radius: 14px; background: rgba(255, 255, 255, 0.32); }
+html[data-ui="paper"] .wardrobe .colgrid button.on { background: rgba(217, 119, 43, 0.12); box-shadow: inset 0 0 0 2px var(--pp-stamp); }
+html[data-ui="paper"] .wardrobe .colgrid button.on::after { background: var(--pp-stamp); color: var(--pp-stamp-ink); width: 16px; height: 16px; line-height: 16px; border-radius: 50%; text-align: center; right: 4px; bottom: 4px; font-size: 10px; }
+html[data-ui="paper"] .wardrobe .colgrid button.locked { background: rgba(255, 255, 255, 0.16); }
+/* 내 키위 · 만들 수 있는 옷: 상자 없이 줄로 */
+html[data-ui="paper"] .flock { gap: 0; max-height: none; }
+html[data-ui="paper"] .flock .mate { border: 0; border-radius: 0; padding: 10px 2px; border-bottom: 1px dashed var(--pp-edge); grid-template-columns: 48px minmax(0, 1fr) auto; column-gap: 10px; }
+html[data-ui="paper"] .flock .mate:last-child { border-bottom: 0; }
+html[data-ui="paper"] .flock .mate img { width: 48px; height: 48px; }
+html[data-ui="paper"] .flock .mate .days { color: var(--pp-ink-soft); opacity: 1; }
+html[data-ui="paper"] .flock .mate select { border: 0; background: rgba(255, 255, 255, 0.35); border-radius: 10px; padding: 4px 10px; color: var(--pp-ink); }
+html[data-ui="paper"] #craftList { gap: 0; }
+html[data-ui="paper"] #craftList .craft { border: 0; border-radius: 0; padding: 10px 2px; border-bottom: 1px dashed var(--pp-edge); grid-template-columns: 48px 1fr auto; gap: 10px; }
+html[data-ui="paper"] #craftList .craft:last-child { border-bottom: 0; }
+html[data-ui="paper"] #craftList img { width: 48px; height: 48px; }
+html[data-ui="paper"] #craftList button { border: 0; padding: 0 16px; }
+html[data-ui="paper"] #craftList button.go { background: var(--pp-stamp); color: var(--pp-stamp-ink); }
+/* 소리 고르기: 테두리 없는 종이 알약 */
+html[data-ui="paper"] .soundPicks .packs { gap: 8px; }
+html[data-ui="paper"] .soundPicks .packs button { border: 0; border-radius: 12px; background: rgba(255, 255, 255, 0.32); }
+html[data-ui="paper"] .soundPicks .packs button[aria-pressed="true"] { transform: none; }
+html[data-ui="paper"] .soundPicks h3 { margin-top: 22px; padding-top: 16px; }
+html[data-ui="paper"] .soundPicks h3:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+/* 무대는 탭 줄 아래 한 자리 (꾸미기 키위 · 소리 두 탭이 같이 쓴다) */
+.wardrobe > .kiwiStage { flex: none; }
+.wardrobe > .kiwiStage[hidden] { display: none; }
+/* v29.12 배·돛 미리보기: 칸을 붓질 바다로 꽉 채운다 (양옆 옅은 띠 없이) · 카드 이름은 어두운 띠 대신 종이 위 글씨 */
+.wardrobe .boatStage canvas#boatPreview { object-fit: cover; border-radius: 16px; }
+html[data-ui="paper"] .wardrobe .colgrid.places button { aspect-ratio: 1; }
+html[data-ui="paper"] .wardrobe .colgrid.places button .nm { background: none; color: var(--pp-ink); text-shadow: none; font-weight: 600; bottom: 6px; }
+html[data-ui="paper"] .wardrobe .colgrid.boats button img { padding: 8px 8px 26px; }

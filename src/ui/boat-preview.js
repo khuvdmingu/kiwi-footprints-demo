@@ -1,11 +1,12 @@
 // 항해의 합성 함수만 재사용한다. 바다 판·WebGL·동작 묶음은 읽지 않는 정지 미리보기.
-import { BOATS, SAILS, VoyageScene, boxesOf } from '../voyage-scene.js?v=v29.11.0';
+import { BOATS, SAILS, VoyageScene, boxesOf } from '../voyage-scene.js?v=v29.12.0';
 const loadImage = src => new Promise((resolve, reject) => {
   const im = new Image(); im.onload = () => resolve(im); im.onerror = () => reject(new Error('preview art')); im.src = src;
 });
+const SEA = typeof Image === 'undefined' ? null : Object.assign(new Image(), { src: new URL('../../assets/stage-sea.webp?v=v29.12.0', import.meta.url).href });
 export const previewFiles = (boat, sail) => [
-  'voyage-boat.webp?v=v29.11.0', boat === 'dinghy' ? 'voyage-boat.webp?v=v29.11.0' : 'boat-' + boat + '.webp?v=v29.11.0',
-  sail === 'leaf' ? 'voyage-sail.webp?v=v29.11.0' : 'sail-' + sail + '.webp?v=v29.11.0', 'voyage-crew.webp?v=v29.11.0',
+  'voyage-boat.webp?v=v29.12.0', boat === 'dinghy' ? 'voyage-boat.webp?v=v29.12.0' : 'boat-' + boat + '.webp?v=v29.12.0',
+  sail === 'leaf' ? 'voyage-sail.webp?v=v29.12.0' : 'sail-' + sail + '.webp?v=v29.12.0', 'voyage-crew.webp?v=v29.12.0',
 ];
 
 export class BoatPreview {
@@ -39,6 +40,8 @@ export class BoatPreview {
       water.addColorStop(0, style.getPropertyValue('--preview-water-top').trim());
       water.addColorStop(1, style.getPropertyValue('--preview-water-bottom').trim());
       c.fillStyle = water; c.fillRect(0, 0, cv.width, cv.height);
+      // v29.12 붓질 바다 (Codex, stock/stage) — 미리 읽어 둔 것이 있으면 깐다(배 그림이 기다리지 않게), 없으면 위 물빛
+      if (SEA?.complete && SEA.naturalWidth) { const r = Math.max(cv.width / SEA.naturalWidth, cv.height / SEA.naturalHeight); c.drawImage(SEA, (cv.width - SEA.naturalWidth * r) / 2, (cv.height - SEA.naturalHeight * r) / 2, SEA.naturalWidth * r, SEA.naturalHeight * r); }
       const boatHeight = cv.height * 0.82 / (boat.h || 0.78);
       scene.drawBoat(c, cv.width * 0.42, cv.height * 0.55, boatHeight, { crew, weather: 'clear' });
       cv.setAttribute('aria-label', `${boat.name} · ${sail.name} · 키위 ${Math.min(crew, boat.seats?.length || 3)}마리 정지 미리보기`);

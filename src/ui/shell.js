@@ -1,7 +1,7 @@
-import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v29.11.0';
-import { BoatPreview } from './boat-preview.js?v=v29.11.0';
-import { KiwiStage } from './kiwi-stage.js?v=v29.11.0';
-import { ITEMS } from '../items.js?v=v29.11.0';
+import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v29.12.0';
+import { BoatPreview } from './boat-preview.js?v=v29.12.0';
+import { KiwiStage } from './kiwi-stage.js?v=v29.12.0';
+import { ITEMS } from '../items.js?v=v29.12.0';
 // src/ui/shell.js — 2026-10-24 UI 구조 개편 (결정 10개: _views/html-views/2026-10-24_kiwi-ui-restructure.html)
 //
 //  마크업은 index.html 에 제자리로 있고(예전 src/ia/ia.js 처럼 뜬 뒤에 옮기지 않는다), 여기는 새 창 셋의 동작만 맡는다.
@@ -74,14 +74,35 @@ export function mountShell(env) {
   }
   // v29.7 키위 탭 무대: 입힌 옷을 입은 키위들이 모래 위에서 움직인다
   const kiwiStage = new KiwiStage($('kiwiPreview'), $('kiwiPreviewNote'));
-  function paintKiwiStage() {
-    if (ward.hidden || $('kiwiStage').closest('.pane').hidden) { kiwiStage.release(); return; }
-    kiwiStage.show(ITEMS.filter(it => it.kind === 'wear' && env.col.wearing(it.id)));
+  // v29.12 한 창 두 얼굴: 꾸미기(dress) = 키위 · 배·돛 / 소리(sound) = 배경 소리 · 키위 소리
+  const MODES = { dress: { title: '꾸미기', sub: '눌러서 바로 입혀 봐요 · 저장해야 남아요', first: 'kiwi' },
+    sound: { title: '소리', sub: '눌러서 들어 봐요 · 고르는 소리만 들려요 · 저장해야 남아요', first: 'bg' } };
+  let mode = 'dress';
+  const curTab = () => ward.querySelector('[role="tab"][aria-selected="true"]')?.dataset.tab;
+  function setMode(m) {
+    mode = MODES[m] ? m : 'dress';
+    $('wdTitle').textContent = MODES[mode].title; $('wdSub').textContent = MODES[mode].sub; ward.setAttribute('aria-label', MODES[mode].title); ward.dataset.mode = mode;
+    for (const b of ward.querySelectorAll('[role="tab"]')) b.hidden = b.dataset.mode !== mode;
   }
+  // 소리 창에선 고르는 갈래만 들린다 (배경 소리 = 곡·자연 배경 / 키위 소리 = 발자국·찾았을 때), 닫으면 평소대로
+  function applySolo() { env.sound?.setSolo?.(ward.hidden || mode !== 'sound' ? null : curTab() === 'voice' ? ['sfx'] : ['music', 'amb']); }
+  function paintKiwiStage() {
+    const on = !ward.hidden && ['kiwi', 'bg', 'voice'].includes(curTab());
+    $('kiwiStage').hidden = !on;
+    if (!on) { kiwiStage.release(); return; }
+    kiwiStage.show(ITEMS.filter(it => it.kind === 'wear' && env.col.wearing(it.id))).then(() => { if (mode === 'sound') $('kiwiPreviewNote').textContent = SOUND_NOTE[curTab()] || ''; });
+  }
+  const stageAct = kind => { if (!ward.hidden) kiwiStage.act(kind); };
+  // 소리 창 무대 아래 한 줄: 옷 이름 대신 무엇을 들려주는지
+  const SOUND_NOTE = { bg: '곡 · 자연 배경만 들려요 — 고르면 바로 바뀌어요', voice: '누르면 키위가 걸어 보고(발자국) 콕 찍어 봐요(찾았을 때)' };
   let journalOn = false;
-  function openWard(open, { save = false, tab } = {}) {
+  function openWard(open, { save = false, tab, mode: m } = {}) {
+    if (open && !ward.hidden && m && m !== mode) openWard(false, { save: true });   // 꾸미기 ↔ 소리 바꿔 열면 바꾼 것은 저장하고 넘어간다
     if (open === !ward.hidden) { if (open && tab) wardTab(tab); return; }
     if (open) {
+      setMode(m || 'dress');
+      const saved = get('tab.ward.' + mode);
+      tab ||= ward.querySelector(`[role="tab"][data-tab="${saved}"][data-mode="${mode}"]`) ? saved : MODES[mode].first;
       rememberOpener(ward, $('menuBtn'));
       closeAll(); closeOthers();
       draft = snap();
@@ -101,14 +122,15 @@ export function mountShell(env) {
     document.body.classList.toggle('dressing', open);
     if (open) { ward.querySelector('[role="tab"][aria-selected="true"]')?.focus(); paintBoatStage(); paintKiwiStage(); }
     else { preview.release(); kiwiStage.release(); returnFocus(ward, $('menuBtn')); }
+    applySolo();
   }
-  wardBtn.addEventListener('click', () => { unlock(); openWard(true); });
-  $('toWardSound')?.addEventListener('click', () => { unlock(); openWard(true, { tab: 'sound' }); });
+  wardBtn.addEventListener('click', () => { unlock(); openWard(true, { mode: 'dress' }); });
+  $('toWardSound')?.addEventListener('click', () => { unlock(); openWard(true, { mode: 'sound' }); });
   $('wdSave').addEventListener('click', () => openWard(false, { save: true }));
   $('wdCancel').addEventListener('click', () => openWard(false));
   // 고를 때마다 저장 단추·배 그림을 갱신 (각 칸의 그리는 함수가 다시 그린 뒤)
   for (const event of ['input', 'change']) ward.addEventListener(event, () => { if (!ward.hidden) paintWardBar(); });
-  ward.addEventListener('click', () => setTimeout(() => { if (!ward.hidden) { paintBoatStage(); paintKiwiStage(); paintWardBar(); } }, 0));
+  ward.addEventListener('click', () => setTimeout(() => { if (!ward.hidden) { paintBoatStage(); paintKiwiStage(); paintWardBar(); applySolo(); const t = curTab(); if (t) put('tab.ward.' + mode, t); } }, 0));
 
   // ── 해도 ──
   function openChart(open) {
@@ -181,5 +203,5 @@ export function mountShell(env) {
   // ── 떠나기 창 「더 보기」 펼침 기억 ──
   { const m = $('focusMore'); if (m) { m.open = get('ia.more') === '1'; m.addEventListener('toggle', () => put('ia.more', m.open ? '1' : '0')); } }
 
-  return { closeAll, openBasket, openWard, openChart, basketTab, wardTab, get dressing() { return !ward.hidden; } };
+  return { closeAll, openBasket, openWard, openChart, basketTab, wardTab, stageAct, get dressing() { return !ward.hidden; } };
 }

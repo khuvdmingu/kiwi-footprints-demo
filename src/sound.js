@@ -9,12 +9,12 @@
 //  믹서 값(소리 켜기·음악·환경음·효과음·발자국 음악)은 기기에 기억한다.
 //  브라우저는 사용자 동작 안에서만 소리를 열 수 있어서 unlock() 을 그때 부른다. 탭을 숨기면 멈춘다.
 
-import { Music } from './music.js?v=v29.11.0';
-import { STOCK_PLACES } from './maps-stock.js?v=v29.11.0';
+import { Music } from './music.js?v=v29.12.0';
+import { STOCK_PLACES } from './maps-stock.js?v=v29.12.0';
 
 // v16 아이템 소리·곡은 오픈소스 녹음 — 목록·출처는 카탈로그 한 곳 (src/tracks/index.js). assets/audio/ 에서 처음 고를 때 받는다
 //  STEP_SAMPLES: 0.5초 칸마다 한 걸음 · NATURE_LOOPS: 끝과 처음을 겹쳐 이음매 없이 도는 고리 · SONG_TRACKS: 곡 고리
-import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v29.11.0';
+import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v29.12.0';
 export { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, NATURAL_STEPS };
 const AUDIO = 'assets/audio/';
 // 곡·자연 배경 고리는 풀어 두면 한 곡에 수십 MB(48kHz 기준 최대 약 96MiB)라, 고리 자리마다 지금 것 + 바로 전 것만 들고 있는다 (2026-10-19)
@@ -89,7 +89,14 @@ export class Sound {
     Object.assign(this.mix, part); this.saveMix();
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    for (const b of ['music', 'amb', 'sfx']) this.bus[b].gain.setTargetAtTime(this.mix[b], t, 0.1);
+    for (const b of ['music', 'amb', 'sfx']) this.bus[b].gain.setTargetAtTime(this.solo && !this.solo.includes(b) ? 0 : this.mix[b], t, 0.1);
+  }
+  // v29.12 소리 고르는 창: 고르는 갈래만 들린다 (['music', 'amb'] 배경 소리 · ['sfx'] 키위 소리 · null 평소대로)
+  setSolo(list) {
+    this.solo = list && list.length ? list : null;
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    for (const k of ['music', 'amb', 'sfx']) this.bus[k].gain.setTargetAtTime(this.solo && !this.solo.includes(k) ? 0 : this.mix[k], t, 0.15);
   }
 
   unlock() {
@@ -172,6 +179,7 @@ export class Sound {
   }
   route(node, bus = 'sfx', pan = 0, rev = 0.25) {
     if (this.hush && bus === 'sfx') return;
+    if (this.solo && !this.solo.includes(bus)) return;   // 잔향까지 (잔향은 묶음을 거치지 않는다)
     const p = this.ctx.createStereoPanner();
     p.pan.value = Math.max(-1, Math.min(1, pan));
     node.connect(p); p.connect(this.bus[bus]);
