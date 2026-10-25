@@ -8,7 +8,7 @@
 //  그림: assets/catch-sheet.webp 의 10~15 칸 (fishing.js 와 같은 장). 없으면 코드 그림.
 //  기록은 이 기기에만 (localStorage 'builds').
 
-import { standCell } from './sheet.js?v=v29.16.1';
+import { standCell } from './sheet.js?v=v29.16.2';
 
 export const BUILDS = [
   { id: 'flag', min: 15, cell: 10, ko: '깃발', note: '여기 우리가 있었다는 표시.', x: 0.17, h: 0.11 },
