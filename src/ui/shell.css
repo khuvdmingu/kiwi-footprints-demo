@@ -444,3 +444,5 @@ html[data-ui="paper"] #basket .colgrid { gap: 6px; }
 html[data-ui="paper"] #basket .colgrid.finds button { border: 0; border-radius: 12px; background: rgba(255, 255, 255, 0.32); }
 /* 안내 문구 속 작은 선물 표시 (칸 귀퉁이 표시와 같은 그림) */
 #basket .hint .gifthint { display: inline-block; width: 14px; height: 14px; margin: 0 3px -2px 1px; border-radius: 50%; background: rgba(255, 250, 238, 0.95) center / 10px 10px no-repeat url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c8692a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='8' width='18' height='4' rx='1'/><path d='M12 8v13'/><path d='M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7'/><path d='M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5'/></svg>"); box-shadow: 0 0 0 1px rgba(200, 105, 42, 0.35); }
+#basket .colgrid.guests button .chip.empty { opacity: 0.45; }
+#basket .colgrid.guests button.locked { font-size: 18px; }

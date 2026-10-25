@@ -8,19 +8,19 @@
 //  기록은 이 기기에만 (localStorage 'chart'). 항해 기록(voyage.log)은 voyage.js 가 갖고, 여기는 발견·이름만 갖는다.
 //  그리기: 그림 격자(assets/chart-sheet.webp, 4×4)가 있으면 칸을 잘라 쓰고, 없으면 코드로 그린다.
 
-import { fitCell, roundCell } from './sheet.js?v=v29.16.0';
+import { fitCell, roundCell } from './sheet.js?v=v29.16.1';
 
-export const SHEET = 'chart-sheet.webp?v=v29.16.0';
+export const SHEET = 'chart-sheet.webp?v=v29.16.1';
 // v28.19 해도 그림 B (사용자 2026-10-24 비교 페이지에서 고름): 양피지 종이(나침반 포함) + 새 아이콘 격자 4×4
 //  새 격자 칸: 1행 화산·폭포 절벽·거북·등대 / 2행 환초·쌍둥이·빙산·떠 있는 꽃섬 / 3행 고래 꼬리·바다뱀·난파선·병 / 4행 X·닻·별 항로·바람 구름
 //  그림 칸이 없던 섬·바다 표시만 새 칸으로 (나머지는 지금 격자 그대로)
 // v28.20 격자 칸이 없는 큰 섬은 낱장 그림 (Codex 그림, 흰 바탕을 뺀 투명 webp)
-import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v29.16.0';
-export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v29.16.0', oasis: 'chart-isle-oasis.webp?v=v29.16.0' };
+import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v29.16.1';
+export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v29.16.1', oasis: 'chart-isle-oasis.webp?v=v29.16.1' };
 // v29.4 재고 새 장소 24곳의 해도 섬 그림 (Codex 그림, 4×4 격자 두 장 — 위 세 줄에 12곳씩, STOCK_PLACES 순서). 못 읽으면 코드 그림
-export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v29.16.0', 'chart-isles-b.webp?v=v29.16.0'];
+export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v29.16.1', 'chart-isles-b.webp?v=v29.16.1'];
 export const stockIsleCell = id => { const i = STOCK_PLACES.findIndex(p => p.id === id); return i < 0 ? null : { sheet: Math.floor(i / 12), cell: i % 12 }; };
-export const CHART_B = { paper: 'chart-paper.webp?v=v29.16.0', sheet: 'chart-sheet-2.webp?v=v29.16.0',
+export const CHART_B = { paper: 'chart-paper.webp?v=v29.16.1', sheet: 'chart-sheet-2.webp?v=v29.16.1',
   islet: { 'i-twin': 5, 'i-lantern': 3, 'i-turtle': 2, 'i-end': 6 }, spot: { 's-reef': 4, 's-current': 15, 's-whale': 8 } };
 // 격자 칸 (4×4): 0~4 큰 섬 · 5~12 작은 섬 · 13 나침반 · 14 배 표시 · 15 안개 덩이
 export const CELL = { beach: 0, nz: 1, snow: 2, fall: 3, zen: 4, compass: 13, boat: 14, fog: 15 };
