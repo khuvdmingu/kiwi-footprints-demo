@@ -7,11 +7,13 @@
 //  · 지우개(v18): 물가선 edge(x) 는 "발자국을 지우는 경계선"이다. 물이 아닌 장소(eraser 'rake' — 젠 가든)에서는
 //    같은 줄이 잔물결·밀물 없이 가만히 있고, 지우기는 zen.js 가 발자국에 직접 표시한다(p.erase — 다시 긋는 갈퀴 줄)
 
-import { clamp, easeOut, easeInOut } from './util.js?v=v29.23.0-94c07f5';
-import { PAL, PHOTO_PRINT, NIGHT_PRINT } from './tokens.js?v=v29.23.0-94c07f5';
-import { addGuestFoot } from './guests.js?v=v29.23.0-94c07f5';
+import { clamp, easeOut, easeInOut } from './util.js?v=v29.24.0-cb67960';
+import { PAL, PHOTO_PRINT, NIGHT_PRINT } from './tokens.js?v=v29.24.0-cb67960';
+import { addGuestFoot } from './guests.js?v=v29.24.0-cb67960';
 
-const RISE = 1.5, HOLD = 0.5, FALL = 3.2;
+// v29.24 파도 빠르기 두 벌 (사용자: 확 사라지면 감성이 덜하다 — 지금 것은 남기고 잔잔한 것도)
+//  quick = 지금처럼(오르기·머물기·빠지기 초, 젖은 글씨가 옅어지는 빠르기) · gentle = 천천히 밀려와 글씨가 젖으며 서서히 옅어진다
+export const WAVES = { quick: { rise: 1.5, hold: 0.5, fall: 3.2, fade: 2.2 }, gentle: { rise: 4, hold: 1.5, fall: 6, fade: 0.55 } };
 const FAINT = 0.22, FAINT_LIFE = 2.2;
 // 그냥 콕 찍은 구멍(심심해서 콕 · 모래를 눌러 부른 콕 — 글자의 점이 아닌 것)은 잠시 남았다가 모래가 덮는다
 const HOLE_LIFE = 10, HOLE_FADE = 4;
@@ -26,6 +28,7 @@ export class Beach {
     this.wet = new Float32Array(128);
     this.amp = 1;     // 파도 높이 배율 (바람 부는 날 크게)
     this.snow = 0;    // 눈 쌓인 정도 0~1
+    this.wave = WAVES.quick;   // 지우는 파도 빠르기 (setWave)
   }
 
   resize(W, H, dpr, plate) {
@@ -53,7 +56,8 @@ export class Beach {
   shoreAt(x) { return this.lerpC(this.shoreC, x); }
 
   // ── 파도 ──
-  surge(y) { this.bw = { t0: this.t, L: Math.max(0, this.shoreMax - y) }; return RISE; }
+  setWave(id) { this.wave = WAVES[id] || WAVES.quick; }
+  surge(y) { this.bw = { t0: this.t, L: Math.max(0, this.shoreMax - y), w: this.wave }; return this.wave.rise; }
   get surging() { return !!this.bw; }
 
   level() {
@@ -61,7 +65,7 @@ export class Beach {
     let lift = this.still ? 0 : Math.pow(0.5 - 0.5 * Math.cos((2 * Math.PI * t) / 7.3), 3) * this.H * 0.03 - this.H * 0.006;
     this.surgeK = 0;
     if (this.bw) {
-      const e = t - this.bw.t0, L = this.bw.L;
+      const e = t - this.bw.t0, L = this.bw.L, { rise: RISE, hold: HOLD, fall: FALL } = this.bw.w;
       let f;
       if (e < RISE) f = easeOut(e / RISE);
       else if (e < RISE + HOLD) f = 1;
@@ -111,7 +115,7 @@ export class Beach {
     for (const p of this.prints) {
       if (!p.wash && p.y > this.edge(p.x) - 1) p.wash = true;
       if (p.erase) p.alpha = Math.min(p.alpha, clamp(1 - (this.t - p.erase) / 0.9, 0, 1));
-      if (p.wash) p.alpha -= dt * 2.2;
+      if (p.wash) p.alpha -= dt * this.wave.fade;
       else if (p.kind === 'faint') p.alpha = FAINT * clamp(1 - (this.t - p.born) / FAINT_LIFE, 0, 1);
       else if (p.kind === 'hole' && p.tag == null) p.alpha = clamp(1 - (this.t - p.born - HOLE_LIFE) / HOLE_FADE, 0, 1);
       else if (p.kind === 'sec') p.alpha = clamp((this.t - p.born) / 0.1, 0, 1) * (p.die ? clamp(1 - (this.t - p.die) / 0.28, 0, 1) : 1);
