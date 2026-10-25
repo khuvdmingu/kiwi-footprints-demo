@@ -132,6 +132,11 @@
 .k-grid--cards .chip .bit { display: inline-flex; align-items: center; gap: 2px; }
 .k-grid--cards .chip svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .k-grid--cards .chip.empty { opacity: 0.45; }
+.k-grid--cards .chip .use { padding: 0 5px; border-radius: var(--k-r-pill); background: var(--k-accent-wash); color: var(--k-accent); }   /* 쓰임 낱말(옷·섬·해도) */
+/* 작은 카드 (모은 것): 그림 46 · 이름 · 칩 — 손님 카드보다 낮게 */
+.k-grid--compact > button { grid-template-rows: 46px auto 20px; min-height: 92px; padding: 6px 3px; }
+.k-grid--compact :is(i.find, canvas.catchIcon) { position: static; inset: auto; width: 46px; height: 46px; }
+.k-grid--compact .nm { font-size: var(--k-fs-xs); }
 
 /* 이름 붙은 그림 칸 (배·돛): 그림은 위에 맞추고 이름은 칸 아래 */
 .k-grid--named { grid-template-columns: repeat(3, 1fr); }

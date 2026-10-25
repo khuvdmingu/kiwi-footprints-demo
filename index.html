@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#1A5C91" />
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v29.18.0-32a7847" />
-  <link rel="stylesheet" href="memos.css?v=v29.18.0-32a7847" />
-  <link rel="stylesheet" href="theme-paper.css?v=v29.18.0-32a7847" />
-  <link rel="stylesheet" href="src/ui/tokens.css?v=v29.18.0-32a7847" />
-  <link rel="stylesheet" href="src/ui/parts.css?v=v29.18.0-32a7847" />
-  <link rel="stylesheet" href="src/ui/shell.css?v=v29.18.0-32a7847" />
+  <link rel="stylesheet" href="style.css?v=v29.19.0-69e34a4" />
+  <link rel="stylesheet" href="memos.css?v=v29.19.0-69e34a4" />
+  <link rel="stylesheet" href="theme-paper.css?v=v29.19.0-69e34a4" />
+  <link rel="stylesheet" href="src/ui/tokens.css?v=v29.19.0-69e34a4" />
+  <link rel="stylesheet" href="src/ui/parts.css?v=v29.19.0-69e34a4" />
+  <link rel="stylesheet" href="src/ui/shell.css?v=v29.19.0-69e34a4" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -249,7 +249,7 @@
     <h2 class="k-h sep">창 투명도</h2>
     <p class="k-now" id="winSeeNow"></p>
     <input type="range" min="0" max="70" step="5" id="winSee" aria-label="창 투명도" />
-    <p class="k-hint">설정·바구니·떠나기 같은 창의 바탕을 비치게 해요. 창 모양(모던·종이)마다 따로 기억해요.</p>
+    <p class="k-hint">설정·바구니·떠나기 같은 창의 바탕을 비치게 해요. 위 버튼 줄·칸·칩도 함께 비쳐요. 해가 지면 창이 남색 종이로 천천히 바뀌어 밤에도 글씨가 잘 보여요. 창 모양(모던·종이)마다 따로 기억해요.</p>
     <h2 class="k-h sep">입력창</h2>
     <label class="row switch k-row"><span>아래 입력창 보이기</span><input type="checkbox" id="optSay" /></label>
     <p class="k-hint">끄면 화면 아래 「여기에 문장을 써 보세요」 칸이 사라져요. 글 모드(시계·명언·단어장)는 그대로예요.</p>
@@ -357,10 +357,11 @@
     </section>
     <section class="pane k-win-body" data-pane="dex" role="tabpanel" aria-label="모은 것" hidden>
     <h2 id="findTitle" class="k-h">주운 것</h2>
-    <div id="findGrid" class="k-grid k-grid--items"></div>
+    <p class="k-hint k-hint--top">칸 아래 칩 — <b>×3</b> 가진 개수 · <b>옷</b> 키위 옷 재료 · <b>섬</b> 섬 짓기 재료 · <b>해도</b> 안개 걷기 · <i class="k-ico-gift"></i> 손님에게 줄 수 있어요</p>
+    <div id="findGrid" class="k-grid k-grid--cards k-grid--compact"></div>
     <p class="k-hint">켜 두면 몇 분에 한 번 물가에 밀려와요(어떤 건 밤 · 비 · 해 질 녘 · 눈밭에서만). 모아 두면 <b>키위 옷</b>을 지을 수 있고, 편지를 남긴 손님에게 <b>답장 선물</b>로 놓아 둘 수도 있어요 <span class="k-ico-gift" aria-hidden="true"></span>— 손님이 무엇을 좋아할지는 줘 봐야 알아요.</p>
     <h2 id="catchTitle" class="k-h sep">낚은 것</h2>
-    <div id="catchGrid" class="k-grid k-grid--items"></div>
+    <div id="catchGrid" class="k-grid k-grid--cards k-grid--compact"></div>
     <p class="k-hint">항해할 때 배 뒤 낚싯줄에 걸려 와요. 유목 · 밧줄 · 판자는 섬 짓기를 앞당기고, 지도 조각은 해도 안개를 걷어요. 걸려 온 것도 손님에게 답장 선물로 줄 수 있어요.</p>
     </section>
   </div>
@@ -501,10 +502,10 @@
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v29.18.0-32a7847"></script>
-  <script type="module" src="src/credits.js?v=v29.18.0-32a7847"></script>
+  <script type="module" src="src/main.js?v=v29.19.0-69e34a4"></script>
+  <script type="module" src="src/credits.js?v=v29.19.0-69e34a4"></script>
   <!-- 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/taps.js?v=v29.18.0-32a7847"></script>
+  <script type="module" src="src/taps.js?v=v29.19.0-69e34a4"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.

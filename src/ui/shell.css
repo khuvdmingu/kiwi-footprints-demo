@@ -71,7 +71,6 @@ html:not([data-ui="paper"]) #picker::before { background: rgba(20, 47, 73, calc(
 html:not([data-ui="paper"]) .wardrobe { background: rgba(20, 47, 73, max(0.86, var(--win-a, 0.78))); }   /* 아래 시트는 섬 위에 겹쳐 글씨가 묻히지 않게 */
 html[data-ui="paper"] :is(#settings, .basket, .wardrobe, #focusPanel, #menu, #picker) { background: var(--k-surface); }   /* DS 토큰: 투명도 한 값 */
 html[data-ui="paper"] :is(#settings, .basket, .wardrobe, #focusPanel, #menu, #picker) { backdrop-filter: var(--k-blur); -webkit-backdrop-filter: var(--k-blur); }
-html[data-ui="paper"][data-win-see] #picker::before { background: rgba(var(--pp-rgb), var(--win-a, 1)); }
 
 /* 모던 아이콘 선 굵기 (밝은 그림 위에서 흐리지 않게) */
 html:not([data-ui="paper"]) :is(.round, #saySend) svg { stroke-width: 1.85; }
@@ -167,8 +166,6 @@ html[data-ui="paper"] :is(.uiWindow, #focusPanel, #chartView) :focus-visible { o
 /* v29.11 모던 UI 잠시 막음 (종이로 고정) */
 
 /* 창 투명도가 탭 줄에도 (예전엔 탭 홈·고른 탭이 불투명해 혼자 떠 보였다) */
-html[data-ui="paper"] :is(.uiWindow, #focusPanel) .tabs { background: rgba(var(--pp-2-rgb), var(--win-a, 1)); }
-html[data-ui="paper"] :is(.uiWindow, #focusPanel) .tabs button[aria-selected="true"] { background: rgba(var(--pp-rgb), min(1, calc(var(--win-a, 1) + 0.25))); }
 
 /* 스크롤 막대는 숨긴다 (스크롤은 그대로 — 손가락·휠로) */
 :is(.uiWindow, #focusPanel, #chartView, #picker, #info, #found) :is(*), .uiWindow, #focusPanel { scrollbar-width: none; }

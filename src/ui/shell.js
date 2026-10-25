@@ -1,7 +1,7 @@
-import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v29.18.0-32a7847';
-import { BoatPreview } from './boat-preview.js?v=v29.18.0-32a7847';
-import { KiwiStage } from './kiwi-stage.js?v=v29.18.0-32a7847';
-import { ITEMS } from '../items.js?v=v29.18.0-32a7847';
+import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v29.19.0-69e34a4';
+import { BoatPreview } from './boat-preview.js?v=v29.19.0-69e34a4';
+import { KiwiStage } from './kiwi-stage.js?v=v29.19.0-69e34a4';
+import { ITEMS } from '../items.js?v=v29.19.0-69e34a4';
 // src/ui/shell.js — 2026-10-24 UI 구조 개편 (결정 10개: _views/html-views/2026-10-24_kiwi-ui-restructure.html)
 //
 //  마크업은 index.html 에 제자리로 있고(예전 src/ia/ia.js 처럼 뜬 뒤에 옮기지 않는다), 여기는 새 창 셋의 동작만 맡는다.
