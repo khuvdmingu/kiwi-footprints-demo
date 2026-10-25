@@ -8,19 +8,20 @@
 //  기록은 이 기기에만 (localStorage 'chart'). 항해 기록(voyage.log)은 voyage.js 가 갖고, 여기는 발견·이름만 갖는다.
 //  그리기: 그림 격자(assets/chart-sheet.webp, 4×4)가 있으면 칸을 잘라 쓰고, 없으면 코드로 그린다.
 
-import { fitCell, roundCell } from './sheet.js?v=v29.16.2';
+import { fitCell, roundCell } from './sheet.js?v=v29.16.2-water-e3e6f61';
 
-export const SHEET = 'chart-sheet.webp?v=v29.16.2';
+export const SHEET = 'chart-sheet.webp?v=v29.16.2-water-e3e6f61';
 // v28.19 해도 그림 B (사용자 2026-10-24 비교 페이지에서 고름): 양피지 종이(나침반 포함) + 새 아이콘 격자 4×4
 //  새 격자 칸: 1행 화산·폭포 절벽·거북·등대 / 2행 환초·쌍둥이·빙산·떠 있는 꽃섬 / 3행 고래 꼬리·바다뱀·난파선·병 / 4행 X·닻·별 항로·바람 구름
 //  그림 칸이 없던 섬·바다 표시만 새 칸으로 (나머지는 지금 격자 그대로)
 // v28.20 격자 칸이 없는 큰 섬은 낱장 그림 (Codex 그림, 흰 바탕을 뺀 투명 webp)
-import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v29.16.2';
-export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v29.16.2', oasis: 'chart-isle-oasis.webp?v=v29.16.2' };
+import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v29.16.2-water-e3e6f61';
+import { WATER_PLACES, WATER_IDS } from './maps-water.js?v=v29.16.2-water-e3e6f61';
+export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v29.16.2-water-e3e6f61', oasis: 'chart-isle-oasis.webp?v=v29.16.2-water-e3e6f61' };
 // v29.4 재고 새 장소 24곳의 해도 섬 그림 (Codex 그림, 4×4 격자 두 장 — 위 세 줄에 12곳씩, STOCK_PLACES 순서). 못 읽으면 코드 그림
-export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v29.16.2', 'chart-isles-b.webp?v=v29.16.2'];
-export const stockIsleCell = id => { const i = STOCK_PLACES.findIndex(p => p.id === id); return i < 0 ? null : { sheet: Math.floor(i / 12), cell: i % 12 }; };
-export const CHART_B = { paper: 'chart-paper.webp?v=v29.16.2', sheet: 'chart-sheet-2.webp?v=v29.16.2',
+export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v29.16.2-water-e3e6f61', 'chart-isles-b.webp?v=v29.16.2-water-e3e6f61'];
+export const stockIsleCell = id => { const motif = WATER_PLACES.find(p => p.id === id)?.isleLike || id; const i = STOCK_PLACES.findIndex(p => p.id === motif); return i < 0 ? null : { sheet: Math.floor(i / 12), cell: i % 12 }; };
+export const CHART_B = { paper: 'chart-paper.webp?v=v29.16.2-water-e3e6f61', sheet: 'chart-sheet-2.webp?v=v29.16.2-water-e3e6f61',
   islet: { 'i-twin': 5, 'i-lantern': 3, 'i-turtle': 2, 'i-end': 6 }, spot: { 's-reef': 4, 's-current': 15, 's-whale': 8 } };
 // 격자 칸 (4×4): 0~4 큰 섬 · 5~12 작은 섬 · 13 나침반 · 14 배 표시 · 15 안개 덩이
 export const CELL = { beach: 0, nz: 1, snow: 2, fall: 3, zen: 4, compass: 13, boat: 14, fog: 15 };
@@ -36,7 +37,7 @@ export const BIG = {
   oasis: { x: 0.9, y: 0.4 },     // 오른쪽 아래는 나침반 자리
 };
 // v28.22 재고 새 장소 24곳 — 빈자리에 고르게(서로·기존 섬과 0.13 이상). 섬 그림이 없어 코드 그림(BIG_INK), 열린 곳만 해도에 보인다
-for (const p of STOCK_PLACES) BIG[p.id] = { x: p.at[0], y: p.at[1] };
+for (const p of [...STOCK_PLACES, ...WATER_PLACES]) BIG[p.id] = { x: p.at[0], y: p.at[1] };
 
 // 작은 섬 — need = 지금까지 바다 위에서 간 해리(누적). 25분 항해 = 2.5해리
 export const ISLETS = [
@@ -222,7 +223,7 @@ export function drawChart(ctx, S, o) {
   const names = [], bodies = [];
   for (const [id, p] of Object.entries(BIG)) {
     const [x, y] = P(p), open = o.open ? o.open(id) : true, r = S * 0.062;   // v29.4.2 0.07 → 0.062: 섬 24곳이 늘며 서로 붙어 이름 자리가 없었다
-    if (!open && STOCK_IDS.has(id) && !o.all) continue;   // 재고 새 장소는 열리기 전엔 안 그린다 (해도가 '?' 로 빽빽해지지 않게)
+    if (!open && (STOCK_IDS.has(id) || WATER_IDS.has(id)) && !o.all) continue;   // 열린 장소만 볼 때 잠긴 새 장소는 감춘다
     // o.all (2026-10-24 해도 창): 잠긴 섬도 안개 밑에 흐리게 다 그린다 — 열린 섬만 맞춰 보다가 넓어지면 가장자리에서 드러난다
     if (!open) { ctx.globalAlpha = o.all ? 0.2 : 0.28; }
     const art = o.bigArt?.[id];
@@ -399,7 +400,7 @@ function blob(ctx, x, y, r, seed, color, k = 0.18) {
   ctx.closePath(); ctx.fill();
 }
 const BIG_INK = { beach: ['#e7cf96', '#6f9a5b'], nz: ['#b9a074', '#3f6b48'], snow: ['#eef3f6', '#5f7f78'], fall: ['#d8b98a', '#c0662f'], cherry: ['#efdcc0', '#e7a7b8'], oasis: ['#e6c27a', '#5c8f54'], zen: ['#e9e3d4', '#8a8f7c'] };
-for (const p of STOCK_PLACES) BIG_INK[p.id] = p.ink;
+for (const p of [...STOCK_PLACES, ...WATER_PLACES]) BIG_INK[p.id] = p.ink;
 function drawBig(ctx, id, x, y, r) {
   const [sand, green] = BIG_INK[id] || BIG_INK.beach, s = hash(id);
   ctx.globalAlpha *= 0.9; blob(ctx, x, y + r * 0.08, r * 1.08, s, 'rgba(120,160,175,0.35)');
