@@ -418,3 +418,7 @@ body.watching #say, body.watching #caption { display: none !important; }
 .wardrobe .packs.line button[aria-pressed="true"] { background: var(--sand); color: #2a2016; border-color: transparent; }
 html[data-ui="paper"] .wardrobe .packs.line button { border: 0; background: rgba(255, 255, 255, 0.32); color: var(--pp-ink); }
 html[data-ui="paper"] .wardrobe .packs.line button[aria-pressed="true"] { background: var(--pp-stamp); color: var(--pp-stamp-ink); }
+
+/* v29.15 창 투명도를 높이면 종이색 점선(--pp-edge)이 뒤 풍경에 묻혀 안 보였다 → 비칠수록 흰빛 쪽으로 (70% 비침 ≈ 흰색 70%) */
+html[data-ui="paper"][data-win-see] { --pp-edge: color-mix(in srgb, #e3d3b2 calc(var(--win-a, 1) * 100%), rgba(255, 255, 255, 0.92)); }
+html[data-ui="paper"][data-win-see][data-time="night"] { --pp-edge: color-mix(in srgb, #ad976d calc(var(--win-a, 1) * 100%), rgba(255, 250, 238, 0.85)); }

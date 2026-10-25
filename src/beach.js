@@ -7,9 +7,9 @@
 //  · 지우개(v18): 물가선 edge(x) 는 "발자국을 지우는 경계선"이다. 물이 아닌 장소(eraser 'rake' — 젠 가든)에서는
 //    같은 줄이 잔물결·밀물 없이 가만히 있고, 지우기는 zen.js 가 발자국에 직접 표시한다(p.erase — 다시 긋는 갈퀴 줄)
 
-import { clamp, easeOut, easeInOut } from './util.js?v=v29.15.0';
-import { PAL, PHOTO_PRINT, NIGHT_PRINT } from './tokens.js?v=v29.15.0';
-import { addGuestFoot } from './guests.js?v=v29.15.0';
+import { clamp, easeOut, easeInOut } from './util.js?v=v29.15.1';
+import { PAL, PHOTO_PRINT, NIGHT_PRINT } from './tokens.js?v=v29.15.1';
+import { addGuestFoot } from './guests.js?v=v29.15.1';
 
 const RISE = 1.5, HOLD = 0.5, FALL = 3.2;
 const FAINT = 0.22, FAINT_LIFE = 2.2;
