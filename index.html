@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#1A5C91" />
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v29.7.0" />
-  <link rel="stylesheet" href="memos.css?v=v29.7.0" />
-  <link rel="stylesheet" href="theme-paper.css?v=v29.7.0" />
-  <link rel="stylesheet" href="src/ui/shell.css?v=v29.7.0" />
+  <link rel="stylesheet" href="style.css?v=v29.7.1" />
+  <link rel="stylesheet" href="memos.css?v=v29.7.1" />
+  <link rel="stylesheet" href="theme-paper.css?v=v29.7.1" />
+  <link rel="stylesheet" href="src/ui/shell.css?v=v29.7.1" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -331,6 +331,8 @@
     <section class="pane" data-pane="photo" role="tabpanel" aria-label="일지">
     <h2 id="shotTitle">집중 일지</h2>
     <div id="focusStats" class="stats"></div>
+    <h2 id="momentTitle" class="momH">드문 순간</h2>
+    <div id="momentGrid" class="colgrid places moments strip"></div>
     <div id="shotBy" class="shotBy" role="group" aria-label="일지 묶어 보기"><button type="button" data-by="all" aria-pressed="true">전체</button><button type="button" data-by="year" aria-pressed="false">연</button><button type="button" data-by="month" aria-pressed="false">월</button><button type="button" data-by="day" aria-pressed="false">일</button></div>
     <div id="focusCal" class="cal" hidden>
       <div class="calHead"><button id="calPrev" type="button" aria-label="지난달">‹</button><b id="calMonth"></b><button id="calNext" type="button" aria-label="다음 달">›</button></div>
@@ -357,12 +359,6 @@
     <h2 class="sep" id="catchTitle">낚은 것</h2>
     <div id="catchGrid" class="colgrid finds"></div>
     <p class="hint">항해할 때 배 뒤 줄에 걸려 와요. 유목 · 밧줄 · 판자는 <b>섬 짓기 재료</b>(하나에 15분어치), 지도 조각은 해도 안개를 걷어요.</p>
-    <h2 class="sep" id="buildTitle">섬에서 지은 것</h2>
-    <div id="buildList" class="builds"></div>
-    <p class="hint">그 섬에서 끝까지 한 집중과 그 섬에 닿은 항해만큼 키위들이 하나씩 지어요.</p>
-    <h2 class="sep" id="momentTitle">드문 순간</h2>
-    <div id="momentGrid" class="colgrid places moments"></div>
-    <p class="hint">섬을 오래 지켜보고 있으면 아주 가끔, 그 시간·날씨·장소에 맞는 장면이 펼쳐져요. 본 장면은 눌러서 다시 봐요.</p>
     </section>
   </div>
   <!-- 꾸미기: 눌러서 바로 입혀 보고·들어 보고, 저장해야 남는다 (src/ui/shell.js) -->
@@ -423,7 +419,7 @@
     <div class="cvFoot">
       <p class="note" id="chartNote"></p>
       <p class="cvHint">끌어서 둘러보기 · 두 손가락으로 확대·축소 · 섬을 누르면 이름</p>
-      <details class="more" id="chartMore"><summary>찾은 작은 섬 · 바다 위의 곳</summary><div id="chartList" class="chartList"></div></details>
+      <details class="more" id="chartMore"><summary>섬에서 지은 것 · 찾은 작은 섬 · 바다 위의 곳</summary><h3 id="buildTitle" class="moreH">섬에서 지은 것</h3><div id="buildList" class="builds"></div><h3 class="moreH">찾은 작은 섬 · 바다 위의 곳</h3><div id="chartList" class="chartList"></div></details>
     </div>
   </div>
   <!-- v28.18 부두 장면 (출항 · 도착) — 누르면 건너뛴다 (src/cutscene.js) -->
@@ -466,7 +462,7 @@
         <li><i data-icon="weatherBtn"></i><b>날씨</b><span>맑음 · 흐림 · 보슬비 · 비 · 눈 · 안개 · 바람 · 꽃잎 바람(숲에선 낙엽)</span></li>
         <li><i data-icon="focusBtn"></i><b>떠나기</b><span>섬에서 집중(끝까지 하면 선물 상자) · 항해(다른 섬으로 — 섬은 항해로만 옮겨요)</span></li>
         <li><i data-icon="chartBtn"></i><b>해도</b><span>섬과 항로 · 열린 섬이 늘수록 지도가 넓어져요 · 섬을 눌러 항해</span></li>
-        <li><i data-icon="basketBtn"></i><b>바구니</b><span>일지(연·월·일로 묶어 보기) · 편지(손님 · 유리병) · 모은 것(주운 것 · 낚은 것 · 지은 것 · 드문 순간)</span></li>
+        <li><i data-icon="basketBtn"></i><b>바구니</b><span>일지(걸음 · 드문 순간 · 연·월·일로 묶어 보기 · 달력) · 편지(손님 · 유리병) · 모은 것(주운 것 · 낚은 것)</span></li>
         <li><i data-icon="menuBtn"></i><b>메뉴</b><span>꾸미기(옷 · 배·돛 · 소리) · 설정(풍경 · 시계·메모 · 화면 · 소리) · 작품 설명</span></li>
       </ul>
       <h2>손으로</h2>
@@ -497,10 +493,10 @@
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v29.7.0"></script>
-  <script type="module" src="src/credits.js?v=v29.7.0"></script>
+  <script type="module" src="src/main.js?v=v29.7.1"></script>
+  <script type="module" src="src/credits.js?v=v29.7.1"></script>
   <!-- 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/taps.js?v=v29.7.0"></script>
+  <script type="module" src="src/taps.js?v=v29.7.1"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.

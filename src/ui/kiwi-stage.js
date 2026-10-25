@@ -3,7 +3,7 @@
 //  모래 한 자락 + 아래 물가(밀려왔다 빠지는 거품 줄)에 입혀 둔 옷마다 키위 한 마리씩(최대 4, 없으면 맨몸 하나).
 //  머리 장식은 섬에서처럼 쉬는 키위(kiwi.webp, 640px 기준) 위에 HEADWEAR 자리로 얹고, 몸째 그린 옷은 그 그림을 쓴다.
 //  키위는 숨 쉬듯 오르내리고, 방금 입힌 옷의 키위는 콩 뛴다. 탭이 보일 때만 움직인다(rAF), 닫으면 그림을 놓는다.
-import { HEADWEAR } from '../headwear.js?v=v29.7.0';
+import { HEADWEAR } from '../headwear.js?v=v29.7.1';
 
 const loadImage = src => new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error(src)); im.src = src; });
 const MAX = 4;
@@ -11,9 +11,9 @@ const MAX = 4;
 // 입힌 옷 목록 → 무대에 세울 키위들 [{ id, name, body, head }] (파일 이름만, DOM 없이 — 시험에서 그대로 쓴다)
 export function stageCast(worn) {
   const list = worn.slice(0, MAX).map(it => HEADWEAR[it.id]
-    ? { id: it.id, name: it.name, body: 'kiwi.webp?v=v29.7.0', head: HEADWEAR[it.id] }
+    ? { id: it.id, name: it.name, body: 'kiwi.webp?v=v29.7.1', head: HEADWEAR[it.id] }
     : { id: it.id, name: it.name, body: it.img, head: null });
-  return list.length ? list : [{ id: null, name: '맨몸', body: 'kiwi.webp?v=v29.7.0', head: null }];
+  return list.length ? list : [{ id: null, name: '맨몸', body: 'kiwi.webp?v=v29.7.1', head: null }];
 }
 
 export class KiwiStage {
