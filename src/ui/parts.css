@@ -64,7 +64,7 @@
 /* ── 하나 고르기 (k-seg): 누름 버튼 묶음 — aria-pressed="true" 가 고른 것 ── */
 .k-seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; margin: 0 0 18px; }
 .k-seg button { min-height: var(--tap-in); border-radius: var(--k-r-pill); border: 1px solid var(--k-edge); background: transparent; color: var(--k-ink); font: inherit; font-size: var(--k-fs-m); font-weight: 600; opacity: 0.75; cursor: pointer; }
-.k-seg button[aria-pressed="true"] { background: var(--k-paper-2); border-color: var(--k-accent); opacity: 1; }
+.k-seg button[aria-pressed="true"] { background: var(--k-paper-up); border-color: var(--k-accent); opacity: 1; }
 
 /* ── 숫자 칸 (k-stats): <div><b>숫자</b><span>설명</span></div> × n ── */
 .k-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 0 0 22px; }
@@ -233,7 +233,7 @@
 .k-chips > :is(button, label) { display: inline-flex; align-items: center; gap: var(--k-s-1); min-height: 36px; padding: 0 var(--k-s-3); border-radius: var(--k-r-pill); border: 1px solid var(--k-line); background: var(--k-wash); color: var(--k-ink); font: inherit; font-size: var(--k-fs-m); cursor: pointer; }
 .k-chips > button { font-weight: 600; }
 .k-chips > button:hover { background: var(--k-paper-up); }
-.k-chips > button[aria-pressed="true"], .k-chips > label:has(input:checked) { background: var(--k-paper-2); border-color: var(--k-accent); font-weight: 600; }
+.k-chips > button[aria-pressed="true"], .k-chips > label:has(input:checked) { background: var(--k-paper-up); border-color: var(--k-accent); font-weight: 600; }
 .k-chips input { margin: 0; accent-color: var(--k-accent); }
 .k-chips > button.warn { border-color: var(--k-danger); color: var(--k-danger); }
 
@@ -306,7 +306,7 @@
 .k-pick-list > button { display: grid; gap: 1px; justify-items: start; min-height: 48px; margin: 0; padding: 7px 10px; border-radius: var(--k-r-m); border: 1px solid var(--k-edge); background: transparent; color: var(--k-ink); font: inherit; text-align: left; cursor: pointer; }
 .k-pick-list b { max-width: 100%; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .k-pick-list small { font-size: var(--k-fs-s); color: var(--k-ink-soft); }
-.k-pick-list > button[aria-pressed="true"] { border-color: var(--k-accent); background: var(--k-paper-2); box-shadow: inset 0 0 0 1px var(--k-accent); }
+.k-pick-list > button[aria-pressed="true"] { border-color: var(--k-accent); background: var(--k-paper-up); box-shadow: inset 0 0 0 1px var(--k-accent); }
 .k-pick-list .note, .k-pick-list .k-hint { grid-column: 1 / -1; margin: 6px 2px; }
 
 /* ── 접는 더 보기 (k-more): details > summary(손글씨 + small) ── */
@@ -350,7 +350,7 @@
 /* 메뉴 (k-menu): button = svg + span(손글씨 이름) + small(설명), 점선으로 나뉨 · 한 줄에 둘이면 .menuRow */
 .k-menu { display: grid; gap: 2px; padding: 6px; }
 .k-menu button { display: grid; grid-template-columns: 28px 1fr auto; grid-template-rows: auto auto; column-gap: var(--k-s-3); align-items: center; width: 100%; min-height: 52px; padding: 6px var(--k-s-3); border: 0; border-radius: var(--k-r-m); background: transparent; color: var(--k-ink); font: inherit; text-align: left; cursor: pointer; }
-.k-menu button:is(:hover, :focus-visible) { background: var(--k-paper-2); outline: none; }
+.k-menu button:is(:hover, :focus-visible) { background: var(--k-paper-up); outline: none; }
 .k-menu > :is(button, .menuRow) + :is(button, .menuRow) { border-top: 1px dashed var(--k-edge); border-radius: 0 0 var(--k-r-m) var(--k-r-m); }
 .k-menu svg { grid-row: 1 / 3; width: 28px; height: 28px; }
 .k-menu span { font-family: var(--k-hand); font-size: 19px; font-weight: 700; line-height: 1.25; }
@@ -380,6 +380,13 @@
 .k-entries button { min-height: 40px; padding: 0 var(--k-s-3); border-radius: var(--k-r-pill); border: 1px solid var(--k-line); background: var(--k-paper-up); color: var(--k-ink); font: inherit; font-size: var(--k-fs-m); font-weight: 600; cursor: pointer; }
 .k-entries input { width: 9.5em; min-height: 40px; padding: 0 10px; border-radius: var(--k-r-s); border: 1px solid var(--k-line); background: var(--k-field); color: var(--k-ink); font: inherit; font-size: var(--k-fs-m); }
 .k-entries > .spot b::before { content: '〰 '; opacity: 0.6; }
+
+/* ── 시간 메모 (km-*, memo-ui.js): 입력칸·버튼을 부품과 같은 모양으로 — 밤에 흰 칸 위 밝은 글씨가 되던 것 ── */
+.km-add input:is([type="time"], [type="text"]) { min-width: 0; height: var(--tap-in); box-sizing: border-box; padding: 0 10px; border-radius: var(--k-r-m); border: 1px solid var(--k-line); background: var(--k-field); color: var(--k-ink); font: 500 15px/1 var(--k-font); box-shadow: none; }
+.km-add input::placeholder { color: var(--k-ink-soft); }
+.km-rep { color: var(--k-ink); }
+.km-rep input { accent-color: var(--k-accent); }
+.km-err { color: var(--k-danger); }
 
 /* ── 숨김: 부품이 display 를 정해도 hidden 은 늘 숨긴다 ── */
 .k-win [hidden] { display: none !important; }
@@ -596,8 +603,8 @@
   box-shadow: var(--k-shadow-3); backdrop-filter: var(--k-blur); -webkit-backdrop-filter: var(--k-blur); }
 .k-dock .k-round { background: transparent; border: 0; box-shadow: none; }
 .k-dock .k-round + .k-round::before { background: var(--k-edge); opacity: 1; }
-.k-round:hover, .k-dock .k-round:hover { background-color: var(--k-paper-2); border-color: var(--k-edge); }
-.k-round[aria-expanded="true"], .k-dock .k-round[aria-expanded="true"] { background: var(--k-paper-2); }
+.k-round:hover, .k-dock .k-round:hover { background-color: var(--k-paper-up); border-color: var(--k-edge); }
+.k-round[aria-expanded="true"], .k-dock .k-round[aria-expanded="true"] { background: var(--k-paper-up); }
 .k-round:focus-visible { outline-color: var(--k-accent); }
 .k-toast { background: var(--k-surface); color: var(--k-ink); border: 1px solid var(--k-edge); box-shadow: var(--k-shadow-3);
   backdrop-filter: none; -webkit-backdrop-filter: none; }

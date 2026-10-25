@@ -12,14 +12,17 @@
 
 /* 밤 비율은 숫자로 등록해 바뀔 때 부드럽게 넘어가게 (등록을 모르는 브라우저는 바로 바뀐다) */
 @property --k-night { syntax: '<number>'; inherits: true; initial-value: 0; }
-html[data-ui="paper"] { transition: --k-night 2.5s ease; }
+html[data-ui="paper"] { transition: --k-night 2.5s ease; color-scheme: light; }
+html[data-ui="paper"][data-time="night"] { color-scheme: dark; }   /* 시간 고르기·스크롤 같은 기본 조절도 밤엔 어두운 판 */
 
 html[data-ui="paper"] {
   /* ── 낮·밤 섞기: --k-night 0(낮)~1(밤), main.js 가 하루 빛에서 정한다 (2026-10-26 사용자: 밤엔 네이비·톤 다운) ── */
   --k-n: calc(var(--k-night, 0) * 100%);
   /* 원색 = 낮 색과 밤 색을 하루 빛만큼 섞은 것 */
   --k-paper-c: color-mix(in srgb, #fbf4e4, #1f2d47 var(--k-n));        /* 종이 → 남색 종이 */
-  --k-paper-2-c: color-mix(in srgb, #f4e9d2, #273858 var(--k-n));      /* 한 칸 어두운 종이 (탭 바탕·눌림·달력) */
+  /* 높이 역할 (다크 모드 문법): 패인 바탕은 늘 종이보다 어둡게, 올라온 것·고른 것은 늘 종이보다 밝게 — 밤에도 뒤집히지 않게 (2026-10-26 사용자) */
+  --k-paper-2-c: color-mix(in srgb, #f4e9d2, #16223a var(--k-n));      /* 패인 바탕 (탭 줄·달력) — 종이보다 한 칸 어둡게 */
+  --k-raised-c: color-mix(in srgb, #fffcf5, #3a4e74 var(--k-n));       /* 올라온 것 (고른 탭·눌린 칩·누를 때) — 종이보다 한 칸 밝게 */
   --k-note-c: color-mix(in srgb, #fffaee, #34476a var(--k-n));         /* 쪽지 — 종이 위 작은 알약(개수·칩) */
   --k-edge-solid: color-mix(in srgb, #e3d3b2, #4a5f82 var(--k-n));     /* 종이 가장자리·점선 */
   --k-ink: color-mix(in srgb, #4a3826, #d6c9ad var(--k-n));            /* 잉크 → 톤 낮춘 베이지 글씨 (밤에 흰색으로 뜨지 않게 — 2026-10-26 사용자) */
@@ -68,7 +71,7 @@ html[data-ui="paper"] {
   /* ── 면 (투명도를 따른다) ── */
   --k-paper: color-mix(in srgb, var(--k-paper-c) calc(var(--k-a) * 100%), transparent);
   --k-paper-2: color-mix(in srgb, var(--k-paper-2-c) calc(var(--k-a) * 100%), transparent);
-  --k-paper-up: color-mix(in srgb, var(--k-paper-c) calc(min(1, var(--k-a) + 0.25) * 100%), transparent);   /* 고른 탭처럼 한 겹 위 */
+  --k-paper-up: color-mix(in srgb, var(--k-raised-c) calc(min(1, var(--k-a) + 0.25) * 100%), transparent);   /* 올라온 것 (고른 탭·눌린 칩) — 낮·밤 모두 바탕보다 밝게 */
   --k-note: color-mix(in srgb, var(--k-note-c) calc(max(0.5, 0.95 * var(--k-a)) * 100%), transparent);   /* 작은 알약·칩도 비치되 글씨가 읽히는 만큼은 남긴다 */
   --k-solid: var(--k-paper-c);                                                /* 비치면 안 되는 종이 (읽는 책장) */
   --k-edge: var(--k-edge-solid);
