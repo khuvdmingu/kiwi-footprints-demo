@@ -8,6 +8,7 @@
 
 export const MIN_DAYS = 2;
 const KEEP = 300;
+export const INBOX = 500;   // v29.22 받은 쪽지함: 열어 본 병 쪽지를 이만큼 남긴다 (오래된 것부터 지움)
 
 // tag: night · morning · rain · snow · focus(방금 집중 끝) · long(오래 켜 둠) · 없음 = 언제나
 // by: 서명 (없으면 '키위 일동')
@@ -89,8 +90,24 @@ export class Bottles {
     this.seen = Array.isArray(s.seen) ? s.seen : [];       // 읽은 응원 쪽지 id (한 바퀴 돌면 비운다)
     this.day = s.day || ''; this.today = s.today || 0;     // 오늘 떠내려온 병 수
     this.sinceMine = s.sinceMine || 0;                     // 마지막 내 글 뒤로 온 쪽지 수
+    // v29.22 받은 쪽지함 (새것이 앞) — 처음엔 기억에 남은 만큼(돌아온 내 글 · 이미 본 응원 쪽지) 채운다
+    this.inbox = Array.isArray(s.inbox) ? s.inbox : this.backfill();
   }
-  store() { this.save('bottles', JSON.stringify({ mine: this.mine, seen: this.seen, day: this.day, today: this.today, sinceMine: this.sinceMine })); }
+  store() { this.save('bottles', JSON.stringify({ mine: this.mine, seen: this.seen, day: this.day, today: this.today, sinceMine: this.sinceMine, inbox: this.inbox })); }
+
+  // v29.22 예전에 받은 것: 돌아온 내 글(받은 시각 있음) + 이번 바퀴에 본 응원 쪽지(받은 시각 모름 = 0)
+  backfill() {
+    const out = this.mine.filter(m => m.back).map(m => ({ kind: 'mine', text: m.t, at: m.at, src: m.src, got: m.back }));
+    for (const id of this.seen) { const c = CHEERS.find(x => x.id === id); if (c) out.push({ kind: 'cheer', id: c.id, text: c.t, by: c.by || '키위 일동', got: 0 }); }
+    return out.sort((a, b) => b.got - a.got).slice(0, INBOX);
+  }
+  // 병을 열었다 → 받은 쪽지함 맨 앞에 (내 글 · 응원 쪽지만)
+  receive(it, now = Date.now()) {
+    if (it?.kind !== 'mine' && it?.kind !== 'cheer') return false;
+    this.inbox.unshift(it.kind === 'mine' ? { kind: 'mine', text: it.text, at: it.at, src: it.src, got: now } : { kind: 'cheer', id: it.id, text: it.text, by: it.by || '키위 일동', got: now });
+    if (this.inbox.length > INBOX) this.inbox.length = INBOX;
+    this.store(); return true;
+  }
 
   // 내 글 남기기 (같은 글은 처음 것만)
   keep(text, src, at = Date.now()) {
