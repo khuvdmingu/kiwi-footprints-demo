@@ -403,3 +403,11 @@ html[data-ui="paper"] .soundPicks h3:first-child { margin-top: 0; padding-top: 0
 html[data-ui="paper"] .wardrobe .colgrid.places button { aspect-ratio: 1; }
 html[data-ui="paper"] .wardrobe .colgrid.places button .nm { background: none; color: var(--pp-ink); text-shadow: none; font-weight: 600; bottom: 6px; }
 html[data-ui="paper"] .wardrobe .colgrid.boats button img { padding: 8px 8px 26px; }
+
+/* ── v29.14 글 모드: 구경(쌍안경) · 파도로 지우기(물결, Lucide binoculars·waves ISC) ── */
+#modeBtn[data-mode="watch"] .m-watch { display: inline; }
+html[data-ui="paper"] :is(#modeBtn[data-mode="watch"] svg, svg[data-ico="m-watch"]) { background-image: url("../../assets/icons-paper-b.webp"); background-position: 100% 0%; }   /* 종이 쌍안경 */
+html[data-ui="paper"] #picker svg[data-ico="m-wash"] { background: none; filter: none; }
+html[data-ui="paper"] #picker svg[data-ico="m-wash"] > * { visibility: visible; stroke: #4f8fa0; }
+/* 구경 중엔 입력 칸·자막을 숨긴다 */
+body.watching #say, body.watching #caption { display: none !important; }

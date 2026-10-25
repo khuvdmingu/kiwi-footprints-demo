@@ -5,7 +5,7 @@
 //  · 조금: 2종만, 쪽지 1장
 //  ⚠ 동물 id 는 src/guests.js 의 GUESTS 와 맞춰야 한다 (test/seed.test.mjs 가 확인).
 
-import { at, dayKey } from './util.js?v=v29.13.0';
+import { at, dayKey } from './util.js?v=v29.14.0';
 
 export const IDS = ['gull', 'crab', 'weka', 'hedgehog', 'duck', 'fox', 'rabbit', 'deer', 'sparrow', 'cat'];
 const LETTERS = 3;   // 동물마다 편지 수

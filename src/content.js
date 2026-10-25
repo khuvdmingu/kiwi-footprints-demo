@@ -2,8 +2,10 @@
 //  명언은 출처가 분명한 고전·오래된 속담만 쓴다(저작권이 끝났거나 관용구). 출처가 한 사람으로 확정되지 않으면 '속담'으로 적는다.
 //  화면에는 영어를 키위가 쓰고, 다 쓴 뒤 한국어 뜻·출처가 캡션으로 드러난다(플래시카드처럼).
 
-export const MODES = ['free', 'clock', 'quote', 'word'];
-export const MODE_NAME = { free: '직접 쓰기', clock: '시계', quote: '명언', word: '단어장' };
+// v29.14 구경(watch): 아무 글도 쓰지 않고 키위가 돌아다니는 것만 본다 (입력 칸·자막도 숨김)
+export const MODES = ['free', 'clock', 'quote', 'word', 'watch'];
+export const MODE_NAME = { free: '직접 쓰기', clock: '시계', quote: '명언', word: '단어장', watch: '구경' };
+export const isAuto = m => m === 'clock' || m === 'quote' || m === 'word';   // 저절로 다음 글을 쓰는 모드
 export const isClock = m => m === 'clock';
 // 시각 표기: ko 「오전 6:55」 · en 「AM 6:55」 · 24 「18:55」 (초는 표기와 따로 켜고 끈다)
 export const CLOCK_FMTS = ['ko', 'en', '24'];
