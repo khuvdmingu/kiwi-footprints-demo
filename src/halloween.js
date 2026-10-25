@@ -7,7 +7,7 @@
 //  머리 장식 셋(마녀 모자 · 호박 모자 · 유령 머리핀)은 items.js · headwear.js 에.
 //  기간이 아니어도 주소 ?halloween=1 로 미리 볼 수 있다 (?halloween=0 이면 기간에도 끔).
 
-import { dropShadow } from './shadow.js?v=v29.16.2-water-e3e6f61';
+import { dropShadow } from './shadow.js?v=v29.17.0-f12631c';
 // v29.13 (사용자): 섬마다 늘어놓던 할로윈 장식은 뺀다 — 섬에 어울리게 다시 하거나(예: 할로윈 전용 섬) 다른 방식으로 보일 때까지.
 //  날짜로 저절로 켜지지 않고 미리 보기 주소(?halloween=1)에서만. 머리 장식(마녀 모자 등) 옷은 그대로.
 export const HALLOWEEN_AUTO = false;
@@ -45,7 +45,7 @@ export class Halloween {
   constructor(on) { this.on = on; this.im = {}; this.bats = []; this.next = 4; this.t = 0; this.sea = []; }
   load(base = 'assets/') {
     if (!this.on) return;
-    for (const f of FILES) { const i = new Image(); i.onload = () => { this.im[f] = HALO.has(f) ? dehalo(i) : i; }; i.src = base + 'hw-' + f + '.webp?v=v29.16.2-water-e3e6f61'; }
+    for (const f of FILES) { const i = new Image(); i.onload = () => { this.im[f] = HALO.has(f) ? dehalo(i) : i; }; i.src = base + 'hw-' + f + '.webp?v=v29.17.0-f12631c'; }
   }
 
   // 박쥐: 해 질 녘(night > 0.25)부터 숲 위 하늘 띠를 가로지른다
