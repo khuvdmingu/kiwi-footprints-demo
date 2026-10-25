@@ -422,3 +422,25 @@ html[data-ui="paper"] .wardrobe .packs.line button[aria-pressed="true"] { backgr
 /* v29.15 창 투명도를 높이면 종이색 점선(--pp-edge)이 뒤 풍경에 묻혀 안 보였다 → 비칠수록 흰빛 쪽으로 (70% 비침 ≈ 흰색 70%) */
 html[data-ui="paper"][data-win-see] { --pp-edge: color-mix(in srgb, #e3d3b2 calc(var(--win-a, 1) * 100%), rgba(255, 255, 255, 0.92)); }
 html[data-ui="paper"][data-win-see][data-time="night"] { --pp-edge: color-mix(in srgb, #ad976d calc(var(--win-a, 1) * 100%), rgba(255, 250, 238, 0.85)); }
+
+/* ── v29.16 손님 칸: 위 그림 · 이름 · 편지·선물 칩 하나 (귀퉁이 표시가 얼굴을 가리던 것) — 한 줄 4칸, 키를 늘린다 ── */
+#basket .colgrid.guests { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+#basket .colgrid.guests button { aspect-ratio: auto; display: grid; grid-template-rows: 58px auto 20px; justify-items: center; align-items: center; gap: 3px; padding: 8px 4px 8px; min-height: 104px; }
+#basket .colgrid.guests button.guest i.gpic { position: static; width: 64px; height: 58px; }
+#basket .colgrid.guests button .nm { position: static; font-size: 12px; line-height: 1.2; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+#basket .colgrid.guests button .meta { display: flex; justify-content: center; min-height: 20px; }
+#basket .colgrid.guests button .chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; line-height: 16px; background: rgba(20, 47, 73, 0.55); color: #fff; }
+#basket .colgrid.guests button .chip .bit { display: inline-flex; align-items: center; gap: 2px; }
+#basket .colgrid.guests button .chip svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+html[data-ui="paper"] #basket .colgrid.guests button { border: 0; border-radius: 14px; background: rgba(255, 255, 255, 0.32); }
+html[data-ui="paper"] #basket .colgrid.guests button.locked { background: rgba(255, 255, 255, 0.16); }
+html[data-ui="paper"] #basket .colgrid.guests button.waiting { box-shadow: inset 0 0 0 1.5px var(--pp-stamp); }
+html[data-ui="paper"] #basket .colgrid.guests button .chip { background: rgba(255, 250, 238, 0.95); color: var(--pp-ink); box-shadow: 0 0 0 1px var(--pp-edge); }
+
+/* ── v29.16 모은 것 칸: 개수는 크림 알약(검은 표시가 안 보였다) · 선물할 수 있는 것은 오른쪽 위 작은 선물 아이콘 (Lucide gift, ISC) ── */
+html[data-ui="paper"] #basket .colgrid .cnt { right: 3px; bottom: 3px; padding: 1px 5px; border-radius: 999px; font-size: 10.5px; line-height: 14px; background: rgba(255, 250, 238, 0.95); color: var(--pp-ink); box-shadow: 0 0 0 1px var(--pp-edge); }
+#basket .colgrid button.giftable::after { content: ''; position: absolute; right: 3px; top: 3px; width: 14px; height: 14px; border-radius: 50%; background: rgba(255, 250, 238, 0.95) center / 10px 10px no-repeat url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c8692a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='8' width='18' height='4' rx='1'/><path d='M12 8v13'/><path d='M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7'/><path d='M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5'/></svg>"); box-shadow: 0 0 0 1px rgba(200, 105, 42, 0.35); z-index: 1; }
+html[data-ui="paper"] #basket .colgrid { gap: 6px; }
+html[data-ui="paper"] #basket .colgrid.finds button { border: 0; border-radius: 12px; background: rgba(255, 255, 255, 0.32); }
+/* 안내 문구 속 작은 선물 표시 (칸 귀퉁이 표시와 같은 그림) */
+#basket .hint .gifthint { display: inline-block; width: 14px; height: 14px; margin: 0 3px -2px 1px; border-radius: 50%; background: rgba(255, 250, 238, 0.95) center / 10px 10px no-repeat url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c8692a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='8' width='18' height='4' rx='1'/><path d='M12 8v13'/><path d='M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7'/><path d='M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5'/></svg>"); box-shadow: 0 0 0 1px rgba(200, 105, 42, 0.35); }
