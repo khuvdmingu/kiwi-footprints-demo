@@ -11,6 +11,7 @@ export const MIN_DAYS = 2;
 // v29.26 병 쪽지 빈도 (설정 › 풍경) — 켜 둔 동안 다음 병까지 기다리는 초 [최소, 최대] · 하루 최대 병 수.
 //  예전엔 5~10분 간격에 하루 8병이라 오래 켜 둔 날은 첫 한 시간에 몰려왔다 → 기본(보통)을 한 시간에 한 병쯤으로 넓혔다
 export const PACE = {
+  fast: { gap: [60, 120], cap: 999, name: '아주 자주', test: true },   // v29.31 테스트 기간 전용 (1~2분) — 설정에 테스트 기간에만 보인다
   often: { gap: [900, 1500], cap: 12, name: '자주' },     // 15~25분
   normal: { gap: [2700, 4500], cap: 8, name: '보통' },    // 45~75분
   rare: { gap: [7200, 10800], cap: 3, name: '가끔' },     // 2~3시간
@@ -21,7 +22,7 @@ const KEEP = 300;
 export const INBOX = 500;   // v29.22 받은 쪽지함: 열어 본 병 쪽지를 이만큼 남긴다 (오래된 것부터 지움)
 
 // 응원 쪽지 글·고르는 방식은 편지 시스템(letters/index.js)
-import { CHEERS, cheerById, pickPool } from './letters/index.js?v=v29.30.0-b4d150d';
+import { CHEERS, cheerById, pickPool } from './letters/index.js?v=v29.31.0-bcde151';
 export { CHEERS };
 
 const day0 = ms => { const d = new Date(ms); d.setHours(0, 0, 0, 0); return d.getTime(); };

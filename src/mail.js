@@ -9,6 +9,7 @@ export const GROUND_MAX = 5;
 export const SHORE_MAX = 3;
 // v29.30 켜 둔 채로도 손님: 아무도 안 건드려 키위들이 졸 때 그 틈에 살짝 다녀간다. 「쪽지·편지」 빈도를 따른다 (초 [최소, 최대] · 하루 최대)
 export const IDLE_GUEST = {
+  fast: { gap: [180, 300], cap: 999 },     // v29.31 테스트 기간 전용 「아주 자주」 3~5분
   often: { gap: [2400, 4200], cap: 8 },     // 40~70분
   normal: { gap: [4800, 8400], cap: 5 },    // 80~140분
   rare: { gap: [10800, 14400], cap: 2 },    // 3~4시간
