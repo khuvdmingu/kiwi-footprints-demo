@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#24563A" />   <!-- v29.20 상태 표시줄이 남는 기기에선 풍경 맨 위(숲) 색으로 이어지게 -->
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v29.25.1-44a30f8" />
-  <link rel="stylesheet" href="memos.css?v=v29.25.1-44a30f8" />
-  <link rel="stylesheet" href="theme-paper.css?v=v29.25.1-44a30f8" />
-  <link rel="stylesheet" href="src/ui/tokens.css?v=v29.25.1-44a30f8" />
-  <link rel="stylesheet" href="src/ui/parts.css?v=v29.25.1-44a30f8" />
-  <link rel="stylesheet" href="src/ui/shell.css?v=v29.25.1-44a30f8" />
+  <link rel="stylesheet" href="style.css?v=v29.26.0-99324d6" />
+  <link rel="stylesheet" href="memos.css?v=v29.26.0-99324d6" />
+  <link rel="stylesheet" href="theme-paper.css?v=v29.26.0-99324d6" />
+  <link rel="stylesheet" href="src/ui/tokens.css?v=v29.26.0-99324d6" />
+  <link rel="stylesheet" href="src/ui/parts.css?v=v29.26.0-99324d6" />
+  <link rel="stylesheet" href="src/ui/shell.css?v=v29.26.0-99324d6" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -225,6 +225,11 @@
     <h2 class="k-h sep">파도</h2>
     <div class="k-opts k-opts--2" role="radiogroup" aria-label="지우는 파도"><label><input type="radio" name="wave" value="quick" /><span>지금처럼</span></label><label><input type="radio" name="wave" value="gentle" /><span>잔잔하게</span></label></div>
     <p class="k-hint">새 글을 쓰려고 모래를 지울 때의 파도예요. 잔잔하게는 물이 천천히 밀려와 글씨가 젖으며 서서히 옅어져요.</p>
+    <h2 class="k-h sep">병 쪽지</h2>
+    <div class="k-opts k-opts--4" role="radiogroup" aria-label="병 쪽지 빈도"><label><input type="radio" name="notePace" value="often" /><span>자주</span></label><label><input type="radio" name="notePace" value="normal" /><span>보통</span></label><label><input type="radio" name="notePace" value="rare" /><span>가끔</span></label><label><input type="radio" name="notePace" value="off" /><span>끄기</span></label></div>
+    <p class="k-hint">켜 둔 동안 물 위로 떠내려오는 병이에요. 자주는 20분쯤, 보통은 한 시간쯤, 가끔은 두세 시간에 하나씩 와요.</p>
+    <label class="k-trow"><span>내 글 돌려받기</span><input id="noteMine" type="checkbox" /></label>
+    <p class="k-hint">모래에 쓴 글과 집중 전에 적은 한 줄이 이틀 뒤 호박색 병에 담겨 돌아와요. 화면을 다른 사람과 함께 볼 때는 꺼 두세요.</p>
     </section>
     <section class="pane k-win-body" data-pane="write" role="tabpanel" aria-label="시계·메모" hidden>
     <h2 class="k-h">시간 메모</h2>
@@ -516,10 +521,10 @@
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v29.25.1-44a30f8"></script>
-  <script type="module" src="src/credits.js?v=v29.25.1-44a30f8"></script>
+  <script type="module" src="src/main.js?v=v29.26.0-99324d6"></script>
+  <script type="module" src="src/credits.js?v=v29.26.0-99324d6"></script>
   <!-- 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/taps.js?v=v29.25.1-44a30f8"></script>
+  <script type="module" src="src/taps.js?v=v29.26.0-99324d6"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.

@@ -26,7 +26,7 @@ export class Cutscene {
     if (!f || this.off) return Promise.resolve(false);
     this.close();
     const v = this.video;
-    v.poster = `assets/${f}.webp?v=v29.25.1-44a30f8`; v.src = `assets/${f}.mp4`; v.muted = true; v.playsInline = true;
+    v.poster = `assets/${f}.webp?v=v29.26.0-99324d6`; v.src = `assets/${f}.mp4`; v.muted = true; v.playsInline = true;
     const cap = this.root.querySelector('.cutCaption'); if (cap) cap.textContent = caption;
     this.root.hidden = false; this.root.classList.remove('out');
     v.playbackRate = rate;
