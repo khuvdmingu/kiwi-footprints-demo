@@ -7,7 +7,7 @@
 //  (꽃잎·낙엽의 앞뒷면 짝 drift-flip.webp 는 sky/extra.js 의 꽃잎 바람이 쓴다)
 //  나타나는 때: 맑은 낮(비·눈·짙은 안개 아님) — 나비는 눈밭 빼고 어디서나 · 홀씨는 바닷가·모래 정원·벚꽃 강변·오아시스 · 씨앗은 가을 호숫가
 
-const FILES = { bf: 'assets/drift-butterflies.webp?v=v29.27.1-cf6b5b2', fluff: 'assets/drift-fluff.webp?v=v29.27.1-cf6b5b2', seeds: 'assets/drift-seeds.webp?v=v29.27.1-cf6b5b2' };
+const FILES = { bf: 'assets/drift-butterflies.webp?v=v29.28.0-291d802', fluff: 'assets/drift-fluff.webp?v=v29.28.0-291d802', seeds: 'assets/drift-seeds.webp?v=v29.28.0-291d802' };
 const FLUFF_MAPS = new Set(['beach', 'zen', 'cherry', 'oasis']);
 const WING = [0, 1, 2, 3, 2, 1];   // 날갯짓 칸 차례 (펼침 → 접힘 → 펼침)
 

@@ -10,29 +10,33 @@
 //    그림: assets/guests.webp (4×3 격자 — 동물 10 + 쪽지 2, Higgsfield Nano Banana Pro 2k + 배경 제거, docs/GRAPHICS-PROMPTS.md)
 //    v28.13: 새 손님 10은 assets/guests2.webp (같은 4×3 규격, pic: 2). 발자국은 그린 도장(prints.js)
 
+import { visitTexts } from './letters/index.js?v=v29.28.0-291d802';
+
 export const GUESTS = {
-  gull: { name: '갈매기', shape: 'web', maps: ['beach'], size: 1.15, gait: 'bird', from: 'land', cell: 0, note: 'pebble', letters: ['모래 위에 글씨가 있길래 내려앉아 봤어요. 읽을 줄은 모르지만, 예쁜 모양이었어요.', '오늘 바다는 조금 짰어요. 늘 짜지만요. 당신 쪽은 어땠나요?', '높이 날면 키위들 발자국이 별자리처럼 보여요. 다음에도 위에서 볼게요.'] },
-  crab: { name: '게', shape: 'crab', maps: ['beach'], size: 0.8, gait: 'crab', from: 'water', cell: 1, note: 'pebble', letters: ['옆으로 걷다 보니 여기까지 왔어요. 앞으로 가는 것만 길은 아니더라고요.', '파도가 오기 전에 얼른 다녀갔어요. 바쁜 날엔 옆걸음도 괜찮아요.', '모래 속 작은 구멍이 우리 집이에요. 놀러 오면 집게로 인사할게요.'] },
-  weka: { name: '웨카', shape: 'bird', maps: ['nz'], size: 1.1, gait: 'bird', from: 'forest', cell: 2, note: 'leaf', letters: ['키위네 먼 친척 웨카예요. 우리도 날지 못하지만 걷는 건 자신 있어요.', '반짝이는 걸 보면 그만 가져가고 싶어져요. 이번엔 꾹 참고 편지만 두고 가요.', '숲 냄새가 좋은 날이었어요. 당신도 잠깐 창문을 열어 봐요.'] },
-  hedgehog: { name: '고슴도치', shape: 'paw', maps: ['nz', 'fall'], size: 0.6, gait: 'trot', from: 'forest', cell: 3, note: 'leaf', letters: ['천천히 왔다가 천천히 가요. 가시는 무섭게 생겼지만 마음은 동글동글해요.', '낙엽 밑에서 한숨 잤어요. 쉬는 것도 일이라고 키위가 그러던데요.', '몸을 동그랗게 말면 걱정도 작아져요. 한번 해 보세요.'] },
-  duck: { name: '청둥오리', shape: 'web', maps: ['nz', 'fall'], size: 1.1, gait: 'bird', from: 'water', cell: 4, note: 'pebble', letters: ['잠깐 쉬어 갔어요. 물 위에선 느긋해 보여도 발은 바쁘게 젓고 있답니다.', '비 오는 날이 제일 좋아요. 당신이 싫어하는 날에도 누군가는 신나 있어요.', '아기 오리들에게 줄 맞춰 걷는 법을 가르치는 중이에요. 키위들 글씨 줄이 부러워요.'] },
-  fox: { name: '여우', shape: 'paw', maps: ['snow'], size: 0.95, gait: 'line', from: 'forest', cell: 5, note: 'leaf', letters: ['발자국을 한 줄로 곧게 찍는 게 여우의 자랑이에요. 당신의 오늘도 곧았기를.', '눈 아래에서 들리는 작은 소리에 오래 귀 기울였어요. 조용한 것도 많은 걸 말해요.', '꼬리를 이불처럼 덮고 자면 따뜻해요. 오늘 밤 당신도 따뜻하게.'] },
-  rabbit: { name: '산토끼', shape: 'hop', maps: ['snow', 'fall'], size: 0.85, gait: 'hop', from: 'forest', cell: 6, note: 'leaf', letters: ['깡충깡충, 너무 신나서 발자국이 엉망이에요. 그래도 즐거웠어요!', '귀를 세우면 먼 데 소리까지 들려요. 당신을 부르는 소리도 들렸어요.', '당근은 없었지만 바람이 달았어요. 다음엔 같이 뛰어요.'] },
-  deer: { name: '사슴', shape: 'hoof', maps: ['snow', 'fall'], size: 1.2, gait: 'trot', from: 'forest', cell: 7, note: 'leaf', letters: ['조심조심 걸어왔어요. 큰 소리가 나면 달아나지만, 여기는 조용해서 좋아요.', '아침 안개 속을 걸으면 세상이 잠깐 멈춘 것 같아요. 당신의 아침도 그랬기를.', '뿔이 자라는 데는 시간이 걸린대요. 서두르지 않아도 돼요.'] },
-  sparrow: { name: '참새', shape: 'pair', maps: ['zen', 'snow'], size: 0.55, gait: 'hopbird', from: 'land', cell: 8, note: 'pebble', letters: ['갈퀴 줄 위로 콩콩 뛰어 봤어요. 정원지기 몰래요.', '작은 부스러기 하나로도 하루가 행복해요. 오늘 당신의 부스러기는 뭐였나요?', '친구들이랑 수다 떨다 늦었어요. 짹짹, 또 올게요.'] },
-  cat: { name: '고양이', shape: 'paw', maps: ['zen', 'beach'], size: 0.8, gait: 'line', from: 'forest', cell: 9, note: 'leaf', letters: ['여긴 내 자리예요. …라고 하고 싶지만 당신 자리이기도 하니까 반씩 나눠요.', '햇볕 드는 자리에서 실컷 자고 갔어요. 당신도 오늘은 좀 늘어져도 돼요.', '키위들이 쓴 글씨를 꾹꾹 밟고 싶었지만 참았어요. 칭찬해 줘요.'] },
+  gull: { name: '갈매기', shape: 'web', maps: ['beach'], size: 1.15, gait: 'bird', from: 'land', cell: 0, note: 'pebble' },
+  crab: { name: '게', shape: 'crab', maps: ['beach'], size: 0.8, gait: 'crab', from: 'water', cell: 1, note: 'pebble' },
+  weka: { name: '웨카', shape: 'bird', maps: ['nz'], size: 1.1, gait: 'bird', from: 'forest', cell: 2, note: 'leaf' },
+  hedgehog: { name: '고슴도치', shape: 'paw', maps: ['nz', 'fall'], size: 0.6, gait: 'trot', from: 'forest', cell: 3, note: 'leaf' },
+  duck: { name: '청둥오리', shape: 'web', maps: ['nz', 'fall'], size: 1.1, gait: 'bird', from: 'water', cell: 4, note: 'pebble' },
+  fox: { name: '여우', shape: 'paw', maps: ['snow'], size: 0.95, gait: 'line', from: 'forest', cell: 5, note: 'leaf' },
+  rabbit: { name: '산토끼', shape: 'hop', maps: ['snow', 'fall'], size: 0.85, gait: 'hop', from: 'forest', cell: 6, note: 'leaf' },
+  deer: { name: '사슴', shape: 'hoof', maps: ['snow', 'fall'], size: 1.2, gait: 'trot', from: 'forest', cell: 7, note: 'leaf' },
+  sparrow: { name: '참새', shape: 'pair', maps: ['zen', 'snow'], size: 0.55, gait: 'hopbird', from: 'land', cell: 8, note: 'pebble' },
+  cat: { name: '고양이', shape: 'paw', maps: ['zen', 'beach'], size: 0.8, gait: 'line', from: 'forest', cell: 9, note: 'leaf' },
   // v28.13 새 손님 10 — 벚꽃 강변(cherry)·사막 오아시스(oasis)용으로 그려 둔 동물(assets/guests2.webp, pic: 2). 그 장소를 붙이기 전엔 닮은 기존 장소에도 들른다
-  squirrel: { name: '다람쥐', shape: 'hop', maps: ['cherry', 'nz', 'fall'], size: 0.75, gait: 'hop', from: 'forest', pic: 2, cell: 0, note: 'leaf', letters: ['도토리를 묻어 둔 자리를 또 잊어버렸어요. 그래도 내년 봄엔 나무가 날 거예요.', '꼬리를 크게 흔들면 기분도 커져요. 오늘 한 번 해 보세요.', '나무 위에서 보니 키위들 글씨가 작은 길 같았어요. 따라 걸어 봤어요.'] },
-  whiteeye: { name: '동박새', shape: 'pair', maps: ['cherry', 'zen', 'fall'], size: 0.5, gait: 'hopbird', from: 'land', pic: 2, cell: 1, note: 'leaf', letters: ['꽃 속 꿀을 먹다가 부리에 꽃가루가 잔뜩 묻었어요. 노랗게 웃고 갑니다.', '눈가 흰 테두리는 화장이 아니에요. 태어날 때부터 웃는 얼굴이에요.', '작은 몸이라 바람에 자꾸 밀려요. 그래도 꼭 다시 날아와요.'] },
-  frog: { name: '청개구리', shape: 'paw', maps: ['cherry', 'nz'], size: 0.6, gait: 'hop', from: 'water', pic: 2, cell: 2, note: 'pebble', letters: ['비 오기 전엔 목이 간질간질해요. 오늘 저녁엔 조금 내릴 것 같아요.', '반대로만 하는 개구리 얘기는 오해예요. 저는 꽤 말을 잘 들어요.', '물가에서 폴짝, 모래에서 폴짝. 발이 끈적해서 미끄러지진 않았어요.'] },
-  egret: { name: '백로', shape: 'bird', maps: ['cherry', 'beach'], size: 1.3, gait: 'bird', from: 'water', pic: 2, cell: 3, note: 'pebble', letters: ['한 발로 오래 서 있는 건 기다리는 연습이에요. 서두르면 물고기가 달아나요.', '하얀 깃털이 젖지 않게 조심조심 걸었어요. 발자국만 깊게 남았네요.', '물 위에 비친 내 모습이 마음에 들었어요. 당신도 오늘 거울 한번 봐 줘요.'] },
-  fennec: { name: '사막여우', shape: 'paw', maps: ['oasis', 'zen'], size: 0.8, gait: 'line', from: 'forest', pic: 2, cell: 4, note: 'pebble', letters: ['귀가 커서 모래 밑 작은 소리까지 들려요. 당신 마음 소리도 조금 들렸어요.', '낮엔 굴에서 자고 해 질 녘에 나와요. 하루를 늦게 시작해도 괜찮아요.', '발바닥에 털이 있어서 뜨거운 모래도 견뎌요. 당신에게도 그런 털이 있을 거예요.'] },
-  hoopoe: { name: '후투티', shape: 'bird', maps: ['oasis', 'zen'], size: 0.9, gait: 'bird', from: 'land', pic: 2, cell: 5, note: 'pebble', letters: ['머리 깃을 부채처럼 펴면 다들 놀라요. 사실은 저도 좀 놀라요.', '긴 부리로 모래 속 벌레를 찾았어요. 키위들이랑 부리 자랑을 했답니다.', '훗훗훗, 하고 울어서 이름이 후투티예요. 이름이 우는 소리면 외우기 쉽죠.'] },
-  gecko: { name: '도마뱀붙이', shape: 'paw', maps: ['oasis', 'beach'], size: 0.55, gait: 'trot', from: 'forest', pic: 2, cell: 6, note: 'pebble', letters: ['벽에도 천장에도 붙을 수 있어요. 그래도 모래 위는 좀 미끄러웠어요.', '꼬리를 놓고 간 게 아니라 잠깐 맡겨 둔 거예요. 금방 다시 자라요.', '밤에 불빛 근처에 가면 벌레 친구들이 많아요. 오늘은 별빛 아래로 왔어요.'] },
-  gerbil: { name: '날쥐', shape: 'pair', maps: ['oasis', 'zen'], size: 0.5, gait: 'hop', from: 'forest', pic: 2, cell: 7, note: 'pebble', letters: ['뒷다리가 길어서 한 번에 멀리 뛰어요. 오늘은 열 번만 뛰고 쉬었어요.', '씨앗 하나를 볼에 넣고 왔어요. 키위들 몫으로 하나 두고 갈게요.', '모래 목욕을 하면 털이 보송해져요. 당신도 따뜻한 물에 오래 씻어요.'] },
-  camel: { name: '아기 낙타', shape: 'hoof', maps: ['oasis', 'beach'], size: 1.6, gait: 'trot', from: 'forest', pic: 2, cell: 8, note: 'pebble', letters: ['엄마 따라 먼 길 가다가 잠깐 들렀어요. 발이 커서 모래에 안 빠져요.', '혹에는 물이 아니라 힘이 들어 있대요. 오늘 당신의 혹은 든든했나요?', '천천히 걸어도 끝까지 가요. 낙타는 원래 그래요.'] },
-  raccoon: { name: '너구리', shape: 'paw', maps: ['cherry', 'fall', 'nz'], size: 0.9, gait: 'trot', from: 'forest', pic: 2, cell: 9, note: 'leaf', letters: ['물가에서 손을 씻는 버릇이 있어요. 깨끗한 손으로 편지를 썼어요.', '눈 주위가 까매서 다들 장난꾸러기인 줄 알아요. 반은 맞아요.', '밤 산책이 제일 좋아요. 키위들이랑 마주치면 서로 깜짝 놀라요.'] },
+  squirrel: { name: '다람쥐', shape: 'hop', maps: ['cherry', 'nz', 'fall'], size: 0.75, gait: 'hop', from: 'forest', pic: 2, cell: 0, note: 'leaf' },
+  whiteeye: { name: '동박새', shape: 'pair', maps: ['cherry', 'zen', 'fall'], size: 0.5, gait: 'hopbird', from: 'land', pic: 2, cell: 1, note: 'leaf' },
+  frog: { name: '청개구리', shape: 'paw', maps: ['cherry', 'nz'], size: 0.6, gait: 'hop', from: 'water', pic: 2, cell: 2, note: 'pebble' },
+  egret: { name: '백로', shape: 'bird', maps: ['cherry', 'beach'], size: 1.3, gait: 'bird', from: 'water', pic: 2, cell: 3, note: 'pebble' },
+  fennec: { name: '사막여우', shape: 'paw', maps: ['oasis', 'zen'], size: 0.8, gait: 'line', from: 'forest', pic: 2, cell: 4, note: 'pebble' },
+  hoopoe: { name: '후투티', shape: 'bird', maps: ['oasis', 'zen'], size: 0.9, gait: 'bird', from: 'land', pic: 2, cell: 5, note: 'pebble' },
+  gecko: { name: '도마뱀붙이', shape: 'paw', maps: ['oasis', 'beach'], size: 0.55, gait: 'trot', from: 'forest', pic: 2, cell: 6, note: 'pebble' },
+  gerbil: { name: '날쥐', shape: 'pair', maps: ['oasis', 'zen'], size: 0.5, gait: 'hop', from: 'forest', pic: 2, cell: 7, note: 'pebble' },
+  camel: { name: '아기 낙타', shape: 'hoof', maps: ['oasis', 'beach'], size: 1.6, gait: 'trot', from: 'forest', pic: 2, cell: 8, note: 'pebble' },
+  raccoon: { name: '너구리', shape: 'paw', maps: ['cherry', 'fall', 'nz'], size: 0.9, gait: 'trot', from: 'forest', pic: 2, cell: 9, note: 'leaf' },
 };
+// v29.28 편지 글은 편지 시스템(letters/ko/animals/<id>.js) — 여기 letters 는 그 글을 순서대로 담은 배열 (읽은 수 · 다음 편지 번호는 예전 그대로)
+for (const [id, g] of Object.entries(GUESTS)) g.letters = visitTexts(id);
 export const GUEST_IDS = Object.keys(GUESTS);
 export const NOTE_CELL = { leaf: 10, pebble: 11 };   // guests.webp 격자 칸: 잎으로 묶은 편지 · 두루마리 단 조약돌
 export const LETTER_TOTAL = GUEST_IDS.reduce((n, id) => n + GUESTS[id].letters.length, 0);

@@ -59,7 +59,7 @@ export class SeaLife {
     const rec = { ready: false, im: null, m: null };
     this.cache.set(name, rec);
     const json = /claude-(turtle|dolphins|manta|jelly|school|plankton)|codex-(turtle|jelly|dolphins|whale)/.test(name) && name !== 'codex-manta';
-    Promise.all([img(this.base + name + '.webp?v=v29.27.1-cf6b5b2'), json ? fetch(this.base + name + '.json').then(r => r.json()) : null])
+    Promise.all([img(this.base + name + '.webp?v=v29.28.0-291d802'), json ? fetch(this.base + name + '.json').then(r => r.json()) : null])
       .then(([im, m]) => Object.assign(rec, { im, m, ready: true }), () => Object.assign(rec, { ready: true, bad: true }));
     while (this.cache.size > 6) { const k = this.cache.keys().next().value; if (this.list.some(c => c.art === k)) break; this.cache.delete(k); }
     return rec;

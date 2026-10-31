@@ -20,8 +20,8 @@ export const paceOf = v => (v in PACE ? v : 'normal');
 const KEEP = 300;
 export const INBOX = 500;   // v29.22 받은 쪽지함: 열어 본 병 쪽지를 이만큼 남긴다 (오래된 것부터 지움)
 
-// 응원 쪽지 목록은 cheers/ (성격마다 파일 하나 — temper.js · cheers/index.js)
-import { CHEERS } from './cheers/index.js?v=v29.27.1-cf6b5b2';
+// 응원 쪽지 글·고르는 방식은 편지 시스템(letters/index.js)
+import { CHEERS, cheerById, pickPool } from './letters/index.js?v=v29.28.0-291d802';
 export { CHEERS };
 
 const day0 = ms => { const d = new Date(ms); d.setHours(0, 0, 0, 0); return d.getTime(); };
@@ -45,13 +45,14 @@ export class Bottles {
   // v29.22 예전에 받은 것: 돌아온 내 글(받은 시각 있음) + 이번 바퀴에 본 응원 쪽지(받은 시각 모름 = 0)
   backfill() {
     const out = this.mine.filter(m => m.back).map(m => ({ kind: 'mine', text: m.t, at: m.at, src: m.src, got: m.back }));
-    for (const id of this.seen) { const c = CHEERS.find(x => x.id === id); if (c) out.push({ kind: 'cheer', id: c.id, text: c.t, by: c.by || '키위 일동', got: 0, ...(c.p ? { p: c.p } : {}) }); }
+    for (const id of this.seen) { const c = cheerById(id); if (c) out.push({ kind: 'cheer', id: c.id, by: c.by || '키위 일동', got: 0, ...(c.p ? { p: c.p } : {}) }); }
     return out.sort((a, b) => b.got - a.got).slice(0, INBOX);
   }
   // 병을 열었다 → 받은 쪽지함 맨 앞에 (내 글 · 응원 쪽지만)
   receive(it, now = Date.now()) {
     if (it?.kind !== 'mine' && it?.kind !== 'cheer') return false;
-    this.inbox.unshift(it.kind === 'mine' ? { kind: 'mine', text: it.text, at: it.at, src: it.src, got: now } : { kind: 'cheer', id: it.id, text: it.text, by: it.by || '키위 일동', got: now, ...(it.p ? { p: it.p } : {}) });
+    // v29.28 응원 쪽지는 번호만 저장하고 글은 볼 때 찾는다(noteText) — 문장을 고치면 지난 쪽지에도, 나중에 다른 언어로도. 목록에 없는 번호만 글을 남긴다
+    this.inbox.unshift(it.kind === 'mine' ? { kind: 'mine', text: it.text, at: it.at, src: it.src, got: now } : { kind: 'cheer', id: it.id, ...(cheerById(it.id) ? {} : { text: it.text }), by: it.by || '키위 일동', got: now, ...(it.p ? { p: it.p } : {}) });
     if (this.inbox.length > INBOX) this.inbox.length = INBOX;
     this.store(); return true;
   }
@@ -94,24 +95,16 @@ export class Bottles {
   cheer(ctx = {}, who = null, rnd = Math.random) {
     const guest = !who || rnd() < 0.12;
     const fits = c => !who ? true : guest ? !!c.by : c.p === who.p && !c.by;   // 손님 차례면 이름 박힌 쪽지만
-    let pool = CHEERS.filter(c => fits(c) && !this.seen.includes(c.id));
-    if (!pool.length) {   // 이 키위가 쓸 쪽지를 다 봤다 → 그 몫만 다시 섞는다
-      const mine = new Set(CHEERS.filter(fits).map(c => c.id));
-      this.seen = this.seen.filter(id => !mine.has(id));
-      pool = CHEERS.filter(fits);
-    }
-    const tags = Object.keys(ctx).filter(k => ctx[k]);
-    const fit = pool.filter(c => c.tag && tags.includes(c.tag));
-    const any = pool.filter(c => !c.tag);
-    let from = fit.length && rnd() < 0.6 ? fit : any.length ? any : pool;
-    const fresh = from.filter(c => c.th !== this.lastTh);   // v29.27 바로 전과 다른 주제 먼저
-    if (fresh.length) from = fresh;
-    const c = from[Math.floor(rnd() * from.length)];
-    this.seen.push(c.id); this.lastTh = c.th || '';
+    const r = pickPool(CHEERS.filter(fits), { seen: this.seen, ctx, lastTh: this.lastTh, rnd });
+    const c = r.item;
+    this.seen = r.seen; this.lastTh = c.th || '';
     if (c.by || !who) return { c, by: c.by || '키위 일동', p: c.p };
     return { c, by: who.name, p: who.p };
   }
 }
+
+// v29.28 받은 쪽지 한 장의 글: 응원 쪽지는 번호로 지금 글을 찾고(예전에 저장된 글은 대신), 내 글은 저장된 그대로
+export const noteText = n => (n.kind === 'cheer' && cheerById(n.id)?.t) || n.text || '';
 
 // 카드 제목: "10월 4일의 너에게서" (오늘이면 "오늘의 너에게서")
 export function mineTitle(at, now = Date.now()) {

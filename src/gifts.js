@@ -9,48 +9,39 @@
 //  item key: 'f:<주운 것 id>' · 'c:<낚은 것 id>'
 //  규칙·저장만 — 화면은 main.js (편지 카드 「답장 선물」 · 고르기 칸 · 모래 위 고맙다는 쪽지).
 
+import { thanksLetter } from './letters/index.js?v=v29.28.0-291d802';
+import { eul, ro } from './letters/josa.js?v=v29.28.0-291d802';
+
 export const LIKES = {
-  gull: { likes: ['c:kelp', 'f:scallop', 'f:feather'], line: '이건 바다에서만 나는 보물이에요. 둥지 가장 높은 데 올려 두고, 날다가 내려다볼게요.' },
-  crab: { likes: ['f:snail', 'f:pebble', 'c:seahorse'], line: '딱 맞는 새 집이에요! 집게로 꼭 안고 잤어요. 이사 축하해 줄래요?' },
-  weka: { likes: ['f:glassG', 'f:glassB', 'f:rainbow', 'c:buoy'], line: '반짝이는 거 가져가고 싶다고 했던 거, 기억해 줬군요. 이번엔 정말 내 거예요!' },
-  hedgehog: { likes: ['f:berry', 'f:willowleaf', 'f:heartpetal'], line: '가시 위에 꽂고 다니니까 다들 예쁘대요. 동글동글한 마음이 더 동글해졌어요.' },
-  duck: { likes: ['c:kelp', 'f:riverstone', 'f:willowleaf'], line: '아기 오리들이 줄 맞춰 구경하러 왔어요. 다들 꽥꽥 고맙대요.' },
-  fox: { likes: ['f:ice', 'f:obsidian', 'f:gold'], line: '눈 위에 놓으니 달빛을 받아 빛나요. 꼬리 옆에 두고 따뜻하게 지킬게요.' },
-  rabbit: { likes: ['f:heartpetal', 'f:blossom', 'f:berry'], line: '너무 좋아서 깡충깡충 열 번 뛰었어요. 발자국이 또 엉망이 됐어요!' },
-  deer: { likes: ['f:willowleaf', 'f:amber', 'f:fossil'], line: '오래된 숲 냄새가 나요. 아침 안개 속에서 한참 들여다봤어요.' },
-  sparrow: { likes: ['f:dateseed', 'f:berry', 'f:eggshell'], line: '짹! 친구들한테 자랑하느라 하루가 다 갔어요. 다들 부러워해요.' },
-  cat: { likes: ['c:seahorse', 'f:pearl', 'f:glow'], line: '…앞발로 굴려 보니 아주 마음에 들어요. 이 자리는 이제 다 당신 거예요.' },
-  squirrel: { likes: ['f:dateseed', 'f:berry', 'f:amber'], line: '이건 묻지 않고 꼭 쥐고 다닐 거예요. 이번엔 잊어버리지 않게요.' },
-  whiteeye: { likes: ['f:blossom', 'f:heartpetal', 'f:berry'], line: '부리에 꽃가루가 또 묻었어요. 노란 얼굴로 고맙다고 웃고 가요.' },
-  frog: { likes: ['f:riverstone', 'f:glassG', 'c:buoy'], line: '그 위에 앉아 노래했더니 비가 왔어요. 개굴, 고마워요.' },
-  egret: { likes: ['f:pearl', 'f:scallop', 'c:coral'], line: '하얀 깃털 옆에 두니 더 하얘 보여요. 한 발로 서서 오래 바라봤어요.' },
-  fennec: { likes: ['f:desertrose', 'f:goldstone', 'f:sandstone'], line: '큰 귀에 대 보니 사막 바람 소리가 들려요. 굴 입구에 걸어 둘게요.' },
-  hoopoe: { likes: ['f:feather', 'f:gold', 'f:bluebead'], line: '머리 깃을 활짝 폈어요. 훗훗훗, 이렇게 기분 좋은 건 처음이에요.' },
-  gecko: { likes: ['f:obsidian', 'f:glow', 'f:bluebead'], line: '벽에 붙여 두니 밤마다 반짝여요. 별빛 아래서 꼬리를 흔들었어요.' },
-  gerbil: { likes: ['f:dateseed', 'f:palmfiber', 'f:sandstone'], line: '볼에 쏙 넣어 왔어요! 굴에 푹신하게 깔고 낮잠 잘게요.' },
-  camel: { likes: ['f:palmfiber', 'f:desertrose', 'c:rope'], line: '엄마한테 보여 줬더니 혹이 든든해 보인대요. 먼 길도 끄떡없어요.' },
-  raccoon: { likes: ['f:riverstone', 'f:glassB', 'c:compass'], line: '물가에서 깨끗이 씻어서 간직했어요. 밤 산책 갈 때마다 만져 봐요.' },
+  gull: { likes: ['c:kelp', 'f:scallop', 'f:feather'] },
+  crab: { likes: ['f:snail', 'f:pebble', 'c:seahorse'] },
+  weka: { likes: ['f:glassG', 'f:glassB', 'f:rainbow', 'c:buoy'] },
+  hedgehog: { likes: ['f:berry', 'f:willowleaf', 'f:heartpetal'] },
+  duck: { likes: ['c:kelp', 'f:riverstone', 'f:willowleaf'] },
+  fox: { likes: ['f:ice', 'f:obsidian', 'f:gold'] },
+  rabbit: { likes: ['f:heartpetal', 'f:blossom', 'f:berry'] },
+  deer: { likes: ['f:willowleaf', 'f:amber', 'f:fossil'] },
+  sparrow: { likes: ['f:dateseed', 'f:berry', 'f:eggshell'] },
+  cat: { likes: ['c:seahorse', 'f:pearl', 'f:glow'] },
+  squirrel: { likes: ['f:dateseed', 'f:berry', 'f:amber'] },
+  whiteeye: { likes: ['f:blossom', 'f:heartpetal', 'f:berry'] },
+  frog: { likes: ['f:riverstone', 'f:glassG', 'c:buoy'] },
+  egret: { likes: ['f:pearl', 'f:scallop', 'c:coral'] },
+  fennec: { likes: ['f:desertrose', 'f:goldstone', 'f:sandstone'] },
+  hoopoe: { likes: ['f:feather', 'f:gold', 'f:bluebead'] },
+  gecko: { likes: ['f:obsidian', 'f:glow', 'f:bluebead'] },
+  gerbil: { likes: ['f:dateseed', 'f:palmfiber', 'f:sandstone'] },
+  camel: { likes: ['f:palmfiber', 'f:desertrose', 'c:rope'] },
+  raccoon: { likes: ['f:riverstone', 'f:glassB', 'c:compass'] },
 };
 
 export const SCRAPS = 2;   // 지도 조각 몇 개면 섬 하나
 
-const PLAIN = [
-  w => `모래 위에 ${w} 놓여 있길래 가져왔어요. 누가 두고 간 건지 금방 알았어요. 고마워요.`,
-  w => `${w} 잘 받았어요. 편지에 답장이 오다니, 생각도 못 했어요. 다음에도 들를게요.`,
-  w => `발자국 옆에 ${w} 있었어요. 집에 가져가 제일 잘 보이는 데 두었어요.`,
-];
-// 받침 따라 을/를 · 이/가
-const jong = w => { const c = w.charCodeAt(w.length - 1) - 0xac00; return c >= 0 && c < 11172 && c % 28 > 0; };
-export const eul = w => w + (jong(w) ? '을' : '를');
-const iga = w => w + (jong(w) ? '이' : '가');
-
-// 고맙다는 편지 글: liked 면 그 동물만의 한 줄, 아니면 보통 셋 중 하나 (n 으로 고정 — 다시 읽어도 같다)
-export function thanksText(guest, name, liked, n = 0) {
-  return liked ? `${eul(name)} 받았어요!\n${LIKES[guest]?.line || ''}` : PLAIN[n % PLAIN.length](iga(name));
-}
+// v29.28 고맙다는 편지 글은 편지 시스템(letters) — 동물마다 thanks · liked, 없으면 모두의 글(letters/ko/common.js)
+export { eul };
+export function thanksText(guest, name, liked, n = 0, key = '') { return thanksLetter(guest, name, liked, n, key); }
 
 // 답례 한 줄 (편지 끝에 붙인다): r = { island: 열린 섬 이름, scrap, left: 남은 조각 수 }
-const ro = w => { const c = w.charCodeAt(w.length - 1) - 0xac00, j = c >= 0 && c < 11172 ? c % 28 : 0; return w + (j && j !== 8 ? '으로' : '로'); };
 export function rewardText(r) {
   if (r?.island && !r.scrap) return `\n\n답례로 길을 알려 줄게요 — ${ro(r.island)} 가는 바닷길이에요. 해도에 그려 뒀어요.`;
   if (r?.island) return `\n\n지도 조각을 하나 두고 가요. 전에 받은 조각과 맞춰 보니 ${ro(r.island)} 가는 길이 보여요!`;
