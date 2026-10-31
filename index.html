@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#24563A" />   <!-- v29.20 상태 표시줄이 남는 기기에선 풍경 맨 위(숲) 색으로 이어지게 -->
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v29.24.0-cb67960" />
-  <link rel="stylesheet" href="memos.css?v=v29.24.0-cb67960" />
-  <link rel="stylesheet" href="theme-paper.css?v=v29.24.0-cb67960" />
-  <link rel="stylesheet" href="src/ui/tokens.css?v=v29.24.0-cb67960" />
-  <link rel="stylesheet" href="src/ui/parts.css?v=v29.24.0-cb67960" />
-  <link rel="stylesheet" href="src/ui/shell.css?v=v29.24.0-cb67960" />
+  <link rel="stylesheet" href="style.css?v=v29.25.0-f4742ce" />
+  <link rel="stylesheet" href="memos.css?v=v29.25.0-f4742ce" />
+  <link rel="stylesheet" href="theme-paper.css?v=v29.25.0-f4742ce" />
+  <link rel="stylesheet" href="src/ui/tokens.css?v=v29.25.0-f4742ce" />
+  <link rel="stylesheet" href="src/ui/parts.css?v=v29.25.0-f4742ce" />
+  <link rel="stylesheet" href="src/ui/shell.css?v=v29.25.0-f4742ce" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -294,6 +294,12 @@
     <div class="k-chips"><button type="button" data-act="guestNow">지금 손님 부르기</button><button type="button" data-act="notesClear">쪽지 치우기</button><button type="button" data-act="lettersReset">편지 처음부터</button></div>
     <h2 class="k-h sep">나의 키위 무리</h2>
     <div class="k-chips"><button type="button" data-act="mateAdd">새 키위 들이기</button><button type="button" data-act="flockReset">무리 비우기</button></div>
+    <h2 class="k-h sep">초록 병 쪽지 · 키위 성격</h2>
+    <div class="k-trow"><span>보낼 성격</span><select id="tNoteP" aria-label="쪽지를 보낼 키위 성격"><option value="any">무작위</option><option value="todak">토닥이</option><option value="jan">잔물결</option><option value="hd">허당</option><option value="bs">박사</option></select></div>
+    <div class="k-chips"><button type="button" data-act="noteNow">쪽지 지금 띄우기</button><button type="button" data-act="noteShuffle">본 쪽지 다시 섞기</button></div>
+    <label class="k-trow"><span>쪽지에 번호 보이기</span><input id="tNoteId" type="checkbox" /></label>
+    <label class="k-trow"><span>쪽지 전체 목록 열기 (미리 보기 — 스포일러)</span><input id="tNoteSpoil" type="checkbox" /></label>
+    <div id="tNoteAll" hidden></div>
     <h2 class="k-h sep">떠내려오는 것 · 물가</h2>
     <div class="k-trow"><span>유리병·소라 간격</span><select id="tDrift" aria-label="유리병·소라 간격"><option value="20">20초</option><option value="60">1분</option><option value="120">2분</option><option value="180">3분 (기본)</option><option value="300">5분</option></select></div>
     <div class="k-trow"><span>물가 줍기 간격</span><select id="tFind" aria-label="물가 줍기 간격"><option value="20">20초</option><option value="60">1분</option><option value="120">2분</option><option value="180">3분 (기본)</option><option value="300">5분</option></select></div>
@@ -359,6 +365,7 @@
     <div id="letterList" class="k-list"></div>
     <p class="k-hint">물 위로 떠내려온 유리병 속 편지예요. 내가 모래에 쓴 글은 며칠 뒤 호박색 병에 담겨 돌아와요.</p>
     <h2 class="k-h sep" id="noteTitle">받은 쪽지</h2>
+    <div id="noteFilter" class="k-chips" hidden></div>
     <div id="noteList" class="k-list"></div>
     <p class="k-hint">초록 병의 키위 쪽지와 호박색 병으로 돌아온 내 글이 여기 계속 쌓여요(최근 500장). 이 기기에만 저장돼요.</p>
     </section>
@@ -509,10 +516,10 @@
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v29.24.0-cb67960"></script>
-  <script type="module" src="src/credits.js?v=v29.24.0-cb67960"></script>
+  <script type="module" src="src/main.js?v=v29.25.0-f4742ce"></script>
+  <script type="module" src="src/credits.js?v=v29.25.0-f4742ce"></script>
   <!-- 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/taps.js?v=v29.24.0-cb67960"></script>
+  <script type="module" src="src/taps.js?v=v29.25.0-f4742ce"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.
