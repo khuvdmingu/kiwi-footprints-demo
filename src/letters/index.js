@@ -6,13 +6,13 @@
 //  글          지금은 한국어만 (letters/ko/). 엔진·정보는 언어와 무관하게, 글은 번호로 찾는다 — 나중에 다른 언어는 번호 → 글 파일만 더한다
 //  자세한 규칙·새 동물 붙이는 법: docs/LETTERS.md · 자동 검사: test/letters-lint.test.mjs
 
-import todak from './ko/kiwi/todak.js?v=v29.31.0-bcde151';
-import jan from './ko/kiwi/jan.js?v=v29.31.0-bcde151';
-import hd from './ko/kiwi/hd.js?v=v29.31.0-bcde151';
-import bs from './ko/kiwi/bs.js?v=v29.31.0-bcde151';
-import ANIMALS from './ko/animals/index.js?v=v29.31.0-bcde151';
-import common from './ko/common.js?v=v29.31.0-bcde151';
-import { eul, iga } from './josa.js?v=v29.31.0-bcde151';
+import todak from './ko/kiwi/todak.js?v=v29.32.0-c49194c';
+import jan from './ko/kiwi/jan.js?v=v29.32.0-c49194c';
+import hd from './ko/kiwi/hd.js?v=v29.32.0-c49194c';
+import bs from './ko/kiwi/bs.js?v=v29.32.0-c49194c';
+import ANIMALS from './ko/animals/index.js?v=v29.32.0-c49194c';
+import common from './ko/common.js?v=v29.32.0-c49194c';
+import { eul, iga } from './josa.js?v=v29.32.0-c49194c';
 
 export { ANIMALS };
 export const THEMES = {
@@ -42,15 +42,26 @@ export function fill(t, v = {}) {
 
 // ── 손님 동물 ──
 export const visitTexts = id => (ANIMALS[id]?.visit || []).map(l => l.t);   // 순서대로 (guests.js 가 손님 편지로 쓴다)
-// 고마움 편지: liked 면 그 물건 전용(없으면 그 동물 공통) 한 줄, 아니면 그 동물 고마움 글(없으면 모두의 글) — n 으로 고정해 다시 읽어도 같다
+// 고마움 편지: liked 면 그 물건 전용(없으면 그 동물 공통, 그것도 없으면 첫 줄) 한 줄, 아니면 그 동물 고마움 글(없으면 모두의 글) — n 으로 고정해 다시 읽어도 같다
 export function thanksLetter(id, gift, liked, n = 0, key = '') {
   const a = ANIMALS[id] || {};
   if (liked) {
-    const l = (a.liked || []).find(x => x.key === key) || (a.liked || []).find(x => !x.key);
+    const L = a.liked || [], l = L.find(x => x.key === key) || L.find(x => !x.key) || L[0];   // 그 물건 전용 → 공통 → 아무거나
     return `${eul(gift)} 받았어요!\n${l ? fill(l.t, { gift }) : ''}`;
   }
   const pool = a.thanks?.length ? a.thanks : COMMON_THANKS;
   return fill(pool[n % pool.length].t, { gift });
+}
+
+// v29.32 번호로 편지 찾기 (평가 복사 · 나중 번역) — 키위 쪽지 · 동물 편지 · 모두의 글
+const ALL_LETTERS = new Map([...CHEERS, ...COMMON_THANKS, ...Object.values(ANIMALS).flatMap(a => [...(a.visit || []), ...(a.thanks || []), ...(a.liked || [])])].map(l => [l.id, l]));
+export const letterById = id => ALL_LETTERS.get(id) || null;
+// 고마움 편지가 어느 번호였나 (thanksLetter 와 같은 규칙)
+export function thanksId(id, liked, n = 0, key = '') {
+  const a = ANIMALS[id] || {};
+  if (liked) { const L = a.liked || []; return (L.find(x => x.key === key) || L.find(x => !x.key) || L[0])?.id || ''; }
+  const pool = a.thanks?.length ? a.thanks : COMMON_THANKS;
+  return pool[n % pool.length]?.id || '';
 }
 
 // ── 고르는 방식: pool ──

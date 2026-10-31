@@ -7,9 +7,9 @@
 //  · 지우개(v18): 물가선 edge(x) 는 "발자국을 지우는 경계선"이다. 물이 아닌 장소(eraser 'rake' — 젠 가든)에서는
 //    같은 줄이 잔물결·밀물 없이 가만히 있고, 지우기는 zen.js 가 발자국에 직접 표시한다(p.erase — 다시 긋는 갈퀴 줄)
 
-import { clamp, easeOut, easeInOut } from './util.js?v=v29.31.0-bcde151';
-import { PAL, PHOTO_PRINT, NIGHT_PRINT } from './tokens.js?v=v29.31.0-bcde151';
-import { addGuestFoot } from './guests.js?v=v29.31.0-bcde151';
+import { clamp, easeOut, easeInOut } from './util.js?v=v29.32.0-c49194c';
+import { PAL, PHOTO_PRINT, NIGHT_PRINT } from './tokens.js?v=v29.32.0-c49194c';
+import { addGuestFoot } from './guests.js?v=v29.32.0-c49194c';
 
 // v29.24 파도 빠르기 두 벌 (사용자: 확 사라지면 감성이 덜하다 — 지금 것은 남기고 잔잔한 것도)
 //  quick = 지금처럼(오르기·머물기·빠지기 초, 젖은 글씨가 옅어지는 빠르기) · gentle = 천천히 밀려와 글씨가 젖으며 서서히 옅어진다
