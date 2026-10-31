@@ -82,6 +82,7 @@ html[data-ui="paper"] :where(.round, #saySend, #menu button, #picker button, #in
 html[data-ui="paper"] .round svg, html[data-ui="paper"] #saySend svg { width: 30px; height: 30px; }
 html[data-ui="paper"] #picker svg { width: 34px; height: 34px; }
 html[data-ui="paper"] #menu svg { width: 28px; height: 28px; }
+html[data-ui="paper"] #exitBtn svg > * { visibility: visible; }   /* v29.36 나가기 — 칠한 아이콘이 생기기 전까지 선 아이콘 그대로 */
 html[data-ui="paper"] #info .keys i svg { width: 24px; height: 24px; }
 html[data-ui="paper"] #weatherBtn[data-weather="clear"] svg, html[data-ui="paper"] svg[data-ico="w-clear"] { background-image: url("assets/icons-paper-a.webp"); background-position: 0.000% 0.000%; }
 html[data-ui="paper"] #weatherBtn[data-weather="cloudy"] svg, html[data-ui="paper"] svg[data-ico="w-cloudy"] { background-image: url("assets/icons-paper-a.webp"); background-position: 33.333% 0.000%; }
