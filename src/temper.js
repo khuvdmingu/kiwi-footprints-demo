@@ -6,7 +6,7 @@
 
 export const TEMPERS = [
   { id: 'todak', name: '토닥이', hint: '곁에서 다독이는 반말' },
-  { id: 'jan', name: '잔물결', hint: '바다에 빗대는 차분한 존댓말' },
+  { id: 'jan', name: '차분이', hint: '바다에 빗대는 차분한 존댓말' },
   { id: 'hd', name: '허당', hint: '오늘 저지른 실수를 보고하는 반말' },
   { id: 'bs', name: '박사', hint: '아는 척하다 위로로 끝나는 반말' },
 ];

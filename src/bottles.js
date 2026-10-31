@@ -12,7 +12,7 @@ const KEEP = 300;
 export const INBOX = 500;   // v29.22 받은 쪽지함: 열어 본 병 쪽지를 이만큼 남긴다 (오래된 것부터 지움)
 
 // 응원 쪽지 목록은 cheers.js (v29.25 성격별 — temper.js)
-import { CHEERS } from './cheers.js?v=v29.25.0-f4742ce';
+import { CHEERS } from './cheers.js?v=v29.25.1-44a30f8';
 export { CHEERS };
 
 const day0 = ms => { const d = new Date(ms); d.setHours(0, 0, 0, 0); return d.getTime(); };
