@@ -80,7 +80,7 @@ export class Season {
   load(base = 'assets/') {
     if (!this.s) return;
     const ks = new Set([...this.s.props.map(p => p.k), ...(this.s.sea ? [this.s.sea.k] : [])]);
-    for (const k of ks) { const i = new Image(); i.onload = () => { this.im[k] = i; }; i.src = base + k + '.webp?v=v29.33.0-879286d'; }
+    for (const k of ks) { const i = new Image(); i.onload = () => { this.im[k] = i; }; i.src = base + k + '.webp?v=v29.34.0-ab5722f'; }
   }
   update(dt) { if (this.s) this.t += dt; }
 

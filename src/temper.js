@@ -19,4 +19,12 @@ export function temperFor(id) {
   for (const ch of String(id)) h = (h * 31 + ch.codePointAt(0)) >>> 0;
   return TEMPERS[h % TEMPERS.length].id;
 }
+// v29.34 성격별 몸짓 — 쉬는 동안 고르는 동작(acts.js pickIdleAct)의 비중을 성격마다 곱한다 (없는 동작은 1). 새 그림 없음.
+//  토닥이 = 곁을 살피고 다정하게 · 차분이 = 하늘 보기·앉아 쉬기·꾸벅 · 허당 = 재채기·오뚝이·뒤돌기·숨기 · 박사 = 킁킁·땅 파기·갸웃
+export const TEMPER_ACTS = {
+  todak: { lookaround: 1.6, nibble: 1.3, tilt: 1.3, wag: 1.3, blink: 1.2, wiggle: 1.2 },
+  jan: { rest: 1.8, lookup: 1.8, blink: 1.6, nod: 1.5, yawn: 1.3, wiggle: 0.5, wag: 0.6, wobble: 0.7 },
+  hd: { sneeze: 3, wobble: 1.8, back: 1.6, hide: 1.6, shake: 1.5, tilt: 1.3, wiggle: 1.3, rest: 0.7 },
+  bs: { sniff: 1.9, probe: 1.9, tilt: 1.6, lookaround: 1.4, nibble: 1.3, wiggle: 0.6, wag: 0.7 },
+};
 export const randomTemper = (rnd = Math.random) => TEMPERS[Math.floor(rnd() * TEMPERS.length)].id;

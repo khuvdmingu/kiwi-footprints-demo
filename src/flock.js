@@ -7,7 +7,7 @@
 //  · v29.25 키위마다 성격(p, temper.js) — 들어올 때 무작위, 예전 키위는 id 로 고정. 초록 병 쪽지 말투·서명이 따른다.
 //  · 기록은 이 기기에만 저장한다 (localStorage).
 
-import { temperFor, randomTemper } from './temper.js?v=v29.33.0-879286d';
+import { temperFor, randomTemper } from './temper.js?v=v29.34.0-ab5722f';
 
 export const MAX = 30;
 const NAMES = ['콩', '보리', '모래', '솔', '도토리', '밤톨', '조약돌', '이슬', '구름', '호두', '쑥', '깨', '율무', '달래', '노을',
