@@ -10,7 +10,7 @@
 //    그림: assets/guests.webp (4×3 격자 — 동물 10 + 쪽지 2, Higgsfield Nano Banana Pro 2k + 배경 제거, docs/GRAPHICS-PROMPTS.md)
 //    v28.13: 새 손님 10은 assets/guests2.webp (같은 4×3 규격, pic: 2). 발자국은 그린 도장(prints.js)
 
-import { visitTexts } from './letters/index.js?v=v29.32.0-c49194c';
+import { visitTexts } from './letters/index.js?v=v29.33.0-879286d';
 
 export const GUESTS = {
   gull: { name: '갈매기', shape: 'web', maps: ['beach'], size: 1.15, gait: 'bird', from: 'land', cell: 0, note: 'pebble' },
@@ -138,17 +138,21 @@ export class Guestbook {
     try { s = JSON.parse(load() || '{}'); } catch (e) { s = {}; }
     this.count = s.count && typeof s.count === 'object' ? s.count : {};
     this.first = s.first && typeof s.first === 'object' ? s.first : {};   // 처음 온 날
-    this.read = s.read && typeof s.read === 'object' ? s.read : {};       // 동물마다 읽은 편지 수
+    this.read = s.read && typeof s.read === 'object' ? s.read : {};
+    this.bonds = s.bonds && typeof s.bonds === 'object' ? s.bonds : {};   // v29.33 동물마다 받은 사이 단계 편지 [0, 1, 2]       // 동물마다 읽은 편지 수
     this.pending = Array.isArray(s.pending) ? s.pending.filter(p => GUESTS[p.id] && (p.gift ? p.gift.key : p.n < GUESTS[p.id].letters.length)) : [];   // 모래 위에 놓인 안 읽은 쪽지 { id, n, rx, ry }
   }
-  store() { this.save(JSON.stringify({ count: this.count, first: this.first, read: this.read, pending: this.pending })); }
+  store() { this.save(JSON.stringify({ count: this.count, first: this.first, read: this.read, bonds: this.bonds, pending: this.pending })); }
   // 이 동물이 다음에 남길 편지 번호 (다 남겼으면 -1)
-  nextLetter(id) { const n = (this.read[id] || 0) + this.pending.filter(p => p.id === id && !p.gift).length; return n < GUESTS[id].letters.length ? n : -1; }
+  nextLetter(id) { const n = (this.read[id] || 0) + this.pending.filter(p => p.id === id && !p.gift && p.bond == null).length; return n < GUESTS[id].letters.length ? n : -1; }
   leave(id, rx, ry) { const n = this.nextLetter(id); if (n < 0) return null; const p = { id, n, rx, ry, at: Date.now() };   // v29.30 at = 들어온 순서 (땅 쪽지 자리)
     this.pending.push(p); this.store(); return p; }
   // v29.6 답장 선물을 가져간 손님이 남기는 고맙다는 쪽지 (편지 번호와 따로) — gift = { key, liked, n }
   thank(id, gift, rx, ry) { const p = { id, n: -1, gift, rx, ry, at: Date.now() }; this.pending.push(p); this.store(); return p; }
-  open(p) { this.pending = this.pending.filter(o => o !== p); if (p.gift) { this.store(); return; } this.read[p.id] = Math.max(this.read[p.id] || 0, p.n + 1); this.store(); }
+  // v29.33 사이 단계 편지: 선물이 BOND_AT 번째로 쌓인 날 한 번 (놓는 순간 받은 것으로 친다 — 다시 오지 않게)
+  bonded(id, k) { return (this.bonds[id] || []).includes(k); }
+  bond(id, k, rx, ry) { (this.bonds[id] ||= []).push(k); const p = { id, n: -1, bond: k, rx, ry, at: Date.now() }; this.pending.push(p); this.store(); return p; }
+  open(p) { this.pending = this.pending.filter(o => o !== p); if (p.gift || p.bond != null) { this.store(); return; } this.read[p.id] = Math.max(this.read[p.id] || 0, p.n + 1); this.store(); }
   get lettersRead() { return GUEST_IDS.reduce((n, id) => n + Math.min(this.read[id] || 0, GUESTS[id].letters.length), 0); }
   add(id, day) { this.count[id] = (this.count[id] || 0) + 1; this.first[id] ??= day; this.store(); }
   get kinds() { return GUEST_IDS.filter(id => this.count[id]).length; }

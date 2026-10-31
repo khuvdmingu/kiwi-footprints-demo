@@ -5,19 +5,19 @@
 //  고르는 법: 같은 기록은 언제 열어도 같은 그림 (기록 시각으로 정한다)
 
 export const ILLUS = {
-  whale: ['illus-whale.webp?v=v29.32.0-c49194c', 'illus-whale-b.webp?v=v29.32.0-c49194c'],
-  meteor: ['illus-meteor.webp?v=v29.32.0-c49194c'],
-  lighthouse: ['illus-lighthouse.webp?v=v29.32.0-c49194c'],
-  seabird: ['illus-seabird.webp?v=v29.32.0-c49194c'],
-  doze: ['illus-doze.webp?v=v29.32.0-c49194c'],
-  leaf: ['illus-leaf.webp?v=v29.32.0-c49194c', 'illus-leaf-b.webp?v=v29.32.0-c49194c'],
+  whale: ['illus-whale.webp?v=v29.33.0-879286d', 'illus-whale-b.webp?v=v29.33.0-879286d'],
+  meteor: ['illus-meteor.webp?v=v29.33.0-879286d'],
+  lighthouse: ['illus-lighthouse.webp?v=v29.33.0-879286d'],
+  seabird: ['illus-seabird.webp?v=v29.33.0-879286d'],
+  doze: ['illus-doze.webp?v=v29.33.0-879286d'],
+  leaf: ['illus-leaf.webp?v=v29.33.0-879286d', 'illus-leaf-b.webp?v=v29.33.0-879286d'],
   // 아무 일 없던 바다(quiet) — 키위가 상상으로 그린 바다
-  quiet: ['illus-flyingfish.webp?v=v29.32.0-c49194c', 'illus-dolphins.webp?v=v29.32.0-c49194c', 'illus-bottle.webp?v=v29.32.0-c49194c', 'illus-plankton.webp?v=v29.32.0-c49194c', 'illus-rainbow.webp?v=v29.32.0-c49194c', 'illus-flyinghat.webp?v=v29.32.0-c49194c'],
+  quiet: ['illus-flyingfish.webp?v=v29.33.0-879286d', 'illus-dolphins.webp?v=v29.33.0-879286d', 'illus-bottle.webp?v=v29.33.0-879286d', 'illus-plankton.webp?v=v29.33.0-879286d', 'illus-rainbow.webp?v=v29.33.0-879286d', 'illus-flyinghat.webp?v=v29.33.0-879286d'],
 };
 // 도착: 장소마다 (없으면 기본)
-export const ARRIVE = { snow: 'illus-snowkiwi.webp?v=v29.32.0-c49194c', fall: 'illus-leafpile.webp?v=v29.32.0-c49194c', default: 'illus-arrive.webp?v=v29.32.0-c49194c' };
+export const ARRIVE = { snow: 'illus-snowkiwi.webp?v=v29.33.0-879286d', fall: 'illus-leafpile.webp?v=v29.33.0-879286d', default: 'illus-arrive.webp?v=v29.33.0-879286d' };
 // 손님의 마지막 편지에 손님 그림 대신
-export const GUEST_STORY = { gull: 'illus-gull.webp?v=v29.32.0-c49194c', weka: 'illus-weka.webp?v=v29.32.0-c49194c', cat: 'illus-cat.webp?v=v29.32.0-c49194c', crab: 'illus-crab.webp?v=v29.32.0-c49194c' };
+export const GUEST_STORY = { gull: 'illus-gull.webp?v=v29.33.0-879286d', weka: 'illus-weka.webp?v=v29.33.0-879286d', cat: 'illus-cat.webp?v=v29.33.0-879286d', crab: 'illus-crab.webp?v=v29.33.0-879286d' };
 
 const hash = s => { let h = 2166136261; for (const ch of String(s)) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return h >>> 0; };
 export function pickIllus(kind, seed) {
