@@ -21,7 +21,7 @@ const KEEP = 300;
 export const INBOX = 500;   // v29.22 받은 쪽지함: 열어 본 병 쪽지를 이만큼 남긴다 (오래된 것부터 지움)
 
 // 응원 쪽지 글·고르는 방식은 편지 시스템(letters/index.js)
-import { CHEERS, cheerById, pickPool } from './letters/index.js?v=v29.29.0-3bd38b2';
+import { CHEERS, cheerById, pickPool } from './letters/index.js?v=v29.30.0-b4d150d';
 export { CHEERS };
 
 const day0 = ms => { const d = new Date(ms); d.setHours(0, 0, 0, 0); return d.getTime(); };
@@ -36,11 +36,13 @@ export class Bottles {
     this.seen = Array.isArray(s.seen) ? s.seen : [];       // 읽은 응원 쪽지 id (한 바퀴 돌면 비운다)
     this.day = s.day || ''; this.today = s.today || 0;     // 오늘 떠내려온 병 수
     this.sinceMine = s.sinceMine || 0;                     // 마지막 내 글 뒤로 온 쪽지 수
-    this.lastTh = s.lastTh || '';                          // v29.27 마지막 응원 쪽지 주제 (같은 주제가 연달아 오지 않게)
+    this.lastTh = s.lastTh || '';
+    // v29.30 땅에 놓인 키위 쪽지 (아직 안 연 것, 들어온 순서) — 쓴 키위가 걸어와 놓고 간다. [{ id, kind:'cheer', by, p, at }]
+    this.ground = Array.isArray(s.ground) ? s.ground.filter(g => g && g.id) : [];                          // v29.27 마지막 응원 쪽지 주제 (같은 주제가 연달아 오지 않게)
     // v29.22 받은 쪽지함 (새것이 앞) — 처음엔 기억에 남은 만큼(돌아온 내 글 · 이미 본 응원 쪽지) 채운다
     this.inbox = Array.isArray(s.inbox) ? s.inbox : this.backfill();
   }
-  store() { this.save('bottles', JSON.stringify({ mine: this.mine, seen: this.seen, day: this.day, today: this.today, sinceMine: this.sinceMine, lastTh: this.lastTh, inbox: this.inbox })); }
+  store() { this.save('bottles', JSON.stringify({ mine: this.mine, seen: this.seen, day: this.day, today: this.today, sinceMine: this.sinceMine, lastTh: this.lastTh, ground: this.ground.map(({ shown, ...g }) => g), inbox: this.inbox })); }
 
   // v29.22 예전에 받은 것: 돌아온 내 글(받은 시각 있음) + 이번 바퀴에 본 응원 쪽지(받은 시각 모름 = 0)
   backfill() {
@@ -71,13 +73,15 @@ export class Bottles {
 
   // 다음 병 고르기 → { kind:'mine', ... } | { kind:'cheer', ... } | null(오늘 몫 다 옴)
   // from: 지금 섬에 있는 무리 키위 [{ name, p }] — 그중 하나가 자기 성격 말투로 쓰고 자기 이름으로 서명한다 (없으면 '키위 일동')
-  pick(ctx, now = Date.now(), { minDays = MIN_DAYS, cap = 8, from = [], mine = true } = {}) {
+  //  v29.30 mine = 돌아올 내 글을 보내도 되나(물가 자리가 있나) · cheer = 키위 쪽지를 보내도 되나(땅 자리가 있나). 둘 다 안 되면 null (오늘 몫을 쓰지 않는다)
+  pick(ctx, now = Date.now(), { minDays = MIN_DAYS, cap = 8, from = [], mine = true, cheer = true } = {}) {
     const d = new Date(now).toDateString();
     if (this.day !== d) { this.day = d; this.today = 0; }
     if (this.today >= cap) return null;
     const due = this.due(now, minDays);
     let out;
-    if (mine && due.length && (this.sinceMine >= 2 || Math.random() < 0.35)) {
+    if (!(mine && due.length) && !cheer) return null;
+    if (mine && due.length && (!cheer || this.sinceMine >= 2 || Math.random() < 0.35)) {
       const m = due[Math.floor(Math.random() * Math.min(due.length, 4))];   // 오래된 것부터 (앞쪽 몇 개 중 하나)
       m.back = now; this.sinceMine = 0;
       out = { id: 'mine', kind: 'mine', box: 'mine', text: m.t, at: m.at, src: m.src };
@@ -90,6 +94,9 @@ export class Bottles {
     this.today++; this.store();
     return out;
   }
+  // v29.30 땅 쪽지 놓기 · 열기
+  drop(it, at = Date.now()) { if (it?.kind !== 'cheer') return null; const g = { id: it.id, kind: 'cheer', by: it.by, ...(it.p ? { p: it.p } : {}), at }; this.ground.push(g); this.store(); return g; }
+  pickUp(g) { this.ground = this.ground.filter(x => x !== g); this.store(); }
   // 응원 쪽지: 보낸 키위(who)가 있으면 그 성격 쪽지 중에서 (가끔 이름 박힌 손님 키위 쪽지가 대신 온다).
   //  지금 상황 태그가 맞는 것을 먼저, 아니면 언제나 쪽지. 한 바퀴(그 성격 안에서) 돌 때까지 겹치지 않게
   cheer(ctx = {}, who = null, rnd = Math.random) {

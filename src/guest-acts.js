@@ -31,7 +31,7 @@ export function animateGuest(el, id, base = 'assets/') {
   const a = GUEST_ACTS[id];
   if (!a || typeof Image === 'undefined') return;
   if (typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const src = `${base}guest-act-${id}.webp?v=v29.29.0-3bd38b2`, im = new Image();
+  const src = `${base}guest-act-${id}.webp?v=v29.30.0-b4d150d`, im = new Image();
   im.onload = () => {
     if (!el.isConnected) return;
     el.classList.add('gact');
