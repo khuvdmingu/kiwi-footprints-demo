@@ -5,7 +5,7 @@
 //  · 공유: 폰의 공유 창(Web Share)으로 다른 앱에 파일을 넘긴다. 서버로 보내는 것 없음. 공유 창이 없는 브라우저는 내려받기.
 //  groupShots 는 DOM 없이 돌아서 node 시험에서 그대로 쓴다.
 
-import { photoDate, PHOTO_MONTHS } from './album.js?v=v29.27.0-d80d58b';
+import { photoDate, PHOTO_MONTHS } from './album.js?v=v29.27.1-cf6b5b2';
 
 export const RECENT = 6;
 

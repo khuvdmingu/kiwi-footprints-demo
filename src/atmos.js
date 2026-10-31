@@ -6,11 +6,11 @@
 //        구름 양·흐름 속도·파도 높이는 셰이더/해변에 넘기고, 빗줄기·물방울 고리·눈송이·나뭇잎·안개·반딧불이·야광은 여기서 #fx 캔버스에 그린다.
 //        눈은 시간이 지날수록 땅(셰이더 uSnow)과 나무에 쌓이고, 그치면 천천히 녹는다.
 
-import { clamp, lerp } from './util.js?v=v29.27.0-d80d58b';
-import { EXTRA_KEYS, EXTRA_PARAM, SkyExtra, blossomName } from './sky/extra.js?v=v29.27.0-d80d58b';   // v23 보슬비 · 꽃잎/낙엽 바람
-import { Drift } from './sky/drift.js?v=v29.27.0-d80d58b';   // v28.15 나비 · 홀씨 · 헬리콥터 씨앗
-import { SkyBits } from './sky/bits.js?v=v29.27.0-d80d58b';   // v28.20 번개 · 달무리 · 모래바람 · 풀공 · 아침 안개 띠
-import { Meteors, Rainbow } from './sky/events.js?v=v29.27.0-d80d58b';                                 // v23 별똥별 · 무지개
+import { clamp, lerp } from './util.js?v=v29.27.1-cf6b5b2';
+import { EXTRA_KEYS, EXTRA_PARAM, SkyExtra, blossomName } from './sky/extra.js?v=v29.27.1-cf6b5b2';   // v23 보슬비 · 꽃잎/낙엽 바람
+import { Drift } from './sky/drift.js?v=v29.27.1-cf6b5b2';   // v28.15 나비 · 홀씨 · 헬리콥터 씨앗
+import { SkyBits } from './sky/bits.js?v=v29.27.1-cf6b5b2';   // v28.20 번개 · 달무리 · 모래바람 · 풀공 · 아침 안개 띠
+import { Meteors, Rainbow } from './sky/events.js?v=v29.27.1-cf6b5b2';                                 // v23 별똥별 · 무지개
 
 export const WEATHERS = ['clear', 'cloudy', 'drizzle', 'rain', 'snow', 'fog', 'wind', 'blossom'];
 export const WEATHER_NAME = { clear: '맑음', cloudy: '흐림', drizzle: '보슬비', rain: '비', snow: '눈', fog: '안개', wind: '바람', blossom: '꽃잎 바람' };   // blossom 은 장소 따라 '낙엽 바람'

@@ -10,10 +10,10 @@
 //  쓰는 법: 성격마다 50장씩 묶어 쓰고 test/cheers-lint.test.mjs(번호·길이·말투·겹침·금지 소재)를 통과한 것만 넣는다.
 //          사용자는 쪽지를 미리 읽지 않고 실제로 받아 본다 — 테스트 탭 「좋아요/별로」 모음으로 고친다.
 
-import todak from './todak.js';
-import jan from './jan.js';
-import hd from './hd.js';
-import bs from './bs.js';
+import todak from './todak.js?v=v29.27.1-cf6b5b2';
+import jan from './jan.js?v=v29.27.1-cf6b5b2';
+import hd from './hd.js?v=v29.27.1-cf6b5b2';
+import bs from './bs.js?v=v29.27.1-cf6b5b2';
 
 export const THEMES = {
   praise: '칭찬', comfort: '위로', pace: '천천히·한 걸음', rest: '쉼·잠', care: '몸 챙기기',
