@@ -22,7 +22,7 @@ const KEEP = 300;
 export const INBOX = 500;   // v29.22 받은 쪽지함: 열어 본 병 쪽지를 이만큼 남긴다 (오래된 것부터 지움)
 
 // 응원 쪽지 글·고르는 방식은 편지 시스템(letters/index.js)
-import { CHEERS, cheerById, pickPool } from './letters/index.js?v=v29.34.0-ab5722f';
+import { CHEERS, cheerById, pickPool } from './letters/index.js?v=v29.35.0-472a53f';
 export { CHEERS };
 
 const day0 = ms => { const d = new Date(ms); d.setHours(0, 0, 0, 0); return d.getTime(); };
