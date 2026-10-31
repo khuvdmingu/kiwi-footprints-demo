@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#24563A" />   <!-- v29.20 상태 표시줄이 남는 기기에선 풍경 맨 위(숲) 색으로 이어지게 -->
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v29.26.0-99324d6" />
-  <link rel="stylesheet" href="memos.css?v=v29.26.0-99324d6" />
-  <link rel="stylesheet" href="theme-paper.css?v=v29.26.0-99324d6" />
-  <link rel="stylesheet" href="src/ui/tokens.css?v=v29.26.0-99324d6" />
-  <link rel="stylesheet" href="src/ui/parts.css?v=v29.26.0-99324d6" />
-  <link rel="stylesheet" href="src/ui/shell.css?v=v29.26.0-99324d6" />
+  <link rel="stylesheet" href="style.css?v=v29.27.0-d80d58b" />
+  <link rel="stylesheet" href="memos.css?v=v29.27.0-d80d58b" />
+  <link rel="stylesheet" href="theme-paper.css?v=v29.27.0-d80d58b" />
+  <link rel="stylesheet" href="src/ui/tokens.css?v=v29.27.0-d80d58b" />
+  <link rel="stylesheet" href="src/ui/parts.css?v=v29.27.0-d80d58b" />
+  <link rel="stylesheet" href="src/ui/shell.css?v=v29.27.0-d80d58b" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -304,6 +304,9 @@
     <div class="k-chips"><button type="button" data-act="noteNow">쪽지 지금 띄우기</button><button type="button" data-act="noteShuffle">본 쪽지 다시 섞기</button></div>
     <label class="k-trow"><span>쪽지에 번호 보이기</span><input id="tNoteId" type="checkbox" /></label>
     <label class="k-trow"><span>쪽지 전체 목록 열기 (미리 보기 — 스포일러)</span><input id="tNoteSpoil" type="checkbox" /></label>
+    <div class="k-trow"><span>받은 쪽지 평가</span><output id="tNoteRateV"></output></div>
+    <div class="k-chips"><button type="button" data-act="noteRateCopy">평가 복사</button><button type="button" data-act="noteRateClear">평가 지우기</button></div>
+    <p class="k-hint">테스트 기간엔 초록 병 쪽지 카드에 「좋아요 · 별로」가 나와요. 복사해서 보내 주면 별로인 쪽지를 고치거나 뺄게요.</p>
     <div id="tNoteAll" hidden></div>
     <h2 class="k-h sep">떠내려오는 것 · 물가</h2>
     <div class="k-trow"><span>유리병·소라 간격</span><select id="tDrift" aria-label="유리병·소라 간격"><option value="20">20초</option><option value="60">1분</option><option value="120">2분</option><option value="180">3분 (기본)</option><option value="300">5분</option></select></div>
@@ -457,7 +460,7 @@
       <div class="art"></div>
       <h2 id="foundTitle" class="k-dialog-title"></h2>
       <p class="body"></p>
-      <div class="btns"><button id="foundShare" class="k-btn--share" type="button" hidden>공유</button><button id="foundGift" class="k-btn--gift" type="button" hidden>답장 선물</button><button id="foundWear" class="k-btn--primary" type="button"></button><button id="foundClose" type="button">닫기</button></div>
+      <div class="btns"><button id="foundShare" class="k-btn--share" type="button" hidden>공유</button><button id="foundGift" class="k-btn--gift" type="button" hidden>답장 선물</button><button id="foundUp" type="button" hidden aria-pressed="false">좋아요</button><button id="foundDown" type="button" hidden aria-pressed="false">별로</button><button id="foundWear" class="k-btn--primary" type="button"></button><button id="foundClose" type="button">닫기</button></div>
     </div>
   </div>
   <dialog id="photoViewer" class="k-viewer" aria-labelledby="photoViewerTitle">
@@ -521,10 +524,10 @@
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v29.26.0-99324d6"></script>
-  <script type="module" src="src/credits.js?v=v29.26.0-99324d6"></script>
+  <script type="module" src="src/main.js?v=v29.27.0-d80d58b"></script>
+  <script type="module" src="src/credits.js?v=v29.27.0-d80d58b"></script>
   <!-- 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/taps.js?v=v29.26.0-99324d6"></script>
+  <script type="module" src="src/taps.js?v=v29.27.0-d80d58b"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.

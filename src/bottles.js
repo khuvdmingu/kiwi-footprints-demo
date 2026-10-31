@@ -20,8 +20,8 @@ export const paceOf = v => (v in PACE ? v : 'normal');
 const KEEP = 300;
 export const INBOX = 500;   // v29.22 받은 쪽지함: 열어 본 병 쪽지를 이만큼 남긴다 (오래된 것부터 지움)
 
-// 응원 쪽지 목록은 cheers.js (v29.25 성격별 — temper.js)
-import { CHEERS } from './cheers.js?v=v29.26.0-99324d6';
+// 응원 쪽지 목록은 cheers/ (성격마다 파일 하나 — temper.js · cheers/index.js)
+import { CHEERS } from './cheers/index.js?v=v29.27.0-d80d58b';
 export { CHEERS };
 
 const day0 = ms => { const d = new Date(ms); d.setHours(0, 0, 0, 0); return d.getTime(); };
@@ -36,10 +36,11 @@ export class Bottles {
     this.seen = Array.isArray(s.seen) ? s.seen : [];       // 읽은 응원 쪽지 id (한 바퀴 돌면 비운다)
     this.day = s.day || ''; this.today = s.today || 0;     // 오늘 떠내려온 병 수
     this.sinceMine = s.sinceMine || 0;                     // 마지막 내 글 뒤로 온 쪽지 수
+    this.lastTh = s.lastTh || '';                          // v29.27 마지막 응원 쪽지 주제 (같은 주제가 연달아 오지 않게)
     // v29.22 받은 쪽지함 (새것이 앞) — 처음엔 기억에 남은 만큼(돌아온 내 글 · 이미 본 응원 쪽지) 채운다
     this.inbox = Array.isArray(s.inbox) ? s.inbox : this.backfill();
   }
-  store() { this.save('bottles', JSON.stringify({ mine: this.mine, seen: this.seen, day: this.day, today: this.today, sinceMine: this.sinceMine, inbox: this.inbox })); }
+  store() { this.save('bottles', JSON.stringify({ mine: this.mine, seen: this.seen, day: this.day, today: this.today, sinceMine: this.sinceMine, lastTh: this.lastTh, inbox: this.inbox })); }
 
   // v29.22 예전에 받은 것: 돌아온 내 글(받은 시각 있음) + 이번 바퀴에 본 응원 쪽지(받은 시각 모름 = 0)
   backfill() {
@@ -102,9 +103,11 @@ export class Bottles {
     const tags = Object.keys(ctx).filter(k => ctx[k]);
     const fit = pool.filter(c => c.tag && tags.includes(c.tag));
     const any = pool.filter(c => !c.tag);
-    const from = fit.length && rnd() < 0.6 ? fit : any.length ? any : pool;
+    let from = fit.length && rnd() < 0.6 ? fit : any.length ? any : pool;
+    const fresh = from.filter(c => c.th !== this.lastTh);   // v29.27 바로 전과 다른 주제 먼저
+    if (fresh.length) from = fresh;
     const c = from[Math.floor(rnd() * from.length)];
-    this.seen.push(c.id);
+    this.seen.push(c.id); this.lastTh = c.th || '';
     if (c.by || !who) return { c, by: c.by || '키위 일동', p: c.p };
     return { c, by: who.name, p: who.p };
   }
