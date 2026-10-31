@@ -10,7 +10,7 @@
 //    그림: assets/guests.webp (4×3 격자 — 동물 10 + 쪽지 2, Higgsfield Nano Banana Pro 2k + 배경 제거, docs/GRAPHICS-PROMPTS.md)
 //    v28.13: 새 손님 10은 assets/guests2.webp (같은 4×3 규격, pic: 2). 발자국은 그린 도장(prints.js)
 
-import { visitTexts } from './letters/index.js?v=v29.28.0-291d802';
+import { visitTexts } from './letters/index.js?v=v29.29.0-3bd38b2';
 
 export const GUESTS = {
   gull: { name: '갈매기', shape: 'web', maps: ['beach'], size: 1.15, gait: 'bird', from: 'land', cell: 0, note: 'pebble' },

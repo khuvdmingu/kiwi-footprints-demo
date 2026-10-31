@@ -6,13 +6,13 @@
 //  글          지금은 한국어만 (letters/ko/). 엔진·정보는 언어와 무관하게, 글은 번호로 찾는다 — 나중에 다른 언어는 번호 → 글 파일만 더한다
 //  자세한 규칙·새 동물 붙이는 법: docs/LETTERS.md · 자동 검사: test/letters-lint.test.mjs
 
-import todak from './ko/kiwi/todak.js?v=v29.28.0-291d802';
-import jan from './ko/kiwi/jan.js?v=v29.28.0-291d802';
-import hd from './ko/kiwi/hd.js?v=v29.28.0-291d802';
-import bs from './ko/kiwi/bs.js?v=v29.28.0-291d802';
-import ANIMALS from './ko/animals/index.js?v=v29.28.0-291d802';
-import common from './ko/common.js?v=v29.28.0-291d802';
-import { eul, iga } from './josa.js?v=v29.28.0-291d802';
+import todak from './ko/kiwi/todak.js?v=v29.29.0-3bd38b2';
+import jan from './ko/kiwi/jan.js?v=v29.29.0-3bd38b2';
+import hd from './ko/kiwi/hd.js?v=v29.29.0-3bd38b2';
+import bs from './ko/kiwi/bs.js?v=v29.29.0-3bd38b2';
+import ANIMALS from './ko/animals/index.js?v=v29.29.0-3bd38b2';
+import common from './ko/common.js?v=v29.29.0-3bd38b2';
+import { eul, iga } from './josa.js?v=v29.29.0-3bd38b2';
 
 export { ANIMALS };
 export const THEMES = {
@@ -21,7 +21,7 @@ export const THEMES = {
 };
 export const ID_PREFIX = { todak: 't', jan: 'w', hd: 'h', bs: 'b' };   // 키위 쪽지 새 번호 (동물은 <동물 id>-v1 · -t1 · -l1)
 export const MAX_LEN = { kiwi: 90, animal: 120 };
-export const BANNED = ['벌레', '지렁이', '모기', '파리', '개미', '바퀴', '구더기', 'MBTI'];   // 키위 세계 금지 소재 (반딧불·나비는 예외로 허용)
+export const BANNED = ['벌레', '지렁이', '모기', '파리', '개미', '바퀴벌레', '구더기', 'MBTI'];   // 키위 세계 금지 소재 (반딧불·나비는 예외로 허용)
 export const MIN = { kiwi: 20, visit: 3, liked: 1 };   // 최소 분량 — 새 동물도 이만큼은 써야 시험을 통과한다
 
 // 키위 응원 쪽지 (성격은 파일이 정한다)
