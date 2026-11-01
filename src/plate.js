@@ -17,15 +17,17 @@ const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
   // 물 없는 장소(opts.rest — 젠 가든 v18): 물 뺀 판·바위 지운 판이 없다 → 같은 판 한 장을 세 자리에 쓴다
-  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v30.3.0-65cbb24').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v30.3.0-65cbb24'), load(name + '-dry.webp?v=v30.3.0-65cbb24'), load(name + '-sea.webp?v=v30.3.0-65cbb24')]);
-  const p = new Plate(img, dry, sea, opts);
+  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v30.4.0-a63b425').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v30.4.0-a63b425'), load(name + '-dry.webp?v=v30.4.0-a63b425'), load(name + '-sea.webp?v=v30.4.0-a63b425')]);
+  // 미리 만든 바위 가림막(<판>-rock.webp, tools/rock-masks.mjs 2026-11-01) — 없거나 못 읽으면 예전 짐작만
+  const rock = opts.rockArt && !opts.rest ? await load(name + '-rock.webp?v=v30.4.0-a63b425').catch(() => null) : null;
+  const p = new Plate(img, dry, sea, opts, rock);
   p.name = name; p.base = base;
   return p;
 }
 
 export class Plate {
-  constructor(img, dry, sea, opts = {}) {
-    this.img = img; this.dry = dry; this.sea = sea; this.opts = opts;
+  constructor(img, dry, sea, opts = {}, rockArt = null) {
+    this.img = img; this.dry = dry; this.sea = sea; this.opts = opts; this.rockArt = rockArt;
     this.pw = img.naturalWidth; this.ph = img.naturalHeight;
     this.analyze();
   }
@@ -238,6 +240,9 @@ export class Plate {
     const o = document.createElement('canvas'); o.width = mw; o.height = mh;
     const og = o.getContext('2d'); og.filter = 'blur(2px)';
     og.drawImage(m, 0, 0);
+    // 미리 만든 가림막을 더한다: 위 짐작은 바위의 어두운 쪽만 잡아 햇빛 받은 윗면·이끼 윗면이 물에 덮였다(바위 위쪽이 빔, 2026-11-01).
+    //  더하기만 하므로 예전보다 바위가 줄어드는 곳은 없다
+    if (this.rockArt) { og.filter = 'none'; og.drawImage(this.rockArt, 0, 0, mw, mh); }
     return o;
   }
 
@@ -285,7 +290,7 @@ export class Plate {
     if (!this._sets[kind] && Date.now() - (this._setFail[kind] ?? -Infinity) < SET_RETRY_MS) return Promise.resolve(null);
     if (!this._sets[kind]) {
       // 판이 한 장인 장소(rest — 모래 정원)는 시간대 판도 한 장 (v28.3)
-      const p = this._sets[kind] = (this.opts.rest ? load(`${this.name}-${kind}.webp?v=v30.3.0-65cbb24`).then(im => [im, im, im]) : Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v30.3.0-65cbb24`))))
+      const p = this._sets[kind] = (this.opts.rest ? load(`${this.name}-${kind}.webp?v=v30.4.0-a63b425`).then(im => [im, im, im]) : Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v30.4.0-a63b425`))))
         .then(([img, dry, sea]) => (this.sets[kind] = { img, dry, sea }))
         .catch(() => { if (this._sets[kind] === p) { delete this._sets[kind]; this._setFail[kind] = Date.now(); } return null; });
     }
