@@ -1,6 +1,6 @@
 // maps.js — 골라 쓰는 장소(맵)
-import { STOCK_PLACES, STOCK_STEPS0, STOCK_STEP } from './maps-stock.js?v=v30.11.0-ffd47e5';
-import { WATER_PLACES, WATER_STEPS0, WATER_STEP } from './maps-water.js?v=v30.11.0-ffd47e5';
+import { STOCK_PLACES, STOCK_STEPS0, STOCK_STEP } from './maps-stock.js?v=v30.12.0-e46c2a8';
+import { WATER_PLACES, WATER_STEPS0, WATER_STEP } from './maps-water.js?v=v30.12.0-e46c2a8';
 //  장소마다 그림 판 한 벌(가로 wide · 세로 tall, 각각 본판·-dry·-sea 세 장)과 그 장소의 성격을 정한다.
 //  구조는 모두 같다: 위는 숲(키위가 숨었다 나온다), 가운데는 글씨를 쓰는 바닥, 아래는 물(불어나서 글씨를 지운다).
 
@@ -80,6 +80,7 @@ STOCK_PLACES.forEach((p, i) => {
     ...(p.print === 'gravel' ? { ground: 'gravel' } : {}),   // 회색 자갈 바닥: 발자국 색
     art: false,
     like: p.like,
+    ...(p.film ? { film: p.film } : {}),   // v30.12 찻빛·흙빛 물 — 큰 파도 물 막 색 (water.js)
     ...(p.shoreFix ? { shoreFix: p.shoreFix } : {}),   // 물가선을 못 읽는 판은 그림에서 잰 높이                    // 손님은 닮은 장소의 동물이 온다
     stock: true,                     // 설정 창엔 열린 것만 보인다
     unlock: 'map-' + p.id,

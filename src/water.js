@@ -10,6 +10,8 @@
 //   · 바위는 제자리  물은 바위를 지운 판(plate-sea)에서 읽고, 바위는 가림막 자리에 원본에서 다시 얹는다
 //  해안선 값은 beach.edge(x) 를 그대로 받는다(줄 텍스처) → 발자국을 지우는 줄과 그림 속 물가가 정확히 같다.
 
+// v30.12 큰 파도 물 막 기본 물빛 (예전 셰이더에 박혀 있던 값 그대로) — [물가 쪽, 안쪽, 비친 모래에 곱함]
+export const FILM_TEAL = [[.5, .85, .8], [.3, .73, .75], [.66, .93, .95]];
 const N = 128;   // 해안선 줄 칸 수 (셰이더 상수 배열로 넘긴다)
 
 const VS = `#version 300 es
@@ -26,6 +28,7 @@ uniform float uLod;          // 그림을 읽을 해상도 단계 — 직접 정
 uniform vec2 uRes, uPS;
 uniform vec3 uMap;
 uniform float uDpr, uT, uU, uSnow, uNight, uSurge, uRain;
+uniform vec3 uFilmA, uFilmB, uFilmM;   // v30.12 큰 파도 물 막 물빛 (물가 쪽 · 안쪽 · 비친 모래에 곱함) — 장소별 maps film, 없으면 청록
 uniform float uLand;        // 1 = 물 없는 장소(젠 가든 v18): 판만 그린다 — 지우는 그림은 2D 층(zen.js)이 맡는다
 out vec4 o;
 
@@ -147,8 +150,8 @@ void main() {
       vec2 warp = vec2(fbm(wq + vec2(0., -uT * .18)), fbm(wq + vec2(4.3, -uT * .14))) - .5;
       vec3 under = tD(uvOf(p + warp * 22. * u), uLod);
       float k = clamp((p.y - e - D0) / max(1., up), 0., 1.);
-      vec3 teal = mix(vec3(.5, .85, .8), vec3(.3, .73, .75), k);
-      vec3 film = mix(under * vec3(.66, .93, .95) + vec3(.03, .09, .11), teal, .45 + .25 * k);
+      vec3 teal = mix(uFilmA, uFilmB, k);
+      vec3 film = mix(under * uFilmM + vec3(.03, .09, .11), teal, .45 + .25 * k);
       float lum = fbm(wq * 2.3 + warp * 1.6 + vec2(0., -uT * .3));
       film += (lum - .5) * .07;                                                        // 물빛 얼룩 (부드럽게)
       film = mix(film, vec3(1.), smoothstep(.66, .8, lum) * .14 * (1. - k));            // 드문드문 흩어지는 거품
@@ -223,7 +226,7 @@ export class WaterGL {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
     const loc = gl.getAttribLocation(pr, 'aP'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     this.U = {};
-    for (const n of ['uPlate', 'uDry', 'uL', 'uLod', 'uSea', 'uRock', 'uPlateN', 'uDryN', 'uSeaN', 'uNA', 'uPlateW', 'uDryW', 'uSeaW', 'uWA', 'uNS', 'uWS', 'uRes', 'uPS', 'uMap', 'uDpr', 'uT', 'uU', 'uSnow', 'uNight', 'uSurge', 'uRain', 'uLand']) this.U[n] = gl.getUniformLocation(pr, n);
+    for (const n of ['uPlate', 'uDry', 'uL', 'uLod', 'uSea', 'uRock', 'uPlateN', 'uDryN', 'uSeaN', 'uNA', 'uPlateW', 'uDryW', 'uSeaW', 'uWA', 'uNS', 'uWS', 'uRes', 'uPS', 'uMap', 'uDpr', 'uT', 'uU', 'uSnow', 'uNight', 'uSurge', 'uRain', 'uLand', 'uFilmA', 'uFilmB', 'uFilmM']) this.U[n] = gl.getUniformLocation(pr, n);
     this.line = new Float32Array(N * 4);
     gl.uniform1i(this.U.uPlate, 0); gl.uniform1i(this.U.uDry, 1); gl.uniform1i(this.U.uSea, 3); gl.uniform1i(this.U.uRock, 4);
     gl.uniform1i(this.U.uPlateN, 5); gl.uniform1i(this.U.uDryN, 6); gl.uniform1i(this.U.uSeaN, 7);
@@ -322,7 +325,7 @@ export class WaterGL {
     gl.uniform4fv(this.U.uL, this.line);
   }
 
-  draw(beach, { snow = 0, night = 0, rain = 0, art = 0, warm = 0, land = false } = {}) {
+  draw(beach, { snow = 0, night = 0, rain = 0, art = 0, warm = 0, land = false, film = null } = {}) {
     const gl = this.gl, { W, H } = this, P = this.plate, m = P.map;
     const step = W / (N - 1), wc = beach.wet.length;
     // O7 (2026-10-19): 물 없는 장소(uLand)의 셰이더는 판·눈만 그리고 해안선 줄(uL)을 읽지 않는다 → 줄 계산·업로드를 건너뛴다.
@@ -338,6 +341,7 @@ export class WaterGL {
     gl.uniform1f(this.U.uSnow, snow);
     gl.uniform1f(this.U.uNight, night);
     gl.uniform1f(this.U.uRain, rain);
+    const F = film || FILM_TEAL; gl.uniform3f(this.U.uFilmA, ...F[0]); gl.uniform3f(this.U.uFilmB, ...F[1]); gl.uniform3f(this.U.uFilmM, ...F[2]);
     const sN = this.slots.N, sW = this.slots.W;   // (N 은 해안선 칸 수 상수라 다른 이름)
     gl.uniform1f(this.U.uNA, sN ? art : 0); gl.uniform1f(this.U.uNS, sN ? sN.shift : 0);
     gl.uniform1f(this.U.uWA, sW ? warm : 0); gl.uniform1f(this.U.uWS, sW ? sW.shift : 0);
