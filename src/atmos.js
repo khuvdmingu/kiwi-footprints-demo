@@ -6,12 +6,12 @@
 //        구름 양·흐름 속도·파도 높이는 셰이더/해변에 넘기고, 빗줄기·물방울 고리·눈송이·나뭇잎·안개·반딧불이·야광은 여기서 #fx 캔버스에 그린다.
 //        눈은 시간이 지날수록 땅(셰이더 uSnow)과 나무에 쌓이고, 그치면 천천히 녹는다.
 
-import { clamp, lerp } from './util.js?v=v29.40.0';
-import { EXTRA_KEYS, EXTRA_PARAM, SkyExtra, blossomName } from './sky/extra.js?v=v29.40.0';   // v23 보슬비 · 꽃잎/낙엽 바람
-import { Drift } from './sky/drift.js?v=v29.40.0';   // v28.15 나비 · 홀씨 · 헬리콥터 씨앗
-import { SkyBits } from './sky/bits.js?v=v29.40.0';   // v28.20 번개 · 달무리 · 모래바람 · 풀공 · 아침 안개 띠
-import { Meteors, Rainbow } from './sky/events.js?v=v29.40.0';
-import { AirLeaves } from './leaves.js?v=v29.40.0';   // v29.40 단풍형 섬: 그림 잎이 날리고 물에 내려앉는다                                 // v23 별똥별 · 무지개
+import { clamp, lerp } from './util.js?v=v30.0.0';
+import { EXTRA_KEYS, EXTRA_PARAM, SkyExtra, blossomName } from './sky/extra.js?v=v30.0.0';   // v23 보슬비 · 꽃잎/낙엽 바람
+import { Drift } from './sky/drift.js?v=v30.0.0';   // v28.15 나비 · 홀씨 · 헬리콥터 씨앗
+import { SkyBits } from './sky/bits.js?v=v30.0.0';   // v28.20 번개 · 달무리 · 모래바람 · 풀공 · 아침 안개 띠
+import { Meteors, Rainbow } from './sky/events.js?v=v30.0.0';
+import { AirLeaves } from './leaves.js?v=v30.0.0';   // v30.0 단풍형 섬: 그림 잎이 날리고 물에 내려앉는다                                 // v23 별똥별 · 무지개
 
 export const WEATHERS = ['clear', 'cloudy', 'drizzle', 'rain', 'snow', 'fog', 'wind', 'blossom'];
 export const WEATHER_NAME = { clear: '맑음', cloudy: '흐림', drizzle: '보슬비', rain: '비', snow: '눈', fog: '안개', wind: '바람', blossom: '꽃잎 바람' };   // blossom 은 장소 따라 '낙엽 바람'
@@ -122,7 +122,7 @@ export class Atmos {
       if (s.x > W + 5) s.x = -5;
     }
     // 나뭇잎: 바람 부는 날
-    // v29.40 단풍형 섬은 그림 잎(airLeaves)이 대신한다
+    // v30.0 단풍형 섬은 그림 잎(airLeaves)이 대신한다
     this.airLeaves.update(dt, beach, this.v);
     const nLeaf = this.airLeaves.set ? 0 : Math.round(this.v.wind * 26 * Math.sqrt(area * 2));
     while (this.leaves.length < nLeaf) this.leaves.push({ x: -20 - Math.random() * W * 0.5, y: Math.random() * H, rot: Math.random() * 6, spin: (Math.random() - 0.5) * 6, sp: (90 + Math.random() * 90) * u, c: Math.random() < 0.6 ? '#5E7F68' : '#D9A960', s: (4 + Math.random() * 3) * u });
@@ -274,7 +274,7 @@ export class Atmos {
       ctx.beginPath(); ctx.ellipse(0, 0, l.s, l.s * 0.45, 0, 0, 6.29); ctx.fill();
       ctx.restore();
     }
-    this.airLeaves.draw(ctx, this.v.fog);   // v29.40 단풍형 섬 그림 잎
+    this.airLeaves.draw(ctx, this.v.fog);   // v30.0 단풍형 섬 그림 잎
     this.extra.draw(ctx, beach);     // v23 실비 · 꽃잎/낙엽
     this.drift.draw(ctx, beach);     // v28.15 나비 · 홀씨 · 씨앗
     this.bits.draw(ctx, beach);      // v28.20 번개 · 달무리 · 모래바람 · 풀공 · 안개 띠
