@@ -7,7 +7,7 @@
 //  · 그림은 한 장(assets/finds.webp, 4×4 칸)에서 잘라 그린다.
 //  · 주운 개수는 이 기기에만 저장한다 (같은 것도 몇 개 주웠는지 센다 — 바꾸기용, items.js 의 craft).
 //    바꾸면 개수는 줄지만 도감(본 적 있음 seen)은 그대로다.
-import { isWet } from './wx-kind.js?v=v30.6.2-10b0a60';   // v30.1 천둥번개도 비
+import { isWet } from './wx-kind.js?v=v30.7.0-e065f22';   // v30.1 천둥번개도 비
 
 export const RARITY = ['흔함', '드묾', '아주 드묾', '전설'];
 const WEIGHT = [10, 4, 1.2, 0.3];

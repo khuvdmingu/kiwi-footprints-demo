@@ -8,20 +8,20 @@
 //  기록은 이 기기에만 (localStorage 'chart'). 항해 기록(voyage.log)은 voyage.js 가 갖고, 여기는 발견·이름만 갖는다.
 //  그리기: 그림 격자(assets/chart-sheet.webp, 4×4)가 있으면 칸을 잘라 쓰고, 없으면 코드로 그린다.
 
-import { fitCell, roundCell } from './sheet.js?v=v30.6.2-10b0a60';
+import { fitCell, roundCell } from './sheet.js?v=v30.7.0-e065f22';
 
-export const SHEET = 'chart-sheet.webp?v=v30.6.2-10b0a60';
+export const SHEET = 'chart-sheet.webp?v=v30.7.0-e065f22';
 // v28.19 해도 그림 B (사용자 2026-10-24 비교 페이지에서 고름): 양피지 종이(나침반 포함) + 새 아이콘 격자 4×4
 //  새 격자 칸: 1행 화산·폭포 절벽·거북·등대 / 2행 환초·쌍둥이·빙산·떠 있는 꽃섬 / 3행 고래 꼬리·바다뱀·난파선·병 / 4행 X·닻·별 항로·바람 구름
 //  그림 칸이 없던 섬·바다 표시만 새 칸으로 (나머지는 지금 격자 그대로)
 // v28.20 격자 칸이 없는 큰 섬은 낱장 그림 (Codex 그림, 흰 바탕을 뺀 투명 webp)
-import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v30.6.2-10b0a60';
-import { WATER_PLACES, WATER_IDS } from './maps-water.js?v=v30.6.2-10b0a60';
-export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v30.6.2-10b0a60', oasis: 'chart-isle-oasis.webp?v=v30.6.2-10b0a60' };
+import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v30.7.0-e065f22';
+import { WATER_PLACES, WATER_IDS } from './maps-water.js?v=v30.7.0-e065f22';
+export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v30.7.0-e065f22', oasis: 'chart-isle-oasis.webp?v=v30.7.0-e065f22' };
 // v29.4 재고 새 장소 24곳의 해도 섬 그림 (Codex 그림, 4×4 격자 두 장 — 위 세 줄에 12곳씩, STOCK_PLACES 순서). 못 읽으면 코드 그림
-export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v30.6.2-10b0a60', 'chart-isles-b.webp?v=v30.6.2-10b0a60'];
+export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v30.7.0-e065f22', 'chart-isles-b.webp?v=v30.7.0-e065f22'];
 export const stockIsleCell = id => { const motif = WATER_PLACES.find(p => p.id === id)?.isleLike || id; const i = STOCK_PLACES.findIndex(p => p.id === motif); return i < 0 ? null : { sheet: Math.floor(i / 12), cell: i % 12 }; };
-export const CHART_B = { paper: 'chart-paper.webp?v=v30.6.2-10b0a60', sheet: 'chart-sheet-2.webp?v=v30.6.2-10b0a60',
+export const CHART_B = { paper: 'chart-paper.webp?v=v30.7.0-e065f22', sheet: 'chart-sheet-2.webp?v=v30.7.0-e065f22',
   islet: { 'i-twin': 5, 'i-lantern': 3, 'i-turtle': 2, 'i-end': 6 }, spot: { 's-reef': 4, 's-current': 15, 's-whale': 8 } };
 // 격자 칸 (4×4): 0~4 큰 섬 · 5~12 작은 섬 · 13 나침반 · 14 배 표시 · 15 안개 덩이
 export const CELL = { beach: 0, nz: 1, snow: 2, fall: 3, zen: 4, compass: 13, boat: 14, fog: 15 };
@@ -243,6 +243,7 @@ export function drawChart(ctx, S, o) {
   if (o.home && BIG[o.home] && !o.atSea) { const [x, y] = P(BIG[o.home]); if (!cell(ctx, sheet, CELL.boat, x - S * 0.07, y - S * 0.06, S * 0.05)) drawBoat(ctx, x - S * 0.07, y - S * 0.055, S * 0.022, t); }
   // 안개: 찾은 곳 둘레만 걷힌다 (덩이를 깔고 둘레를 지운다)
   drawFog(ctx, W, o, t);
+  if (o.night) nightGrade(ctx, W, S, routes, P);   // v30.7 밤 해도: 섬·바다·안개를 달밤 톤으로 + 별빛·밝힌 항로
   for (const id of Object.keys(chart.found)) { const [x, y] = P(chart.found[id]); bodies.push({ id, x, y, r: S * 0.04 }); }   // 작은 섬·바다 위의 곳도 덮지 않게
   // v29.4.4 (사용자 2026-10-24 「처음엔 글자 없이 그림만, 누르면 글자」): o.label 을 주면 그 한 곳의 이름만 쓴다 (null = 하나도 안 씀)
   placeNames(ctx, names.sort((a, b) => b.rank - a.rank), bodies, S);
@@ -270,6 +271,39 @@ export function dotCurve(ctx, x1, y1, mx, my, x2, y2, r, gap, u0 = 0, u1 = 1) {
     if (acc >= gap) { acc -= gap; ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, 6.29); }
   }
   ctx.fill();
+}
+// v30.7 (사용자 2026-10-26 「밤에는 해도도 밤 전용」): 창이 남색 종이로 바뀌는 때(--k-night 1)에 해도도 달밤으로.
+//  그림을 새로 그리지 않고 낮 그림 위에 남색을 곱해 어둡게 → 달빛 한쪽 밝힘 → 물 위 별빛 반짝임 → 항로 점은 등불 색으로 다시 찍는다
+export const NIGHT_MUL = '#4a5a8c', NIGHT_OUT = '#26304f';
+export function nightTone(ctx, w, h) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = NIGHT_MUL; ctx.fillRect(0, 0, w, h);
+  ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = 'rgba(20,26,52,0.18)'; ctx.fillRect(0, 0, w, h);
+  ctx.restore();
+}
+function nightGrade(ctx, W, S, routes, P) {
+  nightTone(ctx, W, W);
+  ctx.save();
+  // 달빛 — 오른쪽 위에서 옅게
+  const g = ctx.createRadialGradient(W * 0.82, W * 0.12, 0, W * 0.82, W * 0.12, W * 0.75);
+  g.addColorStop(0, 'rgba(200,214,255,0.16)'); g.addColorStop(1, 'rgba(200,214,255,0)');
+  ctx.globalCompositeOperation = 'screen'; ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
+  // 물 위 별빛 — 작은 점·십자 반짝임 (같은 자리, 해도를 다시 그려도 그대로)
+  const rnd = seeded(2026);
+  for (let k = 0; k < Math.round(180 * (W / S) ** 2); k++) {
+    const x = rnd() * W, y = rnd() * W, r = S * (0.0012 + rnd() * 0.0022), a = 0.25 + rnd() * 0.5;
+    ctx.fillStyle = `rgba(236,240,255,${a})`; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.29); ctx.fill();
+    if (k % 9 === 0) { ctx.strokeStyle = `rgba(236,240,255,${a * 0.6})`; ctx.lineWidth = Math.max(1, r * 0.5); ctx.beginPath(); ctx.moveTo(x - r * 4, y); ctx.lineTo(x + r * 4, y); ctx.moveTo(x, y - r * 4); ctx.lineTo(x, y + r * 4); ctx.stroke(); }
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  // 항로는 등불 색으로 다시 — 어두운 바다 위에서도 다닌 길이 보이게
+  for (const [k, n] of Object.entries(routes)) {
+    const [a, b] = k.split('~'); if (!BIG[a] || !BIG[b]) continue;
+    const [x1, y1] = P(BIG[a]), [x2, y2] = P(BIG[b]), mx = (x1 + x2) / 2 - (y2 - y1) * 0.12, my = (y1 + y2) / 2 + (x2 - x1) * 0.12;
+    const r = S * (0.0032 + Math.min(0.003, n * 0.0004));
+    ctx.fillStyle = `rgba(255,206,120,${Math.min(0.95, 0.55 + n * 0.08)})`; dotCurve(ctx, x1, y1, mx, my, x2, y2, r, r * 3.6);
+  }
+  ctx.restore();
 }
 export const FOG_SEA = 'rgba(226,238,238,0.86)';   // 물빛 해도의 물안개 (해도 밖도 이 색으로 덮는다)
 // 해도 밖 바다: 그림 바다를 채도 낮춰 한 장 만들어 둔다 (해도 안과 같은 색 · 안개 없음)

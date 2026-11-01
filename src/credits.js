@@ -1,6 +1,6 @@
 // credits.js — 작품 설명의 소리·곡 크레딧을 카탈로그(src/tracks/)에서 만든다
 //  곡을 붙이면 크레딧도 저절로 바뀐다. index.html 의 #audio-credits 안 글은 JS 가 없을 때의 대체 문구.
-import { credits, LICENSES } from './tracks/index.js?v=v30.6.2-10b0a60';
+import { credits, LICENSES } from './tracks/index.js?v=v30.7.0-e065f22';
 
 const el = document.getElementById('audio-credits');
 if (el) {

@@ -5,7 +5,7 @@
 //  빈도(정한 값): 섬을 8분 넘게 보고 있을 때부터, 45초마다 한 번 8% — 한 번 나오면 25분 쉼, 같은 장면은 하루 한 번
 //  ctx = { hour, weather, map, night, kiwis(마리), rainbow(무지개 떠 있음), season(행사 id|null) }
 //  ?moment=<id> 면 3초 뒤 그 장면을 바로 (미리 보기)
-import { isRain, isWet } from './wx-kind.js?v=v30.6.2-10b0a60';   // v30.1 천둥번개도 비
+import { isRain, isWet } from './wx-kind.js?v=v30.7.0-e065f22';   // v30.1 천둥번개도 비
 
 const water = m => m !== 'zen';
 export const MOMENTS = [
