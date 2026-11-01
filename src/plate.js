@@ -17,9 +17,9 @@ const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
   // 물 없는 장소(opts.rest — 젠 가든 v18): 물 뺀 판·바위 지운 판이 없다 → 같은 판 한 장을 세 자리에 쓴다
-  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v30.14.0-a2fe19b').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v30.14.0-a2fe19b'), load(name + '-dry.webp?v=v30.14.0-a2fe19b'), load(name + '-sea.webp?v=v30.14.0-a2fe19b')]);
+  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v30.14.1-0b46aff').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v30.14.1-0b46aff'), load(name + '-dry.webp?v=v30.14.1-0b46aff'), load(name + '-sea.webp?v=v30.14.1-0b46aff')]);
   // 미리 만든 바위 가림막(<판>-rock.webp, tools/rock-masks.mjs 2026-11-01) — 없거나 못 읽으면 예전 짐작만
-  const rock = opts.rockArt && !opts.rest ? await load(name + '-rock.webp?v=v30.14.0-a2fe19b').catch(() => null) : null;
+  const rock = opts.rockArt && !opts.rest ? await load(name + '-rock.webp?v=v30.14.1-0b46aff').catch(() => null) : null;
   const p = new Plate(img, dry, sea, opts, rock);
   p.name = name; p.base = base;
   return p;
@@ -140,7 +140,10 @@ export class Plate {
     if (this.opts.rest) { this.rockMask = document.createElement('canvas'); this.rockMask.width = this.rockMask.height = 1; return; }   // 물이 없으면 바위 가림막도 없다
     // 미리 만든 가림막이 있으면 그것만 쓴다 (2026-11-02): 예전 색 짐작을 더하면 바위 둘레 물결·그늘 조각이 그대로 고정돼
     //  물속 웅덩이·잔상처럼 보였다. 미리 만든 것은 칸마다 진하기가 있어 그 자리는 움직이는 물이 비친다. 없으면 예전 짐작
-    this.rockMask = this.rockArt ? this.fromArt(this.rockArt) : this.makeRockMask(Math.round(forest.reduce((a, b) => a + b, 0) / aw / ah * 100) / 100);
+    //  다만 모래 위 바위는 미리 만든 것이 못 찾는다(바위 지운 판에도 그대로 있어 차이가 없다) → 예전 짐작의 「모래 위 바위」만 더한다.
+    //  안 더하면 큰 파도가 모래를 덮을 때 모래 위 바위가 통째로 물에 잠겨 사라진다 (2026-11-02 예전 판과 비교)
+    const ff = Math.round(forest.reduce((a, b) => a + b, 0) / aw / ah * 100) / 100;
+    this.rockMask = this.rockArt ? this.withLand(this.fromArt(this.rockArt), this.makeRockMask(ff, true)) : this.makeRockMask(ff);
   }
 
   // 바위 지운 판의 물가선: 그 판과 물 뺀 판이 크게 다른 곳을, 원래 물가선 근처에서만 찾는다
@@ -159,7 +162,7 @@ export class Plate {
   }
 
   // 바위 가림막: 원본과 "바위 지운 판"이 크게 다르고 원본 쪽이 더 어두운 곳 = 물속·물가 바위
-  makeRockMask(forestFrac) {
+  makeRockMask(forestFrac, landOnly = false) {
     const mw = 1024, mh = Math.round(mw * this.ph / this.pw);
     const grab = im => { const c = document.createElement('canvas'); c.width = mw; c.height = mh; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(im, 0, 0, mw, mh); return g.getImageData(0, 0, mw, mh).data; };
     const a = grab(this.img), b = grab(this.sea);
@@ -188,7 +191,7 @@ export class Plate {
       //  대신 붉은 기: 바위는 빨강이 물(빨강 거의 0)보다 훨씬 크다. 거품(밝음)은 빼고 물가선 아래에서만.
       const warm = this.opts.moss && y > shoreY && a[i] - b[i] > 50 && la < 170;
       if (warm) hue[y * mw + x] = 1;
-      bin[y * mw + x] = !red && ((fillRock || (rocky && ((diff > 90 && lb - la > 20) || landRock))) || (grey && diff > 70) || (warm && diff > 90)) ? 1 : 0;
+      bin[y * mw + x] = !red && (landOnly ? rocky && landRock : ((fillRock || (rocky && ((diff > 90 && lb - la > 20) || landRock))) || (grey && diff > 70) || (warm && diff > 90))) ? 1 : 0;
     }
     // 다듬기 (v16.2.3): 예전엔 네모 틀(9×9)로 깎았다 불려서 남은 조각이 전부 네모났다(물속 돌이 픽셀처럼 깨져 보임).
     //  ① 둥근 틀로 열기(흐림 + 문턱으로 깎고 불리기) — 가는 선(물결·거품 윤곽)·흩어진 점은 사라지고, 모서리는 둥글게 남는다
@@ -246,6 +249,7 @@ export class Plate {
     //  더하기만 하므로 예전보다 바위가 줄어드는 곳은 없다
     return o;
   }
+  withLand(art, land) { art.getContext('2d').drawImage(land, 0, 0, art.width, art.height); return art; }
   fromArt(im) {
     const o = document.createElement('canvas'); o.width = im.naturalWidth || im.width; o.height = im.naturalHeight || im.height;
     o.getContext('2d').drawImage(im, 0, 0);
@@ -296,7 +300,7 @@ export class Plate {
     if (!this._sets[kind] && Date.now() - (this._setFail[kind] ?? -Infinity) < SET_RETRY_MS) return Promise.resolve(null);
     if (!this._sets[kind]) {
       // 판이 한 장인 장소(rest — 모래 정원)는 시간대 판도 한 장 (v28.3)
-      const p = this._sets[kind] = (this.opts.rest ? load(`${this.name}-${kind}.webp?v=v30.14.0-a2fe19b`).then(im => [im, im, im]) : Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v30.14.0-a2fe19b`))))
+      const p = this._sets[kind] = (this.opts.rest ? load(`${this.name}-${kind}.webp?v=v30.14.1-0b46aff`).then(im => [im, im, im]) : Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v30.14.1-0b46aff`))))
         .then(([img, dry, sea]) => (this.sets[kind] = { img, dry, sea }))
         .catch(() => { if (this._sets[kind] === p) { delete this._sets[kind]; this._setFail[kind] = Date.now(); } return null; });
     }
