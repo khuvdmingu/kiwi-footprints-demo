@@ -1,6 +1,6 @@
 // maps.js — 골라 쓰는 장소(맵)
-import { STOCK_PLACES, STOCK_STEPS0, STOCK_STEP } from './maps-stock.js?v=v30.5.0-56fe9be';
-import { WATER_PLACES, WATER_STEPS0, WATER_STEP } from './maps-water.js?v=v30.5.0-56fe9be';
+import { STOCK_PLACES, STOCK_STEPS0, STOCK_STEP } from './maps-stock.js?v=v30.5.1-0b4a115';
+import { WATER_PLACES, WATER_STEPS0, WATER_STEP } from './maps-water.js?v=v30.5.1-0b4a115';
 //  장소마다 그림 판 한 벌(가로 wide · 세로 tall, 각각 본판·-dry·-sea 세 장)과 그 장소의 성격을 정한다.
 //  구조는 모두 같다: 위는 숲(키위가 숨었다 나온다), 가운데는 글씨를 쓰는 바닥, 아래는 물(불어나서 글씨를 지운다).
 
@@ -13,7 +13,6 @@ export const MAPS = {
     rockFill: true,                  // 물속 돌을 통째로 (밝은 면·잠긴 돌까지, 2026-10-24 plate.js)
   },
   nz: {
-    rockArt: false,                  // 바위 지운 판이 바닥 조약돌까지 새로 그려져 미리 만든 가림막을 못 쓴다 (2026-11-01 tools/rock-masks.mjs)
     name: '뉴질랜드 숲',              // 키위가 실제로 사는 곳: 은고사리 숲 아래 강가 흙, 개울이 불어나 지운다
     wide: 'nz', tall: 'nz-tall',
     gulls: false,

@@ -13,9 +13,9 @@
 //  이 파일은 "언제 어디까지 갔고 무슨 일이 있었나"만 정한다. 그리기·소리·사진은 main.js 가 결과를 받아 한다.
 //  기록은 이 기기에만 (localStorage 'voyage' · 'voyageRun').
 
-import { STOCK_PLACES } from './maps-stock.js?v=v30.5.0-56fe9be';
-import { WATER_PLACES } from './maps-water.js?v=v30.5.0-56fe9be';
-import { isWet } from './wx-kind.js?v=v30.5.0-56fe9be';   // v30.1 천둥번개도 비
+import { STOCK_PLACES } from './maps-stock.js?v=v30.5.1-0b4a115';
+import { WATER_PLACES } from './maps-water.js?v=v30.5.1-0b4a115';
+import { isWet } from './wx-kind.js?v=v30.5.1-0b4a115';   // v30.1 천둥번개도 비
 
 export const MODES = ['island', 'voyage'];
 export const MODE_NAME = { island: { ko: '섬에서 보기', en: 'Stay on the island' }, voyage: { ko: '항해하기', en: 'Set sail' } };
