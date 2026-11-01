@@ -19,10 +19,10 @@ export const PACE = {
 };
 export const paceOf = v => (v in PACE ? v : 'normal');
 const KEEP = 300;
-export const INBOX = 500;   // v29.22 받은 쪽지함: 열어 본 병 쪽지를 이만큼 남긴다 (오래된 것부터 지움)
+export const INBOX = 2000;   // v29.22 받은 쪽지함: 열어 본 병 쪽지를 이만큼 남긴다 (오래된 것부터 지움) · v29.37 달력 보관함이 생겨 500 → 2000
 
 // 응원 쪽지 글·고르는 방식은 편지 시스템(letters/index.js)
-import { CHEERS, cheerById, pickPool } from './letters/index.js?v=v29.37.0';
+import { CHEERS, cheerById, pickPool } from './letters/index.js?v=v29.37.1';
 export { CHEERS };
 
 const day0 = ms => { const d = new Date(ms); d.setHours(0, 0, 0, 0); return d.getTime(); };
