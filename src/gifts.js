@@ -9,8 +9,8 @@
 //  item key: 'f:<주운 것 id>' · 'c:<낚은 것 id>'
 //  규칙·저장만 — 화면은 main.js (편지 카드 「답장 선물」 · 고르기 칸 · 모래 위 고맙다는 쪽지).
 
-import { thanksLetter } from './letters/index.js?v=v30.7.0-e065f22';
-import { eul, ro } from './letters/josa.js?v=v30.7.0-e065f22';
+import { thanksLetter } from './letters/index.js?v=v30.8.0-f99a9c0';
+import { eul, ro } from './letters/josa.js?v=v30.8.0-f99a9c0';
 
 export const LIKES = {
   gull: { likes: ['c:kelp', 'f:scallop', 'f:feather'] },
