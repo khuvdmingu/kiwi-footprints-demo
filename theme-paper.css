@@ -82,11 +82,11 @@ html[data-ui="paper"] :where(.round, #saySend, #menu button, #picker button, #in
 html[data-ui="paper"] .round svg, html[data-ui="paper"] #saySend svg { width: 30px; height: 30px; }
 html[data-ui="paper"] #picker svg { width: 34px; height: 34px; }
 html[data-ui="paper"] #menu svg { width: 28px; height: 28px; }
-html[data-ui="paper"] #exitBtn svg > * { visibility: visible; }   /* v29.36 나가기 — 칠한 아이콘이 생기기 전까지 선 아이콘 그대로 */
-/* v30.1 천둥번개 = 비 그림 위에 번개 한 줄(칠한 그림이 생기기 전까지) · 실제 날씨 = 선 아이콘 그대로 */
-html[data-ui="paper"] #weatherBtn[data-weather="storm"] svg, html[data-ui="paper"] svg[data-ico="w-storm"] { background-image: url("assets/icons-paper-a.webp"); background-position: 100.000% 0.000%; }
-html[data-ui="paper"] :is(#weatherBtn[data-weather="storm"], #picker) .w-storm .bolt { visibility: visible; stroke: var(--k-accent); stroke-width: 2.4; }
-html[data-ui="paper"] #picker svg[data-ico="w-real"] > * { visibility: visible; fill: none; stroke: var(--k-accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* v30.11 칠한 그림 넷째 장(assets/icons-paper-d.webp, 4×2, Codex): 천둥번개 · 실제 날씨 · 나가기 (아래 줄 소라·두루마리·열쇠·병은 재고) */
+html[data-ui="paper"] #weatherBtn[data-weather="storm"] svg, html[data-ui="paper"] svg[data-ico="w-storm"] { background-image: url("assets/icons-paper-d.webp"); background-size: 400% 200%; background-position: 0.000% 0.000%; }
+html[data-ui="paper"] svg[data-ico="w-real"] { background-image: url("assets/icons-paper-d.webp"); background-size: 400% 200%; background-position: 33.333% 0.000%; }
+html[data-ui="paper"] #exitBtn svg { background-image: url("assets/icons-paper-d.webp"); background-size: 400% 200%; background-position: 66.667% 0.000%; background-repeat: no-repeat; }
+html[data-ui="paper"] #exitBtn svg > * { visibility: hidden; }
 html[data-ui="paper"] #info .keys i svg { width: 24px; height: 24px; }
 html[data-ui="paper"] #weatherBtn[data-weather="clear"] svg, html[data-ui="paper"] svg[data-ico="w-clear"] { background-image: url("assets/icons-paper-a.webp"); background-position: 0.000% 0.000%; }
 html[data-ui="paper"] #weatherBtn[data-weather="cloudy"] svg, html[data-ui="paper"] svg[data-ico="w-cloudy"] { background-image: url("assets/icons-paper-a.webp"); background-position: 33.333% 0.000%; }

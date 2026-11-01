@@ -11,13 +11,13 @@
 //   · 비:   물 위 잎이 절반까지 줄며 천천히 가라앉듯 옅어진다. 눈: 물살이 느려진다. 안개: 흐릿하게.
 
 // 장소 → 쓰는 칸. tint = 그림 색을 이 색 쪽으로 바꿈(밝기는 유지) · size = 크기 비율 · seeds = 하늘에 헬리콥터 씨앗도
-//  ⚠ 자작나무·낙우송은 그 잎 그림이 아직 없어 참나무 잎 색을 바꿔 쓴다 — 그림이 오면 칸만 바꾼다(docs/WORKSTREAMS.md 백로그).
 export const LEAF_PLACES = {
   fall: { cells: [0, 1, 2, 3, 4, 5, 6, 7] },
   maple: { cells: [0, 1, 2, 6, 7], seeds: true },
   ginkgo: { cells: [3, 4], ginkgo: true },
-  birch: { cells: [5], tint: [232, 192, 64], size: 0.62 },
-  cypress: { cells: [5], tint: [190, 96, 44], size: 0.5 },
+  // v30.11 자작나무·낙우송 잎 그림(assets/leaves-2.webp 4×2, Codex: 윗줄 자작 4 · 아랫줄 낙우송 4) — 못 읽으면 예전처럼 참나무 잎 색 바꿈
+  birch: { cells: [5], tint: [232, 192, 64], size: 0.62, cells2: [0, 1, 2, 3] },
+  cypress: { cells: [5], tint: [190, 96, 44], size: 0.5, cells2: [4, 5, 6, 7], size2: 0.62 },
 };
 export const leafPlace = mapId => LEAF_PLACES[mapId] || null;
 
@@ -52,6 +52,7 @@ function tinted(cv, rgb) {
 export function spritesFor(mapId, sheets) {
   const p = leafPlace(mapId);
   if (!p || !sheets.leaves) return null;
+  if (p.cells2 && sheets.leaves2) { const w2 = p.cells2.map(i => sheets.leaves2[i]); return { water: w2, air: w2, seeds: [], size: p.size2 || p.size || 1 }; }
   let water = p.cells.map(i => sheets.leaves[i]);
   if (p.ginkgo && sheets.seeds) water = water.concat(sheets.seeds.slice(4));
   if (p.tint) water = water.map(cv => tinted(cv, p.tint));
