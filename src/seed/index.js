@@ -14,15 +14,15 @@
 //   2. tools/deploy-demo.sh FILES 에 src/seed · seed.html 추가 (지금은 src/*.js 한 단계만 올라간다)
 //   3. 출시 전 UNLOCK_ALL 끌 때 테스트 탭과 함께 숨김
 
-import { PREFIX } from './util.js?v=v30.2.0-bbd34ca';
-import focus from './focus.js?v=v30.2.0-bbd34ca';
-import album from './album.js?v=v30.2.0-bbd34ca';
-import flock from './flock.js?v=v30.2.0-bbd34ca';
-import guests from './guests.js?v=v30.2.0-bbd34ca';
-import bottles from './bottles.js?v=v30.2.0-bbd34ca';
-import finds from './finds.js?v=v30.2.0-bbd34ca';
-import items from './items.js?v=v30.2.0-bbd34ca';
-import away from './away.js?v=v30.2.0-bbd34ca';
+import { PREFIX } from './util.js?v=v30.3.0-65cbb24';
+import focus from './focus.js?v=v30.3.0-65cbb24';
+import album from './album.js?v=v30.3.0-65cbb24';
+import flock from './flock.js?v=v30.3.0-65cbb24';
+import guests from './guests.js?v=v30.3.0-65cbb24';
+import bottles from './bottles.js?v=v30.3.0-65cbb24';
+import finds from './finds.js?v=v30.3.0-65cbb24';
+import items from './items.js?v=v30.3.0-65cbb24';
+import away from './away.js?v=v30.3.0-65cbb24';
 
 export const MODULES = [focus, album, flock, guests, bottles, finds, items, away];
 export const BACKUP = 'kiwi-footprints-seed.backup';

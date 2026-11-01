@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>키위 디자인 시스템</title>
   <!-- 카탈로그: 부품 전부를 한 장에서. 새 부품·변형을 parts.css 에 더하면 여기에도 한 칸 (docs/DESIGN_SYSTEM.md) -->
-  <link rel="stylesheet" href="style.css?v=v30.2.0-bbd34ca" />
-  <link rel="stylesheet" href="theme-paper.css?v=v30.2.0-bbd34ca" />
-  <link rel="stylesheet" href="src/ui/tokens.css?v=v30.2.0-bbd34ca" />
-  <link rel="stylesheet" href="src/ui/parts.css?v=v30.2.0-bbd34ca" />
+  <link rel="stylesheet" href="style.css?v=v30.3.0-65cbb24" />
+  <link rel="stylesheet" href="theme-paper.css?v=v30.3.0-65cbb24" />
+  <link rel="stylesheet" href="src/ui/tokens.css?v=v30.3.0-65cbb24" />
+  <link rel="stylesheet" href="src/ui/parts.css?v=v30.3.0-65cbb24" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <style>
     /* 카탈로그 페이지 자체의 배치만 (부품 모양은 parts.css) */
@@ -115,6 +115,8 @@
     </section>
 
     <section class="k-win card">
+      <p class="lbl">.k-switch (창 안 체크칸은 자동) · select</p>
+      <div class="k-win" style="padding:12px"><label class="k-row"><span>초 표시</span><input type="checkbox" /></label><label class="k-row"><span>벽시계로 켜 두기</span><input type="checkbox" checked /></label><select><option>입혀 둔 옷 중 아무거나</option></select></div>
       <p class="lbl">.k-pop.k-menu (.k-toggle) · .k-pop.k-picker</p>
       <div class="k-pop k-menu"><button><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /></svg><span>꾸미기</span><small>키위 옷 · 배</small></button><div class="menuRow"><button><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /></svg><span>소리</span><small>배경 소리 · 키위 소리</small></button><button class="k-toggle" aria-checked="true">켜짐</button></div></div>
       <div class="k-pop k-picker" style="margin-top:12px"><p class="ttl">날씨</p><div class="opts three"><button aria-pressed="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /></svg><span>맑음</span></button><button><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /></svg><span>흐림</span></button><button><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /></svg><span>비</span></button></div></div>

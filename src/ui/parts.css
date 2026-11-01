@@ -188,7 +188,7 @@
 .k-rows input { min-width: 0; padding: 3px 6px; border: 1px solid transparent; border-radius: var(--k-r-s); background: none; color: inherit; font: inherit; font-size: var(--k-fs-l); font-weight: 600; }
 .k-rows input:is(:hover, :focus) { border-color: var(--k-edge); background: var(--k-wash); outline: none; }
 .k-rows .days { font-size: var(--k-fs-s); color: var(--k-ink-soft); font-variant-numeric: tabular-nums; }
-.k-rows select { grid-column: 2 / span 2; min-width: 0; min-height: var(--tap-in); padding: 4px 10px; border: 0; border-radius: var(--k-r-m); background: var(--k-wash); color: var(--k-ink); font: inherit; font-size: var(--k-fs-s); }
+.k-win .k-rows select { grid-column: 2 / span 2; min-width: 0; height: var(--tap-in); padding-left: 12px; border-radius: var(--k-r-m); }   /* 2026-11-01 입혀 둔 옷 고르기: 입력칸 크기(높이 40)로 */
 
 /* ── 사진 (k-photos): 인화지 사진 · 묶음 더미 · 접히는 묶음(details.shotGroup) ── */
 .k-photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--k-s-4) var(--k-s-3); margin: 0; padding-top: var(--k-s-2); }
@@ -214,13 +214,18 @@
 .k-row { display: flex; align-items: center; justify-content: space-between; gap: var(--k-s-3); min-height: 46px; color: var(--k-ink); }
 .k-row > span { flex: none; font-weight: 500; }
 .k-row input[type="range"] { flex: 1; min-width: 0; }
-.k-row input[type="checkbox"] { width: 22px; height: 22px; }
 /* 상태 한 줄 (k-now): 지금 값 — 막대·칩 위 */
 .k-now { margin: 2px 2px var(--k-s-1); font-weight: 500; font-variant-numeric: tabular-nums; color: var(--k-ink); }
 /* 창 안 조절 공통: 막대·체크박스는 도장 색, select 는 종이 칸 */
-.k-win input[type="range"] { width: 100%; min-height: var(--tap-in); margin-block: 0; accent-color: var(--k-accent); }
-.k-win input[type="checkbox"] { accent-color: var(--k-accent); }
-.k-win select { min-height: 34px; padding: var(--k-s-1) var(--k-s-2); border-radius: var(--k-r-s); border: 1px solid var(--k-line); background: var(--k-field); color: var(--k-ink); font: inherit; font-size: var(--k-fs-m); }
+.k-win input[type="range"] { box-sizing: border-box; width: 100%; min-height: var(--tap-in); margin: 0;   /* 2026-11-01 브라우저 기본 좌우 2px 여백이 창 밖으로 밀던 것 */ accent-color: var(--k-accent); }
+/* 켜고 끄기 스위치 (2026-11-01): 창 안 체크칸은 모두 이 모양 — 꺼짐 = 옅은 줄 색 바탕·동그라미 왼쪽 / 켜짐 = 도장 색·오른쪽. 동그라미는 늘 도장 위 글씨 색(밤에도 보인다).
+   동그라미는 바탕 그림(radial-gradient)이라 낮밤 색을 그대로 따른다. 누르는 칸은 라벨 전체(줄 높이 46). */
+.k-win input[type="checkbox"], .k-switch { appearance: none; -webkit-appearance: none; flex: none; width: 44px; height: 26px; margin: 0; border: 0; border-radius: var(--k-r-pill); background: radial-gradient(circle closest-side, var(--k-on-accent) 82%, transparent 88%) 0 0 / 26px 26px no-repeat, var(--k-line); box-shadow: inset 0 0 0 1px var(--k-line-soft); cursor: pointer; transition: background-position 0.18s ease, background-color 0.18s ease; }
+.k-win input[type="checkbox"]:checked, .k-switch:checked { background-position: 18px 0; background-color: var(--k-accent); }
+.k-win input[type="checkbox"]:disabled { opacity: 0.45; cursor: default; }
+@media (prefers-reduced-motion: reduce) { .k-win input[type="checkbox"], .k-switch { transition: none; } }
+/* 고르기 칸 (select): 입력칸과 같은 종이 칸 + 잉크 색 화살표(바탕 그림이라 낮밤을 따른다) — 2026-11-01 브라우저 기본 화살표 대신 */
+.k-win select { box-sizing: border-box; min-height: 34px; padding: var(--k-s-1) 30px var(--k-s-1) var(--k-s-2); border-radius: var(--k-r-s); border: 1px solid var(--k-line); background: linear-gradient(45deg, transparent 50%, var(--k-ink-soft) 50%) right 16px center / 5px 5px no-repeat, linear-gradient(135deg, var(--k-ink-soft) 50%, transparent 50%) right 11px center / 5px 5px no-repeat, var(--k-field); color: var(--k-ink); font: 500 var(--k-fs-m)/1.2 var(--k-font); appearance: none; -webkit-appearance: none; cursor: pointer; }
 
 /* ── 큰 행동 단추 (k-wide): svg + span(이름) + small(설명) ── */
 .k-wide { display: grid; grid-template-columns: 26px 1fr; grid-template-rows: auto auto; column-gap: var(--k-s-3); align-items: center; width: 100%; min-height: 48px; margin: 2px 0 0; padding: 6px var(--k-s-3); border-radius: var(--k-r-m); border: 1px solid var(--k-line); background: var(--k-wash); color: var(--k-ink); font: inherit; text-align: left; cursor: pointer; }
@@ -384,9 +389,15 @@
 /* ── 시간 메모 (km-*, memo-ui.js): 입력칸·버튼을 부품과 같은 모양으로 — 밤에 흰 칸 위 밝은 글씨가 되던 것 ── */
 .km-add input:is([type="time"], [type="text"]) { min-width: 0; height: var(--tap-in); box-sizing: border-box; padding: 0 10px; border-radius: var(--k-r-m); border: 1px solid var(--k-line); background: var(--k-field); color: var(--k-ink); font: 500 15px/1 var(--k-font); box-shadow: none; }
 .km-add input::placeholder { color: var(--k-ink-soft); }
-.km-rep { color: var(--k-ink); }
-.km-rep input { accent-color: var(--k-accent); }
+.km-rep { display: flex; align-items: center; gap: var(--k-s-2); min-height: var(--tap-in); padding: 0 var(--k-s-1); color: var(--k-ink); font-size: var(--k-fs-m); font-weight: 500; }   /* 「매일」 = 스위치 + 글씨 */
+.km-go { height: var(--tap-in); padding: 0 var(--k-s-4); border: 0; border-radius: var(--k-r-m); background: var(--k-accent); color: var(--k-on-accent); font: 600 var(--k-fs-m)/1 var(--k-font); }   /* 「더하기」 = 고른 것 도장 색 (k-btn--primary 와 같음) */
 .km-err { color: var(--k-danger); }
+/* 2026-11-01 여백 맞춤: 칸(입력·줄)은 창 안쪽 끝에, 글씨(안내·제목)는 거기서 2px 안 — 시계·메모가 다른 탭과 같은 선에 선다 */
+#memoHost .km-add { margin-inline: 0; }
+#memoHost :is(.km-next, .km-hint, .km-err) { margin-inline: 2px; }
+#memoHost .km-next { font-size: var(--k-fs-m); }
+#memoHost > .km-hint { margin-top: var(--k-s-1); font-size: var(--k-fs-s); color: var(--k-ink-soft); opacity: 1; }
+#memoHost .km-list:empty { display: none; }   /* 메모가 없을 때 빈 목록이 칸 사이를 두 번 벌리던 것 */
 
 /* ── 숨김: 부품이 display 를 정해도 hidden 은 늘 숨긴다 ── */
 .k-win [hidden] { display: none !important; }
