@@ -29,7 +29,7 @@ html[data-ui="paper"] .uiWindow, html[data-ui="paper"] #mixer, html[data-ui="pap
   box-shadow: var(--pp-shadow); backdrop-filter: none; -webkit-backdrop-filter: none;
 }
 html[data-ui="paper"] #picker::before { background: var(--pp); border-color: var(--pp-edge); }
-html[data-ui="paper"] .uiWindow h2, html[data-ui="paper"] #focusPanel h2, html[data-ui="paper"] .soundPicks h3, html[data-ui="paper"] #picker .ttl {
+html[data-ui="paper"] .uiWindow h2, html[data-ui="paper"] #focusPanel h2, html[data-ui="paper"] #picker .ttl {
   font-family: var(--pp-hand); font-size: 18px; font-weight: 700; letter-spacing: 0.01em; opacity: 1; color: var(--pp-ink);
 }
 html[data-ui="paper"] .hint, html[data-ui="paper"] .note, html[data-ui="paper"] #menu small, html[data-ui="paper"] .lightNow { color: var(--pp-ink-soft); opacity: 1; }
@@ -40,10 +40,10 @@ html[data-ui="paper"] .uiWindow .tabs button[aria-selected="true"], html[data-ui
 }
 
 /* 고르기 칸: 연필 테두리, 고른 것은 주황 도장 (살짝 비뚤게) — 기존 규칙이 .uiWindow 처럼 id 로 잡고 있어 :is(id) 로 맞선다 */
-html[data-ui="paper"] :is(.uiWindow, #focusPanel) .seg span, html[data-ui="paper"] #lightOpts .chips button, html[data-ui="paper"] .soundPicks .packs button, html[data-ui="paper"] #picker button, html[data-ui="paper"] #tunePane .tbtns button, html[data-ui="paper"] #craftList button, html[data-ui="paper"] .soundSum button, html[data-ui="paper"] .fcustom button {
+html[data-ui="paper"] :is(.uiWindow, #focusPanel) .seg span, html[data-ui="paper"] #lightOpts .chips button, html[data-ui="paper"] #picker button, html[data-ui="paper"] #tunePane .tbtns button, html[data-ui="paper"] #craftList button, html[data-ui="paper"] .fcustom button {
   border: 1px solid rgba(74, 56, 38, 0.28); background: rgba(255, 255, 255, 0.35); color: var(--pp-ink);
 }
-html[data-ui="paper"] :is(.uiWindow, #focusPanel) .seg input:checked + span, html[data-ui="paper"] #lightOpts .chips button.on, html[data-ui="paper"] .soundPicks .packs button[aria-pressed="true"], html[data-ui="paper"] #picker button[aria-pressed="true"] {
+html[data-ui="paper"] :is(.uiWindow, #focusPanel) .seg input:checked + span, html[data-ui="paper"] #lightOpts .chips button.on, html[data-ui="paper"] #picker button[aria-pressed="true"] {
   background: var(--pp-stamp); color: var(--pp-stamp-ink); border-color: transparent;
   transform: rotate(-1.2deg); box-shadow: inset 0 0 0 2px rgba(255, 240, 220, 0.35), 0 1px 0 rgba(120, 60, 20, 0.35);
 }

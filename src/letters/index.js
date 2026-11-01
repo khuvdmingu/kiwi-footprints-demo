@@ -6,13 +6,13 @@
 //  글          지금은 한국어만 (letters/ko/). 엔진·정보는 언어와 무관하게, 글은 번호로 찾는다 — 나중에 다른 언어는 번호 → 글 파일만 더한다
 //  자세한 규칙·새 동물 붙이는 법: docs/LETTERS.md · 자동 검사: test/letters-lint.test.mjs
 
-import todak from './ko/kiwi/todak.js?v=v30.12.0-e46c2a8';
-import jan from './ko/kiwi/jan.js?v=v30.12.0-e46c2a8';
-import hd from './ko/kiwi/hd.js?v=v30.12.0-e46c2a8';
-import bs from './ko/kiwi/bs.js?v=v30.12.0-e46c2a8';
-import ANIMALS from './ko/animals/index.js?v=v30.12.0-e46c2a8';
-import common from './ko/common.js?v=v30.12.0-e46c2a8';
-import { eul, iga } from './josa.js?v=v30.12.0-e46c2a8';
+import todak from './ko/kiwi/todak.js?v=v30.13.0-cbbffda';
+import jan from './ko/kiwi/jan.js?v=v30.13.0-cbbffda';
+import hd from './ko/kiwi/hd.js?v=v30.13.0-cbbffda';
+import bs from './ko/kiwi/bs.js?v=v30.13.0-cbbffda';
+import ANIMALS from './ko/animals/index.js?v=v30.13.0-cbbffda';
+import common from './ko/common.js?v=v30.13.0-cbbffda';
+import { eul, iga } from './josa.js?v=v30.13.0-cbbffda';
 
 export { ANIMALS };
 export const THEMES = {
