@@ -3,9 +3,9 @@
 //  모래 한 자락 + 아래 물가(밀려왔다 빠지는 거품 줄)에 입혀 둔 옷마다 키위 한 마리씩(최대 4, 없으면 맨몸 하나).
 //  머리 장식은 섬에서처럼 쉬는 키위(kiwi.webp, 640px 기준) 위에 HEADWEAR 자리로 얹고, 몸째 그린 옷은 그 그림을 쓴다.
 //  키위는 숨 쉬듯 오르내리고, 방금 입힌 옷의 키위는 콩 뛴다. 탭이 보일 때만 움직인다(rAF), 닫으면 그림을 놓는다.
-import { HEADWEAR } from '../headwear.js?v=v30.9.0-36b2fcf';
-import { PAL } from '../tokens.js?v=v30.9.0-36b2fcf';
-import { dropShadow } from '../shadow.js?v=v30.9.0-36b2fcf';
+import { HEADWEAR } from '../headwear.js?v=v30.10.0-b926a82';
+import { PAL } from '../tokens.js?v=v30.10.0-b926a82';
+import { dropShadow } from '../shadow.js?v=v30.10.0-b926a82';
 
 const loadImage = src => new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error(src)); im.src = src; });
 const MAX = 4;
@@ -13,9 +13,9 @@ const MAX = 4;
 // 입힌 옷 목록 → 무대에 세울 키위들 [{ id, name, body, head }] (파일 이름만, DOM 없이 — 시험에서 그대로 쓴다)
 export function stageCast(worn) {
   const list = worn.slice(0, MAX).map(it => HEADWEAR[it.id]
-    ? { id: it.id, name: it.name, body: 'kiwi.webp?v=v30.9.0-36b2fcf', head: HEADWEAR[it.id] }
+    ? { id: it.id, name: it.name, body: 'kiwi.webp?v=v30.10.0-b926a82', head: HEADWEAR[it.id] }
     : { id: it.id, name: it.name, body: it.img, head: null });
-  return list.length ? list : [{ id: null, name: '맨몸', body: 'kiwi.webp?v=v30.9.0-36b2fcf', head: null }];
+  return list.length ? list : [{ id: null, name: '맨몸', body: 'kiwi.webp?v=v30.10.0-b926a82', head: null }];
 }
 
 export class KiwiStage {
@@ -25,7 +25,7 @@ export class KiwiStage {
   }
   img(f) { if (!this.cache.has(f)) this.cache.set(f, this.load(this.base + f).catch(e => { this.cache.delete(f); throw e; })); return this.cache.get(f); }
   async show(worn) {
-    const cast = stageCast(worn), sig = cast.map(k => k.id).join(',');
+    const cast = stageCast(worn), sig = cast.map(k => k.id || '맨몸').join(',');   // v30.10 맨몸 하나면 sig 가 '' 라 처음 sig('')와 같아 한 번도 안 읽던 것(「준비하고 있어요」에서 멈춤)
     const fresh = cast.filter(k => k.id && !this.cast.some(o => o.id === k.id));
     this.start();   // 모래 바닥은 키위 그림을 읽는 동안에도 먼저
     if (sig !== this.sig) {
@@ -59,7 +59,7 @@ export class KiwiStage {
     const reduce = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     c.clearRect(0, 0, W, H);
     // v29.12 바닥: 섬 그림체 붓질 모래 (Codex, stock/stage) — 읽히기 전엔 비워 둔다
-    if (!this.bg) { this.bg = new Image(); this.bg.src = this.base + 'stage-sand.webp?v=v30.9.0-36b2fcf'; }
+    if (!this.bg) { this.bg = new Image(); this.bg.src = this.base + 'stage-sand.webp?v=v30.10.0-b926a82'; }
     if (this.bg.complete && this.bg.naturalWidth) { const r = Math.max(W / this.bg.naturalWidth, H / this.bg.naturalHeight), bw = this.bg.naturalWidth * r, bh = this.bg.naturalHeight * r; c.drawImage(this.bg, (W - bw) / 2, H - bh, bw, bh); }
     const n = this.cast.length, size = Math.min(H * 0.8, (W * 0.9) / Math.max(1, n) * 1.1), gap = Math.min(size * 0.86, W * 0.88 / Math.max(1, n)), x0 = W / 2 - gap * (n - 1) / 2, ground = H * 0.9;
     this.cast.forEach((k, i) => {
