@@ -6,8 +6,8 @@
 //    nameCard(greeter, { onDone(name | null) })           → "뭐라고 불러 줄까요?" 카드 요소
 //  모양은 memos.css (km- 로 시작하는 이름만 쓴다 — 다른 창 스타일과 안 섞이게).
 
-import { MAX_TEXT, MAX_MEMOS, parseTime, sandTime } from './memos.js?v=v30.1.0';
-import { MAX_NAME } from './greet.js?v=v30.1.0';
+import { MAX_TEXT, MAX_MEMOS, parseTime, sandTime } from './memos.js?v=v30.2.0-bbd34ca';
+import { MAX_NAME } from './greet.js?v=v30.2.0-bbd34ca';
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 
@@ -23,7 +23,7 @@ export function mountMemoPanel(host, memos, { onChange = () => {}, now = () => D
   form.append(time, text, rep, add);
   const err = el('p', 'km-err'); err.setAttribute('role', 'status');
   const list = el('ul', 'km-list');
-  const hint = el('p', 'km-hint', '그 시간에 이 화면이 켜져 있으면 키위들이 모래에 써 줘요. 꺼져 있었으면 다시 열 때 「놓친 메모」로 알려 줘요. (앱이 꺼져 있어도 오는 알림은 다음에)');
+  const hint = el('p', 'km-hint', '그 시간에 이 화면이 켜져 있으면 키위들이 모래에 써 줘요. 꺼져 있었으면 다시 열 때 「놓친 메모」로 알려 줘요.');
   host.append(next, form, err, list, hint);
 
   // 처음 열면 다음 정시를 미리 채워 둔다

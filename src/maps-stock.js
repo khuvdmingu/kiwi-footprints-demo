@@ -35,4 +35,4 @@ export const STOCK_PLACES = [
   { id: 'cypress', ko: '낙우송 늪', en: 'the cypress swamp', print: 'sand', step: 'mud', like: 'nz', shoreFix: { tall: 0.62 }, ink: ['#6b5a3c', '#4e5a32'], at: [0.21, 0.92], note: '이끼 늘어진 나무 아래 늪. 물속에 뿌리가 솟아요.' },
 ];
 export const STOCK_IDS = new Set(STOCK_PLACES.map(p => p.id));
-export const STOCK_STEPS0 = 80000, STOCK_STEP = 10000;   // 걸음 목표: 오아시스(70,000) 다음부터 1만 보씩
+export const STOCK_STEPS0 = 55000, STOCK_STEP = 8000;   // 걸음 목표: 오아시스(45,000) 다음부터 8천 보씩 (v30.2 첫 주 해금 — 8만·1만 보에서 낮춤, 끝은 239,000)

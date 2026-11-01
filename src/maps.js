@@ -1,6 +1,6 @@
 // maps.js — 골라 쓰는 장소(맵)
-import { STOCK_PLACES, STOCK_STEPS0, STOCK_STEP } from './maps-stock.js?v=v30.1.0';
-import { WATER_PLACES, WATER_STEPS0, WATER_STEP } from './maps-water.js?v=v30.1.0';
+import { STOCK_PLACES, STOCK_STEPS0, STOCK_STEP } from './maps-stock.js?v=v30.2.0-bbd34ca';
+import { WATER_PLACES, WATER_STEPS0, WATER_STEP } from './maps-water.js?v=v30.2.0-bbd34ca';
 //  장소마다 그림 판 한 벌(가로 wide · 세로 tall, 각각 본판·-dry·-sea 세 장)과 그 장소의 성격을 정한다.
 //  구조는 모두 같다: 위는 숲(키위가 숨었다 나온다), 가운데는 글씨를 쓰는 바닥, 아래는 물(불어나서 글씨를 지운다).
 
@@ -26,7 +26,7 @@ export const MAPS = {
     ground: 'snow',                  // 바닥이 하얀 눈: 판 읽기(땅 색)·발자국 색이 눈 기준
     shoreFrom: 0.5,
     unlock: 'map-snow',              // 물에서 떠내려온 상자를 열거나
-    steps: 5000,                     // 걸음(켜 두기·집중)이 이만큼 쌓이면 고를 수 있다 (v13)
+    steps: 3000,                     // 걸음(켜 두기·집중)이 이만큼 쌓이면 고를 수 있다 (v13 · v30.2 5,000 → 3,000: 첫날에)
   },
   fall: {
     name: '가을 호숫가',               // 단풍·은행 숲 아래 옅은 모래 둑, 잔잔한 호수가 불어나 지운다 (v17, 그림은 Codex·ChatGPT 플랜)
@@ -37,7 +37,7 @@ export const MAPS = {
     moss: true,                      // 이끼 낀 바위: 물과 밝기가 같아 붉은 기로 찾고, 붉은 기 없는 물속 그림자 덩어리는 버린다 (plate.js)
     // 밤·노을·새벽 그림 판 18장 (v28.3, Higgsfield GPT Image 2 — 그 전에는 코드 빛만)
     unlock: 'map-fall',
-    steps: 20000,                    // 큰 걸음 목표: 눈밭(5,000) 다음
+    steps: 10000,                    // 큰 걸음 목표: 눈밭(3,000) 다음 (v30.2 첫 주 해금 — 2만 → 1만)
   },
   zen: {
     name: '모래 정원',                 // 젠 가든: 정원 가장자리 아래 갈퀴 줄 그은 흰 자갈, 바위 섬. 물이 아니라 갈퀴가 쓸어 올려 지운다 (v18)
@@ -50,7 +50,7 @@ export const MAPS = {
     finds: ['pebble', 'heart', 'gold', 'pearl'],   // 물가 물건 중 정원에 어울리는 것만
     // 밤·노을·새벽 그림 판 6장 (v28.3) — 판이 한 장이라 시간대도 한 장씩 (plate.js loadSet)
     unlock: 'map-zen',
-    steps: 35000,
+    steps: 20000,   // v30.2 3만 5천 → 2만
   },
   // v28.17 재고 장소 2곳 (그림 Higgsfield GPT Image 2 4k, 2026-10-21 — 낮 판 6 + 밤·노을·새벽 18 씩, stock/places)
   cherry: {
@@ -59,7 +59,7 @@ export const MAPS = {
     gulls: false,
     shoreFrom: 0.45,                 // 가을 호숫가와 같은 구도
     unlock: 'map-cherry',
-    steps: 50000,
+    steps: 30000,   // v30.2 5만 → 3만
   },
   oasis: {
     name: '사막 오아시스',              // 대추야자·관목 아래 금빛 사막 모래, 청록 웅덩이가 불어나 지운다
@@ -67,7 +67,7 @@ export const MAPS = {
     gulls: false,
     shoreFrom: 0.45,
     unlock: 'map-oasis',
-    steps: 70000,
+    steps: 45000,   // v30.2 7만 → 4만 5천
   },
 };
 // v28.22 재고 새 장소 24곳 (maps-stock.js) — ⚠ 재고판 그대로, 밤·노을·새벽 그림 판 없음(art: false · 코드 빛만). 그림 업데이트는 나중에

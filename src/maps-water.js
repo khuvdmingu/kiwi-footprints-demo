@@ -18,5 +18,5 @@ export const WATER_PLACES = [
     note: '라벤더 언덕을 내려오면 만나는 밝은 모래톱. 꽃 아래 바다가 반짝여요.' },
 ];
 export const WATER_IDS = new Set(WATER_PLACES.map(p => p.id));
-// Continue after the original 24 stock goals (80,000–310,000); never shift their goals.
-export const WATER_STEPS0 = 320000, WATER_STEP = 10000;
+// Continue after the 24 stock goals (55,000–239,000, v30.2 낮춤); keep water goals after them.
+export const WATER_STEPS0 = 250000, WATER_STEP = 10000;
