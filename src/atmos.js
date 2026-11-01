@@ -6,11 +6,11 @@
 //        구름 양·흐름 속도·파도 높이는 셰이더/해변에 넘기고, 빗줄기·물방울 고리·눈송이·나뭇잎·안개·반딧불이·야광은 여기서 #fx 캔버스에 그린다.
 //        눈은 시간이 지날수록 땅(셰이더 uSnow)과 나무에 쌓이고, 그치면 천천히 녹는다.
 
-import { clamp, lerp } from './util.js?v=v29.36.0-c90bd0f';
-import { EXTRA_KEYS, EXTRA_PARAM, SkyExtra, blossomName } from './sky/extra.js?v=v29.36.0-c90bd0f';   // v23 보슬비 · 꽃잎/낙엽 바람
-import { Drift } from './sky/drift.js?v=v29.36.0-c90bd0f';   // v28.15 나비 · 홀씨 · 헬리콥터 씨앗
-import { SkyBits } from './sky/bits.js?v=v29.36.0-c90bd0f';   // v28.20 번개 · 달무리 · 모래바람 · 풀공 · 아침 안개 띠
-import { Meteors, Rainbow } from './sky/events.js?v=v29.36.0-c90bd0f';                                 // v23 별똥별 · 무지개
+import { clamp, lerp } from './util.js?v=v29.37.0';
+import { EXTRA_KEYS, EXTRA_PARAM, SkyExtra, blossomName } from './sky/extra.js?v=v29.37.0';   // v23 보슬비 · 꽃잎/낙엽 바람
+import { Drift } from './sky/drift.js?v=v29.37.0';   // v28.15 나비 · 홀씨 · 헬리콥터 씨앗
+import { SkyBits } from './sky/bits.js?v=v29.37.0';   // v28.20 번개 · 달무리 · 모래바람 · 풀공 · 아침 안개 띠
+import { Meteors, Rainbow } from './sky/events.js?v=v29.37.0';                                 // v23 별똥별 · 무지개
 
 export const WEATHERS = ['clear', 'cloudy', 'drizzle', 'rain', 'snow', 'fog', 'wind', 'blossom'];
 export const WEATHER_NAME = { clear: '맑음', cloudy: '흐림', drizzle: '보슬비', rain: '비', snow: '눈', fog: '안개', wind: '바람', blossom: '꽃잎 바람' };   // blossom 은 장소 따라 '낙엽 바람'
@@ -70,7 +70,8 @@ export class Atmos {
   }
   get mapId() { return this._map; }
   set mapId(m) { this._map = m; WEATHER_NAME.blossom = blossomName(m); }
-  setWeather(w) { if (!WEATHERS.includes(w)) return; const prev = this.weather; this.weather = w; this.rainbow.weatherChanged(prev, w, this.night); }
+  // v29.37 ease: 바뀌는 빠르기(1초당). 기본 0.6 ≈ 2~3초 · 실제 날씨가 바뀔 땐 0.08 ≈ 20~30초에 걸쳐 천천히
+  setWeather(w, ease = 0.6) { if (!WEATHERS.includes(w)) return; const prev = this.weather; this.weather = w; this.ease = ease; this.rainbow.weatherChanged(prev, w, this.night); }
   // v16.2 안개 뚫기: (x, y)에 둥근 구멍 — 퍽 하고 열렸다가(0.35초) 잠시 머물고(3.5초) 천천히 다시 찬다(5초). big = 누르기, 아니면 문지르기
   punchFog(x, y, u, big = true) {
     if (this.v.fog < 0.2) return false;
@@ -88,7 +89,7 @@ export class Atmos {
 
   update(dt, beach, hour) {
     this.t += dt;
-    const target = PARAM[this.weather], f = Math.min(1, dt * 0.6);
+    const target = PARAM[this.weather], f = Math.min(1, dt * (this.ease ?? 0.6));
     for (const k in this.v) this.v[k] = lerp(this.v[k], target[k], f);
     const L = timeLight(hour);
     this.night = L.night;

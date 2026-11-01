@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#24563A" />   <!-- v29.20 상태 표시줄이 남는 기기에선 풍경 맨 위(숲) 색으로 이어지게 -->
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v29.36.0-c90bd0f" />
-  <link rel="stylesheet" href="memos.css?v=v29.36.0-c90bd0f" />
-  <link rel="stylesheet" href="theme-paper.css?v=v29.36.0-c90bd0f" />
-  <link rel="stylesheet" href="src/ui/tokens.css?v=v29.36.0-c90bd0f" />
-  <link rel="stylesheet" href="src/ui/parts.css?v=v29.36.0-c90bd0f" />
-  <link rel="stylesheet" href="src/ui/shell.css?v=v29.36.0-c90bd0f" />
+  <link rel="stylesheet" href="style.css?v=v29.37.0" />
+  <link rel="stylesheet" href="memos.css?v=v29.37.0" />
+  <link rel="stylesheet" href="theme-paper.css?v=v29.37.0" />
+  <link rel="stylesheet" href="src/ui/tokens.css?v=v29.37.0" />
+  <link rel="stylesheet" href="src/ui/parts.css?v=v29.37.0" />
+  <link rel="stylesheet" href="src/ui/shell.css?v=v29.37.0" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -200,6 +200,17 @@
       </div>
     </div>
     <p class="k-hint">지금 시각이면 하루 동안 빛이 천천히 바뀌어요. 직접 고르면 그 빛이 그대로 머물러요.</p>
+    <h2 class="k-h sep">날씨</h2>
+    <div class="k-opts" role="radiogroup" aria-label="날씨">
+      <label><input type="radio" name="wx" value="real" /><span>실제 날씨</span></label>
+      <label><input type="radio" name="wx" value="manual" /><span>직접 고르기</span></label>
+      <label><input type="radio" name="wx" value="off" /><span>끄기</span></label>
+    </div>
+    <div id="wxOpts" hidden>
+      <label class="k-row"><span>도시</span><select id="wxCity" aria-label="날씨를 볼 도시"></select></label>
+      <p id="wxNow" class="k-now"></p>
+    </div>
+    <p class="k-hint">실제 날씨는 고른 도시의 날씨를 한 시간에 한 번 받아 와요(위치 권한은 쓰지 않아요). 직접 고르기는 위 날씨 버튼으로 · 끄기는 늘 맑음.</p>
     <h2 class="k-h sep">시점</h2>
     <div id="viewRow" class="views" role="group" aria-label="시점"></div>
     <h2 class="k-h sep">키위 수</h2>
@@ -492,7 +503,7 @@
       <h2>위쪽 버튼</h2>
       <ul class="keys">
         <li><i data-icon="modeBtn"></i><b>글 모드</b><span>직접 쓰기 · 시계 · 명언 · 단어장</span></li>
-        <li><i data-icon="weatherBtn"></i><b>날씨</b><span>맑음 · 흐림 · 보슬비 · 비 · 눈 · 안개 · 바람 · 꽃잎 바람(숲에선 낙엽)</span></li>
+        <li><i data-icon="weatherBtn"></i><b>날씨</b><span>맑음 · 흐림 · 보슬비 · 비 · 눈 · 안개 · 바람 · 꽃잎 바람(숲에선 낙엽) · 설정 › 풍경에서 「실제 날씨」를 고르면 고른 도시의 날씨를 따라가요</span></li>
         <li><i data-icon="focusBtn"></i><b>떠나기</b><span>섬에서 집중(끝까지 하면 선물 상자) · 항해(다른 섬으로 — 섬은 항해로만 옮겨요)</span></li>
         <li><i data-icon="chartBtn"></i><b>해도</b><span>섬과 항로 · 열린 섬이 늘수록 지도가 넓어져요 · 섬을 눌러 항해</span></li>
         <li><i data-icon="basketBtn"></i><b>바구니</b><span>일지(걸음 · 드문 순간 · 연·월·일로 묶어 보기 · 달력) · 편지(손님 · 유리병) · 모은 것(주운 것 · 낚은 것)</span></li>
@@ -519,6 +530,7 @@
         <li>모은 것은 바구니에서 다시 보고, 입히고 고르는 건 메뉴 → 꾸미기에서 해요</li>
       </ul>
       <p class="small">빛은 실제 시각을 따라 새벽 · 낮 · 노을 · 밤으로 바뀌고, 밤엔 반딧불이가 떠요. 장소: 바닷가 · 뉴질랜드 숲 · 눈밭 · 가을 호숫가 · 모래 정원.</p>
+      <p class="small">실제 날씨(켰을 때만): <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>의 날씨 정보(CC BY 4.0)를 써요. 보내는 것은 고른 도시의 좌표뿐이고, 받은 날씨는 이 기기에만 남아요.</p>
       <p class="credits">키위 스핀오프 v29 · 2026-10-24<span id="audio-credits"></span></p>
       <button type="button" data-close>닫기</button>
     </div>
@@ -526,10 +538,10 @@
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v29.36.0-c90bd0f"></script>
-  <script type="module" src="src/credits.js?v=v29.36.0-c90bd0f"></script>
+  <script type="module" src="src/main.js?v=v29.37.0"></script>
+  <script type="module" src="src/credits.js?v=v29.37.0"></script>
   <!-- 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/taps.js?v=v29.36.0-c90bd0f"></script>
+  <script type="module" src="src/taps.js?v=v29.37.0"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.
