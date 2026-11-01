@@ -6,13 +6,13 @@
 //  글          지금은 한국어만 (letters/ko/). 엔진·정보는 언어와 무관하게, 글은 번호로 찾는다 — 나중에 다른 언어는 번호 → 글 파일만 더한다
 //  자세한 규칙·새 동물 붙이는 법: docs/LETTERS.md · 자동 검사: test/letters-lint.test.mjs
 
-import todak from './ko/kiwi/todak.js?v=v29.38.0-b488ab3';
-import jan from './ko/kiwi/jan.js?v=v29.38.0-b488ab3';
-import hd from './ko/kiwi/hd.js?v=v29.38.0-b488ab3';
-import bs from './ko/kiwi/bs.js?v=v29.38.0-b488ab3';
-import ANIMALS from './ko/animals/index.js?v=v29.38.0-b488ab3';
-import common from './ko/common.js?v=v29.38.0-b488ab3';
-import { eul, iga } from './josa.js?v=v29.38.0-b488ab3';
+import todak from './ko/kiwi/todak.js?v=v29.39.0-5881b0e';
+import jan from './ko/kiwi/jan.js?v=v29.39.0-5881b0e';
+import hd from './ko/kiwi/hd.js?v=v29.39.0-5881b0e';
+import bs from './ko/kiwi/bs.js?v=v29.39.0-5881b0e';
+import ANIMALS from './ko/animals/index.js?v=v29.39.0-5881b0e';
+import common from './ko/common.js?v=v29.39.0-5881b0e';
+import { eul, iga } from './josa.js?v=v29.39.0-5881b0e';
 
 export { ANIMALS };
 export const THEMES = {
@@ -20,6 +20,12 @@ export const THEMES = {
   write: '글씨·모래', sea: '바다·물', body: '키위 몸·생태', mates: '무리·이웃', oops: '실수',
 };
 export const ID_PREFIX = { todak: 't', jan: 'w', hd: 'h', bs: 'b' };   // 키위 쪽지 새 번호 (동물은 <동물 id>-v1 · -t1 · -l1)
+// 상황 꼬리표 (키위 쪽지 tag) — main.js bottleTick 이 지금 맞는 것을 ctx 로 준다. 값이 2 면 「꼭」: 처음 온 날·돌아온 날·명절은 그 쪽지가 거의 반드시 온다
+export const SITUATIONS = {
+  night: '밤', morning: '아침', rain: '비', snow: '눈', focus: '방금 집중 끝', long: '오래 켜 둠',
+  first: '처음 온 날', back: '오래 쉬다 돌아온 날', spring: '봄', summer: '여름', autumn: '가을', winter: '겨울',
+  xmas: '크리스마스', seollal: '설날', clear: '맑음', fog: '안개', wind: '바람', monday: '월요일', friday: '금요일', weekend: '주말',
+};
 export const MAX_LEN = { kiwi: 90, animal: 120 };
 export const BANNED = ['벌레', '지렁이', '모기', '파리', '개미', '바퀴벌레', '구더기', 'MBTI'];   // 키위 세계 금지 소재 (반딧불·나비는 예외로 허용)
 export const MIN = { kiwi: 20, visit: 10, liked: 1, bond: 3 };   // v29.33 방문 이야기 10통 · 사이 단계 3통 — 새 동물도
@@ -67,15 +73,16 @@ export function thanksId(id, liked, n = 0, key = '') {
 }
 
 // ── 고르는 방식: pool ──
-//  list 중 안 본 것(seen)에서, 지금 상황 꼬리표(ctx)가 맞는 것을 60% 먼저, 바로 전 주제(lastTh)는 피한다.
+//  list 중 안 본 것(seen)에서, 지금 상황 꼬리표(ctx)가 맞는 것을 60% 먼저(값 2 인 「꼭」 상황은 95%), 바로 전 주제(lastTh)는 피한다.
 //  다 봤으면 그 묶음만 다시 섞는다 → { item, seen }
 export function pickPool(list, { seen = [], ctx = {}, lastTh = '', rnd = Math.random } = {}) {
   let pool = list.filter(c => !seen.includes(c.id));
   if (!pool.length) { const ids = new Set(list.map(c => c.id)); seen = seen.filter(id => !ids.has(id)); pool = list.slice(); }
   const tags = Object.keys(ctx).filter(k => ctx[k]);
   const fit = pool.filter(c => c.tag && tags.includes(c.tag));
+  const must = fit.filter(c => ctx[c.tag] === 2);   // v29.39 처음 온 날·돌아온 날·명절
   const any = pool.filter(c => !c.tag);
-  let from = fit.length && rnd() < 0.6 ? fit : any.length ? any : pool;
+  let from = must.length && rnd() < 0.95 ? must : fit.length && rnd() < 0.6 ? fit : any.length ? any : pool;
   const fresh = from.filter(c => c.th !== lastTh);
   if (fresh.length) from = fresh;
   const item = from[Math.floor(rnd() * from.length)];
