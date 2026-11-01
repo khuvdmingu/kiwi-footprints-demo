@@ -5,7 +5,8 @@
 //  무지개: 비(보슬비 포함)가 그친 순간이 낮이면 바다 위에 75초쯤 떴다가 사라진다. 밤이 되면 빨리 걷힌다.
 //  둘 다 atmos.js 가 갖고 update/draw 를 부른다.
 
-import { clamp } from '../util.js?v=v30.0.0';
+import { clamp } from '../util.js?v=v30.1.0';
+import { isWet } from '../wx-kind.js?v=v30.1.0';   // v30.1 천둥번개도 비
 
 export class Meteors {
   constructor({ rand = Math.random, first = 20, gap = [35, 110] } = {}) {
@@ -57,7 +58,7 @@ export class Meteors {
   }
 }
 
-const wet = w => w === 'rain' || w === 'drizzle';
+const wet = w => isWet(w);
 const BANDS = ['#ff6b5e', '#ffa64d', '#ffe46b', '#86d98f', '#62c3ee', '#7387e6', '#b08ad0'];   // 바깥(빨강) → 안(보라)
 
 export class Rainbow {

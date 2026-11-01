@@ -8,7 +8,7 @@
 //  · 모래바람·마른 풀공: 사막 오아시스에서 바람이 있을 때(맑음 포함 가끔) 모래 위를 가로지른다
 //  · 아침 안개 띠: 5시~8시 반, 비·눈이 아니면 물가 위로 천천히 흘러간다
 
-const FILE = 'assets/weather-bits.webp?v=v30.0.0';
+const FILE = 'assets/weather-bits.webp?v=v30.1.0';
 const CELL = { bolt: 0, fork: 1, halo: 2, dust: 3, tumble: 4, mist: 5 };
 
 export class SkyBits {
@@ -35,8 +35,8 @@ export class SkyBits {
     // 번개
     this.flash = Math.max(0, this.flash - dt * 3.2);
     if (this.bolt) { this.bolt.age += dt; if (this.bolt.age > 0.9) this.bolt = null; }
-    if ((v.rain || 0) > 0.6 && this.t > this.nextBolt) {
-      this.nextBolt = this.t + 20 + R() * 25;
+    if ((v.storm || 0) > 0.6 && this.t > this.nextBolt) {   // v30.1 번개는 「천둥번개」에만 (비는 비만)
+      this.nextBolt = this.t + 7 + R() * 11;
       this.flash = 1;
       this.bolt = { x: W * (0.15 + R() * 0.7), y: bot + (H - bot) * (0.25 + R() * 0.45), cell: R() < 0.5 ? CELL.bolt : CELL.fork, age: 0, flip: R() < 0.5 };
       this.onThunder?.(0.8 + R() * 1.6);

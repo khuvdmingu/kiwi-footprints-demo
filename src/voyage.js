@@ -13,8 +13,9 @@
 //  이 파일은 "언제 어디까지 갔고 무슨 일이 있었나"만 정한다. 그리기·소리·사진은 main.js 가 결과를 받아 한다.
 //  기록은 이 기기에만 (localStorage 'voyage' · 'voyageRun').
 
-import { STOCK_PLACES } from './maps-stock.js?v=v30.0.0';
-import { WATER_PLACES } from './maps-water.js?v=v30.0.0';
+import { STOCK_PLACES } from './maps-stock.js?v=v30.1.0';
+import { WATER_PLACES } from './maps-water.js?v=v30.1.0';
+import { isWet } from './wx-kind.js?v=v30.1.0';   // v30.1 천둥번개도 비
 
 export const MODES = ['island', 'voyage'];
 export const MODE_NAME = { island: { ko: '섬에서 보기', en: 'Stay on the island' }, voyage: { ko: '항해하기', en: 'Set sail' } };
@@ -38,11 +39,11 @@ export const routeId = (from, to) => `${from}>${to}`;
 const night = h => h >= 19.5 || h < 5.5, dusk = h => h >= 17 && h < 21;
 export const SIGHTS = {
   whale: { ko: '고래', en: 'a whale', w: 3, when: () => true },
-  meteor: { ko: '별똥별', en: 'a shooting star', w: 3, when: c => night(c.hour) && !['rain', 'drizzle', 'fog', 'snow', 'cloudy'].includes(c.weather) },
+  meteor: { ko: '별똥별', en: 'a shooting star', w: 3, when: c => night(c.hour) && !isWet(c.weather) && !['fog', 'snow', 'cloudy'].includes(c.weather) },
   lighthouse: { ko: '먼 등대', en: 'a far lighthouse', w: 2, when: c => dusk(c.hour) || night(c.hour) },
   seabird: { ko: '물 위에서 쉬는 새', en: 'a resting seabird', w: 2, when: c => !night(c.hour) },
   doze: { ko: '뱃머리에서 조는 키위', en: 'a kiwi dozing at the bow', w: 2, when: () => true },
-  leaf: { ko: '잎으로 비 가리기', en: 'sharing a leaf umbrella', w: 4, when: c => ['rain', 'drizzle'].includes(c.weather) },
+  leaf: { ko: '잎으로 비 가리기', en: 'sharing a leaf umbrella', w: 4, when: c => isWet(c.weather) },
 };
 export const SIGHT_IDS = Object.keys(SIGHTS);
 

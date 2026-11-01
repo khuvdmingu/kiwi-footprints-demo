@@ -2,6 +2,7 @@
 //  4마디 코드 진행을 되풀이한다. 마디 첫 박에 패드(부드러운 화음) · 1·3박에 낮은 베이스 · 8분음표 자리마다 확률로 오르골 한 음.
 //  분위기(아침·낮·노을·밤)는 시각으로, 날씨는 음색·밀도로 바꾼다. 분위기가 바뀌면 다음 마디부터 넘어간다(박이 끊기지 않게).
 //  발자국 음악은 지금 화음(chord())에 맞춰 음을 고르므로 배경 음악과 늘 어울린다.
+import { isRain } from './wx-kind.js?v=v30.1.0';   // v30.1 천둥번개도 비
 
 const MOODS = {
   //        근음  bpm  오르골 밀도  패드 밝기(Hz)  진행 (근음에서의 반음 간격)
@@ -140,14 +141,14 @@ export class Music {
 
   play(t) {
     const m = this.m, chord = this.chord(), w = this.weather;
-    const bright = m.bright * (w === 'rain' ? 0.55 : w === 'drizzle' ? 0.75 : w === 'fog' ? 0.7 : w === 'snow' ? 1.25 : w === 'blossom' ? 1.1 : 1);
+    const bright = m.bright * (isRain(w) ? 0.55 : w === 'drizzle' ? 0.75 : w === 'fog' ? 0.7 : w === 'snow' ? 1.25 : w === 'blossom' ? 1.1 : 1);
     const spb = 60 / m.bpm / 2;
     const cb = m.chordBars || 1, root = this.key + m.prog[this.ci() % m.prog.length][0];
     if (this.beat === 0 && this.bar % cb === 0) this.pad(chord, t, spb * 8 * cb, bright, m.pad);
     if (m.drone && this.beat === 0 && this.bar % (cb * m.prog.length) === 0) this.drone(this.key, t, spb * 8 * cb * m.prog.length, bright);
     if (m.air && this.beat === 0 && this.bar % (cb * m.prog.length) === 0) this.air(t, spb * 8 * cb * m.prog.length, m.air);
     if (m.bass !== 'none' && (this.beat === 0 || (this.beat === 4 && m.bass !== 'one'))) this.bass(root - 24, t, spb * (m.bass === 'one' ? 7 : 3.5));
-    let density = m.density * (w === 'rain' ? 0.6 : w === 'drizzle' ? 0.8 : w === 'wind' ? 0.5 : w === 'snow' ? 1.2 : 1);
+    let density = m.density * (isRain(w) ? 0.6 : w === 'drizzle' ? 0.8 : w === 'wind' ? 0.5 : w === 'snow' ? 1.2 : 1);
     if (this.beat % 2 === 1) density *= 0.55;   // 뒷박은 드물게
     const up = 12 + (w === 'snow' ? 12 : 0);
     if (m.play === 'theme') {

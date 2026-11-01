@@ -38,15 +38,16 @@ export const CITIES = [
 ];
 export const cityOf = id => CITIES.find(c => c.id === id) || CITIES[0];
 
-// WMO 날씨 번호(+ 바람 km/h) → 앱 날씨. 꽃잎 바람은 실제 날씨에서 오지 않는다.
+// WMO 날씨 번호(+ 바람 km/h) → 앱 날씨. 꽃잎 바람은 실제 날씨에서 오지 않는다. 95~99 뇌우는 천둥번개(v30.1).
 export const WIND_KMH = 30;
 export function fromWmo(code, windKmh = 0) {
   const c = +code;
   if (!Number.isFinite(c)) return null;
   let w;
-  if (c === 45 || c === 48) w = 'fog';
+  if (c >= 95 && c <= 99) w = 'storm';   // v30.1 뇌우 → 천둥번개
+  else if (c === 45 || c === 48) w = 'fog';
   else if ((c >= 51 && c <= 57) || c === 61 || c === 80) w = 'drizzle';
-  else if ((c >= 62 && c <= 67) || c === 81 || c === 82 || c >= 95) w = 'rain';
+  else if ((c >= 62 && c <= 67) || c === 81 || c === 82) w = 'rain';
   else if ((c >= 71 && c <= 77) || c === 85 || c === 86) w = 'snow';
   else if (c === 3) w = 'cloudy';
   else if (c >= 0 && c <= 2) w = 'clear';

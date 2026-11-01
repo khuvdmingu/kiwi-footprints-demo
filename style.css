@@ -112,6 +112,10 @@ body[data-view="top"] #viewBtn .v-top, body[data-view="diorama"] #viewBtn .v-dio
 #modeBtn[data-mode="free"] .m-free, #modeBtn[data-mode="clock"] .m-clock, #modeBtn[data-mode="quote"] .m-quote, #modeBtn[data-mode="word"] .m-word { display: inline; }
 #weatherBtn[data-weather="clear"] .w-clear, #weatherBtn[data-weather="cloudy"] .w-cloudy, #weatherBtn[data-weather="rain"] .w-rain, #weatherBtn[data-weather="snow"] .w-snow, #weatherBtn[data-weather="fog"] .w-fog, #weatherBtn[data-weather="wind"] .w-wind { display: inline; }
 #weatherBtn[data-weather="drizzle"] .w-drizzle, #weatherBtn[data-weather="blossom"] .w-blossom { display: inline; }   /* v23 */
+#weatherBtn[data-weather="storm"] .w-storm { display: inline; }   /* v30.1 천둥번개 */
+/* v30.1 실제 날씨를 따르는 중: 날씨 버튼 오른쪽 위에 작은 도장 점 */
+#weatherBtn { position: relative; }
+#weatherBtn[data-real]::after { content: ""; position: absolute; top: 5px; right: 5px; width: 7px; height: 7px; border-radius: 50%; background: var(--k-accent); box-shadow: 0 0 0 1.5px var(--k-paper); }
 
 
 /* 캡션: 다 쓴 뒤 천천히 드러나는 뜻·출처 */
