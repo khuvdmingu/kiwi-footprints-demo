@@ -17,9 +17,9 @@ const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
   // 물 없는 장소(opts.rest — 젠 가든 v18): 물 뺀 판·바위 지운 판이 없다 → 같은 판 한 장을 세 자리에 쓴다
-  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v30.14.1-0b46aff').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v30.14.1-0b46aff'), load(name + '-dry.webp?v=v30.14.1-0b46aff'), load(name + '-sea.webp?v=v30.14.1-0b46aff')]);
+  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v30.15.0-1ded26c').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v30.15.0-1ded26c'), load(name + '-dry.webp?v=v30.15.0-1ded26c'), load(name + '-sea.webp?v=v30.15.0-1ded26c')]);
   // 미리 만든 바위 가림막(<판>-rock.webp, tools/rock-masks.mjs 2026-11-01) — 없거나 못 읽으면 예전 짐작만
-  const rock = opts.rockArt && !opts.rest ? await load(name + '-rock.webp?v=v30.14.1-0b46aff').catch(() => null) : null;
+  const rock = opts.rockArt && !opts.rest ? await load(name + '-rock.webp?v=v30.15.0-1ded26c').catch(() => null) : null;
   const p = new Plate(img, dry, sea, opts, rock);
   p.name = name; p.base = base;
   return p;
@@ -300,7 +300,7 @@ export class Plate {
     if (!this._sets[kind] && Date.now() - (this._setFail[kind] ?? -Infinity) < SET_RETRY_MS) return Promise.resolve(null);
     if (!this._sets[kind]) {
       // 판이 한 장인 장소(rest — 모래 정원)는 시간대 판도 한 장 (v28.3)
-      const p = this._sets[kind] = (this.opts.rest ? load(`${this.name}-${kind}.webp?v=v30.14.1-0b46aff`).then(im => [im, im, im]) : Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v30.14.1-0b46aff`))))
+      const p = this._sets[kind] = (this.opts.rest ? load(`${this.name}-${kind}.webp?v=v30.15.0-1ded26c`).then(im => [im, im, im]) : Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v30.15.0-1ded26c`))))
         .then(([img, dry, sea]) => (this.sets[kind] = { img, dry, sea }))
         .catch(() => { if (this._sets[kind] === p) { delete this._sets[kind]; this._setFail[kind] = Date.now(); } return null; });
     }

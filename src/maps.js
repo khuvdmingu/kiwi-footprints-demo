@@ -1,6 +1,6 @@
 // maps.js — 골라 쓰는 장소(맵)
-import { STOCK_PLACES, STOCK_STEPS0, STOCK_STEP, TIME_ART } from './maps-stock.js?v=v30.14.1-0b46aff';
-import { WATER_PLACES, WATER_STEPS0, WATER_STEP } from './maps-water.js?v=v30.14.1-0b46aff';
+import { STOCK_PLACES, STOCK_STEPS0, STOCK_STEP, TIME_ART } from './maps-stock.js?v=v30.15.0-1ded26c';
+import { WATER_PLACES, WATER_STEPS0, WATER_STEP } from './maps-water.js?v=v30.15.0-1ded26c';
 //  장소마다 그림 판 한 벌(가로 wide · 세로 tall, 각각 본판·-dry·-sea 세 장)과 그 장소의 성격을 정한다.
 //  구조는 모두 같다: 위는 숲(키위가 숨었다 나온다), 가운데는 글씨를 쓰는 바닥, 아래는 물(불어나서 글씨를 지운다).
 
@@ -70,7 +70,7 @@ export const MAPS = {
     steps: 45000,   // v30.2 7만 → 4만 5천
   },
 };
-// v28.22 재고 새 장소 24곳 (maps-stock.js) — ⚠ 재고판 그대로, 밤·노을·새벽 그림 판 없음(art: false · 코드 빛만). 그림 업데이트는 나중에
+// v28.22 재고 새 장소 24곳 (maps-stock.js) — 밤·노을·새벽 판은 v30.14 (TIME_ART), 물가 5곳은 v30.15
 STOCK_PLACES.forEach((p, i) => {
   MAPS[p.id] = {
     name: p.ko, wide: p.id, tall: p.id + '-tall',
@@ -91,7 +91,7 @@ WATER_PLACES.forEach((p, i) => {
   MAPS[p.id] = {
     name: p.ko, wide: p.plate, tall: p.plate + '-tall',
     gulls: false, stones: true, moss: !!p.moss, shoreFrom: 0.48,
-    art: false, like: p.like, stock: true,
+    like: p.like, stock: true,                       // v30.15 밤·노을·새벽 판 있음 (<판>-night/-sunset/-dawn)
     unlock: 'map-' + p.id, steps: WATER_STEPS0 + i * WATER_STEP,
   };
 });

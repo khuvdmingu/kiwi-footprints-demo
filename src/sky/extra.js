@@ -6,7 +6,7 @@
 //           그림: 낙엽은 가을 호숫가 물 위 단풍과 같은 낱장(assets/leaves.webp 4×2), 꽃잎은 assets/petals.webp(4×2, Higgsfield v23).
 //           그림을 아직 못 읽었거나(첫 순간·시험) 없으면 선으로 그린 잎으로 대신한다.
 
-import { clamp } from '../util.js?v=v30.14.1-0b46aff';
+import { clamp } from '../util.js?v=v30.15.0-1ded26c';
 
 export const EXTRA_WEATHERS = ['drizzle', 'blossom', 'storm'];
 // atmos 의 날씨 값 열쇠(cloud·windK·amp·rain·snow·fog·wind·grey)에 drizzle·blossom 두 칸이 더 붙는다
@@ -47,12 +47,12 @@ const WIND = {
 };
 export const windOf = mapId => (leafy(mapId) ? { kind: 'leaf' } : WIND[mapId] || { kind: 'petal' });
 export const blossomName = mapId => (leafy(mapId) ? '낙엽 바람' : windOf(mapId).name || '꽃잎 바람');
-const COUNT = { petal: 1, leaf: 1, blade: 1, dust: 4, spray: 2.4, ice: 2.6, steam: 0.3 };
+const COUNT = { petal: 1, leaf: 1, blade: 1.6, dust: 4, spray: 2.4, ice: 3.4, steam: 0.3 };   // v30.15 풀잎·눈가루는 화면에서 너무 옅어(낙엽의 1/5) 더 많이
 
 const PETAL = ['#F6C9D3', '#F2B6C6', '#FBE3E8', '#EFA9BD', '#FFF1F3'];
 const LEAF = ['#C8582B', '#D9822B', '#E3A23A', '#A8442A', '#B86A2E', '#E8B04A'];
 
-const SHEETS = { leaf: 'assets/leaves.webp?v=v30.14.1-0b46aff', petal: 'assets/petals.webp?v=v30.14.1-0b46aff', flip: 'assets/drift-flip.webp?v=v30.14.1-0b46aff' };
+const SHEETS = { leaf: 'assets/leaves.webp?v=v30.15.0-1ded26c', petal: 'assets/petals.webp?v=v30.15.0-1ded26c', flip: 'assets/drift-flip.webp?v=v30.15.0-1ded26c' };
 // v28.15 앞뒷면 짝(drift-flip.webp 4×2): 팔랑이다 가장 납작해지는 순간 앞↔뒤로 바꿔 끼워 진짜 뒤집히는 것처럼
 //  꽃잎은 말린 꽃잎 짝(2·3)만 — 1행 1·2칸은 모양이 짝이 아니다(stock/README drift) · 낙엽은 단풍(4·5)·둥근 낙엽(6·7)
 const FLIP = { petal: [[2, 3]], leaf: [[4, 5], [6, 7]] };
@@ -80,7 +80,7 @@ export class SkyExtra {
     // 꽃잎 · 낙엽
     const wind = windOf(mapId), kind = wind.kind;
     if (mapId !== this.map) { this.map = mapId; this.kind = kind; this.wind = wind; this.petals.length = 0; }
-    const nP = Math.round(clamp(v.blossom || 0, 0, 1) * 46 * Math.sqrt(area * 2) * COUNT[kind]);
+    const nP = Math.round(clamp(v.blossom || 0, 0, 1) * 46 * Math.sqrt(area * 2) * COUNT[kind] * (wind.small ? 1.5 : 1));
     while (this.petals.length < nP) this.petals.push(this.newPetal(W, H, u, true));
     if (this.petals.length > nP) this.petals.length = nP;
     for (const p of this.petals) {
@@ -146,7 +146,7 @@ export class SkyExtra {
       return { x: anywhere ? R() * W : -20 - R() * W * 0.3, y: R() * H * 0.9,
         sp: (60 + R() * 70) * u, fall: 6 + R() * 12, wob: 1.2 + R() * 1.4, ph: R() * 6.28,
         rot: R() * 6.28, spin: (R() - 0.5) * 3.4, flap: R() * 6.28, flapSp: 3 + R() * 4,
-        s: (w.needle ? 4.5 + R() * 2 : w.wide ? 7.5 + R() * 4 : 8.5 + R() * 4.5) * u, c: pal[Math.floor(R() * pal.length)] };
+        s: (w.needle ? 8 + R() * 3.5 : w.wide ? 10.5 + R() * 5 : 12 + R() * 6) * u, c: pal[Math.floor(R() * pal.length)] };
     }
     const leaf = k === 'leaf', pal = leaf ? LEAF : PETAL;
     return {
@@ -154,7 +154,7 @@ export class SkyExtra {
       sp: (55 + R() * 70) * u, fall: 6 + R() * 14, wob: 1.2 + R() * 1.4, ph: R() * 6.28,
       rot: R() * 6.28, spin: (R() - 0.5) * 3, flap: R() * 6.28, flapSp: 3 + R() * 4,
       s: (leaf ? 5 + R() * 3 : 3.2 + R() * 1.8) * u, c: pal[Math.floor(R() * pal.length)],
-      img: Math.floor(R() * 8), size: (leaf ? 26 + R() * 14 : (w.small ? 18 + R() * 8 : 28 + R() * 12)) * u,   // 그림으로 그릴 때의 칸 크기 (꽃잎은 칸의 40% 쯤만 차 있다)
+      img: Math.floor(R() * 8), size: (leaf ? 26 + R() * 14 : (w.small ? 23 + R() * 8 : 28 + R() * 12)) * u,   // 그림으로 그릴 때의 칸 크기 (꽃잎은 칸의 40% 쯤만 차 있다)
       pair: R() < 0.4 ? FLIP[leaf ? 'leaf' : 'petal'][Math.floor(R() * FLIP[leaf ? 'leaf' : 'petal'].length)] : null,   // 열에 넷은 앞뒷면 짝으로
     };
   }
