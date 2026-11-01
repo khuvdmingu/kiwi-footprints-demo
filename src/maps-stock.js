@@ -35,5 +35,8 @@ export const STOCK_PLACES = [
   { id: 'rainforest', ko: '열대우림 강', en: 'the rainforest river', print: 'sand', step: 'mud', like: 'nz', ink: ['#c97a46', '#3f7a3a'], at: [0.39, 0.92], note: '큰 잎 숲 아래 붉은 흙. 강물이 초록빛이에요.' },
   { id: 'cypress', film: [[.5, .44, .3], [.34, .31, .2], [.74, .68, .52]], ko: '낙우송 늪', en: 'the cypress swamp', print: 'sand', step: 'mud', like: 'nz', shoreFix: { tall: 0.62 }, ink: ['#6b5a3c', '#4e5a32'], at: [0.21, 0.92], note: '이끼 늘어진 나무 아래 늪. 물속에 뿌리가 솟아요.' },
 ];
+// v30.14 시간대 판(밤·노을·새벽)이 있는 장소 — Codex 가 낮 판을 다시 칠한 그림에서 색표만 배워 낮 판 여섯 장에 입힌 것
+//  (모양은 낮 판 그대로라 어긋남 0, 만드는 법 docs/GRAPHICS.md §8). 여기 없는 곳은 예전처럼 코드 빛만
+export const TIME_ART = new Set(['bamboo', 'birch', 'lavender', 'sunflower', 'tulip', 'lotus', 'paddy', 'pinecove', 'lagoon', 'pinksand', 'ginkgo', 'savanna', 'canyon', 'basalt', 'hydrangea', 'wisteria', 'maple', 'alpine', 'fjord', 'glacier', 'heather', 'mangrove', 'rainforest', 'cypress']);   // 2026-11-02 24곳 모두
 export const STOCK_IDS = new Set(STOCK_PLACES.map(p => p.id));
 export const STOCK_STEPS0 = 55000, STOCK_STEP = 8000;   // 걸음 목표: 오아시스(45,000) 다음부터 8천 보씩 (v30.2 첫 주 해금 — 8만·1만 보에서 낮춤, 끝은 239,000)

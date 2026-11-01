@@ -1,6 +1,6 @@
 // maps.js — 골라 쓰는 장소(맵)
-import { STOCK_PLACES, STOCK_STEPS0, STOCK_STEP } from './maps-stock.js?v=v30.13.0-cbbffda';
-import { WATER_PLACES, WATER_STEPS0, WATER_STEP } from './maps-water.js?v=v30.13.0-cbbffda';
+import { STOCK_PLACES, STOCK_STEPS0, STOCK_STEP, TIME_ART } from './maps-stock.js?v=v30.14.0-a2fe19b';
+import { WATER_PLACES, WATER_STEPS0, WATER_STEP } from './maps-water.js?v=v30.14.0-a2fe19b';
 //  장소마다 그림 판 한 벌(가로 wide · 세로 tall, 각각 본판·-dry·-sea 세 장)과 그 장소의 성격을 정한다.
 //  구조는 모두 같다: 위는 숲(키위가 숨었다 나온다), 가운데는 글씨를 쓰는 바닥, 아래는 물(불어나서 글씨를 지운다).
 
@@ -78,7 +78,7 @@ STOCK_PLACES.forEach((p, i) => {
     shoreFrom: 0.45,                 // 벚꽃 강변과 같은 구도(위 숲 · 가운데 바닥 · 아래 물)
     tone: true,                      // 바닥 색이 장소마다 달라 숲 줄을 그 판의 바닥 색으로 찾는다 (plate.js)
     ...(p.print === 'gravel' ? { ground: 'gravel' } : {}),   // 회색 자갈 바닥: 발자국 색
-    art: false,
+    ...(TIME_ART.has(p.id) ? {} : { art: false }),   // v30.14 시간대 판이 있으면 읽는다
     like: p.like,
     ...(p.film ? { film: p.film } : {}),   // v30.12 찻빛·흙빛 물 — 큰 파도 물 막 색 (water.js)
     ...(p.shoreFix ? { shoreFix: p.shoreFix } : {}),   // 물가선을 못 읽는 판은 그림에서 잰 높이                    // 손님은 닮은 장소의 동물이 온다
