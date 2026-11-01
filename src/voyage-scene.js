@@ -6,9 +6,9 @@
 //  사건(voyage.js 의 kind)을 받으면 12초쯤 그 장면을 보여 준다. snapshot() 은 같은 장면을 사진 한 장으로 다시 그린다
 //  (화면을 꺼 두었던 사이의 사건도 일기 사진을 남길 수 있게).
 
-import { CREW_ACTS, CREW_MORE } from './acts.js?v=v30.5.1-0b4a115';
-import { SeaGL, drawSea2D } from './voyage-water.js?v=v30.5.1-0b4a115';
-import { isWet } from './wx-kind.js?v=v30.5.1-0b4a115';   // v30.1 천둥번개도 비
+import { CREW_ACTS, CREW_MORE } from './acts.js?v=v30.6.0';
+import { SeaGL, drawSea2D } from './voyage-water.js?v=v30.6.0';
+import { isWet } from './wx-kind.js?v=v30.6.0';   // v30.1 천둥번개도 비
 
 export const SPEED = 0.05;   // 배가 가는 빠르기: 1초에 화면 짧은 변의 5% (물·잔물결·지나가는 것이 모두 이 빠르기로 흐른다)
 const WATER_SCALE = 0.75;     // 물은 화면보다 성기게 그린다 (배터리·발열 — 물결은 흐려도 티가 안 난다)
@@ -67,7 +67,7 @@ export function voyageLight(hour = 12) {
 
 const img = src => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; });
 // v28.20 항해 중 배 옆을 흘러가는 작은 섬 (위에서 본 그림, 재고 stock/voyage pass-islands → tools/cut-cells.mjs)
-const PASS_ISLANDS = ['pass-volcano.webp?v=v30.5.1-0b4a115', 'pass-arch.webp?v=v30.5.1-0b4a115', 'pass-turtle.webp?v=v30.5.1-0b4a115', 'pass-lighthouse.webp?v=v30.5.1-0b4a115', 'pass-atoll.webp?v=v30.5.1-0b4a115', 'pass-wreck.webp?v=v30.5.1-0b4a115'];
+const PASS_ISLANDS = ['pass-volcano.webp?v=v30.6.0', 'pass-arch.webp?v=v30.6.0', 'pass-turtle.webp?v=v30.6.0', 'pass-lighthouse.webp?v=v30.6.0', 'pass-atoll.webp?v=v30.6.0', 'pass-wreck.webp?v=v30.6.0'];
 
 export class VoyageScene {
   constructor(canvas) {
@@ -85,7 +85,7 @@ export class VoyageScene {
   async load(base = 'assets/') {
     this.base = base;
     const gen = this.gen = (this.gen || 0) + 1;
-    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v30.5.1-0b4a115', 'sea-tall.webp?v=v30.5.1-0b4a115', 'voyage-sprites.webp?v=v30.5.1-0b4a115', 'kiwi.webp?v=v30.5.1-0b4a115', 'kiwi-sleep.webp?v=v30.5.1-0b4a115', 'umbrellas.webp?v=v30.5.1-0b4a115', 'sea-night.webp?v=v30.5.1-0b4a115', 'sea-tall-night.webp?v=v30.5.1-0b4a115', 'voyage-crew.webp?v=v30.5.1-0b4a115', 'voyage-boat.webp?v=v30.5.1-0b4a115', 'voyage-sail.webp?v=v30.5.1-0b4a115'].map(f => img(base + f).catch(() => null)));
+    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v30.6.0', 'sea-tall.webp?v=v30.6.0', 'voyage-sprites.webp?v=v30.6.0', 'kiwi.webp?v=v30.6.0', 'kiwi-sleep.webp?v=v30.6.0', 'umbrellas.webp?v=v30.6.0', 'sea-night.webp?v=v30.6.0', 'sea-tall-night.webp?v=v30.6.0', 'voyage-crew.webp?v=v30.6.0', 'voyage-boat.webp?v=v30.6.0', 'voyage-sail.webp?v=v30.6.0'].map(f => img(base + f).catch(() => null)));
     if (gen !== this.gen) return false;
     if (!sea || !sheet) throw new Error('voyage art');
     Object.assign(this, { sea, tall: tall || sea, sheet, kiwi, sleep, umb, seaN, tallN: tallN || seaN, crewSheet });
@@ -116,7 +116,7 @@ export class VoyageScene {
     if (!b || !b.h || !this.base) { this.alt = null; return; }
     if (this.alt?.id === id) return;
     const gen = this.gen;
-    img(this.base + 'boat-' + id + '.webp?v=v30.5.1-0b4a115').then(im => {
+    img(this.base + 'boat-' + id + '.webp?v=v30.6.0').then(im => {
       if (gen !== this.gen || this.boatId !== id) return;
       this.alt = { ...b, im, box: boxesOf(im, 'boat-' + id, ['b'], 1, 1).b };
     }).catch(() => {});
@@ -127,7 +127,7 @@ export class VoyageScene {
     if (!id || id === 'leaf' || id === 'none' || !this.base) { this.sailAlt = null; return; }
     if (this.sailAlt?.id === id) return;
     const gen = this.gen;
-    img(this.base + 'sail-' + id + '.webp?v=v30.5.1-0b4a115').then(im => {
+    img(this.base + 'sail-' + id + '.webp?v=v30.6.0').then(im => {
       if (gen !== this.gen || this.sailId !== id) return;
       this.sailAlt = { id, im, box: boxesOf(im, 'sail-' + id, ['s'], 1, 1).s };
     }).catch(() => {});
@@ -154,7 +154,7 @@ export class VoyageScene {
   sunsetArt(tall) {
     if (!this.sunsets.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v30.5.1-0b4a115' : 'sea-sunset.webp?v=v30.5.1-0b4a115')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v30.6.0' : 'sea-sunset.webp?v=v30.6.0')).then(image => (entry.image = image)).catch(() => null);
       this.sunsets.set(tall, entry);
     }
     return this.sunsets.get(tall).promise;
@@ -163,7 +163,7 @@ export class VoyageScene {
   dawnArt(tall) {
     if (!this.dawns.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-dawn.webp?v=v30.5.1-0b4a115' : 'sea-dawn.webp?v=v30.5.1-0b4a115')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-dawn.webp?v=v30.6.0' : 'sea-dawn.webp?v=v30.6.0')).then(image => (entry.image = image)).catch(() => null);
       this.dawns.set(tall, entry);
     }
     return this.dawns.get(tall).promise;
@@ -173,7 +173,7 @@ export class VoyageScene {
   auroraArt(tall) {
     if (!this.auroras.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-aurora.webp?v=v30.5.1-0b4a115' : 'sea-aurora.webp?v=v30.5.1-0b4a115')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-aurora.webp?v=v30.6.0' : 'sea-aurora.webp?v=v30.6.0')).then(image => (entry.image = image)).catch(() => null);
       this.auroras.set(tall, entry);
     }
     return this.auroras.get(tall).promise;
@@ -333,7 +333,10 @@ export class VoyageScene {
     c.fillStyle = '#6b4a2e'; c.beginPath(); c.arc(mx, my, bw * 0.045, 0, Math.PI * 2); c.fill();
     c.fillStyle = 'rgba(255,230,190,0.5)'; c.beginPath(); c.arc(mx - bw * 0.012, my - bw * 0.012, bw * 0.018, 0, Math.PI * 2); c.fill();
   }
+  // 고른 배에 앉을 자리 수 (dock.js 가 타고 내릴 키위 수를 맞춘다)
+  seatCount() { return this.hullBox ? (this.alt?.seats || WIDE_SEATS).length : 3; }
   crew(c, bw, bh, st, play, t, seats = WIDE_SEATS) {
+    if (st.crew === 0) return;   // 바닷가에 댄 빈 배 (dock.js — 다 내렸거나 아직 아무도 안 탔다)
     const n = Math.max(1, Math.min(this.hullBox ? (seats || WIDE_SEATS).length : 3, st.crew || 3));   // 큰 배는 자리 수만큼 (최대 10)
     if (!this.crewCells) return this.crewOld(c, bw, bh, st, play, t, n);
     // 배에 탄 키위 (voyage-crew.webp): 평소엔 앞을 보다가 가끔 두리번, 사건이 오면 그쪽을 본다

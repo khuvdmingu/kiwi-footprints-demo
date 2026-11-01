@@ -1,4 +1,5 @@
 // cutscene.js — v28.18 부두 장면: 출항 때 「승선」, 도착 때 「도착」 짧은 영상을 화면 위에 한 번
+//  ⚠ 2026-11-02 부터 출항·도착은 바닷가 배 장면(dock.js)이 맡는다 — 지금 이 덮개는 드문 순간(moments.js)만 쓴다
 //
 //  영상(Higgsfield Kling, 재고 stock/dock 2026-10-22 → 960px 무음 다시 인코딩): assets/cut-board.mp4 · cut-arrive.mp4 (각 10초)
 //  · 어디를 누르거나 Esc 면 바로 건너뛴다 · 1.25배로 돌려 약 8초 · 영상을 못 읽거나 멈추면 조용히 넘어간다
@@ -26,7 +27,7 @@ export class Cutscene {
     if (!f || this.off) return Promise.resolve(false);
     this.close();
     const v = this.video;
-    v.poster = `assets/${f}.webp?v=v30.5.1-0b4a115`; v.src = `assets/${f}.mp4`; v.muted = true; v.playsInline = true;
+    v.poster = `assets/${f}.webp?v=v30.6.0`; v.src = `assets/${f}.mp4`; v.muted = true; v.playsInline = true;
     const cap = this.root.querySelector('.cutCaption'); if (cap) cap.textContent = caption;
     this.root.hidden = false; this.root.classList.remove('out');
     v.playbackRate = rate;
