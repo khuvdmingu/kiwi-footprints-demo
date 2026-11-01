@@ -7,10 +7,10 @@
 //   · extras.drawIsland(ctx, beach, mapId, night) — 섬 장면에 지은 것을 그린다
 //  규칙·저장은 chart.js · fishing.js · build.js 에, 화면 칸(바구니 › 해도 · 장소·소리 · 도감, 집중 창 안내)은 index.html 에.
 
-import { Chart, ISLET, SPOT, BIG, STOCK_ISLE_SHEETS, drawChart, drawChartLabel, drawVoyageMark, voyagePoint, mutedSea, routeLine, josa, SHEET as CHART_SHEET, CHART_B, BIG_ART } from './chart.js?v=v30.4.1-0468f0f';
-import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v30.4.1-0468f0f';
-import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v30.4.1-0468f0f';
-import { loadSheet } from './sheet.js?v=v30.4.1-0468f0f';
+import { Chart, ISLET, SPOT, BIG, STOCK_ISLE_SHEETS, drawChart, drawChartLabel, drawVoyageMark, voyagePoint, mutedSea, routeLine, josa, SHEET as CHART_SHEET, CHART_B, BIG_ART } from './chart.js?v=v30.5.0-56fe9be';
+import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v30.5.0-56fe9be';
+import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v30.5.0-56fe9be';
+import { loadSheet } from './sheet.js?v=v30.5.0-56fe9be';
 
 // 그림 격자가 assets/ 에 들어오면 true 로 (없을 때 404 를 내지 않게 — 그동안은 코드 그림)
 export const ART = { chart: true, catch: true, extra: true, kit: true, isles: true };   // isles: 재고 24곳 섬 그림 격자 chart-isles-a/b.webp (v29.4.1 Codex 그림)   // 2026-10-21 Higgsfield 격자 2장 (docs/GRAPHICS-PROMPTS.md v28)
@@ -23,13 +23,13 @@ export function mountExtras(env) {
   const base = new URL('../assets/', import.meta.url).href;
   const sheets = { chart: null, catch: null, extra: null, kit: null, chartB: null, paper: null };
   const load = (k, f) => { if (ART[k]) loadSheet(base + f).then(s => { if (s) { sheets[k] = s; paintAll(); } }); };
-  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v30.4.1-0468f0f'); load('kit', 'build-sheet-2.webp?v=v30.4.1-0468f0f');   // v28.20 벚꽃 강변·오아시스 건물   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
+  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v30.5.0-56fe9be'); load('kit', 'build-sheet-2.webp?v=v30.5.0-56fe9be');   // v28.20 벚꽃 강변·오아시스 건물   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
   // v28.19 해도 그림 B — 양피지 + 새 아이콘 (못 읽으면 지금 그림 그대로)
   loadSheet(base + CHART_B.sheet).then(s => { if (s) { sheets.chartB = s; paintAll(); } });
   // v29.4.5: 양피지 종이(틀 있는 그림)는 해도 창에서 안 쓴다 — 바탕이 화면 끝까지
   sheets.isles = [];   // v29.4 재고 24곳 섬 그림 격자 두 장
   // v29.4.8 해도 바다 = Codex 가 섬 그림과 같은 붓질로 그린 물 한 장 (stock/chart-sea) — 해도 전체에 한 장으로 편다
-  { const im = new Image(); im.onload = () => { sheets.sea = im; paintAll(); }; im.src = base + 'chart-sea.webp?v=v30.4.1-0468f0f'; }
+  { const im = new Image(); im.onload = () => { sheets.sea = im; paintAll(); }; im.src = base + 'chart-sea.webp?v=v30.5.0-56fe9be'; }
   if (ART.isles) STOCK_ISLE_SHEETS.forEach((f, i) => loadSheet(base + f).then(s => { if (s) { sheets.isles[i] = s; paintAll(); } }));
   sheets.bigArt = {};   // v28.20 격자 칸이 없는 큰 섬 (벚꽃 강변·오아시스)
   for (const [id, f] of Object.entries(BIG_ART)) { const im = new Image(); im.onload = () => { sheets.bigArt[id] = im; paintAll(); }; im.src = base + f; }
@@ -350,8 +350,9 @@ export function mountExtras(env) {
     if (keyboard) $('chartClose')?.focus();
   });
   function showIsle({ id, kind }) {
-    const nm = card.querySelector('.nm'), tx = card.querySelector('.tx'), go = card.querySelector('.go');
+    const nm = card.querySelector('.nm'), tx = card.querySelector('.tx'), go = card.querySelector('.go'), jump = card.querySelector('.jump');
     go.hidden = true; go.onclick = null; go.disabled = false;
+    if (jump) { jump.hidden = true; jump.onclick = null; }
     // v29.7.1 섬에서 지은 것은 그 섬 카드에서 (예전 바구니 › 모은 것) — 연 큰 섬만
     let bl = card.querySelector('.buildRow'); if (bl) bl.remove();
     if (kind === 'big' && mapOpen(id)) { bl = buildRow(id); bl.querySelector('b').textContent = '섬에서 지은 것'; tx.after(bl); }
@@ -366,6 +367,8 @@ export function mountExtras(env) {
         if (voyage.active) { go.textContent = '항해 중이에요'; go.disabled = true; }
         else if (voyage.paused) { go.textContent = '멈춘 배가 있어요 — 이어 가기 · 그만두기'; go.onclick = () => env.planVoyage?.(voyage.paused.to); }
         else { go.textContent = '항해로 가기'; go.onclick = () => env.planVoyage?.(id); }
+        // 바로 가기 (2026-11-02, 사용자 「섬으로 가는 게 힘드니까 점프로 한번에」): 연 섬이면 항해 없이 바로 — 바다 위에 배가 있을 땐 안 됨
+        if (jump && !voyage.atSea) { jump.hidden = false; jump.onclick = () => env.jump?.(id); }
       }
     } else if (kind === 'islet') {
       const task = String(chart.found[id]?.task || '').trim();
