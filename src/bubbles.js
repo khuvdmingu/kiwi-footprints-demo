@@ -24,7 +24,7 @@ function cut(src, cols, rows) {
 
 export class Bubbles {
   constructor(rand = Math.random) { this.rand = rand; this.list = []; this.emotes = null; this.dreams = null; this.dreamAt = new Map(); }
-  load(base = 'assets/') { cut(base + 'emotes.webp?v=v30.15.0-1ded26c', 4, 4).then(l => { this.emotes = l; }); cut(base + 'dreams.webp?v=v30.15.0-1ded26c', 4, 2).then(l => { this.dreams = l; }); }
+  load(base = 'assets/') { cut(base + 'emotes.webp?v=v30.16.0-9b21603', 4, 4).then(l => { this.emotes = l; }); cut(base + 'dreams.webp?v=v30.16.0-9b21603', 4, 2).then(l => { this.dreams = l; }); }
   emote(kw, cell, t, life = 1.6) {
     if (cell == null) return;
     this.list = this.list.filter(b => b.kw !== kw);   // 한 키위에 하나만
