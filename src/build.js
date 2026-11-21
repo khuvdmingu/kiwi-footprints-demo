@@ -8,11 +8,12 @@
 //  그림: assets/catch-sheet.webp 의 10~15 칸 (fishing.js 와 같은 장). 없으면 코드 그림.
 //  기록은 이 기기에만 (localStorage 'builds').
 
-import { standCell } from './sheet.js?v=v30.16.0-9b21603';
+import { standCell } from './sheet.js?v=v30.23.0-cda5927';
+import { MAPS } from './maps.js?v=v30.23.0-cda5927';
 
 export const BUILDS = [
-  { id: 'flag', min: 15, cell: 10, ko: '깃발', note: '여기 우리가 있었다는 표시.', x: 0.17, h: 0.11 },
-  { id: 'bench', min: 45, cell: 11, ko: '나무 벤치', note: '글씨 쓰다 앉아 쉬는 자리.', x: 0.8, h: 0.09 },
+  { id: 'flag', min: 15, cell: 10, ko: '돌탑', note: '다시 닿을 때마다 작은 돌을 얹는 자리.', x: 0.17, h: 0.095 },
+  { id: 'bench', min: 45, cell: 11, ko: '이끼 그루터기', note: '글씨 쓰다 잠깐 쉬는 자리.', x: 0.8, h: 0.075 },
   { id: 'post', min: 90, cell: 12, ko: '우체통', note: '떠내려온 편지를 넣어 두는 곳.', x: 0.26, h: 0.12 },
   { id: 'fire', min: 160, cell: 13, ko: '모닥불 자리', note: '밤이면 다 같이 둘러앉는다.', x: 0.7, h: 0.08, glow: 0.7 },
   { id: 'hut', min: 260, cell: 14, ko: '오두막', note: '비 오는 날 다 같이 들어간다.', x: 0.93, h: 0.2 },
@@ -29,20 +30,17 @@ export const VARIANTS = {
   },
   snow: {
     hut: { ko: '통나무집', note: '지붕에 눈이 두툼하게 쌓였다.', sheet: 'extra', cell: 12 },
-    flag: { ko: '눈사람', note: '빨간 목도리를 둘렀다.', h: 0.12, sheet: 'extra', cell: 13 },
   },
   fall: { hut: { ko: '단풍 오두막', note: '지붕을 단풍잎으로 덮었다.', sheet: 'extra', cell: 14 } },
   nz: { hut: { ko: '고사리 오두막', note: '고사리 잎을 엮어 지붕을 얹었다.', sheet: 'extra', cell: 15 } },
   // v28.20 벚꽃 강변 · 오아시스 (build-sheet-2.webp — 재고 stock/kit 격자, sheet: 'kit')
   cherry: {
-    flag: { ko: '벚꽃 깃발', note: '꽃잎 무늬 천을 가지에 달았다.', sheet: 'kit', cell: 12 },
     bench: { ko: '꽃잎 벤치', note: '앉으면 꽃잎이 내려앉는다.', sheet: 'kit', cell: 15 },
     fire: { ko: '소풍 담요', note: '찻잔을 놓고 꽃 구경을 한다.', sheet: 'kit', cell: 13, glow: 0 },
     hut: { ko: '벚꽃 정자', note: '지붕 위로 꽃이 쌓인다.', sheet: 'kit', cell: 9 },
     light: { ko: '석등', note: '강물에 불빛이 흔들린다.', h: 0.16, sheet: 'kit', cell: 11 },
   },
   oasis: {
-    flag: { ko: '줄무늬 천막', note: '한낮의 해를 가린다.', sheet: 'kit', cell: 7 },
     bench: { ko: '야자 섬유 벤치', note: '야자 섬유를 엮어 만들었다.', sheet: 'kit', cell: 6 },
     fire: { ko: '주전자 모닥불', note: '밤 사막은 춥다. 차를 끓인다.', sheet: 'kit', cell: 14 },
     hut: { ko: '야자잎 오두막', note: '모래바람이 들지 않게 촘촘히.', sheet: 'kit', cell: 4 },
@@ -87,7 +85,7 @@ export function nextText(builds, map) {
 }
 
 // 섬 위에 그리기 (main.js draw — 물가 물건 다음, 키위 그림자 앞). pop = { id, t0 } 새로 선 것의 뿅 효과
-export function drawBuilds(ctx, beach, map, level, sheets, night = 0, pop = null) {
+export function drawBuilds(ctx, beach, map, level, sheets, night = 0, pop = null, visits = 0) {
   if (!level) return;
   const { W, H, t } = beach, S = Math.min(W, H);
   for (let i = 0; i < level; i++) {
@@ -97,12 +95,57 @@ export function drawBuilds(ctx, beach, map, level, sheets, night = 0, pop = null
     ctx.save(); ctx.translate(x, y); ctx.scale(k, k);
     // 바닥 그림자
     ctx.fillStyle = 'rgba(40,30,20,0.18)'; ctx.beginPath(); ctx.ellipse(0, 0, h * 0.42, h * 0.08, 0, 0, 6.29); ctx.fill();
-    if (standCell(ctx, sheets?.[b.sheet || 'catch'], b.cell, 0, h * 0.04, h)) { /* 그림 격자 */ }
+    if (b.id === 'flag') drawCairn(ctx, map, 0, 0, h, visits, night > 0.5);
+    else if (b.id === 'bench' && !b.sheet && sheets?.stump) {
+      const image = sheets.stump, w = h * image.width / image.height;
+      ctx.drawImage(image, -w / 2, -h, w, h);
+    }
+    else if (standCell(ctx, sheets?.[b.sheet || 'catch'], b.cell, 0, h * 0.04, h)) { /* 그림 격자 */ }
     else drawCode(ctx, b.id, h, t, map);
     ctx.restore();
     if (b.glow && night > 0.2) glow(ctx, b, x, y, h, night, t);
   }
 }
+const STONE = {
+  beach: ['#a0917d', '#d7c4a4', '#a99070'],
+  nz: ['#646e61', '#a2a895', '#82936b'],
+  snow: ['#8496a3', '#dae7ec', '#e6edf0'],
+  fall: ['#907461', '#c8a68a', '#bd8b54'],
+  zen: ['#777a80', '#b1b1ac', '#a5a49c'],
+  cherry: ['#947b79', '#ceada5', '#c78f93'],
+  oasis: ['#ac805d', '#dbb488', '#c59369'],
+};
+
+export function cairnTier(visits) {
+  return visits >= 8 ? 4 : visits >= 4 ? 3 : visits >= 2 ? 2 : 1;
+}
+
+export function drawCairn(ctx, map, x, y, h, visits, night = false) {
+  const habitat = MAPS[map]?.like || map;
+  const [side, top, accent] = STONE[habitat] || STONE.beach;
+  const flat = habitat === 'oasis' || habitat === 'zen';
+  const offset = habitat === 'nz' || habitat === 'fall' ? 1.4 : 1;
+  const tier = cairnTier(visits);
+  ctx.save(); ctx.translate(x, y);
+  const alpha = ctx.globalAlpha;
+  for (let i = 0; i < tier; i++) {
+    const w = h * (0.49 - 0.085 * i) * (flat ? 1.16 : 1), a = h * (0.16 - i * 0.017) * (flat ? 0.8 : 1);
+    const cx = h * [0, -0.045, 0.025, -0.018][i] * offset, cy = -h * (0.14 + (flat ? 0.135 : 0.165) * i);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = side; ctx.beginPath();
+    ctx.moveTo(cx - w, cy);
+    ctx.quadraticCurveTo(cx - w * 0.5, cy - a * 1.65, cx + w * 0.44, cy - a);
+    ctx.quadraticCurveTo(cx + w, cy - a * 0.9, cx + w, cy + a * 0.14);
+    ctx.quadraticCurveTo(cx + w * 0.62, cy + a * 0.88, cx - w * 0.37, cy + a * 0.64);
+    ctx.quadraticCurveTo(cx - w * 1.05, cy + a * 0.52, cx - w, cy);
+    ctx.fill();
+    ctx.fillStyle = i === tier - 1 ? accent : top;
+    ctx.globalAlpha = alpha * (night ? 0.68 : 0.86);
+    ctx.beginPath(); ctx.ellipse(cx - w * 0.06, cy - a * 0.45, w * 0.79, a * 0.51, -0.08, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+
 function glow(ctx, b, x, y, h, n, t) {
   const fl = 0.9 + 0.1 * Math.sin(t * 6.1) * Math.sin(t * 2.3);
   const gy = b.id === 'light' ? y - h * 0.86 : b.id === 'fire' ? y - h * 0.25 : y - h * 0.6, r = (b.id === 'light' ? h * 0.9 : h * 1.4) * fl;

@@ -578,6 +578,11 @@
 .k-modal--center .bookWriting { margin: 0; text-align: left; white-space: pre-wrap; overflow-wrap: anywhere; font: var(--k-fs-m)/1.75 var(--k-serif); }
 .k-modal--center .bookCaption, .k-modal--center .bookStats { margin: 0; text-align: left; font: 400 var(--k-fs-s)/1.5 var(--k-font); }
 .k-modal--center .bookCaption { opacity: .75; }
+/* v30.18 일지 도장 — 그림(assets/diary-seal-*, mask-image)은 잉크 모양만, 색은 --seal-ink. 밤 종이에선 밝은 글씨색을 섞어 남색 위에서도 보이게 */
+.k-modal--center .bookSeal { justify-self: end; width: 60px; height: 60px; margin: calc(var(--book-space) * -0.5) 0;
+  background: color-mix(in srgb, var(--seal-ink), var(--k-ink, var(--seal-ink)) calc(var(--k-night, 0) * 60%));
+  -webkit-mask-position: center; mask-position: center; -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  rotate: var(--seal-tilt, 0deg); }   /* 그림 주소(mask-image)는 journey-book.js 가 붙인다 */
 .k-modal--center .bookStats { font-weight: 600; }
 .k-modal--center .bookNavigation { display: grid; grid-template-columns: var(--book-tap) 64px var(--book-tap); align-items: center; justify-content: center; gap: var(--book-space); flex: none; }
 .k-modal--center .journeyPageNumber { color: var(--photo-view-ink); text-align: center; font: 500 var(--k-fs-m)/1 var(--k-font); font-variant-numeric: tabular-nums; }

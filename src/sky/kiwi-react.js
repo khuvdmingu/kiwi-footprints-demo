@@ -8,12 +8,13 @@
 //  main.js 는 매 프레임 update(dt, kiwis, atmos.v, beach) 를 부르고, 그릴 때 drawLeaning(ctx, k, () => k.draw(ctx)) 로 감싸고
 //  drawUmbrella(ctx, k) · drawFeathers(ctx, u) 를 키위 위에 얹는다. 키위 그림(kiwi.js)은 건드리지 않는다.
 
-import { clamp } from '../util.js?v=v30.16.0-9b21603';
-import { headPose } from '../kiwi.js?v=v30.16.0-9b21603';
+import { clamp } from '../util.js?v=v30.23.0-cda5927';
+import { headPose, setKiwiActs } from '../kiwi.js?v=v30.23.0-cda5927';
+import { ACTS } from '../acts.js?v=v30.23.0-cda5927';
 
 export const UMB_SHARE = 0.45;   // 우산을 드는 성격의 비율
-const SHEET = 'assets/umbrellas.webp?v=v30.16.0-9b21603';
-const HOODS = 'assets/hoods.webp?v=v30.16.0-9b21603';   // v27.7 머리에 얹는 잎 2×2 (Higgsfield nano_banana_pro: 토란잎 · 몬스테라 / 바나나잎 · 연잎, 옆에서 본 둥근 지붕 모양)
+const SHEET = 'assets/umbrellas.webp?v=v30.23.0-cda5927';
+const HOODS = 'assets/hoods.webp?v=v30.23.0-cda5927';   // v27.7 머리에 얹는 잎 2×2 (Higgsfield nano_banana_pro: 토란잎 · 몬스테라 / 바나나잎 · 연잎, 옆에서 본 둥근 지붕 모양)
 const HOOD_SHARE = 0.5;               // 우산을 드는 키위 가운데 머리에 얹는 성격의 비율
 const GREEN = [1, 1, 0], AUTUMN = [2, 3];   // 칸: 0 토란잎 · 1 열대 잎(양산 모양이라 더 자주) / 2 단풍 · 3 은행잎
 // 키위 그림 기준(k 배수, 오른쪽을 볼 때): 부리 끝 (0.79, −0.48) · 머리 꼭대기 (−0.07, −0.89) — kiwi.webp 에서 잰 값
@@ -32,6 +33,15 @@ export class KiwiWeather {
     this.t += dt;
     const wet = KiwiWeather.wetness(v), wind = KiwiWeather.windiness(v), u = beach.u || 1, R = this.rand;
     this.wet = wet;
+    const motion = typeof matchMedia === 'undefined' || !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (wet > 0.35 && motion && !this.rainArt && typeof Image !== 'undefined') {
+      this.rainArt = true;
+      for (const id of ['rainLeaf', 'rainHollow']) {
+        const image = new Image();
+        image.onload = () => setKiwiActs({ [id]: image });
+        image.src = 'assets/' + ACTS[id].file;
+      }
+    }
     for (const k of kiwis) {
       if (k.gone) continue;
       if (k.umbPick == null) k.umbPick = R();
@@ -67,7 +77,12 @@ export class KiwiWeather {
       const c = kiwis.filter(k => !k.gone && !k.job && !k.focus && !k.asleep && (k.state === 'idle' || k.state === 'free') && k.umbPick >= UMB_SHARE && !k.sheltered);
       if (c.length) {
         const k = c[Math.floor(R() * c.length)], x = clamp(k.x + (R() - 0.5) * 120 * u, 30, beach.W - 30);
-        k.sheltered = true; k.wanderTo(x, beach.grass(x) + (6 + R() * 10) * u);
+        const edge = beach.grass(k.x), nearForest = k.y > edge + k.k * 0.8 && k.y < edge + k.k * 2.3;
+        const act = nearForest && R() < 0.5 ? 'rainHollow' : 'rainLeaf';
+        k.sheltered = true;
+        if (!(motion && !k.skin && (k.vis ?? 1) > 0.95 && typeof k.act === 'function' && k.act(act))) {   // 그림이 아직 없으면 act 가 false → 예전처럼 덤불 밑으로
+          k.wanderTo(x, beach.grass(x) + (6 + R() * 10) * u);
+        }
       }
     }
     if (wet < 0.2) for (const k of kiwis) k.sheltered = false;

@@ -9,13 +9,13 @@
 //  믹서 값(소리 켜기·음악·환경음·효과음·발자국 음악)은 기기에 기억한다.
 //  브라우저는 사용자 동작 안에서만 소리를 열 수 있어서 unlock() 을 그때 부른다. 탭을 숨기면 멈춘다.
 
-import { Music } from './music.js?v=v30.16.0-9b21603';
-import { STOCK_PLACES } from './maps-stock.js?v=v30.16.0-9b21603';
-import { WATER_PLACES } from './maps-water.js?v=v30.16.0-9b21603';
+import { Music } from './music.js?v=v30.23.0-cda5927';
+import { STOCK_PLACES } from './maps-stock.js?v=v30.23.0-cda5927';
+import { WATER_PLACES } from './maps-water.js?v=v30.23.0-cda5927';
 
 // v16 아이템 소리·곡은 오픈소스 녹음 — 목록·출처는 카탈로그 한 곳 (src/tracks/index.js). assets/audio/ 에서 처음 고를 때 받는다
 //  STEP_SAMPLES: 0.5초 칸마다 한 걸음 · NATURE_LOOPS: 끝과 처음을 겹쳐 이음매 없이 도는 고리 · SONG_TRACKS: 곡 고리
-import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v30.16.0-9b21603';
+import { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, FX_SAMPLES, NATURAL_STEPS, KIWI_VOICES, TRACK } from './tracks/index.js?v=v30.23.0-cda5927';
 export { STEP_SAMPLES, NATURE_LOOPS, SONG_TRACKS, NATURAL_STEPS };
 const AUDIO = 'assets/audio/';
 // 곡·자연 배경 고리는 풀어 두면 한 곡에 수십 MB(48kHz 기준 최대 약 96MiB)라, 고리 자리마다 지금 것 + 바로 전 것만 들고 있는다 (2026-10-19)
@@ -30,7 +30,22 @@ export const VOY_FX = {
   sail: ['voy-sail-a.mp3', 'voy-sail-b.mp3'],      // 출항 — 돛이 바람을 받음 / 돛과 밧줄
   reel: ['voy-reel-a.mp3', 'voy-reel-b.mp3'],      // 낚싯줄에 걸린 것 — 릴 감기 / 찰박
 };
-export const VOY_BED = ['voy-boat-a.mp3', 'voy-boat-b.mp3'];   // 항해 중 배 물소리 고리 (나무배 삐걱 + 찰랑 / 잔물결)
+export const VOY_BED = ['voy-boat-a.mp3', 'voy-boat-b.mp3'];
+// v30.22 효과음 6 (재고 stock/sound 2026-10-21 Seedance 소리, −22 LUFS 근처) — 한 판씩. 섬 쪽 소리는 미리 안 받아 두므로 처음엔 받는 대로(1.5초 안) 낸다
+export const MORE_FX = {
+  dolphins: 'fx-dolphins.mp3',   // 돌고래 무리가 나타날 때 (sea-life.js onStart)
+  seabird: 'fx-seabird.mp3',     // 사건 「물 위에서 쉬는 새」
+  bell: 'fx-ship-bell.mp3',      // 섬에 닿을 때
+  chart: 'fx-map-unfold.mp3',    // 해도를 펼칠 때
+  build: 'fx-build-done.mp3',    // 섬에 새로 지었을 때
+  fire: 'fx-fire-light.mp3',     // 모닥불 자리를 지었을 때
+  // v30.23 Codex 재고 stock/audio/2026-10-21-hq (사용자 「다 넣자」 2026-11-22) — 출처 tracks/codex-fx-2026-11.js
+  oar: 'fx-oar-dip.mp3',         // 출항 — 돛 소리 다음 노 한 번
+  letter: 'fx-letter-unfold.mp3',   // 편지·쪽지를 펼칠 때
+  journal: 'fx-journal-open.mp3',   // 항해 일지를 펼칠 때
+  confirm: 'fx-ui-confirm.mp3',  // 첫 이름을 정했을 때
+  tap: 'fx-ui-tap.mp3',          // 바구니를 열 때
+};   // 항해 중 배 물소리 고리 (나무배 삐걱 + 찰랑 / 잔물결)
 
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 const MIX_KEY = 'kiwi-footprints.mix';
@@ -47,7 +62,7 @@ export const PLACE_SOUND = {
 };
 // v28.22 재고 새 장소 (maps-stock.js step: sand · mud · zengravel)
 for (const p of [...STOCK_PLACES, ...WATER_PLACES]) PLACE_SOUND[p.id] = { step: p.step, peck: p.step === 'mud' ? 'peck-mud' : 'peck-sand' };
-const PECK_OF = { sand: 'peck-sand', zengravel: 'peck-sand', gravel: 'peck-sand', mud: 'peck-mud', snowwalk: 'peck-crunch', snow: 'peck-crunch', dryleaves: 'peck-crunch', leaves: 'peck-crunch' };
+const PECK_OF = { soil: 'peck-mud', sand: 'peck-sand', zengravel: 'peck-sand', gravel: 'peck-sand', mud: 'peck-mud', snowwalk: 'peck-crunch', snow: 'peck-crunch', dryleaves: 'peck-crunch', leaves: 'peck-crunch' };
 // v15.2 고르면 "대신" 나온다 (사용자: 덧대면 거슬린다) — 발자국: 'music'(발자국 음악, 기본) 대신 고른 소리 하나 · 곡: 시간 따라 음악 대신 그 곡 · 자연 배경: 기본(밤 귀뚜라미) 대신, 파도는 절반   // v14 발자국 소리 · 자연 배경 (물에서 떠내려온 소라로 얻는다)
 
 export class Sound {
@@ -455,7 +470,15 @@ export class Sound {
     src.connect(g); this.route(g, 'amb', 0, 0.2); src.start(t);
     return true;
   }
-  voyLoad() { if (this.ctx) for (const f of Object.values(VOY_FX).flat()) this.loadBuf(f); }
+  voyLoad() { if (this.ctx) for (const f of [...Object.values(VOY_FX).flat(), MORE_FX.dolphins, MORE_FX.seabird, MORE_FX.bell, MORE_FX.oar]) this.loadBuf(f); }
+  // v30.22 효과음 한 번 (MORE_FX). 받아 둔 게 없으면 받기 시작해 1.5초 안에 오면 그때 낸다 — 늦게 오면 이번은 조용히
+  moreFx(kind, vel = 0.6) {
+    const f = MORE_FX[kind]; if (!f || !this.ctx) return false;
+    const play = b => { const ctx = this.ctx, src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = b; g.gain.value = vel; src.connect(g); this.route(g, 'amb', 0, 0.2); src.start(ctx.currentTime); };
+    if (this.got?.[f]) { play(this.got[f]); return true; }
+    const t0 = Date.now(); Promise.resolve(this.loadBuf(f)).then(b => { if (b && Date.now() - t0 < 1500) play(b); });
+    return false;
+  }
   // 배 물소리 고리: 항해마다 두 판 중 하나, 내리면 끔
   voyBed(on, rnd = Math.random) { this.playLoop('boat', on ? VOY_BED[Math.floor(rnd() * VOY_BED.length)] : null, 'amb', 0.55); }
   walkStep(x, flee = false) {

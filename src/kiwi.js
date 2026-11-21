@@ -10,11 +10,11 @@
 //      그림을 처음 읽을 때 알파를 훑어 부리 끝·몸 바닥을 찾아 크기·콕 각도를 맞춘다 (setKiwiSprite).
 //  (x, y) = 발이 땅에 닿는 점. k = 몸 크기 단위 (꼬리 −0.41k ~ 부리 끝 +0.8k, 머리 꼭대기 −0.86k)
 
-import { angleDiff, clamp, dist, Path } from './util.js?v=v30.16.0-9b21603';
-import { PAL as T, LIGHT } from './tokens.js?v=v30.16.0-9b21603';
-import { ACTS, VARIANTS, WAKE_ACT, pickIdleAct } from './acts.js?v=v30.16.0-9b21603';
-import { ACT_HEADS, HEAD_MODES, HEAD_REST } from './act-heads.js?v=v30.16.0-9b21603';
-import { HEADWEAR, HEADWEAR_FADE } from './headwear.js?v=v30.16.0-9b21603';
+import { angleDiff, clamp, dist, Path } from './util.js?v=v30.23.0-cda5927';
+import { PAL as T, LIGHT } from './tokens.js?v=v30.23.0-cda5927';
+import { ACTS, VARIANTS, WAKE_ACT, pickIdleAct } from './acts.js?v=v30.23.0-cda5927';
+import { ACT_HEADS, HEAD_MODES, HEAD_REST } from './act-heads.js?v=v30.23.0-cda5927';
+import { HEADWEAR, HEADWEAR_FADE } from './headwear.js?v=v30.23.0-cda5927';
 
 let ID = 0;
 export let REACH = 0.8;             // 몸을 숙였을 때 부리 끝이 땅에 닿는 가로 거리 (k 배수) — 그림에서 다시 잰다
@@ -394,8 +394,18 @@ export class Kiwi {
       if (ai) {
         // 동작 프레임: kiwi.webp 픽셀 상자(ox·oy·w·h)를 몸 그림과 같은 비율로 얹는다
         const i = Math.min(a.n - 1, Math.floor(this.actT * a.fps)), u = SPR.w / SPR.img.naturalWidth;
+        const alpha = ctx.globalAlpha;
+        if (a.weather) {
+          const fade = clamp(Math.min(this.actT, a.n / a.fps - this.actT) / 0.25, 0, 1);
+          if (fade < 1) {
+            ctx.globalAlpha = alpha * (1 - fade);
+            ctx.drawImage(SPR.img, SPR.x * k, SPR.y * k, SPR.w * k, SPR.h * k);
+          }
+          ctx.globalAlpha = alpha * fade;
+        }
         ctx.drawImage(ai, (i % a.cols) * a.fw, Math.floor(i / a.cols) * a.fh, a.fw, a.fh,
           SPR.x * k + a.ox * u * k, SPR.y * k + a.oy * u * k, a.w * u * k, a.h * u * k);
+        ctx.globalAlpha = alpha;
       } else ctx.drawImage((stiffSkin(this.skin) && SKINS[this.skin]) || SPR.img, SPR.x * k, SPR.y * k, SPR.w * k, SPR.h * k);
       if (HW_IMG[this.skin]) this.drawHeadwear(ctx, k, a && ai ? a : null);
     } else {

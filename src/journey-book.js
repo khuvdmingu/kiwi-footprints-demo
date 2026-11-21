@@ -1,7 +1,7 @@
 // Voyage reader: result first, then each image and its record on the same page.
-import { PLACES, SIGHTS } from './voyage.js?v=v30.16.0-9b21603';
-import { stamp } from './album.js?v=v30.16.0-9b21603';
-import { pickIllus, arriveIllus } from './illus.js?v=v30.16.0-9b21603';   // v28.18 키위가 그린 그림
+import { PLACES, SIGHTS } from './voyage.js?v=v30.23.0-cda5927';
+import { stamp } from './album.js?v=v30.23.0-cda5927';
+import { pickDrawn, arriveDrawn, sealOf } from './illus.js?v=v30.23.0-cda5927';   // v28.18 키위가 그린 그림 · v30.18 낙서·도장
 
 export function diaryLeaves(text, size = 90) {
   const chars = Array.from(text || ''), leaves = [];
@@ -35,12 +35,17 @@ export function journeyPages(shot, diarySize = 90) {
       title: (sights.length ? name : '키위의 항해 일기') + (part ? ' · 이어서' : ''),
       caption: [stamp(sight.ts || shot.at), sight.blob ? '' : '사진 대신 남긴 기록'].filter(Boolean).join(' · '),
       blob: sight.blob || shot.blob, fallback: !sight.blob && !!sights.length,
+      seal: !part && shot.journey ? sealOf(sight.kind || 'quiet', `${sight.kind}:${sight.ts || shot.at}`) : null,
     });
     // v28.18 그 사건을 키위가 그린 그림 한 쪽 (항해 기록에만 — 예전 기록은 그대로)
-    const pic = shot.journey && pickIllus(sight.kind || 'quiet', `${sight.kind}:${sight.ts || shot.at}`);
-    if (pic) pages.push({ key: `illus-${i}`, title: `${name} · 키위의 그림`, caption: '키위가 일지 한쪽에 그려 둔 그림', src: pic });
+    //  v30.18 그중 약 40%는 크레용 낙서
+    const pic = shot.journey && pickDrawn(sight.kind || 'quiet', `${sight.kind}:${sight.ts || shot.at}`);
+    if (pic) pages.push({ key: `illus-${i}`, title: `${name} · 키위의 ${pic.doodle ? '낙서' : '그림'}`, caption: pic.doodle ? '키위가 크레용으로 끄적여 둔 낙서' : '키위가 일지 한쪽에 그려 둔 그림', src: pic.src });
   }
-  if (shot.journey) pages.push({ key: 'arrive', title: `${PLACES[shot.journey.to]?.ko || '섬'}에 닿았다`, caption: '키위가 일지 끝에 그려 둔 그림', src: arriveIllus(shot.journey.to) });
+  if (shot.journey) {
+    const end = arriveDrawn(shot.journey.to, `arrive:${shot.at}`);
+    pages.push({ key: 'arrive', title: `${PLACES[shot.journey.to]?.ko || '섬'}에 닿았다`, caption: end.doodle ? '키위가 일지 끝에 크레용으로 그려 둔 섬' : '키위가 일지 끝에 그려 둔 그림', src: end.src, seal: sealOf('arrive', `arrive:${shot.at}`) });
+  }
   return pages;
 }
 export function mountJourneyBook(root, host, shot, viewer) {
@@ -75,6 +80,12 @@ export function mountJourneyBook(root, host, shot, viewer) {
       b.append(im, hint); b.addEventListener('click', () => viewer.show(url, im.alt)); leaf.append(b);
     }
     const copy = document.createElement('div'); copy.className = 'bookCopy';
+    if (p.seal) {   // v30.18 여권 도장처럼 — 잉크 모양만 그림에서, 색은 칠한다(밤 종이에선 밝게)
+      const seal = document.createElement('span'); seal.className = 'bookSeal'; seal.setAttribute('role', 'img'); seal.setAttribute('aria-label', `${p.seal.ko} 도장`);
+      seal.style.maskImage = seal.style.webkitMaskImage = `url("assets/${p.seal.file}")`;   // 주소는 여기서 (CSS 변수로 넘기면 parts.css 기준 src/ui/assets 로 읽어 실패)
+      seal.style.setProperty('--seal-ink', p.seal.ink); seal.style.setProperty('--seal-tilt', `${p.seal.tilt}deg`);
+      copy.append(seal);
+    }
     if (p.text) { const text = document.createElement('p'); text.className = 'bookWriting'; text.textContent = p.text; copy.append(text); }
     if (p.caption) { const caption = document.createElement('p'); caption.className = 'bookCaption'; caption.textContent = p.caption; copy.append(caption); }
     if (p.stats?.length) { const stats = document.createElement('p'); stats.className = 'bookStats'; stats.textContent = p.stats.join(' · '); copy.append(stats); }

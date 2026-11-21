@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#24563A" />   <!-- v29.20 상태 표시줄이 남는 기기에선 풍경 맨 위(숲) 색으로 이어지게 -->
   <title>발자국 한글 · Kiwi Footprints</title>
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
-  <link rel="stylesheet" href="style.css?v=v30.16.0-9b21603" />
-  <link rel="stylesheet" href="memos.css?v=v30.16.0-9b21603" />
-  <link rel="stylesheet" href="theme-paper.css?v=v30.16.0-9b21603" />
-  <link rel="stylesheet" href="src/ui/tokens.css?v=v30.16.0-9b21603" />
-  <link rel="stylesheet" href="src/ui/parts.css?v=v30.16.0-9b21603" />
-  <link rel="stylesheet" href="src/ui/shell.css?v=v30.16.0-9b21603" />
+  <link rel="stylesheet" href="style.css?v=v30.23.0-cda5927" />
+  <link rel="stylesheet" href="memos.css?v=v30.23.0-cda5927" />
+  <link rel="stylesheet" href="theme-paper.css?v=v30.23.0-cda5927" />
+  <link rel="stylesheet" href="src/ui/tokens.css?v=v30.23.0-cda5927" />
+  <link rel="stylesheet" href="src/ui/parts.css?v=v30.23.0-cda5927" />
+  <link rel="stylesheet" href="src/ui/shell.css?v=v30.23.0-cda5927" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -470,6 +470,7 @@
     <div id="isleCard" class="isleCard k-card" role="group" aria-labelledby="isleName" hidden><b class="nm" id="isleName"></b><p class="tx k-hint"></p><div class="btns k-actions"><button type="button" class="go primary k-btn k-btn--primary"></button><button type="button" class="jump k-btn" hidden>바로 가기</button><button type="button" class="x k-btn">닫기</button></div></div>
     <div class="cvFoot k-card">
       <p class="k-hint" id="chartNote"></p>
+      <button id="chartRoutesBtn" type="button" class="k-btn" aria-pressed="false" disabled>지난 항로 보기</button>
       <p class="cvHint k-hint">끌어서 둘러보기 · 두 손가락으로 확대·축소 · 섬을 누르면 이름</p>
       <details class="more k-more" id="chartMore"><summary>섬에서 지은 것 · 찾은 작은 섬 · 바다 위의 곳</summary><h3 id="buildTitle" class="k-label">섬에서 지은 것</h3><div id="buildList" class="builds"></div><h3 class="k-label">찾은 작은 섬 · 바다 위의 곳</h3><div id="chartList" class="chartList k-entries"></div></details>
     </div>
@@ -481,7 +482,7 @@
       <div class="art"></div>
       <h2 id="foundTitle" class="k-dialog-title"></h2>
       <p class="body"></p>
-      <div class="btns"><button id="foundShare" class="k-btn--share" type="button" hidden>공유</button><button id="foundGift" class="k-btn--gift" type="button" hidden>답장 선물</button><button id="foundUp" type="button" hidden aria-pressed="false">좋아요</button><button id="foundDown" type="button" hidden aria-pressed="false">별로</button><button id="foundWear" class="k-btn--primary" type="button"></button><button id="foundClose" type="button">닫기</button></div>
+      <div class="btns"><button id="foundShare" class="k-btn--share" type="button" hidden>공유</button><button id="foundGift" class="k-btn--gift" type="button" hidden>답장 선물</button><button id="foundUp" type="button" hidden aria-pressed="false">좋아요</button><button id="foundDown" type="button" hidden aria-pressed="false">별로</button><button id="foundWear" class="k-btn--primary" type="button"></button><button id="foundVoyage" class="k-btn--primary" type="button" hidden>첫 항해 일지 보기</button><button id="foundClose" type="button">닫기</button></div>
     </div>
   </div>
   <dialog id="photoViewer" class="k-viewer" aria-labelledby="photoViewerTitle">
@@ -546,10 +547,10 @@
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v30.16.0-9b21603"></script>
-  <script type="module" src="src/credits.js?v=v30.16.0-9b21603"></script>
+  <script type="module" src="src/main.js?v=v30.23.0-cda5927"></script>
+  <script type="module" src="src/credits.js?v=v30.23.0-cda5927"></script>
   <!-- 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/taps.js?v=v30.16.0-9b21603"></script>
+  <script type="module" src="src/taps.js?v=v30.23.0-cda5927"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.

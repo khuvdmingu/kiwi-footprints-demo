@@ -59,7 +59,7 @@ export class SeaLife {
     const rec = { ready: false, im: null, m: null };
     this.cache.set(name, rec);
     const json = /claude-(turtle|dolphins|manta|jelly|school|plankton)|codex-(turtle|jelly|dolphins|whale)/.test(name) && name !== 'codex-manta';
-    Promise.all([img(this.base + name + '.webp?v=v30.16.0-9b21603'), json ? fetch(this.base + name + '.json').then(r => r.json()) : null])
+    Promise.all([img(this.base + name + '.webp?v=v30.23.0-cda5927'), json ? fetch(this.base + name + '.json').then(r => r.json()) : null])
       .then(([im, m]) => Object.assign(rec, { im, m, ready: true }), () => Object.assign(rec, { ready: true, bad: true }));
     while (this.cache.size > 6) { const k = this.cache.keys().next().value; if (this.list.some(c => c.art === k)) break; this.cache.delete(k); }
     return rec;
@@ -106,6 +106,7 @@ export class SeaLife {
     if (p.id === 'whale') { y0 = H * (tall ? 0.2 : 0.16); life = p.v === 'a' ? 21 : Math.max(9, r.m ? r.m.frames / r.m.fps * 2 : 12); }
     const cr = { id: p.id, v: p.v, spec: p.spec, art: p.art, x, size, t0: t, life, vy, seed: Math.random() * 100, side, y: tt => y0 + (tt - t) * vy };
     this.list.push(cr);
+    try { this.onStart?.(p.id); } catch (e) { /* 소리 등 덧붙인 일은 그림을 막지 않는다 */ }   // v30.22
   }
 
   paint(c, cr, W, H, u, t, n, scene) {

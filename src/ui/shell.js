@@ -1,7 +1,7 @@
-import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v30.16.0-9b21603';
-import { BoatPreview } from './boat-preview.js?v=v30.16.0-9b21603';
-import { KiwiStage } from './kiwi-stage.js?v=v30.16.0-9b21603';
-import { ITEMS } from '../items.js?v=v30.16.0-9b21603';
+import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v30.23.0-cda5927';
+import { BoatPreview } from './boat-preview.js?v=v30.23.0-cda5927';
+import { KiwiStage } from './kiwi-stage.js?v=v30.23.0-cda5927';
+import { ITEMS } from '../items.js?v=v30.23.0-cda5927';
 // src/ui/shell.js — 2026-10-24 UI 구조 개편 (결정 10개: _views/html-views/2026-10-24_kiwi-ui-restructure.html)
 //
 //  마크업은 index.html 에 제자리로 있고(예전 src/ia/ia.js 처럼 뜬 뒤에 옮기지 않는다), 여기는 새 창 셋의 동작만 맡는다.
@@ -55,7 +55,7 @@ export function mountShell(env) {
   // ── 바구니 ──
   function openBasket(open) {
     if (open === !basket.hidden) return;
-    if (open) { rememberOpener(basket, basketBtn); closeAll(); closeOthers(); paintCollection(); }
+    if (open) { rememberOpener(basket, basketBtn); closeAll(); closeOthers(); paintCollection(); env.sound?.moreFx('tap', 0.4); }   // v30.23 바구니 여는 나무 톡
     basket.hidden = !open; basketBtn.setAttribute('aria-expanded', String(open));
     if (open) basket.querySelector('[role="tab"][aria-selected="true"]')?.focus();
     else returnFocus(basket, basketBtn);

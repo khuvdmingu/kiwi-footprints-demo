@@ -7,10 +7,10 @@
 //   · extras.drawIsland(ctx, beach, mapId, night) — 섬 장면에 지은 것을 그린다
 //  규칙·저장은 chart.js · fishing.js · build.js 에, 화면 칸(바구니 › 해도 · 장소·소리 · 도감, 집중 창 안내)은 index.html 에.
 
-import { Chart, ISLET, SPOT, BIG, STOCK_ISLE_SHEETS, drawChart, drawChartLabel, drawVoyageMark, voyagePoint, mutedSea, nightTone, NIGHT_OUT, routeLine, josa, SHEET as CHART_SHEET, CHART_B, BIG_ART } from './chart.js?v=v30.16.0-9b21603';
-import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v30.16.0-9b21603';
-import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v30.16.0-9b21603';
-import { loadSheet } from './sheet.js?v=v30.16.0-9b21603';
+import { Chart, ISLET, SPOT, BIG, STOCK_ISLE_SHEETS, tally, drawChart, drawChartLabel, drawVoyageMark, voyagePoint, mutedSea, nightTone, NIGHT_OUT, routeLine, josa, SHEET as CHART_SHEET, CHART_B, BIG_ART } from './chart.js?v=v30.23.0-cda5927';
+import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v30.23.0-cda5927';
+import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v30.23.0-cda5927';
+import { loadSheet } from './sheet.js?v=v30.23.0-cda5927';
 
 // 그림 격자가 assets/ 에 들어오면 true 로 (없을 때 404 를 내지 않게 — 그동안은 코드 그림)
 export const ART = { chart: true, catch: true, extra: true, kit: true, isles: true };   // isles: 재고 24곳 섬 그림 격자 chart-isles-a/b.webp (v29.4.1 Codex 그림)   // 2026-10-21 Higgsfield 격자 2장 (docs/GRAPHICS-PROMPTS.md v28)
@@ -23,14 +23,17 @@ export function mountExtras(env) {
   const base = new URL('../assets/', import.meta.url).href;
   const sheets = { chart: null, catch: null, extra: null, kit: null, chartB: null, paper: null };
   const load = (k, f) => { if (ART[k]) loadSheet(base + f).then(s => { if (s) { sheets[k] = s; paintAll(); } }); };
-  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v30.16.0-9b21603'); load('kit', 'build-sheet-2.webp?v=v30.16.0-9b21603');   // v28.20 벚꽃 강변·오아시스 건물   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
+  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v30.23.0-cda5927'); load('kit', 'build-sheet-2.webp?v=v30.23.0-cda5927');   // v28.20 벚꽃 강변·오아시스 건물   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
   // v28.19 해도 그림 B — 양피지 + 새 아이콘 (못 읽으면 지금 그림 그대로)
   loadSheet(base + CHART_B.sheet).then(s => { if (s) { sheets.chartB = s; paintAll(); } });
   // v29.4.5: 양피지 종이(틀 있는 그림)는 해도 창에서 안 쓴다 — 바탕이 화면 끝까지
   sheets.isles = [];   // v29.4 재고 24곳 섬 그림 격자 두 장
   // v29.4.8 해도 바다 = Codex 가 섬 그림과 같은 붓질로 그린 물 한 장 (stock/chart-sea) — 해도 전체에 한 장으로 편다
-  { const im = new Image(); im.onload = () => { sheets.sea = im; paintAll(); }; im.src = base + 'chart-sea.webp?v=v30.16.0-9b21603'; }
+  { const im = new Image(); im.onload = () => { sheets.sea = im; paintAll(); }; im.src = base + 'chart-sea.webp?v=v30.23.0-cda5927'; }
   if (ART.isles) STOCK_ISLE_SHEETS.forEach((f, i) => loadSheet(base + f).then(s => { if (s) { sheets.isles[i] = s; paintAll(); } }));
+  const stump = new Image();
+  stump.onload = () => { sheets.stump = stump; };
+  stump.src = base + 'harbor-stump.webp?v=v30.23.0-cda5927';
   sheets.bigArt = {};   // v28.20 격자 칸이 없는 큰 섬 (벚꽃 강변·오아시스)
   for (const [id, f] of Object.entries(BIG_ART)) { const im = new Image(); im.onload = () => { sheets.bigArt[id] = im; paintAll(); }; im.src = base + f; }
   const $ = id => document.getElementById(id);
@@ -69,14 +72,25 @@ export function mountExtras(env) {
   function focusDone(map, min) { const done = builds.add(map, min); tellBuilt(map, done); paintAll(); }
   function tellBuilt(map, done) {
     for (const b of done) say(`${placeName(map)}에 ${b.ko}${josa(b.ko, '이', '가')} 생겼어요`, 3200);
+    if (done.length) env.sound?.moreFx(done.some(b => b.id === 'fire') ? 'fire' : 'build', 0.6);   // v30.22 망치 톡톡 · 모닥불은 성냥
     if (!done.length) { const n = builds.next(map); if (n && n.left <= 30) say(`${placeName(map)} · ${nextText(builds, map)}`, 2600); }
   }
   // ── 섬 장면 ──
+  let countedLog, countedLast, visitCounts = {};
+  function visitsTo(id) {
+    const log = voyage.log, last = log.at(-1);
+    if (log !== countedLog || last !== countedLast) {
+      countedLog = log; countedLast = last;
+      visitCounts = tally(log).visits;
+    }
+    return visitCounts[id] || 0;
+  }
   function drawIsland(ctx, beach, map, night) {
-    const lv = builds.level(map); if (!lv) return;
+    const visits = visitsTo(map), lv = Math.max(builds.level(map), visits > 0 ? 1 : 0);
+    if (!lv) return;
     if (builds.fresh[map]) { pop = { id: builds.fresh[map], t0: beach.t }; builds.seenFresh(map); }
     ctx.save();
-    try { drawBuilds(ctx, beach, map, lv, sheets, night, pop); }
+    try { drawBuilds(ctx, beach, map, lv, sheets, night, pop, visits); }
     catch (e) { if (!drawIsland.warned) { drawIsland.warned = true; console.warn('지은 것 그리기를 건너뜁니다:', e); } }   // 장면은 멈추지 않는다
     ctx.restore();
   }
@@ -129,7 +143,8 @@ export function mountExtras(env) {
     return { z, cx: x0 > x1 ? 0.5 : Math.min(x1, Math.max(x0, v.cx)), cy: y0 > y1 ? 0.5 : Math.min(y1, Math.max(y0, v.cy)) };
   }
   const geom = v => { const [W, H] = boxSize(), S = v.z * Math.max(W, H); return { S, ox: W / 2 - v.cx * S, oy: H / 2 - v.cy * S }; };
-  const chartOpts = () => ({ chart, log: voyage.log, home: home(), sailedMs: voyage.sailedMs, open: mapOpen, placeName, sheet: sheets.chart, extra: sheets.extra, bigArt: sheets.bigArt, alt: sheets.chartB && { ...CHART_B, sheet: sheets.chartB }, builds: id => builds.level(id), t: 0, all: true, isles: sheets.isles, spread: K, frameless: true, sea: sheets.sea, label: null, atSea: !!voyage.trip, night: isNight() });
+  let showRouteHistory = false;
+  const chartOpts = () => ({ chart, log: voyage.log, home: home(), sailedMs: voyage.sailedMs, open: mapOpen, placeName, sheet: sheets.chart, extra: sheets.extra, bigArt: sheets.bigArt, alt: sheets.chartB && { ...CHART_B, sheet: sheets.chartB }, builds: id => builds.level(id), t: 0, all: true, isles: sheets.isles, spread: K, frameless: true, sea: sheets.sea, label: null, atSea: !!voyage.trip, activeTo: voyage.trip?.to, night: isNight(), history: showRouteHistory });
   // v30.7 밤 해도 — 창이 남색 종이일 때(main.js burnTick 이 --k-night 를 0/1 로 정한다)
   const isNight = () => document.documentElement.style.getPropertyValue('--k-night').trim() === '1';
   let drawnNight = null;
@@ -162,8 +177,8 @@ export function mountExtras(env) {
   const navText = () => { const r = voyage.trip; if (!r) return ''; const m = Math.ceil(voyage.left() / 60000); return `${placeName(r.to)}까지 ${m}분${voyage.active ? '' : ' · 멈춤'}`; };
   const overlay = (c, g) => {
     c.save(); c.translate(g.ox, g.oy);
-    const s = seaTrip(); if (s) drawVoyageMark(c, g.S / K, { ...s, spread: K, t: performance.now() / 1000, sheet: sheets.chart, text: navText() });
-    drawChartLabel(c, g.S / K, { chart, label: sel, spread: K }); c.restore();
+    const s = seaTrip(); if (s) drawVoyageMark(c, g.S / K, { ...s, spread: K, t: performance.now() / 1000, sheet: sheets.chart, text: navText(), night: isNight(), visits: visitsTo(s.to) });
+    drawChartLabel(c, g.S / K, { chart, label: sel, spread: K, night: isNight() }); c.restore();
   };
   // 항해 중 해도가 열려 있으면 배가 움직이는 걸 보여 준다 — 손을 안 댔으면 배를 따라가고(내비), 둘러보는 중이면 그 자리에서 배만 움직인다
   { let last = 0;
@@ -228,6 +243,7 @@ export function mountExtras(env) {
     const n = chart.next(voyage.sailedMs), tot = chart.total(voyage.sailedMs);
     const note = `지금까지 ${tot.toFixed(1)}해리 · 찾은 섬 ${chart.islets.length} · 바다 위의 곳 ${chart.spots.length}` + (n ? ` · 다음 ${n.kind === 'islet' ? '섬' : '곳'}까지 ${n.left.toFixed(1)}해리` : ' · 지도를 다 그렸어요');
     $('chartNote').textContent = note;
+    $('chartRoutesBtn').disabled = !voyage.log.length;
     $('chartCv').setAttribute('aria-label', `해도 — ${note}`);
     const list = $('chartList'); list.textContent = '';
     for (const i of chart.islets) {
@@ -286,11 +302,24 @@ export function mountExtras(env) {
       row.append(nm, icons, bar, tx); return row;
     }
   }
+  $('chartRoutesBtn').addEventListener('click', e => {
+    showRouteHistory = !showRouteHistory;
+    e.currentTarget.setAttribute('aria-pressed', String(showRouteHistory));
+    e.currentTarget.textContent = showRouteHistory ? '지난 항로 접기' : '지난 항로 보기';
+    paintChart();
+  });
+
   function paintAll() { paintChart(); paintCatch(); paintBuilds(); }
   // 해도는 보일 때 그린다 (창 크기를 알아야 하므로) — 해도 창이 열릴 때 · 창 크기가 바뀔 때
   addEventListener('resize', () => { if (!$('chartView')?.hidden) { if (userMoved && view) repaint(); else { view = null; paintChart(); } } });
   // 해도 창을 열 때마다 「열린 섬 맞춤」부터 (둘러본 자리는 기억하지 않는다)
-  new MutationObserver(() => { if ($('chartView')?.hidden) { userMoved = false; cancelAnimationFrame(anim); } }).observe($('chartView'), { attributes: true, attributeFilter: ['hidden'] });
+  new MutationObserver(() => {
+    if (!$('chartView').hidden) return;
+    userMoved = false; cancelAnimationFrame(anim);
+    showRouteHistory = false;
+    const button = $('chartRoutesBtn');
+    button.setAttribute('aria-pressed', 'false'); button.textContent = '지난 항로 보기';
+  }).observe($('chartView'), { attributes: true, attributeFilter: ['hidden'] });
   // ── 손으로: 한 손가락 끌기 = 둘러보기(놓으면 미끄러짐) · 두 손가락 = 확대·축소 · 마우스 휠 = 확대 · 두 번 누르기 = 처음 자리로 ──
   //  놓을 때 미끄러지기는 anvaka/panzoom(MIT) 의 kinetic.js 방식을 따랐다: 속도는 이동평균(새 값 0.8 · 이전 0.2),
   //  놓는 순간 속도 × 0.3 만큼 더 가고 남은 거리가 지수로 줄어든다(시간 상수 342ms), 남은 거리 0.5px 아래면 멈춘다.
@@ -365,7 +394,7 @@ export function mountExtras(env) {
       const open = mapOpen(id), visits = voyage.log.filter(v => v.to === id).length, lv = builds.level(id);
       nm.textContent = open ? placeName(id) : '안개 너머 섬';
       if (!open) tx.textContent = env.lockText?.(id) || '아직 안개에 싸여 있어요';
-      else if (id === home()) tx.textContent = `지금 여기 있어요${lv ? ` · 지은 것 ${lv}` : ''}`;
+      else if (id === home()) tx.textContent = ['지금 여기 있어요', visits ? visits + '번 닿았어요' : '', lv ? '지은 것 ' + lv : ''].filter(Boolean).join(' · ');
       else {
         tx.textContent = (visits ? `${visits}번 닿았어요` : '아직 안 가 본 섬') + (lv ? ` · 지은 것 ${lv}` : '');
         go.hidden = false;
