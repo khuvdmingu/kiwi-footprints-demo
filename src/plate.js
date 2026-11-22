@@ -17,9 +17,9 @@ const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
   // 물 없는 장소(opts.rest — 젠 가든 v18): 물 뺀 판·바위 지운 판이 없다 → 같은 판 한 장을 세 자리에 쓴다
-  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v30.27.0-1ab39f2').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v30.27.0-1ab39f2'), load(name + '-dry.webp?v=v30.27.0-1ab39f2'), load(name + '-sea.webp?v=v30.27.0-1ab39f2')]);
+  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v30.30.0-dc00b49').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v30.30.0-dc00b49'), load(name + '-dry.webp?v=v30.30.0-dc00b49'), load(name + '-sea.webp?v=v30.30.0-dc00b49')]);
   // 미리 만든 바위 가림막(<판>-rock.webp, tools/rock-masks.mjs 2026-11-01) — 없거나 못 읽으면 예전 짐작만
-  const rock = opts.rockArt && !opts.rest ? await load(name + '-rock.webp?v=v30.27.0-1ab39f2').catch(() => null) : null;
+  const rock = opts.rockArt && !opts.rest ? await load(name + '-rock.webp?v=v30.30.0-dc00b49').catch(() => null) : null;
   const p = new Plate(img, dry, sea, opts, rock);
   p.name = name; p.base = base;
   return p;
@@ -95,7 +95,8 @@ export class Plate {
       shore[x] = s;
     }
     // 전체 중앙값에서 화면 높이의 10% 넘게 벗어난 칸(가장자리 바위·통나무를 물로 읽은 곳)은 버리고 가까운 정상 칸으로 메운다
-    const M = [...shore].sort((p, q) => p - q)[aw >> 1], okS = shore.map(v => Math.abs(v - M) <= ah * 0.1);
+    //  v30.28 굽은 물가(opts.curve: 오목한 만·볼록한 곶)는 가운데와 양 끝 차이가 화면의 25% 쯤이라 이 메우기를 하지 않는다 (좁은 V자 골 지우기는 그대로)
+    const M = [...shore].sort((p, q) => p - q)[aw >> 1], okS = shore.map(v => this.opts.curve || Math.abs(v - M) <= ah * 0.1);
     for (let x = 0; x < aw; x++) if (!okS[x]) { let l = x, r = x; while (l >= 0 && !okS[l]) l--; while (r < aw && !okS[r]) r++; shore[x] = l < 0 ? (r < aw ? shore[r] : M) : r >= aw ? shore[l] : shore[l] + (shore[r] - shore[l]) * (x - l) / (r - l); }
     // 좁고 깊은 골 지우기 (v16.2.4): 물가 거품 띠 사이 틈에서 한 줄 아래 거품을 물가로 읽어 선이 V자로 뚝 떨어지던 곳.
     //  물이 그 선을 따라 V자로 파였다. 1차원 열기(아래로 튄 값 → 이웃 최솟값 → 최댓값)로, 너비 6%보다 좁은 골만 메운다.
@@ -315,7 +316,7 @@ export class Plate {
     if (!this._sets[kind] && Date.now() - (this._setFail[kind] ?? -Infinity) < SET_RETRY_MS) return Promise.resolve(null);
     if (!this._sets[kind]) {
       // 판이 한 장인 장소(rest — 모래 정원)는 시간대 판도 한 장 (v28.3)
-      const p = this._sets[kind] = (this.opts.rest ? load(`${this.name}-${kind}.webp?v=v30.27.0-1ab39f2`).then(im => [im, im, im]) : Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v30.27.0-1ab39f2`))))
+      const p = this._sets[kind] = (this.opts.rest ? load(`${this.name}-${kind}.webp?v=v30.30.0-dc00b49`).then(im => [im, im, im]) : Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v30.30.0-dc00b49`))))
         .then(([img, dry, sea]) => (this.sets[kind] = { img, dry, sea }))
         .catch(() => { if (this._sets[kind] === p) { delete this._sets[kind]; this._setFail[kind] = Date.now(); } return null; });
     }

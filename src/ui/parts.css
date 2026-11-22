@@ -683,6 +683,10 @@ body.dressing .k-composer, body.atSea .k-composer { display: none; }
 body:not(.clean) .k-round--restore { display: none; }
 .k-round, .k-dock, .k-toast { backdrop-filter: var(--k-blur); -webkit-backdrop-filter: var(--k-blur); }
 .k-toast { max-width: calc(100vw - 2 * var(--k-s-4)); overflow-wrap: anywhere; }
+/* 알림 양옆 (2026-11-22 사용자: 「토스트 양옆 여백이 너무 작다」) — left 50% 라 폭이 화면 절반에 갇혀 긴 글이 세 줄로 꺾이고, 알약 둥근 끝에 글자가 붙었다.
+ *  글 길이만큼 넓게(최대 480) · 양옆 20 · 여러 줄이 되면 알약 대신 둥근 네모(한 줄일 땐 거의 알약) */
+.k-toast { width: max-content; max-width: min(480px, calc(100vw - 2 * var(--k-s-4))); box-sizing: border-box; padding: var(--k-s-2) 20px;
+  border-radius: var(--k-r-l); corner-shape: squircle; text-align: center; word-break: keep-all; }
 /* A component's display must never reopen a hidden menu/card/button. */
 :is(.k-pop, .k-round, .k-dock, .k-modal--center, .k-modal--reading)[hidden],
 :is(.k-modal--center, .k-viewer) [hidden] { display: none !important; }

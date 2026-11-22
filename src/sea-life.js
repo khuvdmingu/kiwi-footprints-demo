@@ -18,6 +18,10 @@ export const LIFE = {
   plankton: { ko: '야광 플랑크톤', w: 0, nightW: 4, size: 0.55, swim: 0, glow: true, a: { pieces: 'claude-plankton' }, b: { code: 'glow' } },
 };
 export const LIFE_IDS = Object.keys(LIFE);
+// 물속에서 헤엄치는 것으로 그릴 생물 (물빛을 덮고 부드럽게 비치게 — SeaLife.underwater)
+export const UNDERWATER = new Set(['dolphins']);
+// 따뜻한 바다 생물 — 얼음 뱃길(빙산·유빙, voyage-scene icy)에선 안 나온다
+export const WARM_LIFE = ['turtle', 'manta'];
 
 // 한 번에 나올 무리를 정한다 (그림과 상관없는 순수 함수 — 시험용)
 //  ctx = { night 0~1, busy: 지금 화면에 있는 종 Set, skip: 이번엔 빼는 종(고래 사건 중엔 고래) }
@@ -59,7 +63,7 @@ export class SeaLife {
     const rec = { ready: false, im: null, m: null };
     this.cache.set(name, rec);
     const json = /claude-(turtle|dolphins|manta|jelly|school|plankton)|codex-(turtle|jelly|dolphins|whale)/.test(name) && name !== 'codex-manta';
-    Promise.all([img(this.base + name + '.webp?v=v30.27.0-1ab39f2'), json ? fetch(this.base + name + '.json').then(r => r.json()) : null])
+    Promise.all([img(this.base + name + '.webp?v=v30.30.0-dc00b49'), json ? fetch(this.base + name + '.json').then(r => r.json()) : null])
       .then(([im, m]) => Object.assign(rec, { im, m, ready: true }), () => Object.assign(rec, { ready: true, bad: true }));
     while (this.cache.size > 6) { const k = this.cache.keys().next().value; if (this.list.some(c => c.art === k)) break; this.cache.delete(k); }
     return rec;
@@ -77,7 +81,7 @@ export class SeaLife {
   }
   rec(p) { return p.art ? this.get(p.art) : { ready: true }; }
   spawn(t, n, play) {
-    const busy = new Set(this.list.map(c => c.id)), skip = new Set(play?.kind === 'whale' ? ['whale'] : []);
+    const busy = new Set(this.list.map(c => c.id)), skip = new Set([...(play?.kind === 'whale' ? ['whale'] : []), ...(this.icy ? WARM_LIFE : [])]);   // 얼음 뱃길엔 따뜻한 바다 생물 빼고 (2026-11-22)
     const want = this.once || this.force; this.once = null;
     let group = want ? want.filter(f => !busy.has(f.id)).map(f => ({ id: f.id, v: f.v || (Math.random() < 0.5 ? 'a' : 'b') })) : planGroup(Math.random, { night: n, busy, skip });
     if (group.length && (want || this.announce)) this.onSpawn?.(group);   // 테스트로 부른 무리만 알린다
@@ -109,7 +113,28 @@ export class SeaLife {
     try { this.onStart?.(p.id); } catch (e) { /* 소리 등 덧붙인 일은 그림을 막지 않는다 */ }   // v30.22
   }
 
+  // 물속에 그리기 (2026-11-22 사용자 「돌고래가 너무 선명해서 수면 위에 있는 것 같다 — 수면 아래여야」):
+  //  반 해상도 따로 그림에 그려(가장자리가 물에 번진 듯 부드럽게) 물빛을 덮고(밤엔 짙게) 반쯤 비치게 얹는다
+  underwater(c, n, fn) {
+    const cv = c.canvas;
+    if (!cv || !c.getTransform || typeof document === 'undefined') { c.save(); c.globalAlpha *= 0.6; fn(c); c.restore(); return; }
+    const s = 0.5, ow = Math.max(1, Math.round(cv.width * s)), oh = Math.max(1, Math.round(cv.height * s));
+    const o = (this.uw ||= document.createElement('canvas'));
+    if (o.width !== ow || o.height !== oh) { o.width = ow; o.height = oh; }
+    const g = o.getContext('2d'), m = c.getTransform();
+    g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.clearRect(0, 0, ow, oh);
+    g.setTransform(m.a * s, m.b * s, m.c * s, m.d * s, m.e * s, m.f * s);
+    fn(g);
+    g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-atop';
+    const k = Math.min(1, Math.max(0, n));
+    g.fillStyle = `rgba(${Math.round(34 - 20 * k)},${Math.round(118 - 80 * k)},${Math.round(138 - 58 * k)},${0.42 + 0.2 * k})`;   // 낮 청록 물빛 → 밤 남색
+    g.fillRect(0, 0, ow, oh); g.globalCompositeOperation = 'source-over';
+    c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.globalAlpha = 0.68; c.imageSmoothingEnabled = true;
+    c.drawImage(o, 0, 0, cv.width, cv.height); c.restore();
+  }
+
   paint(c, cr, W, H, u, t, n, scene) {
+    if (UNDERWATER.has(cr.id) && !this.inWater) { this.inWater = true; try { this.underwater(c, n, g => this.paint(g, cr, W, H, u, t, n, scene)); } finally { this.inWater = false; } return; }
     const L = LIFE[cr.id], s = cr.spec, age = t - cr.t0, y = cr.y(t), a = Math.max(0, Math.min(1, age / (cr.id === 'whale' ? 3 : 1.5), (cr.life - age) / 2));
     const sway = Math.sin(age * 0.6 + cr.seed) * cr.size * 0.25;   // 물길 안에서 좌우로 살짝
     const x = cr.x + sway, rot = Math.cos(age * 0.6 + cr.seed) * 0.12 * (L.swim > 0.05 ? 0.5 : 1);

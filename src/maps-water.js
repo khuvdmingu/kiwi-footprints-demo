@@ -16,6 +16,15 @@ export const WATER_PLACES = [
   { id: 'lavender-sandbar', ko: '라벤더 모래톱', en: 'the lavender sandbar', plate: 'lavender-water',
     step: 'sand', like: 'cherry', isleLike: 'lavender', at: [0.23, 0.69], ink: ['#ecdbbc', '#a496c5'],
     note: '라벤더 언덕을 내려오면 만나는 밝은 모래톱. 꽃 아래 바다가 반짝여요.' },
+  // v30.28 굽은 물가 2곳 (2026-11-22 사용자: "물이 일자거나 비스듬한 경우가 많은데 해안선이 볼록하거나 오목한 버전도")
+  //  curve: 물가선이 크게 굽어 있다 — 판 읽기에서 「중앙값에서 10% 넘게 벗어난 칸 메우기」를 하지 않는다 (plate.js)
+  //  shoreFrom: 물가선을 찾기 시작하는 높이 — 모래곶은 양옆 물이 화면 40% 까지 올라온다
+  { id: 'shell-cove', ko: '초승달 조개 만', en: 'the crescent shell cove', plate: 'shellcove-water',
+    step: 'sand', like: 'beach', isleLike: 'pinksand', at: [0.19, 0.5], ink: ['#f1e3c4', '#7f9f6a'], curve: true, shoreFrom: 0.42,
+    note: '바다가 모래 쪽으로 둥글게 파고든 작은 만. 양 끝 갯바위가 초승달 뿔 같아요.' },
+  { id: 'sand-point', ko: '둥근 모래곶', en: 'the round sand point', plate: 'sandpoint-water',
+    step: 'sand', like: 'beach', isleLike: 'lagoon', at: [0.94, 0.94], ink: ['#ecd39a', '#7fa35a'], curve: true, shoreFrom: 0.3,
+    note: '모래가 바다 쪽으로 둥글게 튀어나온 곶. 끝에는 작은 물웅덩이 바위가 있어요.' },
 ];
 export const WATER_IDS = new Set(WATER_PLACES.map(p => p.id));
 // Continue after the 24 stock goals (55,000–239,000, v30.2 낮춤); keep water goals after them.

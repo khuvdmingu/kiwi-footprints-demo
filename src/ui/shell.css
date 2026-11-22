@@ -192,6 +192,10 @@ html[data-ui="paper"] :is(#wardBtn, #toWardSound) svg { background-position: 100
 html[data-ui="paper"] :is(#modeBtn[data-mode="watch"] svg, svg[data-ico="m-watch"]) { background-image: url("../../assets/icons-paper-b.webp"); background-position: 100% 0%; }   /* 종이 쌍안경 */
 html[data-ui="paper"] #picker svg[data-ico="m-wash"] { background: none; filter: none; }
 html[data-ui="paper"] #picker svg[data-ico="m-wash"] > * { visibility: visible; stroke: #4f8fa0; }
+/* 글 모드 응원(하트): 칠한 그림이 아직 없어 종이 테마에서도 선 그림을 주황 도장색으로 보인다 (그림이 생기면 m-watch 처럼 배경으로) */
+#modeBtn[data-mode="cheer"] .m-cheer { display: inline; }
+html[data-ui="paper"] :is(#modeBtn[data-mode="cheer"] svg, svg[data-ico="m-cheer"]) { background: none; }
+html[data-ui="paper"] :is(#modeBtn[data-mode="cheer"] svg > .m-cheer, svg[data-ico="m-cheer"] > *) { visibility: visible; stroke: var(--k-accent); }
 /* 구경 중엔 입력 칸·자막을 숨긴다 */
 body.watching #say, body.watching #caption { display: none !important; }
 

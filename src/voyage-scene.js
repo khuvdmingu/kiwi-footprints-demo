@@ -6,9 +6,9 @@
 //  사건(voyage.js 의 kind)을 받으면 12초쯤 그 장면을 보여 준다. snapshot() 은 같은 장면을 사진 한 장으로 다시 그린다
 //  (화면을 꺼 두었던 사이의 사건도 일기 사진을 남길 수 있게).
 
-import { CREW_ACTS, CREW_MORE } from './acts.js?v=v30.27.0-1ab39f2';
-import { SeaGL, drawSea2D } from './voyage-water.js?v=v30.27.0-1ab39f2';
-import { isWet } from './wx-kind.js?v=v30.27.0-1ab39f2';   // v30.1 천둥번개도 비
+import { CREW_ACTS, CREW_MORE } from './acts.js?v=v30.30.0-dc00b49';
+import { SeaGL, drawSea2D } from './voyage-water.js?v=v30.30.0-dc00b49';
+import { isWet } from './wx-kind.js?v=v30.30.0-dc00b49';   // v30.1 천둥번개도 비
 
 export const SPEED = 0.05;   // 배가 가는 빠르기: 1초에 화면 짧은 변의 5% (물·잔물결·지나가는 것이 모두 이 빠르기로 흐른다)
 const WATER_SCALE = 0.75;     // 물은 화면보다 성기게 그린다 (배터리·발열 — 물결은 흐려도 티가 안 난다)
@@ -78,10 +78,12 @@ export function voyageLight(hour = 12) {
 
 const img = src => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; });
 // v28.20 항해 중 배 옆을 흘러가는 작은 섬 (위에서 본 그림, 재고 stock/voyage pass-islands → tools/cut-cells.mjs)
-const PASS_ISLANDS = ['pass-volcano.webp?v=v30.27.0-1ab39f2', 'pass-arch.webp?v=v30.27.0-1ab39f2', 'pass-turtle.webp?v=v30.27.0-1ab39f2', 'pass-lighthouse.webp?v=v30.27.0-1ab39f2', 'pass-atoll.webp?v=v30.27.0-1ab39f2', 'pass-wreck.webp?v=v30.27.0-1ab39f2'];
+const PASS_ISLANDS = ['pass-volcano.webp?v=v30.30.0-dc00b49', 'pass-arch.webp?v=v30.30.0-dc00b49', 'pass-turtle.webp?v=v30.30.0-dc00b49', 'pass-lighthouse.webp?v=v30.30.0-dc00b49', 'pass-atoll.webp?v=v30.30.0-dc00b49', 'pass-wreck.webp?v=v30.30.0-dc00b49'];
 // v30.20 눈 섬(장소 성격 snow — 눈밭·고산·피오르·빙하)으로 가거나 거기서 떠난 항해에만 빙산·유빙 (재고 stock/voyage sea-sights-2 → tools/cut-cells.mjs)
 //  같은 판의 비구름·해무는 날씨 아이콘·바람 기호처럼 보여 위에서 본 항해 화면과 어긋나 뺐다. 거북·해파리는 바다 생물(sea-life.js)에 이미 있다
-export const PASS_ICY = ['sight-iceberg.webp?v=v30.27.0-1ab39f2', 'sight-floe.webp?v=v30.27.0-1ab39f2'];
+export const PASS_ICY = ['sight-iceberg.webp?v=v30.30.0-dc00b49', 'sight-floe.webp?v=v30.30.0-dc00b49'];
+// 따뜻한 바다 섬 — 얼음 뱃길(빙산·유빙)에선 안 지나간다 (야자 환초가 빙산 옆에 떠 있으면 어색하다, 사용자 2026-11-22)
+const WARM_PASS = new Set(['pass-atoll.webp?v=v30.30.0-dc00b49', 'pass-turtle.webp?v=v30.30.0-dc00b49']);
 
 export class VoyageScene {
   constructor(canvas) {
@@ -100,7 +102,7 @@ export class VoyageScene {
     this.base = base;
     this.water.start?.();   // 그림을 받는 동안 물 셰이더 번역을 같이 시작한다 (2026-11-22)
     const gen = this.gen = (this.gen || 0) + 1;
-    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v30.27.0-1ab39f2', 'sea-tall.webp?v=v30.27.0-1ab39f2', 'voyage-sprites.webp?v=v30.27.0-1ab39f2', 'kiwi.webp?v=v30.27.0-1ab39f2', 'kiwi-sleep.webp?v=v30.27.0-1ab39f2', 'umbrellas.webp?v=v30.27.0-1ab39f2', 'sea-night.webp?v=v30.27.0-1ab39f2', 'sea-tall-night.webp?v=v30.27.0-1ab39f2', 'voyage-crew.webp?v=v30.27.0-1ab39f2', 'voyage-boat.webp?v=v30.27.0-1ab39f2', 'voyage-sail.webp?v=v30.27.0-1ab39f2'].map(f => img(base + f).catch(() => null)));
+    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v30.30.0-dc00b49', 'sea-tall.webp?v=v30.30.0-dc00b49', 'voyage-sprites.webp?v=v30.30.0-dc00b49', 'kiwi.webp?v=v30.30.0-dc00b49', 'kiwi-sleep.webp?v=v30.30.0-dc00b49', 'umbrellas.webp?v=v30.30.0-dc00b49', 'sea-night.webp?v=v30.30.0-dc00b49', 'sea-tall-night.webp?v=v30.30.0-dc00b49', 'voyage-crew.webp?v=v30.30.0-dc00b49', 'voyage-boat.webp?v=v30.30.0-dc00b49', 'voyage-sail.webp?v=v30.30.0-dc00b49'].map(f => img(base + f).catch(() => null)));
     if (gen !== this.gen) return false;
     if (!sea || !sheet) throw new Error('voyage art');
     Object.assign(this, { sea, tall: tall || sea, sheet, kiwi, sleep, umb, seaN, tallN: tallN || seaN, crewSheet });
@@ -132,7 +134,7 @@ export class VoyageScene {
     if (!b || !b.h || !this.base) { this.alt = null; return; }
     if (this.alt?.id === id) return;
     const gen = this.gen;
-    img(this.base + 'boat-' + id + '.webp?v=v30.27.0-1ab39f2').then(im => {
+    img(this.base + 'boat-' + id + '.webp?v=v30.30.0-dc00b49').then(im => {
       if (gen !== this.gen || this.boatId !== id) return;
       this.alt = { ...b, im, box: boxesOf(im, 'boat-' + id, ['b'], 1, 1).b };
     }).catch(() => {});
@@ -143,7 +145,7 @@ export class VoyageScene {
     if (!id || id === 'leaf' || id === 'none' || !this.base) { this.sailAlt = null; return; }
     if (this.sailAlt?.id === id) return;
     const gen = this.gen;
-    img(this.base + 'sail-' + id + '.webp?v=v30.27.0-1ab39f2').then(im => {
+    img(this.base + 'sail-' + id + '.webp?v=v30.30.0-dc00b49').then(im => {
       if (gen !== this.gen || this.sailId !== id) return;
       this.sailAlt = { id, im, box: boxesOf(im, 'sail-' + id, ['s'], 1, 1).s };
     }).catch(() => {});
@@ -170,7 +172,7 @@ export class VoyageScene {
   sunsetArt(tall) {
     if (!this.sunsets.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v30.27.0-1ab39f2' : 'sea-sunset.webp?v=v30.27.0-1ab39f2')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v30.30.0-dc00b49' : 'sea-sunset.webp?v=v30.30.0-dc00b49')).then(image => (entry.image = image)).catch(() => null);
       this.sunsets.set(tall, entry);
     }
     return this.sunsets.get(tall).promise;
@@ -179,7 +181,7 @@ export class VoyageScene {
   dawnArt(tall) {
     if (!this.dawns.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-dawn.webp?v=v30.27.0-1ab39f2' : 'sea-dawn.webp?v=v30.27.0-1ab39f2')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-dawn.webp?v=v30.30.0-dc00b49' : 'sea-dawn.webp?v=v30.30.0-dc00b49')).then(image => (entry.image = image)).catch(() => null);
       this.dawns.set(tall, entry);
     }
     return this.dawns.get(tall).promise;
@@ -189,12 +191,12 @@ export class VoyageScene {
   auroraArt(tall) {
     if (!this.auroras.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-aurora.webp?v=v30.27.0-1ab39f2' : 'sea-aurora.webp?v=v30.27.0-1ab39f2')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-aurora.webp?v=v30.30.0-dc00b49' : 'sea-aurora.webp?v=v30.30.0-dc00b49')).then(image => (entry.image = image)).catch(() => null);
       this.auroras.set(tall, entry);
     }
     return this.auroras.get(tall).promise;
   }
-  auroraNow(st) { return this.auroraOn && (st.weather || 'clear') === 'clear' && voyageLight(st.hour).night > 0.2; }
+  auroraNow(st) { return st.aurora !== false && this.auroraOn && (st.weather || 'clear') === 'clear' && voyageLight(st.hour).night > 0.2; }
 
   // st = { frac, crew(명), hour, weather }
   frame(dt, st) {
@@ -226,20 +228,44 @@ export class VoyageScene {
 
   // 지나가는 섬: 1~2분에 하나, 배 왼쪽·오른쪽 멀찍이 물과 같은 빠르기로 위에서 아래로 (밤엔 어둡게)
   drawPassers(c, W, H, u, t, n, st = {}) {
+    if (this.life) this.life.icy = !!st.icy;   // 바다 생물도 얼음 뱃길을 안다 (거북·만타 빼기)
     const art = this.passArt; if (!art?.length) return;
     if (t > this.nextPass) {
       const icy = !!st.icy && (this.icyArt || []).some(Boolean);
       this.nextPass = t + (icy ? 35 + Math.random() * 40 : 60 + Math.random() * 70);   // 눈 섬 뱃길은 얼음이 더 자주
-      const pool = icy && Math.random() < 0.7 ? this.icyArt : art;   // 그중 열에 일곱은 빙산·유빙
+      const pool = icy && Math.random() < 0.7 ? this.icyArt : icy ? art.map((im, i) => (WARM_PASS.has(PASS_ISLANDS[i]) ? null : im)) : art;   // 그중 열에 일곱은 빙산·유빙 · 얼음 뱃길엔 야자 환초·꽃 거북섬 빼고
       const ready = pool.filter(Boolean);
       if (ready.length) { const left = Math.random() < 0.5; this.passers.push({ im: ready[Math.floor(Math.random() * ready.length)], x: left ? 0.13 + Math.random() * 0.06 : 0.87 - Math.random() * 0.06, t0: t, s: 0.24 + Math.random() * 0.08 }); }
     }
     for (const p of this.passers) {
       const im = p.im; if (!im) continue;
       const y = -u * 0.35 + (t - p.t0) * SPEED * u, w = u * p.s, h = w * im.height / im.width;
-      c.save(); c.globalAlpha = 1 - n * 0.45; c.drawImage(im, W * p.x - w / 2, y - h / 2, w, h); c.restore();
+      this.dusk(c, n, W * p.x, y, w, h, (g, cx, cy) => g.drawImage(im, cx - w / 2, cy - h / 2, w, h));   // 밤엔 비치게(반투명) 말고 어둡게 — 비치면 물에 잠긴 듯 보였다
     }
     this.passers = this.passers.filter(p => -u * 0.35 + (t - p.t0) * SPEED * u < H + u * 0.4);
+  }
+
+  // 밤 그늘 (2026-11-22): 그림을 작은 따로 그림에 그려 남색을 덮어(그림 모양 안에만) 얹는다 — 반투명으로 어둡게 하면 바다가 비쳐 섬이 가라앉아 보였다
+  dusk(c, n, x, y, w, h, fn) {
+    if (n <= 0.02 || typeof document === 'undefined' || !c.getTransform) { fn(c, x, y); return; }
+    const m = c.getTransform(), k = Math.hypot(m.a, m.b) || 1, ow = Math.max(1, Math.ceil(w * k)), oh = Math.max(1, Math.ceil(h * k));
+    const o = (this.duskCv ||= document.createElement('canvas'));
+    if (o.width < ow || o.height < oh) { o.width = Math.max(o.width, ow); o.height = Math.max(o.height, oh); }
+    const g = o.getContext('2d');
+    g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.clearRect(0, 0, ow, oh);
+    g.setTransform(k, 0, 0, k, ow / 2, oh / 2); fn(g, 0, 0);
+    g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-atop'; g.fillStyle = `rgba(14,26,60,${0.5 * Math.min(1, n)})`; g.fillRect(0, 0, ow, oh);
+    g.globalCompositeOperation = 'source-over';
+    c.drawImage(o, 0, 0, ow, oh, x - w / 2, y - h / 2, w, h);
+  }
+  // 떠나온 섬·닿을 섬: 그 장소의 해도 섬 그림(위에서 본 섬 — main.js 가 isleArt 로 넘긴다). 없으면 예전 야자 섬
+  placeIsle(c, id, x, y, size, n) {
+    if (id && this.isleArt) {
+      let ok = false;
+      this.dusk(c, n, x, y, size, size, (g, cx, cy) => { ok = this.isleArt(g, id, cx, cy, size); });
+      if (ok) return;
+    }
+    this.sprite(c, 'island', x, y, size, 1);
   }
 
   paint(c, W, H, t, st, play, screen = false) {
@@ -275,8 +301,8 @@ export class VoyageScene {
     //  물과 같은 빠르기로: 떠나온 섬은 배 뒤로 멀어지고, 닿을 섬은 남은 시간만큼 위에서 다가온다
     if (st.sailed != null) {
       const gone = st.sailed / 1000 * SPEED * u, ahead = (st.left ?? 1e9) / 1000 * SPEED * u;
-      if (by + bh * 0.55 + gone < H + u * 0.3) this.sprite(c, 'island', bx - u * 0.32, by + bh * 0.55 + gone, u * 0.42, 1);
-      if (by - bh * 0.85 - ahead > -u * 0.3) this.sprite(c, 'island', bx + u * 0.2, by - bh * 0.85 - ahead, u * 0.42, 1);
+      if (by + bh * 0.55 + gone < H + u * 0.3) this.placeIsle(c, st.from, bx - u * 0.32, by + bh * 0.55 + gone, u * 0.42, n);
+      if (by - bh * 0.85 - ahead > -u * 0.3) this.placeIsle(c, st.to, bx + u * 0.2, by - bh * 0.85 - ahead, u * 0.42, n);
     }
     // 사건 (배 뒤쪽에 지나가는 것들)
     if (play) this.event(c, W, H, u, bx, by, bh, play, st);

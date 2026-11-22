@@ -1,6 +1,6 @@
 // maps.js — 골라 쓰는 장소(맵)
-import { STOCK_PLACES, STOCK_STEPS0, STOCK_STEP, TIME_ART } from './maps-stock.js?v=v30.27.0-1ab39f2';
-import { WATER_PLACES, WATER_STEPS0, WATER_STEP } from './maps-water.js?v=v30.27.0-1ab39f2';
+import { STOCK_PLACES, STOCK_STEPS0, STOCK_STEP, TIME_ART } from './maps-stock.js?v=v30.30.0-dc00b49';
+import { WATER_PLACES, WATER_STEPS0, WATER_STEP } from './maps-water.js?v=v30.30.0-dc00b49';
 //  장소마다 그림 판 한 벌(가로 wide · 세로 tall, 각각 본판·-dry·-sea 세 장)과 그 장소의 성격을 정한다.
 //  구조는 모두 같다: 위는 숲(키위가 숨었다 나온다), 가운데는 글씨를 쓰는 바닥, 아래는 물(불어나서 글씨를 지운다).
 
@@ -90,7 +90,7 @@ STOCK_PLACES.forEach((p, i) => {
 WATER_PLACES.forEach((p, i) => {
   MAPS[p.id] = {
     name: p.ko, wide: p.plate, tall: p.plate + '-tall',
-    gulls: false, stones: true, moss: !!p.moss, shoreFrom: 0.48,
+    gulls: false, stones: true, moss: !!p.moss, shoreFrom: p.shoreFrom ?? 0.48, curve: !!p.curve,   // v30.28 굽은 물가
     like: p.like, stock: true,                       // v30.15 밤·노을·새벽 판 있음 (<판>-night/-sunset/-dawn)
     unlock: 'map-' + p.id, steps: WATER_STEPS0 + i * WATER_STEP,
   };
@@ -123,4 +123,9 @@ const CRITTER_PLACES = {
   snail: ['nz', 'bamboo', 'rainforest', 'cherry', 'hydrangea', 'hydrangea-cove'],   // 달팽이: 비 오는 동안·그친 뒤 숲 가장자리
 };
 for (const [kind, ids] of Object.entries(CRITTER_PLACES)) ids.forEach(id => { (MAPS[id].critters = MAPS[id].critters || []).push(kind); });
+// 키위가 드나드는 길 (2026-11-22 사용자 「이상한 자리에서 쑥 나오면 어색하다 — 어떤 건 숲에서, 어떤 건 좌우에서」):
+//  36곳 판에 숲 줄을 그려 본 결과, 숲 줄이 숲·덤불 밑동이 아니라 바닥 한가운데를 지나는 곳 — 모래 정원(갈퀴 모래)·고산 호숫가(자갈)·
+//  협곡·피오르(계단처럼 꺾여 덤불·눈밭 한가운데)·사바나(초원 위로 솟음)·다랑논(논 한가운데)·낙우송 늪(화면 맨 위) — 은 화면 왼쪽·오른쪽으로 드나든다
+export const SIDE_ENTER = ['zen', 'alpine', 'canyon', 'fjord', 'savanna', 'paddy', 'cypress'];
+for (const id of SIDE_ENTER) if (MAPS[id]) MAPS[id].enter = 'side';
 export const MAP_IDS = Object.keys(MAPS);

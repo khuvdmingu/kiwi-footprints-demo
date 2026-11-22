@@ -152,7 +152,8 @@ body.typing #caption, body.info-open #caption { opacity: 0; }
   color: inherit; font: inherit; font-weight: 600; cursor: pointer; }
 
 #focusHud { position: fixed; z-index: 19; left: 50%; top: calc(var(--top) + var(--tap) + 12px); transform: translateX(-50%);
-  display: flex; gap: 8px; align-items: baseline; padding: 8px 16px; border-radius: 999px; background: var(--panel); border: 1px solid var(--panel-line);
+  display: flex; gap: 8px; align-items: baseline; padding: 8px 20px; border-radius: 999px; background: var(--panel);   /* 양옆 16 → 20 (2026-11-22, 떠 있는 알림 양옆 맞춤) */
+  border: 1px solid var(--panel-line);
   color: rgb(var(--ink)); font: inherit; font-size: 14px; font-variant-numeric: tabular-nums; cursor: pointer; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 #focusHud[hidden] { display: none; }
 #focusHud .t { font-weight: 600; letter-spacing: 0.04em; }
@@ -276,7 +277,8 @@ body.shutter::after { content: ''; position: fixed; inset: 0; z-index: 30; backg
 
 /* ── v21 쉬는 시간 호흡 ── */
 #breathOffer { position: fixed; z-index: 8; left: 50%; bottom: calc(152px + env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; align-items: center; gap: 8px;
-  padding: 8px 16px 8px 8px; border-radius: 999px; border: 1px solid var(--panel-line); background: rgba(24, 34, 44, 0.62); color: rgb(var(--ink));
+  width: max-content; max-width: calc(100vw - 32px); box-sizing: border-box;   /* 2026-11-22: left 50% 라 폭이 화면 절반에 갇혔다 */
+  padding: 8px 20px 8px 12px; border-radius: var(--k-r-l, 16px); corner-shape: squircle; border: 1px solid var(--panel-line);   /* 양옆 8·16 → 12·20, 두 줄이라 알약 대신 둥근 네모 (사용자 「숨 고르기 같은 토스트 양옆 여백이 너무 작다」) */ background: rgba(24, 34, 44, 0.62); color: rgb(var(--ink));
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); font: 500 14px/1.25 var(--font); cursor: pointer; box-shadow: 0 6px 22px rgba(0, 0, 0, 0.25); animation: offerIn 0.6s var(--ease, ease) both; }
 #breathOffer[hidden] { display: none; }
 #breathOffer img { width: 26px; height: auto; transform: rotate(-14deg); }

@@ -8,21 +8,21 @@
 //  기록은 이 기기에만 (localStorage 'chart'). 항해 기록(voyage.log)은 voyage.js 가 갖고, 여기는 발견·이름만 갖는다.
 //  그리기: 그림 격자(assets/chart-sheet.webp, 4×4)가 있으면 칸을 잘라 쓰고, 없으면 코드로 그린다.
 
-import { fitCell, roundCell } from './sheet.js?v=v30.27.0-1ab39f2';
-import { drawCairn } from './build.js?v=v30.27.0-1ab39f2';
+import { fitCell, roundCell } from './sheet.js?v=v30.30.0-dc00b49';
+import { drawCairn } from './build.js?v=v30.30.0-dc00b49';
 
-export const SHEET = 'chart-sheet.webp?v=v30.27.0-1ab39f2';
+export const SHEET = 'chart-sheet.webp?v=v30.30.0-dc00b49';
 // v28.19 해도 그림 B (사용자 2026-10-24 비교 페이지에서 고름): 양피지 종이(나침반 포함) + 새 아이콘 격자 4×4
 //  새 격자 칸: 1행 화산·폭포 절벽·거북·등대 / 2행 환초·쌍둥이·빙산·떠 있는 꽃섬 / 3행 고래 꼬리·바다뱀·난파선·병 / 4행 X·닻·별 항로·바람 구름
 //  그림 칸이 없던 섬·바다 표시만 새 칸으로 (나머지는 지금 격자 그대로)
 // v28.20 격자 칸이 없는 큰 섬은 낱장 그림 (Codex 그림, 흰 바탕을 뺀 투명 webp)
-import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v30.27.0-1ab39f2';
-import { WATER_PLACES, WATER_IDS } from './maps-water.js?v=v30.27.0-1ab39f2';
-export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v30.27.0-1ab39f2', oasis: 'chart-isle-oasis.webp?v=v30.27.0-1ab39f2' };
+import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v30.30.0-dc00b49';
+import { WATER_PLACES, WATER_IDS } from './maps-water.js?v=v30.30.0-dc00b49';
+export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v30.30.0-dc00b49', oasis: 'chart-isle-oasis.webp?v=v30.30.0-dc00b49' };
 // v29.4 재고 새 장소 24곳의 해도 섬 그림 (Codex 그림, 4×4 격자 두 장 — 위 세 줄에 12곳씩, STOCK_PLACES 순서). 못 읽으면 코드 그림
-export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v30.27.0-1ab39f2', 'chart-isles-b.webp?v=v30.27.0-1ab39f2'];
+export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v30.30.0-dc00b49', 'chart-isles-b.webp?v=v30.30.0-dc00b49'];
 export const stockIsleCell = id => { const motif = WATER_PLACES.find(p => p.id === id)?.isleLike || id; const i = STOCK_PLACES.findIndex(p => p.id === motif); return i < 0 ? null : { sheet: Math.floor(i / 12), cell: i % 12 }; };
-export const CHART_B = { paper: 'chart-paper.webp?v=v30.27.0-1ab39f2', sheet: 'chart-sheet-2.webp?v=v30.27.0-1ab39f2',
+export const CHART_B = { paper: 'chart-paper.webp?v=v30.30.0-dc00b49', sheet: 'chart-sheet-2.webp?v=v30.30.0-dc00b49',
   islet: { 'i-twin': 5, 'i-lantern': 3, 'i-turtle': 2, 'i-end': 6, 'i-steam': 0, 'i-falls': 1, 'i-float': 7 },
   spot: { 's-reef': 4, 's-current': 15, 's-whale': 8, 's-wreck': 10, 's-bottle': 11 } };
 //  v30.21 (2026-11-22) 그려 두고 안 쓰던 칸: 0 화산 · 1 폭포 절벽 · 7 떠 있는 꽃섬 → 작은 섬, 10 난파선 · 11 병 → 바다 위의 곳.
@@ -263,9 +263,7 @@ export function drawChart(ctx, S, o) {
       }
       ctx.filter = 'brightness(0.89) saturate(0.8)';
     }
-    const art = o.bigArt?.[id];
-    if (art) { const s = r * 2.2 / Math.max(art.width, art.height); ctx.drawImage(art, x - art.width * s / 2, y - art.height * s / 2, art.width * s, art.height * s); }
-    else if (!cell(ctx, sheet, CELL[id], x, y, r * 2.2)) { const sc = stockIsleCell(id); if (!(sc && cell(ctx, o.isles?.[sc.sheet], sc.cell, x, y, r * 2.2))) drawBig(ctx, id, x, y, r); }
+    if (!drawIsle(ctx, id, x, y, r * 2.2, { bigArt: o.bigArt, sheet, isles: o.isles })) drawBig(ctx, id, x, y, r);
     ctx.globalAlpha = 1;
     if (o.night) ctx.filter = 'none';
     if (!open) { label(ctx, '?', x, y + r * 0.2, S * 0.05, 'rgba(61,43,28,0.45)'); continue; }
@@ -291,6 +289,16 @@ export function drawChart(ctx, S, o) {
 
 // v29.4.7 (사용자 「항해 중에 해도를 보면 내비게이션처럼 가고 있는 모습」): 지금 항해의 뱃길 + 배 자리.
 //  뱃길은 해도 항로와 같은 휜 선(가운데에서 옆으로 0.12) — 온 길은 진하게, 남은 길은 점선, 닿을 섬엔 깃발, 배 둘레엔 퍼지는 물결.
+// 큰 섬(장소) 그림 한 장: 낱장 그림 → 해도 격자 칸 → 재고 24곳 격자. 그린 그림이 없으면 false (해도는 코드 그림, 항해는 예전 섬)
+//  해도와 항해(떠나온 섬·닿을 섬, 2026-11-22)가 같이 쓴다 · size = 긴 변
+export function drawIsle(ctx, id, x, y, size, o = {}) {
+  const art = o.bigArt?.[id];
+  if (art) { const s = size / Math.max(art.width, art.height); ctx.drawImage(art, x - art.width * s / 2, y - art.height * s / 2, art.width * s, art.height * s); return true; }
+  if (cell(ctx, o.sheet, CELL[id], x, y, size)) return true;
+  const sc = stockIsleCell(id);
+  return !!(sc && cell(ctx, o.isles?.[sc.sheet], sc.cell, x, y, size));
+}
+
 export function voyagePoint(from, to, u, spread = 1, S = 1) {
   const W = S * spread, A = BIG[from] || BIG.beach, B = BIG[to]; if (!B) return null;
   const x1 = A.x * W, y1 = A.y * W, x2 = B.x * W, y2 = B.y * W, mx = (x1 + x2) / 2 - (y2 - y1) * 0.12, my = (y1 + y2) / 2 + (x2 - x1) * 0.12;

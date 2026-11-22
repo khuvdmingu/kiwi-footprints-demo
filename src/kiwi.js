@@ -10,11 +10,11 @@
 //      그림을 처음 읽을 때 알파를 훑어 부리 끝·몸 바닥을 찾아 크기·콕 각도를 맞춘다 (setKiwiSprite).
 //  (x, y) = 발이 땅에 닿는 점. k = 몸 크기 단위 (꼬리 −0.41k ~ 부리 끝 +0.8k, 머리 꼭대기 −0.86k)
 
-import { angleDiff, clamp, dist, Path } from './util.js?v=v30.27.0-1ab39f2';
-import { PAL as T, LIGHT } from './tokens.js?v=v30.27.0-1ab39f2';
-import { ACTS, VARIANTS, WAKE_ACT, pickIdleAct } from './acts.js?v=v30.27.0-1ab39f2';
-import { ACT_HEADS, HEAD_MODES, HEAD_REST } from './act-heads.js?v=v30.27.0-1ab39f2';
-import { HEADWEAR, HEADWEAR_FADE } from './headwear.js?v=v30.27.0-1ab39f2';
+import { angleDiff, clamp, dist, Path } from './util.js?v=v30.30.0-dc00b49';
+import { PAL as T, LIGHT } from './tokens.js?v=v30.30.0-dc00b49';
+import { ACTS, VARIANTS, WAKE_ACT, pickIdleAct } from './acts.js?v=v30.30.0-dc00b49';
+import { ACT_HEADS, HEAD_MODES, HEAD_REST } from './act-heads.js?v=v30.30.0-dc00b49';
+import { HEADWEAR, HEADWEAR_FADE } from './headwear.js?v=v30.30.0-dc00b49';
 
 let ID = 0;
 export let REACH = 0.8;             // 몸을 숙였을 때 부리 끝이 땅에 닿는 가로 거리 (k 배수) — 그림에서 다시 잰다
@@ -142,7 +142,8 @@ export class Kiwi {
   // (x, y) 를 부리로 콕: 옆에 서서 찍는다
   //  v27.6 act 를 주면 콕 대신 그 동작(킁킁·땅 파기 등)을 그 자리 옆에서 한다
   digAt(x, y, act = null) { const f = this.x <= x ? 1 : -1; this.wanderTo(x - f * REACH * this.k, y, act ? 'act:' + act : 'dig', [x, y]); }
-  flee(y) { this.goal = { x: this.x + (Math.random() - 0.5) * 60, y }; this.job = null; this.state = 'flee'; this.alert(Math.random() * 0.25); }
+  // x 를 주면 숲(위)이 아니라 화면 옆으로 나간다 (2026-11-22 좌우로 드나드는 장소 — main.js sideEnter)
+  flee(y, x) { this.goal = x == null ? { x: this.x + (Math.random() - 0.5) * 60, y } : { x, y, side: true }; this.job = null; this.state = 'flee'; this.alert(Math.random() * 0.25); }
   alert(delay = 0) { this.alertDelay = delay; this.alertT = 0.9 + delay; }
   hop(n = 1, delay = 0) { this.hop0 = this.clock + delay; this.hops = n; }
   startle() { this.alert(); this.hop(1); this.later('startle', 0.15); }
@@ -320,7 +321,7 @@ export class Kiwi {
       case 'flee': {
         if (this.alertT > 0.9) break;   // "!" 뜨는 동안 잠깐 멈칫
         this.step(this.walk(this.goal.x, this.goal.y, W.speed * 1.7, dt, W, false), W, 'faint');
-        if (this.y < this.goal.y + this.k * 0.3) this.gone = true;
+        if (this.goal.side ? Math.abs(this.x - this.goal.x) < this.k * 0.6 : this.y < this.goal.y + this.k * 0.3) this.gone = true;
         break;
       }
     }
