@@ -6,15 +6,16 @@
 //        구름 양·흐름 속도·파도 높이는 셰이더/해변에 넘기고, 빗줄기·물방울 고리·눈송이·나뭇잎·안개·반딧불이·야광은 여기서 #fx 캔버스에 그린다.
 //        눈은 시간이 지날수록 땅(셰이더 uSnow)과 나무에 쌓이고, 그치면 천천히 녹는다.
 
-import { clamp, lerp } from './util.js?v=v30.30.0-dc00b49';
-import { EXTRA_KEYS, EXTRA_PARAM, SkyExtra, blossomName } from './sky/extra.js?v=v30.30.0-dc00b49';   // v23 보슬비 · 꽃잎/낙엽 바람
-import { Drift } from './sky/drift.js?v=v30.30.0-dc00b49';   // v28.15 나비 · 홀씨 · 헬리콥터 씨앗
-import { SkyBits } from './sky/bits.js?v=v30.30.0-dc00b49';   // v28.20 번개 · 달무리 · 모래바람 · 풀공 · 아침 안개 띠
-import { Meteors, Rainbow } from './sky/events.js?v=v30.30.0-dc00b49';
-import { AirLeaves } from './leaves.js?v=v30.30.0-dc00b49';   // v30.0 단풍형 섬: 그림 잎이 날리고 물에 내려앉는다                                 // v23 별똥별 · 무지개
+import { clamp, lerp } from './util.js?v=v30.31.0-e12add6';
+import { EXTRA_KEYS, EXTRA_PARAM, SkyExtra, blossomName } from './sky/extra.js?v=v30.31.0-e12add6';   // v23 보슬비 · 꽃잎/낙엽 바람
+import { Drift } from './sky/drift.js?v=v30.31.0-e12add6';   // v28.15 나비 · 홀씨 · 헬리콥터 씨앗
+import { PlaceWeather } from './sky/place-weather.js?v=v30.31.0-e12add6';   // v30.31 수국 꽃해변 잎 끝 물방울 · 대나무 작은 만 잎 천장 안개
+import { SkyBits } from './sky/bits.js?v=v30.31.0-e12add6';   // v28.20 번개 · 달무리 · 모래바람 · 풀공 · 아침 안개 띠
+import { Meteors, Rainbow } from './sky/events.js?v=v30.31.0-e12add6';
+import { AirLeaves } from './leaves.js?v=v30.31.0-e12add6';   // v30.0 단풍형 섬: 그림 잎이 날리고 물에 내려앉는다                                 // v23 별똥별 · 무지개
 
 export const WEATHERS = ['clear', 'cloudy', 'drizzle', 'rain', 'storm', 'snow', 'fog', 'wind', 'blossom'];
-export { isRain, isWet } from './wx-kind.js?v=v30.30.0-dc00b49';   // v30.1 「천둥번개」도 비
+export { isRain, isWet } from './wx-kind.js?v=v30.31.0-e12add6';   // v30.1 「천둥번개」도 비
 export const WEATHER_NAME = { clear: '맑음', cloudy: '흐림', drizzle: '보슬비', rain: '비', snow: '눈', fog: '안개', wind: '바람', blossom: '꽃잎 바람', storm: '천둥번개' };   // blossom 은 장소 따라 '낙엽 바람'
 const BASE = {
   clear: { cloud: 0.06, windK: 1, amp: 1, rain: 0, snow: 0, fog: 0, wind: 0, grey: 0 },
@@ -67,7 +68,7 @@ export class Atmos {
     this.holes = []; this.wisps = [];   // v16.2 안개 구멍 · 흩어지는 안개 조각
     this.t = 0;
     this._map = 'beach';                // v23 꽃잎/낙엽을 고르려고 main.js 가 알려 준다 (mapId)
-    this.extra = new SkyExtra(); this.drift = new Drift(); this.bits = new SkyBits(); this.meteors = new Meteors(); this.rainbow = new Rainbow(); this.airLeaves = new AirLeaves();
+    this.extra = new SkyExtra(); this.drift = new Drift(); this.bits = new SkyBits(); this.meteors = new Meteors(); this.rainbow = new Rainbow(); this.airLeaves = new AirLeaves(); this.placeWeather = new PlaceWeather();
     this.onMeteor = null;               // 별똥별이 떨어질 때 (main.js 가 소리·키위 반응을 붙인다)
   }
   get mapId() { return this._map; }
@@ -167,6 +168,7 @@ export class Atmos {
     // v23: 보슬비·꽃잎 바람 · 별똥별 · 무지개
     this.extra.update(dt, beach, this.v, this.mapId);
     this.drift.update(dt, beach, this.v, this.mapId, this.night);
+    this.placeWeather.update(dt, beach, this.v, this.mapId, this.night);
     this.bits.update(dt, beach, this.v, this.mapId, this.night, hour);
     if (laid) { const m = this.meteors.update(dt, beach, this.v, this.night); if (m && this.onMeteor) this.onMeteor(m); }
     this.rainbow.update(dt, this.night);
@@ -190,7 +192,7 @@ export class Atmos {
 
   // 이번 프레임에 그릴 것이 있는가 (없으면 #fx 층을 건드리지 않는다 — main.js)
   get busy() {
-    return this.extra.busy || this.drift.busy || this.bits.busy || this.meteors.list.length || this.rainbow.on || this.v.fog > 0.01 || this.drops.length || this.rings.length || this.flakes.length || this.leaves.length || this.airLeaves.busy || this.flies.length || this.plankton.length || this.wisps.length;
+    return this.extra.busy || this.drift.busy || this.placeWeather.busy || this.bits.busy || this.meteors.list.length || this.rainbow.on || this.v.fog > 0.01 || this.drops.length || this.rings.length || this.flakes.length || this.leaves.length || this.airLeaves.busy || this.flies.length || this.plankton.length || this.wisps.length;
   }
 
   // #fx 캔버스 (시간 빛 위에 그린다 — 빛나는 것들이 어둡게 눌리지 않게)
@@ -278,6 +280,7 @@ export class Atmos {
     this.airLeaves.draw(ctx, this.v.fog);   // v30.0 단풍형 섬 그림 잎
     this.extra.draw(ctx, beach);     // v23 실비 · 꽃잎/낙엽
     this.drift.draw(ctx, beach);     // v28.15 나비 · 홀씨 · 씨앗
+    this.placeWeather.draw(ctx, beach);   // v30.31 장소 날씨 (숲 가장자리 위만)
     this.bits.draw(ctx, beach);      // v28.20 번개 · 달무리 · 모래바람 · 풀공 · 안개 띠
     this.meteors.draw(ctx, beach);   // v23 별똥별
     // 밤의 빛: 반딧불이 · 야광 플랑크톤 (더하기 합성)

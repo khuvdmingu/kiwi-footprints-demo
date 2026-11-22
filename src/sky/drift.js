@@ -6,9 +6,11 @@
 //   assets/drift-seeds.webp        1행 단풍 헬리콥터 씨앗 4각도(돌리면 빙글) · 2행 은행잎 4
 //  (꽃잎·낙엽의 앞뒷면 짝 drift-flip.webp 는 sky/extra.js 의 꽃잎 바람이 쓴다)
 //  나타나는 때: 맑은 낮(비·눈·짙은 안개 아님) — 나비는 눈밭 빼고 어디서나 · 홀씨는 바닷가·모래 정원·벚꽃 강변·오아시스 · 씨앗은 가을 호숫가
+//  v30.31 한강 둔치는 버들솜만 — 바람이 불수록 더 많이·빠르게 (2026-10-25 Codex feature/map-weather 의 강바람 버들솜을 이 층으로 옮김)
 
-const FILES = { bf: 'assets/drift-butterflies.webp?v=v30.30.0-dc00b49', fluff: 'assets/drift-fluff.webp?v=v30.30.0-dc00b49', seeds: 'assets/drift-seeds.webp?v=v30.30.0-dc00b49' };
-const FLUFF_MAPS = new Set(['beach', 'zen', 'cherry', 'oasis']);
+const FILES = { bf: 'assets/drift-butterflies.webp?v=v30.31.0-e12add6', fluff: 'assets/drift-fluff.webp?v=v30.31.0-e12add6', seeds: 'assets/drift-seeds.webp?v=v30.31.0-e12add6' };
+const FLUFF_MAPS = new Set(['beach', 'zen', 'cherry', 'oasis', 'hangang']);
+const WILLOW_ONLY = new Set(['hangang']);   // 2행 버들솜 칸만 쓰는 장소
 const WING = [0, 1, 2, 3, 2, 1];   // 날갯짓 칸 차례 (펼침 → 접힘 → 펼침)
 
 export class Drift {
@@ -56,11 +58,12 @@ export class Drift {
     if (!fair || !day) for (const b of this.bfs) { b.rest = 0; b.vx = Math.sign(b.vx || 1) * 90 * u; }   // 비가 오거나 저물면 서둘러 떠난다
 
     // 홀씨·버들솜: 천천히 떠오르며 옆으로 흘러간다
-    const nF = fair && night < 0.6 && FLUFF_MAPS.has(mapId) ? 5 : 0;
-    while (this.fluff.length < nF) this.fluff.push(this.newFluff(W, H, u, top, bot, this.fluff.length < 2));
+    const willow = WILLOW_ONLY.has(mapId), wind = Math.min(1, Math.max(0, v.wind || 0)), fo = { willow, wind };
+    const nF = fair && night < 0.6 && FLUFF_MAPS.has(mapId) ? (willow ? 4 + Math.round(wind * 6) : 5) : 0;
+    while (this.fluff.length < nF) this.fluff.push(this.newFluff(W, H, u, top, bot, this.fluff.length < 2, fo));
     for (const p of this.fluff) {
       p.x += p.vx * dt; p.y -= p.up * dt; p.y += Math.sin(this.t * p.wob + p.ph) * 4 * u * dt; p.rot += p.spin * dt;
-      if (p.y < top - 60 * u || p.x > W + 30 * u || p.x < -30 * u) Object.assign(p, nF ? this.newFluff(W, H, u, top, bot, false) : { gone: true });
+      if (p.y < top - 60 * u || p.x > W + 30 * u || p.x < -30 * u) Object.assign(p, nF ? this.newFluff(W, H, u, top, bot, false, fo) : { gone: true });
     }
     this.fluff = this.fluff.filter(p => !p.gone);
 
@@ -74,10 +77,10 @@ export class Drift {
     this.seeds = this.seeds.filter(p => !p.gone);
   }
 
-  newFluff(W, H, u, top, bot, anywhere) {
-    const R = this.rand;
-    return { x: R() * W, y: anywhere ? top + R() * (bot - top) : bot + R() * 40 * u, vx: (8 + R() * 18) * u * (R() < 0.8 ? 1 : -1), up: (6 + R() * 8) * u,
-      wob: 0.8 + R(), ph: R() * 6, rot: R() * 6.28, spin: (R() - 0.5) * 0.6, cell: Math.floor(R() * 8), s: (30 + R() * 16) * u };
+  newFluff(W, H, u, top, bot, anywhere, { willow = false, wind = 0 } = {}) {
+    const R = this.rand, fast = willow ? 1 + wind * 2.5 : 1;   // 버들솜은 강바람을 탄다
+    return { x: R() * W, y: anywhere ? top + R() * (bot - top) : bot + R() * 40 * u, vx: (8 + R() * 18) * fast * u * (R() < 0.8 ? 1 : -1), up: (6 + R() * 8) * u,
+      wob: 0.8 + R(), ph: R() * 6, rot: R() * 6.28, spin: (R() - 0.5) * 0.6, cell: willow ? 4 + Math.floor(R() * 4) : Math.floor(R() * 8), s: (30 + R() * 16) * u };
   }
   newSeed(W, u, top, anywhere) {
     const R = this.rand, heli = R() < 0.55;

@@ -1,7 +1,7 @@
 // Voyage reader: result first, then each image and its record on the same page.
-import { PLACES, SIGHTS } from './voyage.js?v=v30.30.0-dc00b49';
-import { stamp } from './album.js?v=v30.30.0-dc00b49';
-import { pickDrawn, arriveDrawn, sealOf } from './illus.js?v=v30.30.0-dc00b49';   // v28.18 키위가 그린 그림 · v30.18 낙서·도장
+import { PLACES, SIGHTS } from './voyage.js?v=v30.31.0-e12add6';
+import { stamp } from './album.js?v=v30.31.0-e12add6';
+import { pickDrawn, arriveDrawn, sealOf } from './illus.js?v=v30.31.0-e12add6';   // v28.18 키위가 그린 그림 · v30.18 낙서·도장
 
 export function diaryLeaves(text, size = 90) {
   const chars = Array.from(text || ''), leaves = [];
