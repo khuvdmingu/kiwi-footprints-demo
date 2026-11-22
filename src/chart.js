@@ -8,21 +8,25 @@
 //  기록은 이 기기에만 (localStorage 'chart'). 항해 기록(voyage.log)은 voyage.js 가 갖고, 여기는 발견·이름만 갖는다.
 //  그리기: 그림 격자(assets/chart-sheet.webp, 4×4)가 있으면 칸을 잘라 쓰고, 없으면 코드로 그린다.
 
-import { fitCell, roundCell } from './sheet.js?v=v30.31.0-e12add6';
-import { drawCairn } from './build.js?v=v30.31.0-e12add6';
+import { fitCell, roundCell } from './sheet.js?v=v30.35.0-d5a1c77';
+import { drawCairn } from './build.js?v=v30.35.0-d5a1c77';
 
-export const SHEET = 'chart-sheet.webp?v=v30.31.0-e12add6';
+export const SHEET = 'chart-sheet.webp?v=v30.35.0-d5a1c77';
 // v28.19 해도 그림 B (사용자 2026-10-24 비교 페이지에서 고름): 양피지 종이(나침반 포함) + 새 아이콘 격자 4×4
 //  새 격자 칸: 1행 화산·폭포 절벽·거북·등대 / 2행 환초·쌍둥이·빙산·떠 있는 꽃섬 / 3행 고래 꼬리·바다뱀·난파선·병 / 4행 X·닻·별 항로·바람 구름
 //  그림 칸이 없던 섬·바다 표시만 새 칸으로 (나머지는 지금 격자 그대로)
 // v28.20 격자 칸이 없는 큰 섬은 낱장 그림 (Codex 그림, 흰 바탕을 뺀 투명 webp)
-import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v30.31.0-e12add6';
-import { WATER_PLACES, WATER_IDS } from './maps-water.js?v=v30.31.0-e12add6';
-export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v30.31.0-e12add6', oasis: 'chart-isle-oasis.webp?v=v30.31.0-e12add6' };
+import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v30.35.0-d5a1c77';
+import { WATER_PLACES, WATER_IDS } from './maps-water.js?v=v30.35.0-d5a1c77';
+export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v30.35.0-d5a1c77', oasis: 'chart-isle-oasis.webp?v=v30.35.0-d5a1c77',
+  // 2026-11-22 (사용자 「그려」): 다른 섬 그림을 빌려 쓰던 물 장소 5곳(isleLike)의 전용 해도 섬 — 해도를 확대해 이름표가 뜨자 한강(은행나무 그림)은
+  //  이름과 그림이 어긋나고 나머지는 같은 섬이 둘씩 보였다. Codex 가 장소 판을 보고 그린 한 장(stock/chart-isles-water)에서 잘라 냄 · 밤(-night) · 옛 해도(-map) 도 같이
+  'hydrangea-cove': 'chart-isle-hydrangea-cove.webp?v=v30.35.0-d5a1c77', 'hot-spring': 'chart-isle-hot-spring.webp?v=v30.35.0-d5a1c77', hangang: 'chart-isle-hangang.webp?v=v30.35.0-d5a1c77',
+  'bamboo-bay': 'chart-isle-bamboo-bay.webp?v=v30.35.0-d5a1c77', 'lavender-sandbar': 'chart-isle-lavender-sandbar.webp?v=v30.35.0-d5a1c77' };
 // v29.4 재고 새 장소 24곳의 해도 섬 그림 (Codex 그림, 4×4 격자 두 장 — 위 세 줄에 12곳씩, STOCK_PLACES 순서). 못 읽으면 코드 그림
-export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v30.31.0-e12add6', 'chart-isles-b.webp?v=v30.31.0-e12add6'];
+export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v30.35.0-d5a1c77', 'chart-isles-b.webp?v=v30.35.0-d5a1c77'];
 export const stockIsleCell = id => { const motif = WATER_PLACES.find(p => p.id === id)?.isleLike || id; const i = STOCK_PLACES.findIndex(p => p.id === motif); return i < 0 ? null : { sheet: Math.floor(i / 12), cell: i % 12 }; };
-export const CHART_B = { paper: 'chart-paper.webp?v=v30.31.0-e12add6', sheet: 'chart-sheet-2.webp?v=v30.31.0-e12add6',
+export const CHART_B = { paper: 'chart-paper.webp?v=v30.35.0-d5a1c77', sheet: 'chart-sheet-2.webp?v=v30.35.0-d5a1c77',
   islet: { 'i-twin': 5, 'i-lantern': 3, 'i-turtle': 2, 'i-end': 6, 'i-steam': 0, 'i-falls': 1, 'i-float': 7 },
   spot: { 's-reef': 4, 's-current': 15, 's-whale': 8, 's-wreck': 10, 's-bottle': 11 } };
 //  v30.21 (2026-11-22) 그려 두고 안 쓰던 칸: 0 화산 · 1 폭포 절벽 · 7 떠 있는 꽃섬 → 작은 섬, 10 난파선 · 11 병 → 바다 위의 곳.
@@ -85,19 +89,22 @@ function seeded(seed) {
 }
 const hash = s => { let h = 2166136261; for (const ch of String(s)) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return h >>> 0; };
 
-// 발견한 곳의 자리: 그 항해의 항로 위(30~70%) + 옆으로 살짝. 다른 곳과 너무 붙지 않게 몇 번 다시 고른다
+// 나침반 자리: 해도 오른쪽 아래(drawChart 가 W − 0.1S 에 그린다 — 해도 창 spread 1.7 이면 0.94, 반 폭 ≈ 0.035).
+//  (2026-11-22 사용자 「나침반 뒤에 숨은 곳이 있다」) 항로 옆 자리를 해도 끝 0.94 에서 잘라 내서, 오른쪽 아래로 밀린 섬이 꼭 나침반 밑(0.94, 0.94)에 놓였다
+export const inCompass = p => p.x > 0.86 && p.y > 0.86;
+// 발견한 곳의 자리: 그 항해의 항로 위(30~70%) + 옆으로 살짝. 다른 곳과 너무 붙지 않게 몇 번 다시 고른다 · 나침반 구역은 안 된다
 export function placeOnRoute(from, to, seed, taken = []) {
   const A = BIG[from] || BIG.beach, B = BIG[to] || BIG.nz, rand = seeded(seed);
-  let best = null, bestD = -1;
+  let best = null, bestD = -Infinity;
   for (let i = 0; i < 14; i++) {
     const f = 0.2 + 0.6 * rand(), side = rand() < 0.5 ? -1 : 1, off = (0.06 + (0.08 + i * 0.012) * rand()) * side;   // 붙으면 점점 멀리
     const dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy) || 1;
     const x = Math.min(0.94, Math.max(0.06, A.x + dx * f - dy / L * off)), y = Math.min(0.94, Math.max(0.06, A.y + dy * f + dx / L * off));
-    const d = Math.min(1, ...[...Object.values(BIG), ...taken].map(p => Math.hypot(p.x - x, p.y - y)));
+    const d = inCompass({ x, y }) ? -1 : Math.min(1, ...[...Object.values(BIG), ...taken].map(p => Math.hypot(p.x - x, p.y - y)));
     if (d > 0.1) return { x, y };
     if (d > bestD) { bestD = d; best = { x, y }; }
   }
-  return best;
+  return inCompass(best) ? { x: Math.min(best.x, 0.84), y: Math.min(best.y, 0.84) } : best;   // 끝내 나침반 쪽만 나오면 그 앞으로 당긴다
 }
 
 export class Chart {
@@ -107,8 +114,17 @@ export class Chart {
     try { s = JSON.parse(load() || '{}'); } catch (e) { s = {}; }
     // found: { id: { x, y, at, route, nm } } · names: { id: '사용자가 지은 이름' }
     this.found = {}; for (const [id, v] of Object.entries(s.found || {})) if ((ISLET[id] || SPOT[id]) && v && isFinite(v.x)) this.found[id] = v;
+    // 예전에 나침반 밑에 놓인 곳은 같은 항로 옆 다른 자리로 옮긴다 (한 번 옮기면 저장되어 그 뒤로 그대로)
+    let moved = false;
+    for (const [id, v] of Object.entries(this.found)) {
+      if (!inCompass(v)) continue;
+      const [a, b] = String(v.route || '').split('~');
+      Object.assign(v, placeOnRoute(BIG[a] ? a : 'beach', BIG[b] ? b : 'nz', hash(id + v.route), Object.values(this.found).filter(o => o !== v)));
+      moved = true;
+    }
     this.names = {}; for (const [id, v] of Object.entries(s.names || {})) if (ISLET[id] && typeof v === 'string') this.names[id] = v.slice(0, 16);
     this.bonus = Math.max(0, +s.bonus || 0);   // 해리 덤 (병 속 지도 조각 — fishing.js)
+    if (moved) this.store();
   }
   store() { this.save(JSON.stringify({ found: this.found, names: this.names, bonus: this.bonus })); }
   has(id) { return !!this.found[id]; }
@@ -189,8 +205,9 @@ export function drawChart(ctx, S, o) {
     // v29.4.8 그림 바다(o.sea, Codex 붓질 물)가 있으면 그걸 펴고 섬 그림 결에 맞춰 채도를 낮춘다 — 없으면(읽기 전·실패) 아래 코드 바다
     if (o.sea) {
       ctx.drawImage(o.sea, 0, 0, W, W);
+      if (!o.mapStyle) {   // 옛 해도(종이 바다, 2026-11-22)는 그림 그대로 — 그림 바다만 섬 그림 결에 맞춰 채도를 낮춘다
       ctx.save(); ctx.globalCompositeOperation = 'saturation'; ctx.fillStyle = 'rgba(128,128,128,0.42)'; ctx.fillRect(0, 0, W, W);
-      ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = 'rgba(232,226,204,0.12)'; ctx.fillRect(0, 0, W, W); ctx.restore();   // 섬 그림처럼 살짝 따뜻하게
+      ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = 'rgba(232,226,204,0.12)'; ctx.fillRect(0, 0, W, W); ctx.restore(); }   // 섬 그림처럼 살짝 따뜻하게
     } else {
     const g = ctx.createLinearGradient(0, 0, W * 0.3, W); g.addColorStop(0, '#9fd0d3'); g.addColorStop(0.5, '#8cc3c9'); g.addColorStop(1, '#7fb6c0');
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
@@ -261,7 +278,7 @@ export function drawChart(ctx, S, o) {
         glow.addColorStop(1, 'rgba(168,209,225,0)');
         ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(x, y, r * 1.25, 0, Math.PI * 2); ctx.fill();
       }
-      ctx.filter = 'brightness(0.89) saturate(0.8)';
+      if (!o.nightArt) ctx.filter = 'brightness(0.89) saturate(0.8)';   // 밤 그림(o.nightArt, 2026-11-22 Codex 달밤 판)이 없을 때만 낮 그림을 어둡게
     }
     if (!drawIsle(ctx, id, x, y, r * 2.2, { bigArt: o.bigArt, sheet, isles: o.isles })) drawBig(ctx, id, x, y, r);
     ctx.globalAlpha = 1;
@@ -283,9 +300,14 @@ export function drawChart(ctx, S, o) {
   // v29.4.4 (사용자 2026-10-24 「처음엔 글자 없이 그림만, 누르면 글자」): o.label 을 주면 그 한 곳의 이름만 쓴다 (null = 하나도 안 씀)
   placeNames(ctx, names.sort((a, b) => b.rank - a.rank), bodies, S, o.night);
   // 나침반
-  if (!o.paper && !cell(ctx, sheet, CELL.compass, W - S * 0.1, W - S * 0.1, S * 0.12)) drawCompass(ctx, W - S * 0.1, W - S * 0.1, S * 0.045);   // 양피지엔 나침반이 그려져 있다
+  //  2026-11-22 (사용자 「해도에서 나침반을 없애는 것도 고려」): 그림 해도 창은 o.compass = false 로 빼고, 옛 해도 보기에만 둔다
+  if (o.compass !== false && !o.paper && !cell(ctx, sheet, CELL.compass, W - S * 0.1, W - S * 0.1, S * 0.12)) drawCompass(ctx, W - S * 0.1, W - S * 0.1, S * 0.045);   // 양피지엔 나침반이 그려져 있다
+  if (o.mapNight) mapDim(ctx, W, W);   // 옛 해도는 밤이면 종이째 고르게 어둡게 (섬만 낮처럼 남지 않게)
   ctx.restore();
 }
+// 옛 해도 밤: 종이 지도 한 장을 푸른 밤빛으로 고르게 곱한다 (해도 밖 종이 바다에도 같은 값)
+export const MAP_NIGHT = '#9aa3c8';
+export function mapDim(ctx, w, h) { ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = MAP_NIGHT; ctx.fillRect(0, 0, w, h); ctx.restore(); }
 
 // v29.4.7 (사용자 「항해 중에 해도를 보면 내비게이션처럼 가고 있는 모습」): 지금 항해의 뱃길 + 배 자리.
 //  뱃길은 해도 항로와 같은 휜 선(가운데에서 옆으로 0.12) — 온 길은 진하게, 남은 길은 점선, 닿을 섬엔 깃발, 배 둘레엔 퍼지는 물결.
@@ -399,6 +421,26 @@ export function drawChartLabel(ctx, S, o) {
   const W = S * (o.spread || 1);
   placeNames(ctx, [{ id: l.id, text: l.text, x: p.x * W, y: p.y * W, r: S * (BIG[l.id] ? 0.062 : 0.045), rank: 1e6 }], [], S, o.night);
 }
+// 확대하면 보이는 곳마다 이름표 (2026-11-22 사용자 「해도 확대하면 어떤 섬인지 네임 태그가 뜨도록」) — 해도 창 덧그림에서 부른다.
+//  o = { chart, spread, night, open(id), placeName(id), view: { x0, y0, x1, y1 }(해도 좌표 0~1 — 화면에 보이는 범위), sel: { id, text } | null }
+//  열린 큰 섬 · 찾은 작은 섬 · 바다 위의 곳. 자리·겹침은 placeNames 그대로(제 섬 아래가 기본, 부딪치면 옮기고 그래도 안 되면 이 배율에선 생략) — 누른 곳이 늘 먼저
+export function drawChartNames(ctx, S, o) {
+  const W = S * (o.spread || 1), v = o.view, names = [], bodies = [];
+  const seen = p => !v || (p.x >= v.x0 && p.x <= v.x1 && p.y >= v.y0 && p.y <= v.y1);
+  for (const [id, p] of Object.entries(BIG)) {
+    const x = p.x * W, y = p.y * W, r = S * 0.062;
+    bodies.push({ id, x, y, r: r * 0.95 });
+    if (id === o.sel?.id) names.push({ id, text: o.sel.text, x, y, r, rank: 1e6 });
+    else if ((o.open ? o.open(id) : true) && seen(p)) names.push({ id, text: o.placeName ? o.placeName(id) : id, x, y, r, rank: 2 });
+  }
+  for (const [id, p] of Object.entries(o.chart.found)) {
+    const x = p.x * W, y = p.y * W, r = S * 0.045;
+    bodies.push({ id, x, y, r: S * 0.04 });
+    if (id === o.sel?.id) names.push({ id, text: o.sel.text, x, y, r, rank: 1e6 });
+    else if (seen(p)) names.push({ id, text: o.chart.name(id), x, y, r, rank: ISLET[id] ? 1 : 0 });
+  }
+  placeNames(ctx, names.sort((a, b) => b.rank - a.rank), bodies, S, o.night);
+}
 const cell = (ctx, sheet, n, x, y, size) => fitCell(ctx, sheet, n, x, y, size);
 // 섬 이름 자리 (v29.4.2 — 섬이 몰린 곳에서 이름이 이웃 섬 그림에 덮이던 것):
 //  이름은 섬·안개를 다 그린 뒤 바탕을 깔고 맨 위에 쓴다(가려지지 않게). 자리는 제 섬 바로 아래가 기본이고,
@@ -437,10 +479,11 @@ function labelLines(ctx, text, px, maxWidth) {
 //  지도 앱처럼 — 글자는 화면 기준 크기(12~16px)로 고정하고, 지금 섬·많이 간 섬부터 자리를 주며, 깔끔히 안 들어가는 이름은 숨긴다.
 //  확대하면 자리가 생겨 하나씩 나타나고, 섬을 누르면 카드에 이름이 나온다.
 function placeNames(ctx, names, bodies, S, night) {
-  const px = Math.max(12, Math.min(16, S * 0.0175)), lh = Math.round(px * 1.25), pad = px * 0.4, placed = [];
+  // 이름표 안쪽 여백은 4배수 (2026-11-22 사용자 「태그 좌우·위아래 여백 좀 더 여유 있게, 4배수로」): 좌우 12 · 위아래 8 · 줄 높이도 4의 배수 (전엔 글자 크기 × 0.4 ≈ 6 · 4.5)
+  const px = Math.max(12, Math.min(16, S * 0.0175)), lh = Math.max(16, Math.round(px * 1.25 / 4) * 4), padX = 12, padY = 8, placed = [];
   for (const n of names) {
     const lines = labelLines(ctx, n.text, px, Math.max(px * 5.5, S * 0.12));
-    const w = Math.max(...lines.map(l => ctx.measureText(l).width)) + pad * 2, h = lines.length * lh + pad * 1.4, gap = n.r * 0.08;
+    const w = Math.ceil(Math.max(...lines.map(l => ctx.measureText(l).width))) + padX * 2, h = lines.length * lh + padY * 2, gap = n.r * 0.08;
     const cands = [[n.x, n.y + n.r * 1.05], [n.x, n.y - n.r * 1.05 - h], [n.x + n.r * 1.05 + w / 2, n.y - h / 2], [n.x - n.r * 1.05 - w / 2, n.y - h / 2]]
       .map(([x, y]) => [x, y + (y > n.y ? gap : -gap)]);
     const b = pickLabelSpot({ w, h }, cands, placed, bodies, n.id);
@@ -450,8 +493,8 @@ function placeNames(ctx, names, bodies, S, night) {
     ctx.fillStyle = night ? 'rgba(29,42,67,0.94)' : 'rgba(248,239,218,0.82)'; ctx.beginPath();
     if (ctx.roundRect) ctx.roundRect(b.x, b.y, b.w, b.h, Math.min(b.h / 2, px * 0.8)); else ctx.rect(b.x, b.y, b.w, b.h);
     ctx.fill();
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = night ? '#f3e2c8' : '#3d2b1c';
-    lines.forEach((l, i) => ctx.fillText(l, b.x + b.w / 2, b.y + pad * 0.7 + i * lh));
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = night ? '#f3e2c8' : '#3d2b1c';
+    lines.forEach((l, i) => ctx.fillText(l, b.x + b.w / 2, b.y + padY + i * lh + lh / 2));   // 줄 가운데에 — 위아래 여백이 같게 보이게
     ctx.restore();
   }
 }
@@ -516,7 +559,7 @@ function drawFog(ctx, S, o, visible, routes) {
   const c = drawFog.cv || (drawFog.cv = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(1, 1) : document.createElement('canvas'));
   const q = 0.5, w = Math.max(1, Math.round(S * q)); if (c.width !== w) { c.width = w; c.height = w; }
   const f = c.getContext('2d'); f.setTransform(1, 0, 0, 1, 0, 0); f.globalCompositeOperation = 'source-over'; f.clearRect(0, 0, w, w);
-  f.fillStyle = o.night ? 'rgba(41,55,83,0.75)' : o.frameless ? FOG_SEA : 'rgba(236,226,206,0.9)'; f.fillRect(0, 0, w, w);   // 물빛 바탕엔 바다 안개(흰 물안개) 색
+  f.fillStyle = o.night ? 'rgba(41,55,83,0.75)' : o.frameless && !o.mapStyle ? FOG_SEA : 'rgba(236,226,206,0.9)'; f.fillRect(0, 0, w, w);   // 물빛 바탕엔 바다 안개(흰 물안개) 색
   // 안개 결
   for (let k = 0; k < 26; k++) { const r = seeded(k * 97 + 3); blob(f, r() * w, r() * w, w * (0.06 + r() * 0.08), k + 40, o.night ? 'rgba(125,149,184,0.12)' : 'rgba(255,252,244,0.35)', 0.25); }
   f.globalCompositeOperation = 'destination-out';

@@ -6,9 +6,9 @@
 //  사건(voyage.js 의 kind)을 받으면 12초쯤 그 장면을 보여 준다. snapshot() 은 같은 장면을 사진 한 장으로 다시 그린다
 //  (화면을 꺼 두었던 사이의 사건도 일기 사진을 남길 수 있게).
 
-import { CREW_ACTS, CREW_MORE } from './acts.js?v=v30.31.0-e12add6';
-import { SeaGL, drawSea2D } from './voyage-water.js?v=v30.31.0-e12add6';
-import { isWet } from './wx-kind.js?v=v30.31.0-e12add6';   // v30.1 천둥번개도 비
+import { CREW_ACTS, CREW_MORE } from './acts.js?v=v30.35.0-d5a1c77';
+import { SeaGL, drawSea2D } from './voyage-water.js?v=v30.35.0-d5a1c77';
+import { isWet } from './wx-kind.js?v=v30.35.0-d5a1c77';   // v30.1 천둥번개도 비
 
 export const SPEED = 0.05;   // 배가 가는 빠르기: 1초에 화면 짧은 변의 5% (물·잔물결·지나가는 것이 모두 이 빠르기로 흐른다)
 const WATER_SCALE = 0.75;     // 물은 화면보다 성기게 그린다 (배터리·발열 — 물결은 흐려도 티가 안 난다)
@@ -78,12 +78,12 @@ export function voyageLight(hour = 12) {
 
 const img = src => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; });
 // v28.20 항해 중 배 옆을 흘러가는 작은 섬 (위에서 본 그림, 재고 stock/voyage pass-islands → tools/cut-cells.mjs)
-const PASS_ISLANDS = ['pass-volcano.webp?v=v30.31.0-e12add6', 'pass-arch.webp?v=v30.31.0-e12add6', 'pass-turtle.webp?v=v30.31.0-e12add6', 'pass-lighthouse.webp?v=v30.31.0-e12add6', 'pass-atoll.webp?v=v30.31.0-e12add6', 'pass-wreck.webp?v=v30.31.0-e12add6'];
+const PASS_ISLANDS = ['pass-volcano.webp?v=v30.35.0-d5a1c77', 'pass-arch.webp?v=v30.35.0-d5a1c77', 'pass-turtle.webp?v=v30.35.0-d5a1c77', 'pass-lighthouse.webp?v=v30.35.0-d5a1c77', 'pass-atoll.webp?v=v30.35.0-d5a1c77', 'pass-wreck.webp?v=v30.35.0-d5a1c77'];
 // v30.20 눈 섬(장소 성격 snow — 눈밭·고산·피오르·빙하)으로 가거나 거기서 떠난 항해에만 빙산·유빙 (재고 stock/voyage sea-sights-2 → tools/cut-cells.mjs)
 //  같은 판의 비구름·해무는 날씨 아이콘·바람 기호처럼 보여 위에서 본 항해 화면과 어긋나 뺐다. 거북·해파리는 바다 생물(sea-life.js)에 이미 있다
-export const PASS_ICY = ['sight-iceberg.webp?v=v30.31.0-e12add6', 'sight-floe.webp?v=v30.31.0-e12add6'];
+export const PASS_ICY = ['sight-iceberg.webp?v=v30.35.0-d5a1c77', 'sight-floe.webp?v=v30.35.0-d5a1c77'];
 // 따뜻한 바다 섬 — 얼음 뱃길(빙산·유빙)에선 안 지나간다 (야자 환초가 빙산 옆에 떠 있으면 어색하다, 사용자 2026-11-22)
-const WARM_PASS = new Set(['pass-atoll.webp?v=v30.31.0-e12add6', 'pass-turtle.webp?v=v30.31.0-e12add6']);
+const WARM_PASS = new Set(['pass-atoll.webp?v=v30.35.0-d5a1c77', 'pass-turtle.webp?v=v30.35.0-d5a1c77']);
 
 export class VoyageScene {
   constructor(canvas) {
@@ -102,7 +102,7 @@ export class VoyageScene {
     this.base = base;
     this.water.start?.();   // 그림을 받는 동안 물 셰이더 번역을 같이 시작한다 (2026-11-22)
     const gen = this.gen = (this.gen || 0) + 1;
-    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v30.31.0-e12add6', 'sea-tall.webp?v=v30.31.0-e12add6', 'voyage-sprites.webp?v=v30.31.0-e12add6', 'kiwi.webp?v=v30.31.0-e12add6', 'kiwi-sleep.webp?v=v30.31.0-e12add6', 'umbrellas.webp?v=v30.31.0-e12add6', 'sea-night.webp?v=v30.31.0-e12add6', 'sea-tall-night.webp?v=v30.31.0-e12add6', 'voyage-crew.webp?v=v30.31.0-e12add6', 'voyage-boat.webp?v=v30.31.0-e12add6', 'voyage-sail.webp?v=v30.31.0-e12add6'].map(f => img(base + f).catch(() => null)));
+    const [sea, tall, sheet, kiwi, sleep, umb, seaN, tallN, crewSheet, hull, sail] = await Promise.all(['sea.webp?v=v30.35.0-d5a1c77', 'sea-tall.webp?v=v30.35.0-d5a1c77', 'voyage-sprites.webp?v=v30.35.0-d5a1c77', 'kiwi.webp?v=v30.35.0-d5a1c77', 'kiwi-sleep.webp?v=v30.35.0-d5a1c77', 'umbrellas.webp?v=v30.35.0-d5a1c77', 'sea-night.webp?v=v30.35.0-d5a1c77', 'sea-tall-night.webp?v=v30.35.0-d5a1c77', 'voyage-crew.webp?v=v30.35.0-d5a1c77', 'voyage-boat.webp?v=v30.35.0-d5a1c77', 'voyage-sail.webp?v=v30.35.0-d5a1c77'].map(f => img(base + f).catch(() => null)));
     if (gen !== this.gen) return false;
     if (!sea || !sheet) throw new Error('voyage art');
     Object.assign(this, { sea, tall: tall || sea, sheet, kiwi, sleep, umb, seaN, tallN: tallN || seaN, crewSheet });
@@ -134,7 +134,7 @@ export class VoyageScene {
     if (!b || !b.h || !this.base) { this.alt = null; return; }
     if (this.alt?.id === id) return;
     const gen = this.gen;
-    img(this.base + 'boat-' + id + '.webp?v=v30.31.0-e12add6').then(im => {
+    img(this.base + 'boat-' + id + '.webp?v=v30.35.0-d5a1c77').then(im => {
       if (gen !== this.gen || this.boatId !== id) return;
       this.alt = { ...b, im, box: boxesOf(im, 'boat-' + id, ['b'], 1, 1).b };
     }).catch(() => {});
@@ -145,7 +145,7 @@ export class VoyageScene {
     if (!id || id === 'leaf' || id === 'none' || !this.base) { this.sailAlt = null; return; }
     if (this.sailAlt?.id === id) return;
     const gen = this.gen;
-    img(this.base + 'sail-' + id + '.webp?v=v30.31.0-e12add6').then(im => {
+    img(this.base + 'sail-' + id + '.webp?v=v30.35.0-d5a1c77').then(im => {
       if (gen !== this.gen || this.sailId !== id) return;
       this.sailAlt = { id, im, box: boxesOf(im, 'sail-' + id, ['s'], 1, 1).s };
     }).catch(() => {});
@@ -172,7 +172,7 @@ export class VoyageScene {
   sunsetArt(tall) {
     if (!this.sunsets.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v30.31.0-e12add6' : 'sea-sunset.webp?v=v30.31.0-e12add6')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-sunset.webp?v=v30.35.0-d5a1c77' : 'sea-sunset.webp?v=v30.35.0-d5a1c77')).then(image => (entry.image = image)).catch(() => null);
       this.sunsets.set(tall, entry);
     }
     return this.sunsets.get(tall).promise;
@@ -181,7 +181,7 @@ export class VoyageScene {
   dawnArt(tall) {
     if (!this.dawns.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-dawn.webp?v=v30.31.0-e12add6' : 'sea-dawn.webp?v=v30.31.0-e12add6')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-dawn.webp?v=v30.35.0-d5a1c77' : 'sea-dawn.webp?v=v30.35.0-d5a1c77')).then(image => (entry.image = image)).catch(() => null);
       this.dawns.set(tall, entry);
     }
     return this.dawns.get(tall).promise;
@@ -191,7 +191,7 @@ export class VoyageScene {
   auroraArt(tall) {
     if (!this.auroras.has(tall)) {
       const entry = { image: null };
-      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-aurora.webp?v=v30.31.0-e12add6' : 'sea-aurora.webp?v=v30.31.0-e12add6')).then(image => (entry.image = image)).catch(() => null);
+      entry.promise = img((this.base || 'assets/') + (tall ? 'sea-tall-aurora.webp?v=v30.35.0-d5a1c77' : 'sea-aurora.webp?v=v30.35.0-d5a1c77')).then(image => (entry.image = image)).catch(() => null);
       this.auroras.set(tall, entry);
     }
     return this.auroras.get(tall).promise;
@@ -325,7 +325,7 @@ export class VoyageScene {
     if (pink > 0) { c.fillStyle = `rgba(255,206,222,${0.05 * pink})`; c.fillRect(0, 0, W, H); }
     if (n > 0) { c.fillStyle = `rgba(12,22,52,${(seaN ? 0.22 : 0.55) * n})`; c.fillRect(0, 0, W, H); }
     if (n > 0.05) this.lantern(c, bx, by, bwGuess, bhh, n, t);
-    if (play?.kind === 'meteor') this.meteor(c, W, H, play.t);
+    if (play?.kind === 'meteor') this.meteor(c, W, H, play.t, { x: bx, y: by, w: bwGuess, h: bhh });   // 배 자리엔 물에 비친 빛을 안 그린다
     if (play?.kind === 'lighthouse' && n > 0.2 && this.lh) this.beam(c, u, play);
   }
   // 그림 한 칸을 (x,y) 가운데에 높이 h 로. 그린 폭을 돌려준다
@@ -463,12 +463,56 @@ export class VoyageScene {
     c.fillStyle = `rgba(255,230,170,${0.95 * n})`; c.beginPath(); c.arc(x, y, bh * 0.018, 0, Math.PI * 2); c.fill();
     c.restore();
   }
-  meteor(c, W, H, t) {
-    for (const [at, y0] of [[1.2, 0.12], [6.5, 0.2]]) {
-      const p = (t - at) / 1.4; if (p < 0 || p > 1) continue;
-      const x = W * (0.85 - p * 0.6), y = H * (y0 + p * 0.12), len = Math.min(W, H) * 0.18;
-      const g = c.createLinearGradient(x, y, x + len, y - len * 0.2); g.addColorStop(0, `rgba(255,250,220,${1 - p * 0.6})`); g.addColorStop(1, 'rgba(255,250,220,0)');
-      c.strokeStyle = g; c.lineWidth = 2.4; c.beginPath(); c.moveTo(x, y); c.lineTo(x + len, y - len * 0.2); c.stroke();
+  // 별똥별 (2026-11-22 사용자 「지나간지도 잘 안 보인다 — 수면에 빛이 보인다든가 티가 나게」):
+  //  예전엔 2.4px 짧은 선 하나라, 바다를 위에서 내려다보는 화면에선 놓치기 쉬웠다 →
+  //  ① 가장 밝을 때 화면이 살짝 환해지고 ② 꼬리 = 넓은 빛 + 가는 심 두 겹, 머리에 빛망울 ③ 꼬리 뒤 불똥
+  //  ④ 바다에 비친 빛: 지나가는 길 아래 물결 위로 빛 줄기와 반짝임이 따라오다 사그라든다
+  meteor(c, W, H, t, boat) {
+    const u = Math.min(W, H);
+    // 일기 사진은 PLAY_SECS × 0.42 ≈ 5초 장면을 찍는다 — 예전 1.2·6.5초엔 그때 별똥별이 없어 사진에 안 찍혔다 → 4.4초에 하나 (5초 = 가장 밝을 무렵)
+    for (const [at, y0, seed] of [[1.2, 0.12, 1], [4.4, 0.2, 2], [8.6, 0.15, 3]]) {
+      const D = 1.8, p = (t - at) / D; if (p < -0.05 || p > 1.6) continue;
+      const pe = Math.max(0, Math.min(1, p)), env = Math.sin(Math.PI * pe), x = W * (0.88 - pe * 0.7), y = H * (y0 + pe * 0.14);
+      const len = u * 0.32, tx = x + len, ty = y - len * 0.2;   // 꼬리 끝 (오른쪽 위에서 왔다)
+      c.save(); c.lineCap = 'round';
+      if (p <= 1) {
+        // ① 번쩍
+        c.globalCompositeOperation = 'screen'; c.fillStyle = `rgba(150,180,255,${0.09 * env})`; c.fillRect(0, 0, W, H);
+        // ② 꼬리 두 겹 + 머리
+        c.globalCompositeOperation = 'lighter';
+        const g = c.createLinearGradient(x, y, tx, ty); g.addColorStop(0, `rgba(190,215,255,${0.45 * env})`); g.addColorStop(1, 'rgba(190,215,255,0)');
+        c.strokeStyle = g; c.lineWidth = u * 0.018; c.beginPath(); c.moveTo(x, y); c.lineTo(tx, ty); c.stroke();
+        const g2 = c.createLinearGradient(x, y, tx, ty); g2.addColorStop(0, `rgba(255,252,236,${0.95 * env + 0.05})`); g2.addColorStop(0.6, `rgba(255,244,210,${0.35 * env})`); g2.addColorStop(1, 'rgba(255,244,210,0)');
+        c.strokeStyle = g2; c.lineWidth = Math.max(2, u * 0.005); c.beginPath(); c.moveTo(x, y); c.lineTo(tx, ty); c.stroke();
+        const hr = u * 0.035, hg = c.createRadialGradient(x, y, 0, x, y, hr); hg.addColorStop(0, `rgba(255,255,245,${0.95 * env})`); hg.addColorStop(0.35, `rgba(220,235,255,${0.5 * env})`); hg.addColorStop(1, 'rgba(200,220,255,0)');
+        c.fillStyle = hg; c.beginPath(); c.arc(x, y, hr, 0, Math.PI * 2); c.fill();
+        // ③ 불똥 — 꼬리를 따라 흩어져 천천히 떨어진다
+        for (let i = 0; i < 9; i++) {
+          const q = ((i * 0.37 + seed * 0.13) % 1), sx = x + len * q * 0.7 + Math.sin(i * 7.1) * u * 0.01, sy = y - len * 0.2 * q * 0.7 + q * u * 0.03;
+          c.fillStyle = `rgba(255,246,220,${env * (1 - q) * 0.8})`; c.beginPath(); c.arc(sx, sy, u * 0.0035 * (1 - q * 0.5), 0, Math.PI * 2); c.fill();
+        }
+      }
+      // ④ 바다에 비친 빛 — 머리 아래쪽 물결 위로 짧은 가로 반짝임이 줄지어 켜졌다 꺼진다 (지나간 뒤에도 잠깐 남는다)
+      c.globalCompositeOperation = 'lighter';
+      if (boat) { c.beginPath(); c.rect(0, 0, W, H); c.ellipse(boat.x, boat.y, boat.w * 0.62, boat.h * 0.58, 0, 0, Math.PI * 2); c.clip('evenodd'); }   // 배·키위 위엔 비치지 않게
+      const fade = p <= 1 ? 1 : Math.max(0, 1 - (p - 1) / 0.6), ry = Math.min(H * 0.9, y + H * 0.3), a = fade * (0.35 + env * 0.65);
+      // 머리 아래 물에 비친 상: 위아래로 길쭉한 타원 빛 (네모로 깎이지 않게 둥근 빛을 세로로 늘인다)
+      c.save(); c.translate(x, ry); c.scale(0.32, 1);
+      const rr = u * 0.17, rg = c.createRadialGradient(0, 0, 0, 0, 0, rr); rg.addColorStop(0, `rgba(200,222,255,${0.28 * a})`); rg.addColorStop(0.5, `rgba(190,215,255,${0.1 * a})`); rg.addColorStop(1, 'rgba(190,215,255,0)');
+      c.fillStyle = rg; c.beginPath(); c.arc(0, 0, rr, 0, Math.PI * 2); c.fill(); c.restore();
+      // 물결 반짝임: 빛기둥 둘레에서 짧은 가로 빛이 일렁이고, 지나온 길에도 몇 개 남는다
+      for (let i = 0; i < 28; i++) {
+        const q = (i * 0.618 + seed * 0.29) % 1, trail = i % 4 === 3;
+        const gx = (trail ? W * (0.88 - Math.max(0, pe - q * 0.35) * 0.7) : x) + Math.sin(i * 12.9 + seed) * u * (trail ? 0.02 : 0.045);
+        const gy = ry + (q - 0.5) * u * 0.3 * (trail ? 0.5 : 1);
+        const tw = Math.max(0, Math.sin(t * 9 + i * 2.3));
+        const lit = a * tw * (1 - Math.abs(q - 0.5) * 1.4) * (trail ? 0.7 : 1);
+        if (lit <= 0.03) continue;
+        const w = u * (0.01 + 0.014 * ((i * 0.37) % 1));
+        c.strokeStyle = `rgba(230,240,255,${0.85 * lit})`; c.lineWidth = Math.max(1, u * 0.003);
+        c.beginPath(); c.moveTo(gx - w, gy); c.lineTo(gx + w, gy); c.stroke();
+      }
+      c.restore();
     }
   }
   beam(c, u, play) {

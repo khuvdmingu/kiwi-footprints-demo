@@ -7,10 +7,10 @@
 //   · extras.drawIsland(ctx, beach, mapId, night) — 섬 장면에 지은 것을 그린다
 //  규칙·저장은 chart.js · fishing.js · build.js 에, 화면 칸(바구니 › 해도 · 장소·소리 · 도감, 집중 창 안내)은 index.html 에.
 
-import { Chart, ISLET, SPOT, BIG, STOCK_ISLE_SHEETS, tally, drawChart, drawIsle, drawChartLabel, drawVoyageMark, voyagePoint, mutedSea, nightTone, nightSparkles, moonGlow, NIGHT_OUT, routeLine, josa, SHEET as CHART_SHEET, CHART_B, BIG_ART } from './chart.js?v=v30.31.0-e12add6';
-import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v30.31.0-e12add6';
-import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v30.31.0-e12add6';
-import { loadSheet } from './sheet.js?v=v30.31.0-e12add6';
+import { Chart, ISLET, SPOT, BIG, STOCK_ISLE_SHEETS, tally, drawChart, drawIsle, drawChartLabel, drawChartNames, drawVoyageMark, voyagePoint, mutedSea, nightTone, nightSparkles, moonGlow, mapDim, NIGHT_OUT, routeLine, josa, SHEET as CHART_SHEET, CHART_B, BIG_ART } from './chart.js?v=v30.35.0-d5a1c77';
+import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v30.35.0-d5a1c77';
+import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v30.35.0-d5a1c77';
+import { loadSheet } from './sheet.js?v=v30.35.0-d5a1c77';
 
 // 그림 격자가 assets/ 에 들어오면 true 로 (없을 때 404 를 내지 않게 — 그동안은 코드 그림)
 export const ART = { chart: true, catch: true, extra: true, kit: true, isles: true };   // isles: 재고 24곳 섬 그림 격자 chart-isles-a/b.webp (v29.4.1 Codex 그림)   // 2026-10-21 Higgsfield 격자 2장 (docs/GRAPHICS-PROMPTS.md v28)
@@ -23,20 +23,47 @@ export function mountExtras(env) {
   const base = new URL('../assets/', import.meta.url).href;
   const sheets = { chart: null, catch: null, extra: null, kit: null, chartB: null, paper: null };
   const load = (k, f) => { if (ART[k]) loadSheet(base + f).then(s => { if (s) { sheets[k] = s; paintAll(); } }); };
-  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v30.31.0-e12add6'); load('kit', 'build-sheet-2.webp?v=v30.31.0-e12add6');   // v28.20 벚꽃 강변·오아시스 건물   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
+  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v30.35.0-d5a1c77'); load('kit', 'build-sheet-2.webp?v=v30.35.0-d5a1c77');   // v28.20 벚꽃 강변·오아시스 건물   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
   // v28.19 해도 그림 B — 양피지 + 새 아이콘 (못 읽으면 지금 그림 그대로)
   loadSheet(base + CHART_B.sheet).then(s => { if (s) { sheets.chartB = s; paintAll(); } });
   // v29.4.5: 양피지 종이(틀 있는 그림)는 해도 창에서 안 쓴다 — 바탕이 화면 끝까지
   sheets.isles = [];   // v29.4 재고 24곳 섬 그림 격자 두 장
   // v29.4.8 해도 바다 = Codex 가 섬 그림과 같은 붓질로 그린 물 한 장 (stock/chart-sea) — 해도 전체에 한 장으로 편다
   //  2026-11-22 (사용자 「해도 바깥 경계가 선이 너무 잘 보인다」): 이 그림은 끝과 끝이 이어지는 한 장(stock/chart-sea/sea-b.png)이라 해도 밖에 그대로 이어 붙인다
-  { const im = new Image(); im.onload = () => { sheets.sea = im; paintAll(); }; im.src = base + 'chart-sea.webp?v=v30.31.0-e12add6'; }
+  { const im = new Image(); im.onload = () => { sheets.sea = im; paintAll(); }; im.src = base + 'chart-sea.webp?v=v30.35.0-d5a1c77'; }
   if (ART.isles) STOCK_ISLE_SHEETS.forEach((f, i) => loadSheet(base + f).then(s => { if (s) { sheets.isles[i] = s; paintAll(); } }));
   const stump = new Image();
   stump.onload = () => { sheets.stump = stump; };
-  stump.src = base + 'harbor-stump.webp?v=v30.31.0-e12add6';
+  stump.src = base + 'harbor-stump.webp?v=v30.35.0-d5a1c77';
   sheets.bigArt = {};   // v28.20 격자 칸이 없는 큰 섬 (벚꽃 강변·오아시스)
   for (const [id, f] of Object.entries(BIG_ART)) { const im = new Image(); im.onload = () => { sheets.bigArt[id] = im; paintAll(); }; im.src = base + f; }
+  // 같은 판의 다른 그림 묶음 (2026-11-22) — 밤(-night: 달밤으로 다시 칠함, 사용자 「밤일 때 섬들만 낮이라 어색하다」) ·
+  //  옛 해도(-map: 잉크·수채 옛 지도 그림, 사용자 「해도 버전 / 지금 같은 그림 버전을 눌러서 다르게 보이게」).
+  //  Codex 가 같은 판을 다시 그리고 낮 판의 투명 모양으로 오려 낸 것(stock/chart-night · stock/chart-map). 쓸 때 처음 읽고, 다 오기 전엔 낮 판
+  let chartStyle = saved('chartStyle') === 'map' ? 'map' : 'real';
+  const artSet = (sfx, sea) => {
+    const s = { asked: false, chart: null, chartB: null, isles: [], bigArt: {}, sea: null };
+    const file = f => f.replace(/\.webp$/, `-${sfx}.webp?v=v30.35.0-d5a1c77`);
+    s.ready = () => !!(s.chart && s.chartB && STOCK_ISLE_SHEETS.every((_, i) => s.isles[i]) && Object.keys(BIG_ART).every(id => s.bigArt[id]) && (!sea || s.sea));
+    s.load = () => {
+      if (s.asked) return; s.asked = true;
+      const got = () => { if (s.ready()) { worldStale = true; paintAll(); } };
+      loadSheet(base + file(CHART_SHEET)).then(v => { if (v) { s.chart = v; got(); } });
+      loadSheet(base + file(CHART_B.sheet)).then(v => { if (v) { s.chartB = v; got(); } });
+      STOCK_ISLE_SHEETS.forEach((f, i) => loadSheet(base + file(f)).then(v => { if (v) { s.isles[i] = v; got(); } }));
+      for (const [id, f] of Object.entries(BIG_ART)) { const im = new Image(); im.onload = () => { s.bigArt[id] = im; got(); }; im.src = base + file(f); }
+      if (sea) { const im = new Image(); im.onload = () => { s.sea = im; got(); }; im.src = base + sea; }
+    };
+    return s;
+  };
+  const nightArt = artSet('night'), mapArt = artSet('map', 'chart-sea-map.webp?v=v30.35.0-d5a1c77');
+  // 지금 그릴 그림: 옛 해도면 옛 해도 판(밤엔 종이째 어둡게) · 그림이면 밤엔 밤 판 · 아직 안 왔으면 낮 판
+  const artNow = () => {
+    const nt = isNight(), map = chartStyle === 'map';
+    if (map) mapArt.load(); else if (nt) nightArt.load();
+    const mp = map && mapArt.ready(), na = !map && nt && nightArt.ready();
+    return { nt, mp, na, art: mp ? mapArt : na ? nightArt : sheets };
+  };
   const $ = id => document.getElementById(id);
   const later = []; let busy = false;   // 알림 줄 (도착 알림 뒤에 차례로)
   const say = (text, ms = 3200) => { later.push([text, ms]); if (!busy) { busy = true; setTimeout(next, 4400); } };
@@ -145,7 +172,10 @@ export function mountExtras(env) {
   }
   const geom = v => { const [W, H] = boxSize(), S = v.z * Math.max(W, H); return { S, ox: W / 2 - v.cx * S, oy: H / 2 - v.cy * S }; };
   let showRouteHistory = false;
-  const chartOpts = () => ({ chart, log: voyage.log, home: home(), sailedMs: voyage.sailedMs, open: mapOpen, placeName, sheet: sheets.chart, extra: sheets.extra, bigArt: sheets.bigArt, alt: sheets.chartB && { ...CHART_B, sheet: sheets.chartB }, builds: id => builds.level(id), t: 0, all: true, isles: sheets.isles, spread: K, frameless: true, sea: sheets.sea, label: null, atSea: !!voyage.trip, activeTo: voyage.trip?.to, night: isNight(), history: showRouteHistory });
+  const chartOpts = () => {
+    const { nt, mp, na, art } = artNow();   // 밤 판이면 낮 그림 어둡게 하던 거름을 chart.js 가 끈다(nightArt) · 옛 해도는 밤에 종이째 어둡게(mapNight)
+    return { chart, log: voyage.log, home: home(), sailedMs: voyage.sailedMs, open: mapOpen, placeName, sheet: art.chart, extra: sheets.extra, bigArt: art.bigArt, alt: art.chartB && { ...CHART_B, sheet: art.chartB }, builds: id => builds.level(id), t: 0, all: true, isles: art.isles, spread: K, frameless: true, sea: mp ? mapArt.sea : sheets.sea, label: null, atSea: !!voyage.trip, activeTo: voyage.trip?.to, night: nt && !mp, nightArt: na, mapStyle: mp, mapNight: mp && nt, compass: mp, history: showRouteHistory };
+  };
   // v30.7 밤 해도 — 창이 남색 종이일 때(main.js burnTick 이 --k-night 를 0/1 로 정한다)
   const isNight = () => document.documentElement.style.getPropertyValue('--k-night').trim() === '1';
   let drawnNight = null;
@@ -157,14 +187,15 @@ export function mountExtras(env) {
     // 해도 밖: 같은 바다를 그대로 이어 붙인다 — 마진으로 끌어들여도 틀이 안 보이게
     //  2026-11-22: 거울로 뒤집어 붙이던 것을 그대로 잇기로 — 바다 그림이 끝과 끝이 이어지는 한 장(stock/chart-sea/sea-b.png)이라 경계에 대칭 줄(접힌 자국)이 생기지 않는다
     if (sheets.sea && g) {
-      const day = prep.sea || (prep.sea = mutedSea(sheets.sea));
+      const mp = chartStyle === 'map' && mapArt.ready();   // 옛 해도: 종이 바다를 그대로 잇는다 (밤엔 아래에서 종이째 어둡게)
+      const day = mp ? mapArt.sea : prep.sea || (prep.sea = mutedSea(sheets.sea));
       //  밤 바다 한 장: 해도 안처럼 남색을 곱하고, 물 위 별빛도 뿌린다 (해도 안은 가장자리 띠에만 있어 밖에서 뚝 끊겼다)
-      const out = !night ? day : prep.seaN || (prep.seaN = (() => { const n = document.createElement('canvas'); n.width = day.width; n.height = day.height; const x = n.getContext('2d'); x.drawImage(day, 0, 0); nightTone(x, n.width, n.height); nightSparkles(x, n.width, n.width / K, { seed: 2027, middle: false }); return n; })());
+      const out = mp || !night ? day : prep.seaN || (prep.seaN = (() => { const n = document.createElement('canvas'); n.width = day.width; n.height = day.height; const x = n.getContext('2d'); x.drawImage(day, 0, 0); nightTone(x, n.width, n.height); nightSparkles(x, n.width, n.width / K, { seed: 2027, middle: false }); return n; })());
       for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
         if (!i && !j) continue;
         c.drawImage(out, g.ox + i * g.S - 1, g.oy + j * g.S - 1, g.S + 2, g.S + 2);   // 1px 겹쳐 틈 없이
       }
-      if (night) moonGlow(c, g.S, g.ox, g.oy, W, H);   // 달빛도 해도 안과 같은 자리에서 밖으로 이어 퍼진다 (해도 한 장은 이 위에 덮인다)
+      if (mp && night) mapDim(c, W, H); else if (night) moonGlow(c, g.S, g.ox, g.oy, W, H);   // 달빛도 해도 안과 같은 자리에서 밖으로 이어 퍼진다 (해도 한 장은 이 위에 덮인다)
     }
     return c;
   }
@@ -181,9 +212,18 @@ export function mountExtras(env) {
   const navText = () => { const r = voyage.trip; if (!r) return ''; const m = Math.ceil(voyage.left() / 60000); return `${placeName(r.to)}까지 ${m}분${voyage.active ? '' : ' · 멈춤'}`; };
   const overlay = (c, g) => {
     c.save(); c.translate(g.ox, g.oy);
-    const s = seaTrip(); if (s) drawVoyageMark(c, g.S / K, { ...s, spread: K, t: performance.now() / 1000, sheet: sheets.chart, text: navText(), night: isNight(), visits: visitsTo(s.to) });
-    drawChartLabel(c, g.S / K, { chart, label: sel, spread: K, night: isNight() }); c.restore();
+    const s = seaTrip(); if (s) drawVoyageMark(c, g.S / K, { ...s, spread: K, t: performance.now() / 1000, sheet: artNow().art.chart, text: navText(), night: isNight(), visits: visitsTo(s.to) });
+    // 확대하면 보이는 섬마다 이름표 (2026-11-22 사용자 「해도 확대하면 어떤 섬인지 네임 태그가 뜨도록」):
+    //  처음 여는 배율(섬 지름 ≈ 100px)에선 그림만, 섬이 화면에서 반지름 56px 를 넘으면 스며들기 시작해 66px 에서 다 보인다
+    const tags = nameTags(g);
+    if (tags > 0) {
+      const [W, H] = boxSize(), m = 0.03, view = { x0: -g.ox / g.S - m, y0: -g.oy / g.S - m, x1: (W - g.ox) / g.S + m, y1: (H - g.oy) / g.S + m };
+      c.globalAlpha = tags; drawChartNames(c, g.S / K, { chart, spread: K, night: isNight(), open: mapOpen, placeName, view, sel: tags >= 1 ? sel : null }); c.globalAlpha = 1;
+    }
+    if (tags < 1) drawChartLabel(c, g.S / K, { chart, label: sel, spread: K, night: isNight() });
+    c.restore();
   };
+  const nameTags = g => { const r = g.S / K * 0.062; return Math.max(0, Math.min(1, (r - 56) / 10)); };
   // 항해 중 해도가 열려 있으면 배가 움직이는 걸 보여 준다 — 손을 안 댔으면 배를 따라가고(내비), 둘러보는 중이면 그 자리에서 배만 움직인다
   { let last = 0;
     const tick = now => {
@@ -246,8 +286,18 @@ export function mountExtras(env) {
     $('chartCount').textContent = `열린 섬 ${opened} / ${Object.keys(BIG).length}`;
     const n = chart.next(voyage.sailedMs), tot = chart.total(voyage.sailedMs);
     const note = `지금까지 ${tot.toFixed(1)}해리 · 찾은 섬 ${chart.islets.length} · 바다 위의 곳 ${chart.spots.length}` + (n ? ` · 다음 ${n.kind === 'islet' ? '섬' : '곳'}까지 ${n.left.toFixed(1)}해리` : ' · 지도를 다 그렸어요');
-    $('chartNote').textContent = note;
-    $('chartRoutesBtn').disabled = !voyage.log.length;
+    // 2026-11-22 (사용자 「해도 아래 UI 사용성이 떨어진다」): 긴 한 문장 → 숫자 칸 셋(부품 k-stats) + 다음 섬까지 한 줄,
+    //  항해 기록이 없을 땐 흐린 「지난 항로 보기」 대신 단추를 숨긴다. 읽기 도구는 지금처럼 한 문장(아래 aria-label)
+    const stats = $('chartStats');
+    if (stats) {
+      stats.textContent = '';
+      for (const [v, k] of [[tot.toFixed(1), '해리 항해'], [chart.islets.length, '찾은 섬'], [chart.spots.length, '바다 위의 곳']]) {
+        const d = document.createElement('div'), b = document.createElement('b'), s = document.createElement('span');
+        b.textContent = v; s.textContent = k; d.append(b, s); stats.append(d);
+      }
+    }
+    $('chartNote').textContent = stats ? (n ? `다음 ${n.kind === 'islet' ? '섬' : '곳'}까지 ${n.left.toFixed(1)}해리 더 가면 지도에 나타나요` : '지도를 다 그렸어요') : note;
+    $('chartRoutesBtn').hidden = !voyage.log.length;
     $('chartCv').setAttribute('aria-label', `해도 — ${note}`);
     const list = $('chartList'); list.textContent = '';
     for (const i of chart.islets) {
@@ -312,6 +362,24 @@ export function mountExtras(env) {
     e.currentTarget.textContent = showRouteHistory ? '지난 항로 접기' : '지난 항로 보기';
     paintChart();
   });
+
+  // 해도 보기: 그림(지금) · 옛 해도 — 고른 것은 기억한다 (2026-11-22)
+  //  사용자 「보는 방법 바꾸는 버튼을 우하단 같은 곳에」: 자주 바꾸지 않아 아래 판 한 줄을 차지하던 것을 판 위 오른쪽 끝에 뜬 미리보기 버튼 하나로.
+  //  버튼엔 지금이 아닌 쪽의 작은 그림과 이름이 보인다 (누르면 그쪽으로 바뀐다)
+  const styleBtn = $('chartStyleBtn');
+  const paintStyle = () => {
+    if (!styleBtn) return;
+    const to = chartStyle === 'map' ? 'real' : 'map', nm = to === 'map' ? '옛 해도' : '그림';
+    styleBtn.dataset.to = to; styleBtn.querySelector('.nm').textContent = nm;
+    styleBtn.setAttribute('aria-label', to === 'map' ? '옛 해도로 보기' : '그림으로 보기');
+  };
+  styleBtn?.addEventListener('click', () => {
+    chartStyle = chartStyle === 'map' ? 'real' : 'map'; save('chartStyle', chartStyle); paintStyle(); worldStale = true; paintChart();
+  });
+  paintStyle();
+  // 아래 판 높이(목록을 펼치면 커진다)를 늘 재 둔다 — 보기 버튼 · 섬 카드가 그 바로 위에 뜬다
+  { const foot = $('chartView')?.querySelector('.cvFoot');
+    if (foot && typeof ResizeObserver !== 'undefined') new ResizeObserver(() => { measureChrome(); $('chartView').style.setProperty('--cv-foot', `${Math.round(chrome.bot)}px`); }).observe(foot); }
 
   function paintAll() { paintChart(); paintCatch(); paintBuilds(); }
   // 해도는 보일 때 그린다 (창 크기를 알아야 하므로) — 해도 창이 열릴 때 · 창 크기가 바뀔 때
@@ -422,6 +490,7 @@ export function mountExtras(env) {
       };
     }
     else { nm.textContent = SPOT[id].ko; tx.textContent = SPOT[id].note; }
+    measureChrome(); $('chartView').style.setProperty('--cv-foot', `${Math.round(chrome.bot)}px`);   // 섬 카드는 아래 안내 판 바로 위에 (판 높이가 내용 따라 바뀐다)
     sel = { id, text: nm.textContent }; card.hidden = false; repaint();
   }
   // 카드가 닫히면(✕·빈 바다·끌기·창 닫기) 지도 위 이름도 지운다

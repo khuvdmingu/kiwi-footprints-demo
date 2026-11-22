@@ -1,6 +1,6 @@
 // maps.js — 골라 쓰는 장소(맵)
-import { STOCK_PLACES, STOCK_STEPS0, STOCK_STEP, TIME_ART } from './maps-stock.js?v=v30.31.0-e12add6';
-import { WATER_PLACES, WATER_STEPS0, WATER_STEP } from './maps-water.js?v=v30.31.0-e12add6';
+import { STOCK_PLACES, STOCK_STEPS0, STOCK_STEP, TIME_ART } from './maps-stock.js?v=v30.35.0-d5a1c77';
+import { WATER_PLACES, WATER_STEPS0, WATER_STEP } from './maps-water.js?v=v30.35.0-d5a1c77';
 //  장소마다 그림 판 한 벌(가로 wide · 세로 tall, 각각 본판·-dry·-sea 세 장)과 그 장소의 성격을 정한다.
 //  구조는 모두 같다: 위는 숲(키위가 숨었다 나온다), 가운데는 글씨를 쓰는 바닥, 아래는 물(불어나서 글씨를 지운다).
 
@@ -128,4 +128,8 @@ for (const [kind, ids] of Object.entries(CRITTER_PLACES)) ids.forEach(id => { (M
 //  협곡·피오르(계단처럼 꺾여 덤불·눈밭 한가운데)·사바나(초원 위로 솟음)·다랑논(논 한가운데)·낙우송 늪(화면 맨 위) — 은 화면 왼쪽·오른쪽으로 드나든다
 export const SIDE_ENTER = ['zen', 'alpine', 'canyon', 'fjord', 'savanna', 'paddy', 'cypress'];
 for (const id of SIDE_ENTER) if (MAPS[id]) MAPS[id].enter = 'side';
+// v30.32 윤슬: 노을 금빛 빛길 · 밤 달빛 길 — 서쪽으로 트인 넓은 물(바다·큰 호수·강)만. 연못·개울·늪·흙탕물은 뺀다 (water.js)
+export const GLITTER_PLACES = ['beach', 'pinecove', 'pinksand', 'basalt', 'lagoon', 'fjord', 'hydrangea-cove', 'bamboo-bay', 'shell-cove', 'sand-point',
+  'fall', 'alpine', 'glacier', 'birch', 'hangang'];
+GLITTER_PLACES.forEach(id => { MAPS[id].glitter = true; });
 export const MAP_IDS = Object.keys(MAPS);

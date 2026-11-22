@@ -19,6 +19,9 @@
 //    hermit   소라게가 물가 젖은 모래를 느릿느릿 — 키위가 가까이 오면 껍데기 속으로 쏙,
 //             파도가 덮치면 껍데기째 물 위에 둥둥 떠 흔들리다가 물이 빠지면 다시 걷는다
 //    snail    달팽이가 숲 가장자리 아래를 기어가며 반짝이는 자국을 남긴다 — 비 오는 동안과 그친 뒤 4분만
+//  누르기(사용자 2026-11-22): 게는 놀라서 옆으로 달려가 구멍으로 쏙 들어가거나(화면 끝 가까이면 화면 밖으로) 그 자리에서 파고들었다가
+//   다른 자리 구멍에서 나오고(옆 게들도 같이). 게가 들어가고 나오는 곳에는 늘 게 구멍이 보인다 — 파도에 숨을 때도 (사용자: "그냥 사라지는 것 같아서").
+//   소라게는 껍데기 속으로, 물고기 떼는 누른 곳 반대쪽으로 흩어졌다가 조금 떨어진 곳에서 다시 모인다.
 //  층: 모두 무대 층(시간 빛·밤이 함께 입혀진다). 밤·비에는 새로 오지 않는다 — 게·물고기·청개구리는 밤에도 온다.
 //  크기(size)는 보이는 몸 크기(u) — 키위가 약 45u. 그림: assets/critters.webp 4×4 칸 256px(칸마다 몸에 꼭 맞게 잘림) — Codex image_gen(손님 그림을 그림체 참고로) + 소금쟁이(첫 장)
 //   0 논병아리 · 1 퍼핀 · 2 아기 오리 · 3 아기 오리(뒤돌아봄) · 4 짱뚱어 · 5 아기 거북(위) · 6 청개구리 머리 · 7 물맴이(위)
@@ -38,9 +41,9 @@ export const CRITTERS = {
   frog:       { ko: '청개구리', mode: 'peek', cells: [6], size: 34, n: [1, 2], night: true, gap: [5, 12] },
   whirligig:  { ko: '물맴이', mode: 'whirl', cells: [7], size: 13, n: [6, 10] },
   strider:    { ko: '소금쟁이', mode: 'skate', cells: [12], size: 42, n: [4, 7] },
-  crab:       { ko: '작은 게', mode: 'crab', cells: [8, 9], size: 24, n: [2, 4], night: true, rain: true },
+  crab:       { ko: '작은 게', mode: 'crab', cells: [8, 9], size: 24, n: [2, 4], night: true, rain: true, life: [120, 240], gap: [120, 300] },   // 몇 분 나와 있다가 구멍으로 · 몇 분 뒤 다시 (사용자: "계속 보이면 거슬리니까")
   minnow:     { ko: '송사리', mode: 'school', cells: [10], swim: [13, 14], size: 18, n: [10, 16], night: true, rain: true },
-  hermit:     { ko: '소라게', mode: 'hermit', cells: [17, 18, 19], size: 30, n: [1, 3], night: true },
+  hermit:     { ko: '소라게', mode: 'hermit', cells: [17, 18, 19], size: 30, n: [1, 3], night: true, life: [120, 240], gap: [120, 300] },
   snail:      { ko: '달팽이', mode: 'snail', cells: [20, 21], size: 26, n: [1, 3], wet: true, rain: true },   // 사용자 "소라게나 달팽이" (2026-11-22)
   tropical:   { ko: '열대어', mode: 'school', cells: [11], swim: [15, 16], size: 19, n: [8, 12], night: true, rain: true },
 };
@@ -63,7 +66,7 @@ function band(beach, x, pad) {
 
 // 한 종의 움직임
 class Track {
-  constructor(kind, ring) { this.kind = kind; this.k = CRITTERS[kind]; this.ring = ring; this.list = []; this.group = null; this.t = 0; this.next = rnd(0.5, 2.5); this.first = true; this.dryT = Infinity; }
+  constructor(kind, ring) { this.kind = kind; this.k = CRITTERS[kind]; this.ring = ring; this.list = []; this.group = null; this.t = 0; this.next = rnd(0.5, 2.5); this.first = true; this.dryT = Infinity; this.holes = []; }
 
   update(dt, beach, opt) {
     const k = this.k;
@@ -84,7 +87,7 @@ class Track {
     const k = this.k, { W, u } = beach, first = this.first, dir = Math.random() < 0.5 ? 1 : -1;
     this.first = false;
     const n = k.n ? pickN(k.n) : 1, cx = rnd(0.15, 0.85) * W;
-    this.group = { age: 0, dir, x: cx, life: rnd(45, 80) };
+    this.group = { age: 0, dir, x: cx, life: k.life ? rnd(...k.life) : rnd(45, 80) };
     const cell = () => k.cells[Math.floor(Math.random() * k.cells.length)], s = () => k.size * u * rnd(0.9, 1.08);
     if (k.mode === 'crab' || k.mode === 'hopper') {
       for (let i = 0; i < n; i++) this.list.push({ x: rnd(0.08, 0.92) * W, off: rnd(-8, 8) * u, s: s(), cell: cell(), ph: Math.random() * 9,
@@ -93,6 +96,7 @@ class Track {
         c.rot = c.trot = crabFace();
         if (k.mode === 'crab') c.off = rnd(-24, -10) * u;   // 물가선 바로 위 젖은 모래 (작은 물결은 안 닿고 큰 파도만 덮친다)
         c.y = (k.mode === 'crab' ? restShore(beach, c.x) : beach.edge(c.x)) + c.off;
+        if (k.mode === 'crab') { c.st = 'under'; c.out = rnd(0.3, 2.5); c.a = 1; this.hole(c, beach); }   // 게는 구멍 속에서 시작해 하나씩 톡 나온다
       }
       return;
     }
@@ -202,28 +206,115 @@ class Track {
     const g = this.group, { W, u } = beach;
     if (g) { g.age += dt; if (g.age > g.life || quiet) g.leave = true; }
     for (const c of this.list) {
-      c.a = g?.leave ? c.a - dt / 1.5 : Math.min(1, c.a + dt);
+      c.a = Math.min(1, c.a + dt);
+      if (c.puff > 0) c.puff -= dt;
+      // 들어갈 때: 하나씩 자기 자리 구멍으로 파고든다 (흐려지며 사라지지 않고)
+      if (g?.leave && c.st === 'up' && Math.random() < dt * 0.8) { this.dig(c, beach, false); c.leaving = true; }
       c.y = restShore(beach, c.x) + c.off;
-      const e = beach.edge(c.x), covered = e < c.y - 4 * u, dry = e > c.y + 6 * u;   // 물가선이 게보다 위 = 물에 잠김
-      if (c.st === 'up' && covered) { c.st = 'dig'; c.k = 0; c.run = 0; }   // 파도가 덮치면 모래 속으로
-      if (c.st === 'dig') { c.k += dt / 0.35; if (c.k >= 1) { c.st = 'under'; c.k = 0; c.out = rnd(0.5, 1.6); } }
-      else if (c.st === 'under') { if (dry && (c.out -= dt) < 0) { c.st = 'pop'; c.k = 0; this.ring(c.x, c.y, c.s * 0.35, 0.7, 0.35); } }   // 물이 다 빠지면 하나씩 톡
-      else if (c.st === 'pop') { c.k += dt / 0.3; if (c.k >= 1) c.st = 'up'; }
-      else if (c.run > 0) {
-        c.run -= dt; c.x += c.vx * dt;
-        if (c.x < 10 * u || c.x > W - 10 * u) { c.vx = -c.vx; c.x = Math.max(10 * u, Math.min(W - 10 * u, c.x)); }
-      } else if ((c.wait -= dt) < 0) {
-        if (Math.random() < 0.35) { c.trot = crabFace(); c.wait = rnd(0.6, 1.6); }   // 가끔 그 자리에서 몸을 돌린다
-        else {
-          c.wait = rnd(0.5, 2.2); c.run = rnd(0.25, 0.8); c.vx = (Math.random() < 0.5 ? -1 : 1) * rnd(55, 110) * u;
-          // 다른 게와 겹쳐 있으면 그 반대쪽으로 걷는다
-          const near = this.list.find(o => o !== c && Math.abs(o.x - c.x) < c.s * 1.4);
-          if (near) c.vx = Math.sign(c.x - near.x || 1) * Math.abs(c.vx);
+      const e = beach.edge(c.x), covered = e < c.y - 4 * u, dry = e > c.y + 4 * u;   // 물가선이 게보다 위 = 물에 잠김 (게는 물가선 8u 위까지만 가니 늘 다시 마른다)
+      if (c.st === 'flee') {   // 놀라서 옆으로 질주 (몸은 위·아래를 보고 옆으로) → 구멍에 닿으면 쏙, 화면 끝이면 화면 밖으로
+        c.x += c.fv * dt;
+        c.rot = turn(c.rot, Math.cos(c.rot) >= 0 ? 0 : Math.PI, Math.min(1, dt * 8));
+        if (c.to != null && (c.fv > 0 ? c.x >= c.to : c.x <= c.to)) { c.x = c.to; c.to = null; this.dig(c, beach, true); }
+        else if (c.x < -40 * u || c.x > W + 40 * u) c.gone = true;
+        continue;
+      }
+      if (c.st === 'up' && covered) this.dig(c, beach, false);   // 파도가 덮치면 그 자리 구멍으로
+      if (c.st === 'dig') { c.k += dt / 0.5; if (c.k >= 1) { c.st = 'under'; c.k = 0; c.out = c.fled ? rnd(5, 10) : rnd(0.5, 1.6); } }
+      else if (c.st === 'under') {
+        if (c.leaving || g?.leave) { c.gone = true; continue; }   // 들어간 채로 이번 무리는 끝
+        if (dry && (c.out -= dt) < 0) {
+          if (c.fled) {   // 놀라 숨었던 게는 다른 자리 구멍에서 나온다
+            c.fled = false; c.x = rnd(0.08, 0.92) * W; c.off = rnd(-24, -10) * u; c.rot = c.trot = crabFace(); c.y = restShore(beach, c.x) + c.off;
+            this.hole(c, beach);
+          }
+          c.st = 'pop'; c.k = 0; this.ring(c.x, c.y, c.s * 0.3, 0.6, 0.3);   // 물이 다 빠지면 하나씩 구멍에서 톡
         }
       }
-      c.rot = turn(c.rot, c.trot, Math.min(1, dt * 5));
+      else if (c.st === 'pop') { c.k += dt / 0.45; if (c.k >= 1) c.st = 'up'; }
+      else if (c.run > 0) {
+        // 옆걸음: 몸의 옆쪽으로, 천천히 출발해 천천히 멈춘다 · 걸으며 살짝 몸을 튼다
+        c.run -= dt;
+        const v = c.v * Math.sin(Math.PI * clamp01(1 - c.run / c.dur)), ax = Math.cos(c.rot), ay = Math.sin(c.rot);
+        c.x += ax * v * c.side * dt;
+        c.off = Math.max(-26 * u, Math.min(-8 * u, c.off + ay * v * c.side * dt));
+        if (c.x < 10 * u || c.x > W - 10 * u) { c.side = -c.side; c.x = Math.max(10 * u, Math.min(W - 10 * u, c.x)); }
+        const base = Math.cos(c.trot) >= 0 ? 0 : Math.PI;
+        c.trot = base + Math.max(-0.7, Math.min(0.7, Math.atan2(Math.sin(c.trot - base), Math.cos(c.trot - base)) + c.sway * dt));
+      } else if ((c.wait -= dt) < 0) {
+        if (Math.random() < 0.4) { c.trot = crabFace(); c.wait = rnd(1, 2.2); }   // 그 자리에서 천천히 몸을 돌린다
+        else {
+          c.dur = c.run = rnd(0.7, 1.8); c.v = rnd(22, 42) * u; c.sway = rnd(-0.25, 0.25); c.wait = rnd(0.8, 2.6);
+          c.side = Math.random() < 0.5 ? -1 : 1;
+          // 다른 게와 겹쳐 있으면 그 반대쪽으로 걷는다
+          const near = this.list.find(o => o !== c && Math.abs(o.x - c.x) < c.s * 1.4);
+          if (near) c.side = Math.sign(c.x - near.x || 1) * Math.sign(Math.cos(c.rot) || 1);
+        }
+      }
+      c.rot = turn(c.rot, c.trot, Math.min(1, dt * 2.2));
     }
-    this.list = this.list.filter(c => c.a > 0 || !g?.leave);
+    this.list = this.list.filter(c => !c.gone && (c.a > 0 || !g?.leave));
+    // 게 구멍: 20~40초에 걸쳐 메워진다 · 게가 아직 안에 있는 구멍은 그대로
+    for (const h of this.holes) { h.y = restShore(beach, h.x) + h.off; if (!this.list.some(c => c.st === 'under' && c.hole === h)) h.age += dt; }
+    this.holes = this.holes.filter(h => h.age < h.life);
+  }
+
+  // 게 구멍 하나 (게 자리에) — 같은 자리에 이미 있으면 그것을 쓴다
+  hole(c, beach) {
+    const u = beach.u;
+    let h = this.holes.find(o => Math.hypot(o.x - c.x, o.off - c.off) < c.s * 0.4);
+    if (!h) {
+      h = { x: c.x, off: c.off, y: c.y, r: c.s * rnd(0.24, 0.3), age: 0, life: rnd(20, 40), tilt: rnd(-0.3, 0.3), seed: Math.random() * 9 };
+      this.holes.push(h); if (this.holes.length > 14) this.holes.shift();
+    } else h.age = 0;
+    c.hole = h;
+    return h;
+  }
+  // 파고들기: 구멍을 만들고 모래를 튀기며 가라앉는다
+  dig(c, beach, fled) {
+    c.st = 'dig'; c.k = 0; c.run = 0; if (fled) c.fled = true;
+    this.hole(c, beach);
+    this.ring(c.x, c.y, c.s * 0.3, 0.6, 0.3);
+    c.puff = 0.5;   // 모래 튀김
+  }
+
+  // ── 누르기: 게는 도망(화면 밖 · 모래 속), 소라게는 껍데기 속, 물고기 떼는 흩어졌다 다시 모인다. 잡았으면 true
+  tap(x, y, beach) {
+    const k = this.k, u = beach.u, { W } = beach;
+    if (k.mode === 'crab') {
+      const hit = this.list.find(c => c.st === 'up' && Math.hypot(c.x - x, c.y - y) < c.s * 0.8 + 14 * u);
+      if (!hit) return false;
+      for (const c of this.list) if (c === hit || (c.st === 'up' && Math.abs(c.x - hit.x) < 90 * u)) {
+        if (Math.random() < 0.5) this.dig(c, beach, true);   // 그 자리에서 파고든다
+        else {   // 옆으로 달려가 조금 떨어진 구멍으로 쏙 (화면 끝 가까이면 화면 밖으로)
+          const dir = Math.sign(c.x - x || (Math.random() - 0.5)), to = c.x + dir * rnd(60, 140) * u;
+          c.st = 'flee'; c.run = 0; c.fv = dir * rnd(120, 160) * u; c.to = to > 20 * u && to < W - 20 * u ? to : null;
+        }
+      }
+      return true;
+    }
+    if (k.mode === 'hermit') {
+      const hit = this.list.find(c => Math.hypot(c.x - x, c.y - y) < c.s * 0.8 + 14 * u);
+      if (!hit) return false;
+      if (hit.hide <= 0) hit.pop = 0.25;
+      hit.hide = Math.max(hit.hide, rnd(4, 6)); hit.walk = false;
+      return true;
+    }
+    if (k.mode === 'school') {
+      const g = this.group;
+      if (!g || g.leave || Math.hypot(x - g.x, (y - g.y) / 0.6) > g.r + 25 * u) return false;
+      g.scatter = 1.1; g.calm = 2.5;
+      const sx = Math.sign(g.x - x || (Math.random() - 0.5));
+      const hop = rnd(150, 240) * u; let nx = g.x + sx * hop;
+      if (nx < 60 * u || nx > W - 60 * u) nx = g.x - sx * hop;   // 화면 끝에 막히면 반대쪽으로
+      g.x = Math.max(60 * u, Math.min(W - 60 * u, nx)); g.y += rnd(-1, 1) * 40 * u;   // 조금 떨어진 곳에서 다시 모인다
+      for (const c of this.list) {
+        const dx = c.x - x, dy = c.y - y, d = Math.hypot(dx, dy) || 1, a = Math.atan2(dy, dx) + rnd(-0.5, 0.5), v = rnd(140, 220) * u * (0.6 + 0.4 * Math.min(1, 80 * u / d));
+        c.svx = Math.cos(a) * v; c.svy = Math.sin(a) * v * 0.7;
+      }
+      return true;
+    }
+    return false;
   }
 
   // ── 물맴이: 저마다 작은 원을 빠르게 돌고, 원의 가운데는 천천히 떠돈다
@@ -268,16 +359,29 @@ class Track {
     const g = this.group, u = beach.u;
     if (g) {
       g.age += dt; if (g.age > g.life || quiet) g.leave = true;
-      if (!g.leave && Math.random() < dt * 0.12) g.x = Math.max(60 * u, Math.min(beach.W - 60 * u, g.x + rnd(-1, 1) * 160 * u)), g.y += rnd(-1, 1) * 50 * u;   // 휙
+      if (!g.leave && !(g.calm > -6) && Math.random() < dt * 0.12) g.x = Math.max(60 * u, Math.min(beach.W - 60 * u, g.x + rnd(-1, 1) * 160 * u)), g.y += rnd(-1, 1) * 50 * u;   // 휙
       const b = band(beach, g.x, 34); if (b) g.y = Math.max(b[0] + 10 * u, Math.min(b[1] - 10 * u, g.y));
     }
+    if (g?.scatter > 0) {   // 흩어지는 중: 저마다 누른 곳 반대쪽으로 휙
+      g.scatter -= dt; g.calm -= dt;
+      const low = beach.H - BOTTOM_PAD * u;
+      for (const c of this.list) {
+        c.x += c.svx * dt; c.y += c.svy * dt; c.svx *= Math.exp(-dt * 2.5); c.svy *= Math.exp(-dt * 2.5);
+        if (Math.hypot(c.svx, c.svy) > 1) c.head = Math.atan2(c.svx, -c.svy);
+        const b = band(beach, c.x, 34); if (b && c.y < b[0]) { c.y = b[0]; c.svy = Math.abs(c.svy); }
+        if (c.y > low) { c.y = low; c.svy = -Math.abs(c.svy); }
+      }
+      return;
+    }
+    if (g && g.calm != null) g.calm -= dt;   // 흩어진 뒤 8초쯤은 스스로 휙 옮기지 않는다 (위 조건)
+    const pull = g?.calm > 0 ? 0.9 : 2.4;   // 흩어진 뒤엔 천천히 다시 모인다
     for (const c of this.list) {
       c.fade = g?.leave ? c.fade - dt / 2 : Math.min(1, c.fade + dt / 1.5);
       c.orbit += dt * (0.5 + (c.ph % 1) * 0.4);
       const tx = (g?.x ?? c.x) + Math.cos(c.orbit) * (c.rad + Math.sin(this.t * 0.9 + c.ph) * 8 * u);
       const ty = (g?.y ?? c.y) + Math.sin(c.orbit) * (c.rad * 0.6);
       const dx = tx - c.x, dy = ty - c.y;
-      c.x += dx * Math.min(1, dt * 2.4); c.y += dy * Math.min(1, dt * 2.4);
+      c.x += dx * Math.min(1, dt * pull); c.y += dy * Math.min(1, dt * pull);
       if (Math.hypot(dx, dy) > 0.3) c.head = Math.atan2(dx, -dy);
     }
     this.list = this.list.filter(c => c.fade > 0 || !g?.leave);
@@ -289,6 +393,7 @@ class Track {
     if (g) { g.age += dt; if (g.age > g.life || quiet) g.leave = true; }
     for (const c of this.list) {
       c.a = g?.leave ? c.a - dt / 1.5 : Math.min(1, c.a + dt);
+      if (g?.leave) { c.hide = Math.max(c.hide, 0.5); c.walk = false; }   // 들어갈 때는 껍데기 속에 숨은 채 사라진다
       c.y = restShore(beach, c.x) + c.off;
       const e = beach.edge(c.x), covered = e < c.y - 4 * u;
       if (covered && !c.float) { c.float = true; c.pop = 0.25; this.ring(c.x, c.y, c.s * 0.4, 1, 0.4); }   // 파도가 덮치면 껍데기째 둥둥
@@ -331,8 +436,28 @@ class Track {
     this.list = this.list.filter(c => c.a > 0 || !g?.leave);
   }
 
+  // 게 구멍: 젖은 모래 둔덕 + 어두운 구멍 + 둘레 모래알. 물에 잠기면 물 아래로 비쳐 보이게 옅게
+  drawHoles(ctx, beach) {
+    const u = beach.u;
+    for (const h of this.holes) {
+      const fade = clamp01((h.life - h.age) / 6), wet = beach.edge(h.x) < h.y - 2 * u ? 0.45 : 1, a = fade * wet;
+      if (a <= 0.01) continue;
+      ctx.save(); ctx.translate(h.x, h.y); ctx.rotate(h.tilt);
+      ctx.globalAlpha = 0.45 * a; ctx.fillStyle = 'rgb(232, 210, 168)';   // 파낸 모래 둔덕 (아래쪽이 볕을 받아 밝다)
+      ctx.beginPath(); ctx.ellipse(0, h.r * 0.35, h.r * 1.6, h.r * 0.95, 0, 0, 6.29); ctx.fill();
+      ctx.globalAlpha = 0.8 * a; ctx.fillStyle = 'rgb(96, 74, 52)';        // 구멍
+      ctx.beginPath(); ctx.ellipse(0, 0, h.r, h.r * 0.62, 0, 0, 6.29); ctx.fill();
+      ctx.globalAlpha = 0.85 * a; ctx.fillStyle = 'rgb(48, 36, 26)';       // 안쪽 그늘
+      ctx.beginPath(); ctx.ellipse(-h.r * 0.12, -h.r * 0.08, h.r * 0.62, h.r * 0.36, 0, 0, 6.29); ctx.fill();
+      ctx.globalAlpha = 0.6 * a; ctx.fillStyle = 'rgb(205, 178, 134)';      // 둘레 모래알
+      for (let i = 0; i < 5; i++) { const t = h.seed + i * 1.3; ctx.beginPath(); ctx.arc(Math.cos(t) * h.r * 1.5, Math.sin(t) * h.r * 0.95 + h.r * 0.2, 1.1 * u, 0, 6.29); ctx.fill(); }
+      ctx.restore();
+    }
+  }
+
   draw(ctx, beach, cells, blit) {
     const k = this.k, u = beach.u;
+    if (k.mode === 'crab') this.drawHoles(ctx, beach);
     for (const c of this.list) {
       const cell = cells[c.cell];
       if (!cell) continue;
@@ -353,11 +478,18 @@ class Track {
         blit(ctx, cell.shadow, c.x + 2 * u, base + 3 * u, 0, c.s * (c.hop > 0 ? 0.8 : 1), 0.22 * a, c.face);
         blit(ctx, cell.img, c.x, c.y, 0, c.s, a, c.face);
       } else if (k.mode === 'crab') {
-        if (c.st === 'under') continue;   // 모래 속
-        const dig = c.st === 'dig' ? c.k : c.st === 'pop' ? 1 - c.k : 0;   // 파고들기·나오기: 작아지며 흐려진다
-        const a = clamp01(c.a) * (1 - dig), wob = c.run > 0 ? Math.sin(this.t * 30 + c.ph) * 0.08 : c.st === 'dig' ? Math.sin(this.t * 40) * 0.15 : 0, sc = c.s * (1 - dig * 0.35);
-        blit(ctx, cell.shadow, c.x + 3 * u, c.y + 4 * u + dig * 2 * u, c.rot + wob, sc, 0.3 * a);
-        blit(ctx, cell.img, c.x, c.y + dig * 2 * u, c.rot + wob, sc, a);
+        if (c.puff > 0) {   // 모래 튀김: 구멍 둘레로 모래알이 흩어진다
+          const p = 1 - c.puff / 0.5;
+          ctx.save(); ctx.fillStyle = 'rgba(214, 186, 140, 0.9)';
+          for (let i = 0; i < 6; i++) { const a = c.ph + i * 1.05; ctx.globalAlpha = 0.7 * (1 - p); ctx.beginPath(); ctx.arc(c.x + Math.cos(a) * c.s * (0.2 + p * 0.45), c.y + Math.sin(a) * c.s * (0.12 + p * 0.25) - p * 3 * u, 1.3 * u, 0, 6.29); ctx.fill(); }
+          ctx.restore();
+        }
+        if (c.st === 'under') continue;   // 모래 속 (구멍은 위에서 그렸다)
+        const dig = c.st === 'dig' ? ease(c.k) : c.st === 'pop' ? 1 - ease(c.k) : 0;   // 파고들기·나오기: 구멍 속으로 가라앉으며 작아지고 흐려진다
+        const wob = c.st === 'flee' ? Math.sin(this.t * 26 + c.ph) * 0.07 : c.run > 0 ? Math.sin(this.t * 16 + c.ph) * 0.045 : c.st === 'dig' ? Math.sin(this.t * 40) * 0.15 : 0;   // 다리 걸음 흔들림
+        const a = clamp01(c.a) * (1 - dig * 0.85), sc = c.s * (1 - dig * 0.55);
+        blit(ctx, cell.shadow, c.x + 3 * u * (1 - dig), c.y + 4 * u * (1 - dig) + dig * 3 * u, c.rot + wob, sc, 0.3 * a * (1 - dig));
+        blit(ctx, cell.img, c.x, c.y + dig * 3 * u, c.rot + wob, sc, a);
       } else if (k.mode === 'hermit') {
         const a = clamp01(c.a), id = c.hide > 0 ? k.cells[2] : c.walk ? k.cells[Math.floor(this.t * 6 + c.ph) % 2] : k.cells[0];
         const im = cells[id] || cell, pop = c.pop > 0 ? 1 - c.pop * 0.4 : 1;
@@ -381,9 +513,10 @@ class Track {
       } else if (k.mode === 'school') {
         // 물에 잠겨 보이게: 흐리게, 그림자는 바닥에 조금 떨어져 · 꼬리 흔들기: 곧음 → 구부림 → 곧음 → 반대로 구부림
         const a = clamp01(c.fade), f = Math.floor(this.t * 7 + c.ph) % 4;
+        //  물속처럼: 물빛을 섞고 살짝 흐린 그림(sub)을 반투명하게 — 물 무늬가 비쳐 보인다 · 그림자는 바닥에 더 멀리·흐리게
         const im = c.finny ? cell : cells[k.swim[f % 2]] || cell, flip = f === 3 ? -1 : 1;
-        blit(ctx, im.shadow, c.x + 4 * u, c.y + 7 * u, c.head, c.s, 0.3 * a, flip);
-        blit(ctx, im.img, c.x, c.y, c.head, c.s, 0.82 * a, flip);
+        blit(ctx, im.shadow, c.x + 6 * u, c.y + 11 * u, c.head, c.s * 1.05, 0.16 * a, flip);
+        blit(ctx, im.sub || im.img, c.x, c.y, c.head, c.s, 0.74 * a, flip);
       } else {   // whirl · skate
         const a = clamp01(c.fade);
         blit(ctx, cell.shadow, c.x + 4 * u, c.y + 6 * u, c.head, c.s * 1.05, (k.mode === 'skate' ? 0.42 : 0.3) * a);
@@ -408,7 +541,11 @@ export class Critters {
       c.getContext('2d').drawImage(im, (i % 4) * cw, Math.floor(i / 4) * ch, cw, ch, 0, 0, cw, ch);
       const s = document.createElement('canvas'); s.width = c.width; s.height = c.height;
       const g = s.getContext('2d'); g.filter = `brightness(0) blur(${Math.round(cw * 0.03)}px)`; g.drawImage(c, 0, 0);
-      return { img: c, shadow: s };
+      // 물속 그림: 살짝 흐리고 물빛(청록)을 반쯤 섞는다 — 물고기가 수면 위가 아니라 물 아래에 있게
+      const w = document.createElement('canvas'); w.width = c.width; w.height = c.height;
+      const wg = w.getContext('2d'); wg.filter = `blur(${Math.max(1, Math.round(cw * 0.012))}px)`; wg.drawImage(c, 0, 0);
+      wg.filter = 'none'; wg.globalCompositeOperation = 'source-atop'; wg.fillStyle = 'rgba(28, 118, 138, 0.32)'; wg.fillRect(0, 0, w.width, w.height);
+      return { img: c, shadow: s, sub: w };
     });
   }
 
@@ -431,6 +568,8 @@ export class Critters {
   // 무대 층: 물결 → 물속 물고기 → 물 위·물가 생물 (시간 빛이 함께 입혀진다)
   drawWater(ctx, beach) {
     const u = beach.u;
+    // 물속 물고기는 물결 고리보다 아래에
+    if (this.cells) for (const t of this.tracks) if (t.k.mode === 'school') t.draw(ctx, beach, this.cells, this.blit);
     if (this.rings.length) {
       ctx.save(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.1 * u;
       for (const r of this.rings) {
@@ -440,8 +579,14 @@ export class Critters {
       ctx.restore();
     }
     if (!this.cells) return;
-    const order = [...this.tracks].sort((a, b) => (b.k.mode === 'school') - (a.k.mode === 'school'));   // 물고기는 맨 아래
-    for (const t of order) t.draw(ctx, beach, this.cells, this.blit);
+    for (const t of this.tracks) if (t.k.mode !== 'school') t.draw(ctx, beach, this.cells, this.blit);
+  }
+
+  // 누르기 — 잡았으면 true (main.js 누르기 처리에서 물가 물건·병 다음)
+  tap(x, y, beach) {
+    if (!this.cells) return false;
+    for (const t of this.tracks) if (t.tap(x, y, beach)) return true;
+    return false;
   }
 
   // face: 옆모습을 좌우로 뒤집기 (1 오른쪽 · -1 왼쪽)

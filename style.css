@@ -24,6 +24,14 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; font-family: var(--font); color: rgb(var(--ink)); }
+/* 더블 터치 (2026-11-22 사용자 「듀오 같은 폰에서 더블 터치하면 화면이 말려 올라가고 깜빡인다」):
+   #touch 만 pinch-zoom 이라 그 위에 겹친 층(항해 화면·입력창·버튼·안내 글)에선 브라우저의 더블 터치 확대가 살아 있었다 →
+   확대되며 보이는 영역이 위로 밀리고(말려 올라감) body.zoomed 로 한 손가락 끌기가 화면 이동이 됐다. touch-action 은 조상과 겹쳐(교집합) 적용되므로
+   페이지 전체를 manipulation(끌기·핀치만, 더블 터치 확대 없음)으로 둔다 — 핀치 확대·확대 중 옮기기는 그대로.
+   글자 더블 터치는 단어 선택 손잡이가 떴다 사라지며 깜빡였다 → 게임 화면 글자는 선택하지 않는다(입력칸은 된다) */
+html, body { touch-action: manipulation; }
+body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
 /* 기울인 시점에서 가장자리가 비어도 어색하지 않게: 위는 숲, 아래는 깊은 바다 */
 body { position: fixed; inset: 0; background: linear-gradient(#24563A 0 30%, #1A5C91 50%); -webkit-tap-highlight-color: transparent; }
 

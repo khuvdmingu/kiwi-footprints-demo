@@ -76,7 +76,8 @@ html[data-ui="paper"] #focusHud svg { filter: url(#ink); }   /* v24.4 부터 다
 /* 공통 규칙은 :where 로 우선순위를 0 으로 — 아이콘마다 그림을 고르는 아래 규칙이 늘 이기게 (전엔 :is(#info …) 가 더 세서 그림이 지워졌다) */
 html[data-ui="paper"] :where(.round, #saySend, #menu button, #picker button, #info .keys i) svg {
   background-position: center; background-size: 400% 400%; background-repeat: no-repeat;
-  filter: drop-shadow(0 0 0.6px rgba(74, 56, 38, 0.55)) drop-shadow(0 1px 1px rgba(74, 56, 38, 0.18));   /* 흰 눈송이·구름도 종이 위에서 보이게 */
+  --pp-ico-shadow: drop-shadow(0 0 0.6px rgba(74, 56, 38, 0.55)) drop-shadow(0 1px 1px rgba(74, 56, 38, 0.18));   /* 흰 눈송이·구름도 종이 위에서 보이게 */
+  filter: var(--pp-ico-shadow);
 }
 html[data-ui="paper"] :where(.round, #saySend, #menu button, #picker button, #info .keys i) svg > * { visibility: hidden; }
 html[data-ui="paper"] .round svg, html[data-ui="paper"] #saySend svg { width: 30px; height: 30px; }
@@ -116,4 +117,6 @@ html[data-ui="paper"] :is(#bagBtn, #info i[data-icon="bagBtn"]) svg { background
 html[data-ui="paper"] :is(#infoBtn, #info i[data-icon="infoBtn"]) svg { background-image: url("assets/icons-paper-b.webp"); background-position: 0.000% 66.667%; }
 html[data-ui="paper"] :is(#saySend, #info i[data-icon="saySend"]) svg { background-image: url("assets/icons-paper-b.webp"); background-position: 33.333% 66.667%; }
 html[data-ui="paper"] :is(#menuBtn, #info i[data-icon="menuBtn"]) svg { background-image: url("assets/icons-paper-b.webp"); background-position: 66.667% 66.667%; }
+/* 2026-11-22 (사용자 「항해·섬 색 연동」 QA): 잉크 점 셋(⋯)만 거의 검은 갈색이라 밤 남색 단추 위에서 사라졌다 → 밤(--k-night 1)엔 밝은 갈색으로. 창 색과 같은 값을 따라 2.5초에 걸쳐 바뀐다 */
+html[data-ui="paper"] :is(#menuBtn, #info i[data-icon="menuBtn"]) svg { filter: var(--pp-ico-shadow) brightness(calc(1 + 2.4 * var(--k-night, 0))); }
 }

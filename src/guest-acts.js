@@ -19,9 +19,8 @@ export const GUEST_ACTS = {
   egret: { n: 46, fps: 10 },
   fennec: { n: 31, fps: 10 },
   hoopoe: { n: 42, fps: 10 },
-  gecko: { n: 49, fps: 10, first: 6, last: 35, off: true }, // 얼굴이 온전한 구간만 왕복
-  //  v30.24 off: 영상이 머리를 옆으로 돌리며 원래 머리 자리에 머리 모양 덩어리가 남아(두 갈래 머리) 손질로 못 고침 →
-  //  새 영상을 만들 때까지 정지 그림만(원래 격자 그림 guests2 6번 칸을 되살린 assets/guest-gecko.webp)
+  gecko: { n: 17, fps: 10 },   // 2026-11-22 새 영상(Kling 3.0 std, 시작·끝 = 머리를 되살린 정지 그림 assets/guest-gecko.webp) — 눈 깜빡·머리 까딱.
+  //  예전 영상은 머리를 옆으로 돌리며 원래 자리에 머리 덩어리가 남아(두 갈래 머리) 껐었다. 새 영상도 뒤쪽은 꼬리·앞발 색이 변해 앞 17칸만(tools/make-guest-act.py RANGE=14-30)
   gerbil: { n: 45, fps: 10 },
   camel: { n: 34, fps: 10 },
   raccoon: { n: 44, fps: 10 },
@@ -47,7 +46,7 @@ const PLACEMENT = {
   egret: [0.895, 28.95, 23.63],
   fennec: [0.990, -6.91, 2.15],
   hoopoe: [0.879, 26.05, 4.55],
-  gecko: [0.743, 52.33, 48.08],
+  gecko: [1.051, -15.34, 19.88],   // 2026-11-22 새 동작 그림에 맞춰 다시 잼
   gerbil: [0.843, 22.12, 19.66],
   camel: [0.880, 26.88, 8.92],
   raccoon: [0.871, 27.57, 5.09],
@@ -62,7 +61,7 @@ export function animateGuest(el, id, base = 'assets/') {
   const a = GUEST_ACTS[id];
   if (!a || a.off || typeof Image === 'undefined' || !el.animate) return;
   if (typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const src = base + 'guest-act-' + id + '.webp?v=v30.31.0-e12add6';
+  const src = base + 'guest-act-' + id + '.webp?v=v30.35.0-d5a1c77';
   const im = new Image();
   let shown = false;
   const showStill = () => { if (!shown) { shown = true; el.style.opacity = ''; } };

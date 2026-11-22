@@ -7,6 +7,7 @@
 //   · 빠지기    물이 그려진 해안선보다 아래로 내려가면 plate-dry(물 뺀 모래 바닥)가 드러난다
 //   · 젖은 모래 물이 지나간 자리는 한동안 짙고 반들반들 · 물러난 물은 레이스 거품 한 줄을 남기고 사라진다
 //   · 물가 거품 테두리 · 큰 파도 때 하얀 물보라 줄무늬 · 얕은 물의 빛 그물(커스틱) · 반짝이는 햇빛
+//   · v30.32 윤슬: 노을엔 빛 방향으로 물을 가르는 금빛 빛길, 밤엔 반대쪽에서 내려오는 가는 은빛 달빛 길 — 트인 물가 장소만(maps glitter)
 //   · 바위는 제자리  물은 바위를 지운 판(plate-sea)에서 읽고, 바위는 가림막 자리에 원본에서 다시 얹는다
 //  해안선 값은 beach.edge(x) 를 그대로 받는다(줄 텍스처) → 발자국을 지우는 줄과 그림 속 물가가 정확히 같다.
 
@@ -28,6 +29,7 @@ uniform float uLod;          // 그림을 읽을 해상도 단계 — 직접 정
 uniform vec2 uRes, uPS;
 uniform vec3 uMap;
 uniform float uDpr, uT, uU, uSnow, uNight, uSurge, uRain;
+uniform float uSunG, uMoonG;   // v30.32 윤슬 세기 0~1 (노을 금빛 · 밤 달빛) — 날씨·장소까지 곱해서 받는다
 uniform vec3 uFilmA, uFilmB, uFilmM;   // v30.12 큰 파도 물 막 물빛 (물가 쪽 · 안쪽 · 비친 모래에 곱함) — 장소별 maps film, 없으면 청록
 uniform float uLand;        // 1 = 물 없는 장소(젠 가든 v18): 판만 그린다 — 지우는 그림은 2D 층(zen.js)이 맡는다
 out vec4 o;
@@ -193,6 +195,16 @@ void main() {
       float zone = smoothstep(.45, .7, vnoise(p / (90. * u) + vec2(uT * .02, 0.)));
       sea += (1. - smoothstep(0., 1.5 * u, length(p - c0))) * tw * step(.82, hs) * zone * smoothstep(12. * u, 50. * u, depth) * (1. - smoothstep(200. * u, 380. * u, depth)) * .9 * (1. - uNight) * (1. - uRain);
     }
+    // v30.32 윤슬 (사용자: "노을 시기에 윤슬 효과를 물에" · "밤에 보이는 달빛 윤슬도")
+    //  v30.32.4: 반짝이는 점·빛줄은 시간 빛 위 효과 층(glitter.js)이 그린다 — 여기서는 빛길 둘레 물빛만 은은하게 밝힌다
+    //   (노을: 아래로 갈수록 넓어지는 금빛 길 · 밤: 좁고 곧은 은빛 길, glitter.js 의 pathOf 와 같은 자리)
+    if (uSunG + uMoonG > .001 && depth > 6. * u) {
+      float wd = max(uRes.y - e, 60. * u), near = smoothstep(6. * u, 36. * u, depth);
+      float yS = (p.y - (e + wd * .56)) / (wd * .4), xS = (p.x - uRes.x * .5) / (uRes.x * .11 + max(p.y - e, 0.) * .2);
+      float yM = (p.y - (e + wd * .54)) / (wd * .38), xM = (p.x - uRes.x * .5) / (uRes.x * .04 + max(p.y - e, 0.) * .04);
+      float colS = exp(-.5 * (xS * xS * .35 + yS * yS)), colM = exp(-.5 * (xM * xM * .3 + yM * yM));
+      sea += (uSunG * colS * vec3(1., .72, .42) * .16 + uMoonG * colM * vec3(.6, .72, .95) * .14) * near;
+    }
     // 비: 물 위 곳곳에 빗방울 파문이 번갈아 퍼진다 (칸마다 하나, 저마다 다른 박자)
     if (uRain > 0.) {
       float rs = 30. * u;
@@ -261,7 +273,7 @@ export class WaterGL {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
     const loc = gl.getAttribLocation(pr, 'aP'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     this.U = {};
-    for (const n of ['uPlate', 'uDry', 'uL', 'uLod', 'uSea', 'uRock', 'uPlateN', 'uDryN', 'uSeaN', 'uNA', 'uPlateW', 'uDryW', 'uSeaW', 'uWA', 'uNS', 'uWS', 'uRes', 'uPS', 'uMap', 'uDpr', 'uT', 'uU', 'uSnow', 'uNight', 'uSurge', 'uRain', 'uLand', 'uFilmA', 'uFilmB', 'uFilmM']) this.U[n] = gl.getUniformLocation(pr, n);
+    for (const n of ['uPlate', 'uDry', 'uL', 'uLod', 'uSea', 'uRock', 'uPlateN', 'uDryN', 'uSeaN', 'uNA', 'uPlateW', 'uDryW', 'uSeaW', 'uWA', 'uNS', 'uWS', 'uRes', 'uPS', 'uMap', 'uDpr', 'uT', 'uU', 'uSnow', 'uNight', 'uSurge', 'uRain', 'uSunG', 'uMoonG', 'uLand', 'uFilmA', 'uFilmB', 'uFilmM']) this.U[n] = gl.getUniformLocation(pr, n);
     this.line = new Float32Array(N * 4);
     gl.uniform1i(this.U.uPlate, 0); gl.uniform1i(this.U.uDry, 1); gl.uniform1i(this.U.uSea, 3); gl.uniform1i(this.U.uRock, 4);
     gl.uniform1i(this.U.uPlateN, 5); gl.uniform1i(this.U.uDryN, 6); gl.uniform1i(this.U.uSeaN, 7);
@@ -360,7 +372,7 @@ export class WaterGL {
     gl.uniform4fv(this.U.uL, this.line);
   }
 
-  draw(beach, { snow = 0, night = 0, rain = 0, art = 0, warm = 0, land = false, film = null } = {}) {
+  draw(beach, { snow = 0, night = 0, rain = 0, art = 0, warm = 0, land = false, film = null, glitter = null } = {}) {
     const gl = this.gl, { W, H } = this, P = this.plate, m = P.map;
     const step = W / (N - 1), wc = beach.wet.length;
     // O7 (2026-10-19): 물 없는 장소(uLand)의 셰이더는 판·눈만 그리고 해안선 줄(uL)을 읽지 않는다 → 줄 계산·업로드를 건너뛴다.
@@ -376,6 +388,7 @@ export class WaterGL {
     gl.uniform1f(this.U.uSnow, snow);
     gl.uniform1f(this.U.uNight, night);
     gl.uniform1f(this.U.uRain, rain);
+    gl.uniform1f(this.U.uSunG, glitter ? glitter.sun || 0 : 0); gl.uniform1f(this.U.uMoonG, glitter ? glitter.moon || 0 : 0);   // v30.32 윤슬
     const F = film || FILM_TEAL; gl.uniform3f(this.U.uFilmA, ...F[0]); gl.uniform3f(this.U.uFilmB, ...F[1]); gl.uniform3f(this.U.uFilmM, ...F[2]);
     const sN = this.slots.N, sW = this.slots.W;   // (N 은 해안선 칸 수 상수라 다른 이름)
     gl.uniform1f(this.U.uNA, sN ? art : 0); gl.uniform1f(this.U.uNS, sN ? sN.shift : 0);
