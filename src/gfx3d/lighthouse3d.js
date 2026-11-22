@@ -14,11 +14,11 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { volumetricBeamMaterial } from '../../vendor/threex/volumetric-beam.js';
-import { skyAt } from './sky.js?v=v30.35.0-6105559';
-import { boxesOf } from '../voyage-scene.js?v=v30.35.0-6105559';
+import { skyAt } from './sky.js?v=v30.36.0-9042bf8';
+import { boxesOf } from '../voyage-scene.js?v=v30.36.0-9042bf8';
 
 const PLATE_W = 16;
-const ART = { day: 'plate.webp?v=v30.35.0-6105559', sunset: 'plate-sunset.webp?v=v30.35.0-6105559', night: 'plate-night.webp?v=v30.35.0-6105559', dawn: 'plate-dawn.webp?v=v30.35.0-6105559' };
+const ART = { day: 'plate.webp?v=v30.36.0-9042bf8', sunset: 'plate-sunset.webp?v=v30.36.0-9042bf8', night: 'plate-night.webp?v=v30.36.0-9042bf8', dawn: 'plate-dawn.webp?v=v30.36.0-9042bf8' };
 const CELLS16 = Array.from({ length: 16 }, (_, i) => 'c' + i);
 const REACH = 10;           // 빛줄기 길이
 const BEAM_ANGLE = 0.13;    // 빛줄기 반각 (라디안)
@@ -53,7 +53,7 @@ export class Lighthouse3D {
     return t;
   }
   async load() {
-    const [plate, sheetT] = await Promise.all([this.loadTex(ART.day), this.loadTex('catch-sheet.webp?v=v30.35.0-6105559')]);
+    const [plate, sheetT] = await Promise.all([this.loadTex(ART.day), this.loadTex('catch-sheet.webp?v=v30.36.0-9042bf8')]);
     this.tex.day = plate;
     const img = plate.image, ph = PLATE_W * img.naturalHeight / img.naturalWidth;
     this.plateH = ph;

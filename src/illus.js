@@ -5,37 +5,37 @@
 //  고르는 법: 같은 기록은 언제 열어도 같은 그림 (기록 시각으로 정한다)
 
 export const ILLUS = {
-  whale: ['illus-whale.webp?v=v30.35.0-6105559', 'illus-whale-b.webp?v=v30.35.0-6105559'],
-  meteor: ['illus-meteor.webp?v=v30.35.0-6105559'],
-  lighthouse: ['illus-lighthouse.webp?v=v30.35.0-6105559'],
-  seabird: ['illus-seabird.webp?v=v30.35.0-6105559'],
-  doze: ['illus-doze.webp?v=v30.35.0-6105559'],
-  leaf: ['illus-leaf.webp?v=v30.35.0-6105559', 'illus-leaf-b.webp?v=v30.35.0-6105559'],
+  whale: ['illus-whale.webp?v=v30.36.0-9042bf8', 'illus-whale-b.webp?v=v30.36.0-9042bf8'],
+  meteor: ['illus-meteor.webp?v=v30.36.0-9042bf8'],
+  lighthouse: ['illus-lighthouse.webp?v=v30.36.0-9042bf8'],
+  seabird: ['illus-seabird.webp?v=v30.36.0-9042bf8'],
+  doze: ['illus-doze.webp?v=v30.36.0-9042bf8'],
+  leaf: ['illus-leaf.webp?v=v30.36.0-9042bf8', 'illus-leaf-b.webp?v=v30.36.0-9042bf8'],
   // 아무 일 없던 바다(quiet) — 키위가 상상으로 그린 바다
-  quiet: ['illus-flyingfish.webp?v=v30.35.0-6105559', 'illus-dolphins.webp?v=v30.35.0-6105559', 'illus-bottle.webp?v=v30.35.0-6105559', 'illus-plankton.webp?v=v30.35.0-6105559', 'illus-rainbow.webp?v=v30.35.0-6105559', 'illus-flyinghat.webp?v=v30.35.0-6105559'],
+  quiet: ['illus-flyingfish.webp?v=v30.36.0-9042bf8', 'illus-dolphins.webp?v=v30.36.0-9042bf8', 'illus-bottle.webp?v=v30.36.0-9042bf8', 'illus-plankton.webp?v=v30.36.0-9042bf8', 'illus-rainbow.webp?v=v30.36.0-9042bf8', 'illus-flyinghat.webp?v=v30.36.0-9042bf8'],
 };
 // 도착: 장소마다 (없으면 기본)
-export const ARRIVE = { snow: 'illus-snowkiwi.webp?v=v30.35.0-6105559', fall: 'illus-leafpile.webp?v=v30.35.0-6105559', default: 'illus-arrive.webp?v=v30.35.0-6105559' };
+export const ARRIVE = { snow: 'illus-snowkiwi.webp?v=v30.36.0-9042bf8', fall: 'illus-leafpile.webp?v=v30.36.0-9042bf8', default: 'illus-arrive.webp?v=v30.36.0-9042bf8' };
 // 손님의 마지막 편지에 손님 그림 대신
-export const GUEST_STORY = { gull: 'illus-gull.webp?v=v30.35.0-6105559', weka: 'illus-weka.webp?v=v30.35.0-6105559', cat: 'illus-cat.webp?v=v30.35.0-6105559', crab: 'illus-crab.webp?v=v30.35.0-6105559' };
+export const GUEST_STORY = { gull: 'illus-gull.webp?v=v30.36.0-9042bf8', weka: 'illus-weka.webp?v=v30.36.0-9042bf8', cat: 'illus-cat.webp?v=v30.36.0-9042bf8', crab: 'illus-crab.webp?v=v30.36.0-9042bf8' };
 
 // v30.18 일지 크레용 낙서 · 잉크 도장 (재고 stock/diary 2026-10-22 → 2026-11-21 사용자 「그림체 확인하고 붙이자」)
 //  낙서: 「키위의 그림」 쪽의 약 40%를 삽화 대신 크레용 낙서로 (같은 기록은 늘 같은 쪽)
 //  도장: 사건 쪽·도착 쪽에 그 사건 도장. 그림(tools/diary-seals.py)은 잉크 모양(투명)만, 색은 ink 로 칠한다 — 밤 종이에선 밝게 섞음(parts.css .bookSeal)
 //  doze(키위에 다리)·leaf(잎 대신 사람 우산) 도장은 그림이 게임과 어긋나 뺐다 — 다시 그리면 SEAL 에 더한다
 export const DOODLE = {
-  whale: 'diary-doodle-whale.webp?v=v30.35.0-6105559', meteor: 'diary-doodle-meteor.webp?v=v30.35.0-6105559', lighthouse: 'diary-doodle-lighthouse.webp?v=v30.35.0-6105559',
-  seabird: 'diary-doodle-seabird.webp?v=v30.35.0-6105559', doze: 'diary-doodle-doze.webp?v=v30.35.0-6105559', leaf: 'diary-doodle-leaf.webp?v=v30.35.0-6105559', quiet: 'diary-doodle-calm.webp?v=v30.35.0-6105559',
+  whale: 'diary-doodle-whale.webp?v=v30.36.0-9042bf8', meteor: 'diary-doodle-meteor.webp?v=v30.36.0-9042bf8', lighthouse: 'diary-doodle-lighthouse.webp?v=v30.36.0-9042bf8',
+  seabird: 'diary-doodle-seabird.webp?v=v30.36.0-9042bf8', doze: 'diary-doodle-doze.webp?v=v30.36.0-9042bf8', leaf: 'diary-doodle-leaf.webp?v=v30.36.0-9042bf8', quiet: 'diary-doodle-calm.webp?v=v30.36.0-9042bf8',
 };
-export const DOODLE_ARRIVE = 'diary-doodle-island.webp?v=v30.35.0-6105559';   // 장소별 도착 그림이 없는 섬에서만
+export const DOODLE_ARRIVE = 'diary-doodle-island.webp?v=v30.36.0-9042bf8';   // 장소별 도착 그림이 없는 섬에서만
 export const DOODLE_SHARE = 40;   // 100 중
 export const SEAL = {
-  whale: { file: 'diary-seal-whale.webp?v=v30.35.0-6105559', ink: '#194a56', ko: '고래' },
-  meteor: { file: 'diary-seal-meteor.webp?v=v30.35.0-6105559', ink: '#1e2d4e', ko: '별똥별' },
-  lighthouse: { file: 'diary-seal-lighthouse.webp?v=v30.35.0-6105559', ink: '#a04439', ko: '등대' },
-  seabird: { file: 'diary-seal-seabird.webp?v=v30.35.0-6105559', ink: '#687149', ko: '바닷새' },
-  quiet: { file: 'diary-seal-calm.webp?v=v30.35.0-6105559', ink: '#382115', ko: '잔잔한 바다' },
-  arrive: { file: 'diary-seal-island.webp?v=v30.35.0-6105559', ink: '#ca6e59', ko: '섬' },
+  whale: { file: 'diary-seal-whale.webp?v=v30.36.0-9042bf8', ink: '#194a56', ko: '고래' },
+  meteor: { file: 'diary-seal-meteor.webp?v=v30.36.0-9042bf8', ink: '#1e2d4e', ko: '별똥별' },
+  lighthouse: { file: 'diary-seal-lighthouse.webp?v=v30.36.0-9042bf8', ink: '#a04439', ko: '등대' },
+  seabird: { file: 'diary-seal-seabird.webp?v=v30.36.0-9042bf8', ink: '#687149', ko: '바닷새' },
+  quiet: { file: 'diary-seal-calm.webp?v=v30.36.0-9042bf8', ink: '#382115', ko: '잔잔한 바다' },
+  arrive: { file: 'diary-seal-island.webp?v=v30.36.0-9042bf8', ink: '#ca6e59', ko: '섬' },
 };
 
 const hash = s => { let h = 2166136261; for (const ch of String(s)) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return h >>> 0; };

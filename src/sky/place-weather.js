@@ -4,7 +4,7 @@
 //  옛 판의 나머지는 이미 다른 곳에 있어 뺐다 — 온천 수증기는 sky/extra.js 「김 바람」, 라벤더 꽃가루는 「라벤더 꽃잎」,
 //  물 위 빗방울 고리는 atmos.js 비(모든 장소), 한강 버들솜은 sky/drift.js 홀씨·버들솜 층으로 옮김 (docs/PLACE_WEATHER.md).
 //  고른 날씨는 바꾸지 않는다 — 이 효과는 지금 날씨를 따라 덧붙기만 한다.
-import { clamp } from '../util.js?v=v30.35.0-6105559';
+import { clamp } from '../util.js?v=v30.36.0-9042bf8';
 
 export const PLACE_WEATHER = Object.freeze({ 'hydrangea-cove': 'leaf-drip', 'bamboo-bay': 'bamboo-mist' });
 const TAU = Math.PI * 2;

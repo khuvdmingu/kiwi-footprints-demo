@@ -19,6 +19,7 @@
     button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
     label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--soft); }
     input[type=range] { width: 160px; accent-color: var(--accent); }
+    a.back { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line); color: var(--ink); text-decoration: none; }
     #fps { margin-left: auto; font-size: 13px; color: var(--soft); font-variant-numeric: tabular-nums; }
     main { position: relative; flex: 1; min-height: 0; }
     canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
@@ -27,6 +28,7 @@
 </head>
 <body>
   <div class="bar">
+    <a class="back" href="./" aria-label="발자국 한글로 돌아가기">← 앱으로</a>
     <h1>그래픽 업데이트 시험</h1>
     <button data-scene="voyage">항해</button>
     <button data-scene="lighthouse">등대</button>
