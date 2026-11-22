@@ -17,12 +17,31 @@ const AW = 800;   // 분석용 축소 폭 (픽셀 판정은 이 해상도에서)
 export async function loadPlate(base = 'assets/', name = 'plate', opts = {}) {
   const load = src => new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => res(im); im.onerror = () => rej(new Error('그림을 못 읽었다: ' + src)); im.src = base + src; });
   // 물 없는 장소(opts.rest — 젠 가든 v18): 물 뺀 판·바위 지운 판이 없다 → 같은 판 한 장을 세 자리에 쓴다
-  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v30.23.0-cda5927').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v30.23.0-cda5927'), load(name + '-dry.webp?v=v30.23.0-cda5927'), load(name + '-sea.webp?v=v30.23.0-cda5927')]);
+  const [img, dry, sea] = opts.rest ? await load(name + '.webp?v=v30.27.0-1ab39f2').then(im => [im, im, im]) : await Promise.all([load(name + '.webp?v=v30.27.0-1ab39f2'), load(name + '-dry.webp?v=v30.27.0-1ab39f2'), load(name + '-sea.webp?v=v30.27.0-1ab39f2')]);
   // 미리 만든 바위 가림막(<판>-rock.webp, tools/rock-masks.mjs 2026-11-01) — 없거나 못 읽으면 예전 짐작만
-  const rock = opts.rockArt && !opts.rest ? await load(name + '-rock.webp?v=v30.23.0-cda5927').catch(() => null) : null;
+  const rock = opts.rockArt && !opts.rest ? await load(name + '-rock.webp?v=v30.27.0-1ab39f2').catch(() => null) : null;
   const p = new Plate(img, dry, sea, opts, rock);
   p.name = name; p.base = base;
   return p;
+}
+
+// 바위 가림막 다듬기의 상자 흐림 (가로 → 세로, 반지름 r, yS 줄부터). soft 를 그 자리에서 바꾼다. tmp·colAcc 는 작업 버퍼.
+//  (2026-11-22) 예전 식과 덧셈 순서·나눗셈이 같아 결과가 비트까지 같다(test/perf-1122.test.mjs ①). 바꾼 것은 두 가지뿐:
+//   ① 가장자리 자르기를 Math.min/max 대신 비교로 ② 세로 흐림을 열마다 아래로 내려가던 것을 줄마다 옆으로 (기억 장치를 순서대로 읽게)
+//   — 세로 흐림은 칸마다 합(colAcc[x])을 따로 들고 가므로 한 열 안의 계산 순서는 예전과 같다.
+export function boxBlur(soft, tmp, mw, mh, yS, r, colAcc = new Float64Array(mw)) {
+  const n = 2 * r + 1;
+  for (let y = yS; y < mh; y++) {
+    let acc = 0; const o = y * mw;
+    for (let x = -r; x <= r; x++) acc += soft[o + (x < mw - 1 ? (x > 0 ? x : 0) : mw - 1)];
+    for (let x = 0; x < mw; x++) { tmp[o + x] = acc / n; const xa = x + r + 1, xb = x - r; acc += soft[o + (xa < mw - 1 ? xa : mw - 1)] - soft[o + (xb > 0 ? xb : 0)]; }
+  }
+  colAcc.fill(0);
+  for (let y = yS - r; y <= yS + r; y++) { const o = (y < mh - 1 ? (y > 0 ? y : 0) : mh - 1) * mw; for (let x = 0; x < mw; x++) colAcc[x] += tmp[o + x]; }
+  for (let y = yS; y < mh; y++) {
+    const o = y * mw, ya = y + r + 1, yb = y - r, oa = (ya < mh - 1 ? ya : mh - 1) * mw, ob = (yb > 0 ? yb : 0) * mw;
+    for (let x = 0; x < mw; x++) { soft[o + x] = colAcc[x] / n; colAcc[x] += tmp[oa + x] - tmp[ob + x]; }
+  }
 }
 
 export class Plate {
@@ -197,13 +216,9 @@ export class Plate {
     //  ① 둥근 틀로 열기(흐림 + 문턱으로 깎고 불리기) — 가는 선(물결·거품 윤곽)·흩어진 점은 사라지고, 모서리는 둥글게 남는다
     //  ② 덩어리별로 거르기 — 너무 작은 조각 · 가로로 길고 얇은 띠(물가 거품 줄이 바위로 잡힌 것)는 버린다
     const yS = Math.max(0, y0 - 16);   // 그 위는 바위를 찾지 않은 숲 쪽이라 늘 0 — 건너뛴다
-    const soft = new Float32Array(mw * mh), tmp = new Float32Array(mw * mh);
+    const soft = new Float32Array(mw * mh), tmp = new Float32Array(mw * mh), colAcc = new Float64Array(mw);
     for (let j = yS * mw; j < mw * mh; j++) soft[j] = bin[j];
-    const blur = (r) => {   // 상자 흐림 가로·세로 (두 번 돌리면 둥근 흐림에 가깝다)
-      const n = 2 * r + 1;
-      for (let y = yS; y < mh; y++) { let acc = 0; const o = y * mw; for (let x = -r; x <= r; x++) acc += soft[o + Math.min(mw - 1, Math.max(0, x))]; for (let x = 0; x < mw; x++) { tmp[o + x] = acc / n; acc += soft[o + Math.min(mw - 1, x + r + 1)] - soft[o + Math.max(0, x - r)]; } }
-      for (let x = 0; x < mw; x++) { let acc = 0; for (let y = yS - r; y <= yS + r; y++) acc += tmp[Math.min(mh - 1, Math.max(0, y)) * mw + x]; for (let y = yS; y < mh; y++) { soft[y * mw + x] = acc / n; acc += tmp[Math.min(mh - 1, y + r + 1) * mw + x] - tmp[Math.max(0, y - r) * mw + x]; } }
-    };
+    const blur = r => boxBlur(soft, tmp, mw, mh, yS, r, colAcc);   // 상자 흐림 가로·세로 (두 번 돌리면 둥근 흐림에 가깝다)
     // 깎기: 흐린 뒤 0.75 넘는 곳만(촘촘히 바위인 곳) → 불리기: 그것을 다시 흐린 뒤 0.25 넘는 곳 = 둥근 틀로 연 것과 같다
     // 돌 통째로: 깎기 전에 먼저 닫기(불렸다 깎기) — 돌 안의 밝은 면·잔무늬 구멍을 메워 돌 하나가 한 덩어리가 되게
     if (this.opts.rockFill) {
@@ -300,7 +315,7 @@ export class Plate {
     if (!this._sets[kind] && Date.now() - (this._setFail[kind] ?? -Infinity) < SET_RETRY_MS) return Promise.resolve(null);
     if (!this._sets[kind]) {
       // 판이 한 장인 장소(rest — 모래 정원)는 시간대 판도 한 장 (v28.3)
-      const p = this._sets[kind] = (this.opts.rest ? load(`${this.name}-${kind}.webp?v=v30.23.0-cda5927`).then(im => [im, im, im]) : Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v30.23.0-cda5927`))))
+      const p = this._sets[kind] = (this.opts.rest ? load(`${this.name}-${kind}.webp?v=v30.27.0-1ab39f2`).then(im => [im, im, im]) : Promise.all(['', '-dry', '-sea'].map(v => load(`${this.name}${v}-${kind}.webp?v=v30.27.0-1ab39f2`))))
         .then(([img, dry, sea]) => (this.sets[kind] = { img, dry, sea }))
         .catch(() => { if (this._sets[kind] === p) { delete this._sets[kind]; this._setFail[kind] = Date.now(); } return null; });
     }

@@ -15,11 +15,13 @@ export const GUEST_ACTS = {
   cat: { n: 32, fps: 10 },
   squirrel: { n: 32, fps: 10 },
   whiteeye: { n: 43, fps: 10 },
-  frog: { n: 46, fps: 10 },
+  frog: { n: 46, fps: 10, last: 34 },   // v30.24 37칸부터 영상이 끊겨 눈·크기가 바뀌고(커졌다 돌아옴) 끝 크로스페이드에 앞다리가 겹쳐 보여 뺌 — 34칸 ≈ 첫 칸(겹침 0.99)
   egret: { n: 46, fps: 10 },
   fennec: { n: 31, fps: 10 },
   hoopoe: { n: 42, fps: 10 },
-  gecko: { n: 49, fps: 10, first: 6, last: 35 }, // 얼굴이 온전한 구간만 왕복
+  gecko: { n: 49, fps: 10, first: 6, last: 35, off: true }, // 얼굴이 온전한 구간만 왕복
+  //  v30.24 off: 영상이 머리를 옆으로 돌리며 원래 머리 자리에 머리 모양 덩어리가 남아(두 갈래 머리) 손질로 못 고침 →
+  //  새 영상을 만들 때까지 정지 그림만(원래 격자 그림 guests2 6번 칸을 되살린 assets/guest-gecko.webp)
   gerbil: { n: 45, fps: 10 },
   camel: { n: 34, fps: 10 },
   raccoon: { n: 44, fps: 10 },
@@ -51,15 +53,26 @@ const PLACEMENT = {
   raccoon: [0.871, 27.57, 5.09],
 };
 
-// 동작 그림을 읽기 전이나 움직임 줄이기에서는 정지 그림을 유지한다.
+// 움직임 줄이기에서는 정지 그림을 유지한다.
+// v30.24 정지 그림(격자 칸)과 동작 첫 칸은 자리·크기가 조금씩 달라(동작이 카드 밖으로 잘리지 않게 줄여 둠) 동작 그림이
+//  읽히는 순간 손님이 툭 옮겨 보였다(고슴도치·토끼·사슴·다람쥐·사막여우 등) → 동작 그림이 준비될 때까지 정지 그림을 감췄다가
+//  동작을 살며시 띄운다. 못 읽거나 오래 걸리면(GUEST_ACT_WAIT) 정지 그림을 그대로 보여 준다.
+export const GUEST_ACT_WAIT = 1200;   // ms
 export function animateGuest(el, id, base = 'assets/') {
   const a = GUEST_ACTS[id];
-  if (!a || typeof Image === 'undefined' || !el.animate) return;
+  if (!a || a.off || typeof Image === 'undefined' || !el.animate) return;
   if (typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const src = base + 'guest-act-' + id + '.webp?v=v30.23.0-cda5927';
+  const src = base + 'guest-act-' + id + '.webp?v=v30.27.0-1ab39f2';
   const im = new Image();
+  let shown = false;
+  const showStill = () => { if (!shown) { shown = true; el.style.opacity = ''; } };
+  el.style.opacity = '0';
+  const wait = setTimeout(showStill, GUEST_ACT_WAIT);
+  im.onerror = () => { clearTimeout(wait); showStill(); };
   im.onload = () => {
-    if (!el.isConnected || el.classList.contains('gact')) return;
+    clearTimeout(wait);
+    if (!el.isConnected || el.classList.contains('gact') || shown) { showStill(); return; }   // 늦게 왔으면 정지 그림에서 다시 튀지 않게 그대로 둔다
+    shown = true; el.style.opacity = '';
     const [scale, x, y] = PLACEMENT[id];
     const layer = document.createElement('span');
     Object.assign(layer.style, {
@@ -70,6 +83,7 @@ export function animateGuest(el, id, base = 'assets/') {
     el.classList.add('gact');
     Object.assign(el.style, { position: 'relative', overflow: 'hidden', backgroundImage: 'none' });
     el.append(layer);
+    layer.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' });
     const first = a.first ?? 0, last = a.last ?? a.n - 1, steps = last - first;
     const start = first * 100 / (a.n - 1) + '%', end = last * 100 / (a.n - 1) + '%';
     const move = steps / a.fps * 1000, bounce = a.first != null;

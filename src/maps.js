@@ -1,6 +1,6 @@
 // maps.js — 골라 쓰는 장소(맵)
-import { STOCK_PLACES, STOCK_STEPS0, STOCK_STEP, TIME_ART } from './maps-stock.js?v=v30.23.0-cda5927';
-import { WATER_PLACES, WATER_STEPS0, WATER_STEP } from './maps-water.js?v=v30.23.0-cda5927';
+import { STOCK_PLACES, STOCK_STEPS0, STOCK_STEP, TIME_ART } from './maps-stock.js?v=v30.27.0-1ab39f2';
+import { WATER_PLACES, WATER_STEPS0, WATER_STEP } from './maps-water.js?v=v30.27.0-1ab39f2';
 //  장소마다 그림 판 한 벌(가로 wide · 세로 tall, 각각 본판·-dry·-sea 세 장)과 그 장소의 성격을 정한다.
 //  구조는 모두 같다: 위는 숲(키위가 숨었다 나온다), 가운데는 글씨를 쓰는 바닥, 아래는 물(불어나서 글씨를 지운다).
 
@@ -95,4 +95,32 @@ WATER_PLACES.forEach((p, i) => {
     unlock: 'map-' + p.id, steps: WATER_STEPS0 + i * WATER_STEP,
   };
 });
+// v30.26 물 위 생물 (2026-11-22 사용자: "다른 맵들도 이런 생물체가 돌아다니면 · 해변 말고 바다 쪽에 · 작은 고추잠자리 떼")
+//  모두 글씨 쓰는 바닥이 아니라 물 위 띠에서만 움직인다 (gulls.js · darters.js).
+//  1단계 — 바다·만 맵에도 갈매기 (그림은 바닷가 것 그대로)
+['pinecove', 'pinksand', 'basalt', 'hydrangea-cove', 'bamboo-bay'].forEach(id => { MAPS[id].gulls = true; });
+//  2단계 — 잠자리 떼: 가을·논·강가는 고추잠자리, 봄·여름 꽃·오아시스는 파란 실잠자리
+const DARTERS = {
+  red: ['fall', 'maple', 'ginkgo', 'birch', 'paddy', 'hangang'],
+  blue: ['cherry', 'lavender', 'sunflower', 'wisteria', 'hydrangea', 'oasis'],
+};
+for (const [kind, ids] of Object.entries(DARTERS)) ids.forEach(id => { MAPS[id].darters = kind; });
+//  3·4단계 — 물가 작은 생물 (critters.js): 키위보다 작고 손님 동물과 같은 그림체. 한 장소에 여러 종이 함께 나올 수 있다.
+//   (처음 넣은 고니·백로·물범 등은 사용자 "그림체가 실사스럽고 시점이 안 맞는다 · 키위보다 작은 생물로" → 바꿈)
+const CRITTER_PLACES = {
+  crab: ['beach', 'pinecove', 'pinksand', 'basalt', 'hydrangea-cove', 'bamboo-bay', 'lagoon'],   // 바닷가 물가선을 옆걸음 (사용자 요청)
+  minnow: ['lotus', 'bamboo', 'heather', 'canyon', 'cherry', 'hangang', 'oasis'],                 // 아주 작은 물고기 떼 (사용자 요청)
+  tropical: ['lagoon'],                                   // 산호 석호는 노란 열대어
+  grebe: ['snow', 'glacier'],                             // 논병아리: 떠 있다가 쏙 잠수
+  duckling: ['tulip', 'alpine', 'nz'],                    // 아기 오리 한 줄
+  puffin: ['fjord'],                                      // 퍼핀: 떠 있다가 잠수
+  mudskipper: ['mangrove'],                               // 짱뚱어: 물가선에서 톡톡
+  turtle: ['cypress'],                                    // 아기 거북: 늪을 천천히
+  whirligig: ['lavender-sandbar', 'savanna'],             // 물맴이 떼: 빙글빙글
+  frog: ['rainforest'],                                   // 청개구리 머리 (손님 청개구리와 같은 동물)
+  strider: ['lotus'],                                     // 소금쟁이: 잔잔한 연못
+  hermit: ['beach', 'pinksand', 'lagoon', 'hydrangea-cove', 'bamboo-bay'],   // 소라게: 물가를 느릿느릿, 키위·파도가 오면 쏙 (게와 함께)
+  snail: ['nz', 'bamboo', 'rainforest', 'cherry', 'hydrangea', 'hydrangea-cove'],   // 달팽이: 비 오는 동안·그친 뒤 숲 가장자리
+};
+for (const [kind, ids] of Object.entries(CRITTER_PLACES)) ids.forEach(id => { (MAPS[id].critters = MAPS[id].critters || []).push(kind); });
 export const MAP_IDS = Object.keys(MAPS);

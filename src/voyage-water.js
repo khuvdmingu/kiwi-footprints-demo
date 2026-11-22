@@ -138,21 +138,49 @@ void main(){
 }`;
 
 export class SeaGL {
+  // (2026-11-22 최적화) GPU 연결·셰이더 번역은 앱을 켤 때가 아니라 처음 항해 그림을 읽을 때(start) 시작한다.
+  //  예전엔 항해하지 않아도 켤 때마다 이 셰이더를 번역하느라 화면이 1초 넘게 멈췄다(데스크톱 D3D 기준 약 1.2초).
+  //  셰이더·그리기 설정은 그대로라 그림은 같다. 그리기 전에는 ensure() 가 준비를 끝낸다(덜 됐으면 그 자리에서 기다린다).
   constructor() {
     this.cv = document.createElement('canvas');
-    this.gl = this.cv.getContext('webgl2', { antialias: false, premultipliedAlpha: false, preserveDrawingBuffer: true });
-    this.ok = false; this.tex = new Map();
+    this.gl = null; this.ok = false; this.tex = new Map(); this.pending = null;
+  }
+  // GPU 연결을 만들고 셰이더 번역을 시작만 한다 — 결과(성공 여부)는 묻지 않아서, 그동안 기다리지 않는다
+  start() {
+    if (this.tried || this.gl) return;   // 한 번만 — WebGL2 가 없는 기기에서 매 프레임 다시 만들려 하지 않게 (예전에도 만들 때 한 번이었다)
+    this.tried = true;
+    // 여기서 던지면 항해 그림 읽기(VoyageScene.load)까지 실패한다 → 연결을 못 만들면 2D 물로 (예전과 같은 결과)
+    try { this.gl = this.cv.getContext('webgl2', { antialias: false, premultipliedAlpha: false, preserveDrawingBuffer: true }); } catch (e) { this.gl = null; }
+    if (!this.gl) return;
+    this.gl.getExtension?.('KHR_parallel_shader_compile');   // 되는 기기는 번역을 다른 스레드에서 (그림 결과는 같다)
     // GPU 가 화면을 잃으면(오래 숨김·메모리 부족) 움직이는 2D 로 내려갔다가, 돌아오면 다시 만든다.
-    this.cv.addEventListener('webglcontextlost', e => { e.preventDefault(); this.ok = false; this.tex = new Map(); });
+    this.cv.addEventListener('webglcontextlost', e => { e.preventDefault(); this.ok = false; this.pending = null; this.tex = new Map(); });
     this.cv.addEventListener('webglcontextrestored', () => this.init());
     this.init();
+  }
+  // 그리기 직전: 아직 안 만들었으면 만들고, 번역 중이면 끝을 기다려 마무리한다
+  ensure() {
+    this.start();
+    if (this.pending) this.finish();
+    return this.ok;
   }
   init() {
     const gl = this.gl; if (!gl || gl.isContextLost()) return;
     try {
-      const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+      const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
       const pr = this.pr = gl.createProgram();
-      gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr);
+      const vs = sh(gl.VERTEX_SHADER, VS), fs = sh(gl.FRAGMENT_SHADER, FS);
+      gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
+      this.pending = { pr, vs, fs };
+    } catch (e) { console.warn('voyage water', e); this.ok = false; this.pending = null; }
+  }
+  finish() {
+    const gl = this.gl, p = this.pending; this.pending = null;
+    if (!gl || !p || gl.isContextLost()) return;
+    try {
+      // 예전 순서와 같은 오류: 꼭짓점 → 조각 번역 실패 → 연결 실패
+      for (const s of [p.vs, p.fs]) if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+      const pr = p.pr;
       if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr));
       const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);

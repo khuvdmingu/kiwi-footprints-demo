@@ -56,12 +56,12 @@ function mount() {
   const layout = () => '2026-10-24 개편';
 
   const box = document.createElement('div'); box.id = 'tapsBox';
-  box.innerHTML = `<h2>누름 세기</h2>
-    <p class="hint" id="tapsSum"></p>
-    <div class="tbtns"><button type="button" id="tapsCopy">텍스트로 복사</button><button type="button" id="tapsReset" class="warn">처음부터</button></div>
+  box.innerHTML = `<h2 class="k-h">누름 세기</h2>
+    <p class="hint k-hint" id="tapsSum"></p>
+    <div class="tbtns k-actions"><button type="button" id="tapsCopy" class="k-btn">텍스트로 복사</button><button type="button" id="tapsReset" class="warn k-btn">처음부터</button></div>
     <ol class="taps" id="tapsList"></ol>
-    <p class="hint">버튼·탭·고르기 칸을 누른 횟수를 이 기기에만 세요(서버로 안 보냄). 이 테스트 탭 안에서 누른 건 안 세요. 복사한 글을 Claude 에게 붙여 주면 자주 쓰는 것·안 쓰는 것을 실제 숫자로 다시 정해요.</p>
-    <h2 class="sep">조절값</h2>`;
+    <p class="hint k-hint">버튼·탭·고르기 칸을 누른 횟수를 이 기기에만 세요(서버로 안 보냄). 이 테스트 탭 안에서 누른 건 안 세요. 복사한 글을 Claude 에게 붙여 주면 자주 쓰는 것·안 쓰는 것을 실제 숫자로 다시 정해요.</p>
+    <h2 class="k-h sep">조절값</h2>`;
   const hint = pane.querySelector('.hint.top'); (hint || pane.firstChild).after(box);
   const sum = box.querySelector('#tapsSum'), list = box.querySelector('#tapsList');
 
@@ -116,12 +116,12 @@ function mount() {
 
   if (!document.querySelector('link[data-taps]')) {
     const s = document.createElement('style'); s.dataset.taps = '1';
-    s.textContent = `#tapsBox .taps{list-style:none;margin:6px 2px 4px;padding:0;display:grid;gap:3px;counter-reset:t}
-#tapsBox .taps li{display:grid;grid-template-columns:36px 1fr auto;gap:8px;align-items:baseline;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,.06);font-size:13px}
+    s.textContent = `#tapsBox .taps{list-style:none;margin:8px 2px 4px;padding:0;display:grid;gap:4px;counter-reset:t}
+#tapsBox .taps li{display:grid;grid-template-columns:36px 1fr auto;gap:8px;align-items:baseline;padding:4px 8px;border-radius:var(--k-r-s,8px);corner-shape:squircle;background:var(--k-wash,rgba(255,255,255,.06));font-size:13px}
 #tapsBox .taps li b{font-variant-numeric:tabular-nums;text-align:right}
-#tapsBox .taps li small{opacity:.6;font-size:11.5px;white-space:nowrap}
+#tapsBox .taps li small{color:var(--k-ink-soft);font-size:11.5px;white-space:nowrap}
 #tapsBox .taps li.empty{display:block;opacity:.65}
-html[data-ui="paper"] #tapsBox .taps li{background:rgba(255,255,255,.35)}`;
+html[data-ui="paper"] #tapsBox .taps li{background:var(--k-wash)}`;
     document.head.append(s);
   }
 }

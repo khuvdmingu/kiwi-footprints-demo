@@ -8,21 +8,21 @@
 //  기록은 이 기기에만 (localStorage 'chart'). 항해 기록(voyage.log)은 voyage.js 가 갖고, 여기는 발견·이름만 갖는다.
 //  그리기: 그림 격자(assets/chart-sheet.webp, 4×4)가 있으면 칸을 잘라 쓰고, 없으면 코드로 그린다.
 
-import { fitCell, roundCell } from './sheet.js?v=v30.23.0-cda5927';
-import { drawCairn } from './build.js?v=v30.23.0-cda5927';
+import { fitCell, roundCell } from './sheet.js?v=v30.27.0-1ab39f2';
+import { drawCairn } from './build.js?v=v30.27.0-1ab39f2';
 
-export const SHEET = 'chart-sheet.webp?v=v30.23.0-cda5927';
+export const SHEET = 'chart-sheet.webp?v=v30.27.0-1ab39f2';
 // v28.19 해도 그림 B (사용자 2026-10-24 비교 페이지에서 고름): 양피지 종이(나침반 포함) + 새 아이콘 격자 4×4
 //  새 격자 칸: 1행 화산·폭포 절벽·거북·등대 / 2행 환초·쌍둥이·빙산·떠 있는 꽃섬 / 3행 고래 꼬리·바다뱀·난파선·병 / 4행 X·닻·별 항로·바람 구름
 //  그림 칸이 없던 섬·바다 표시만 새 칸으로 (나머지는 지금 격자 그대로)
 // v28.20 격자 칸이 없는 큰 섬은 낱장 그림 (Codex 그림, 흰 바탕을 뺀 투명 webp)
-import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v30.23.0-cda5927';
-import { WATER_PLACES, WATER_IDS } from './maps-water.js?v=v30.23.0-cda5927';
-export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v30.23.0-cda5927', oasis: 'chart-isle-oasis.webp?v=v30.23.0-cda5927' };
+import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v30.27.0-1ab39f2';
+import { WATER_PLACES, WATER_IDS } from './maps-water.js?v=v30.27.0-1ab39f2';
+export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v30.27.0-1ab39f2', oasis: 'chart-isle-oasis.webp?v=v30.27.0-1ab39f2' };
 // v29.4 재고 새 장소 24곳의 해도 섬 그림 (Codex 그림, 4×4 격자 두 장 — 위 세 줄에 12곳씩, STOCK_PLACES 순서). 못 읽으면 코드 그림
-export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v30.23.0-cda5927', 'chart-isles-b.webp?v=v30.23.0-cda5927'];
+export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v30.27.0-1ab39f2', 'chart-isles-b.webp?v=v30.27.0-1ab39f2'];
 export const stockIsleCell = id => { const motif = WATER_PLACES.find(p => p.id === id)?.isleLike || id; const i = STOCK_PLACES.findIndex(p => p.id === motif); return i < 0 ? null : { sheet: Math.floor(i / 12), cell: i % 12 }; };
-export const CHART_B = { paper: 'chart-paper.webp?v=v30.23.0-cda5927', sheet: 'chart-sheet-2.webp?v=v30.23.0-cda5927',
+export const CHART_B = { paper: 'chart-paper.webp?v=v30.27.0-1ab39f2', sheet: 'chart-sheet-2.webp?v=v30.27.0-1ab39f2',
   islet: { 'i-twin': 5, 'i-lantern': 3, 'i-turtle': 2, 'i-end': 6, 'i-steam': 0, 'i-falls': 1, 'i-float': 7 },
   spot: { 's-reef': 4, 's-current': 15, 's-whale': 8, 's-wreck': 10, 's-bottle': 11 } };
 //  v30.21 (2026-11-22) 그려 두고 안 쓰던 칸: 0 화산 · 1 폭포 절벽 · 7 떠 있는 꽃섬 → 작은 섬, 10 난파선 · 11 병 → 바다 위의 곳.
@@ -320,16 +320,23 @@ export function nightTone(ctx, w, h) {
 }
 function nightGrade(ctx, W, S) {
   nightTone(ctx, W, W);
-  ctx.save();
-  // 달빛 — 오른쪽 위에서 옅게
-  const g = ctx.createRadialGradient(W * 0.82, W * 0.12, 0, W * 0.82, W * 0.12, W * 0.75);
+  moonGlow(ctx, W, 0, 0, W, W);   // 달빛 — 오른쪽 위에서 옅게
+  nightSparkles(ctx, W, S);       // 중앙은 섬과 항로를 위해 비워 두고, 먼 물가에만 작은 빛을 흩뿌린다
+}
+// 달빛과 물 위 별빛을 따로 꺼내 둔다 (2026-11-22) — 해도 창은 해도 밖 바다에도 같은 자리 기준으로 이어 칠해 경계에서 밝기가 갈리지 않게 한다
+//  moonGlow: 해도 한 장(크기 S, 왼쪽 위 ox·oy)의 오른쪽 위에서 퍼지는 빛을 w×h 판 전체에 칠한다
+export function moonGlow(ctx, S, ox, oy, w, h) {
+  const x = ox + S * 0.82, y = oy + S * 0.12, g = ctx.createRadialGradient(x, y, 0, x, y, S * 0.75);
   g.addColorStop(0, 'rgba(200,214,255,0.16)'); g.addColorStop(1, 'rgba(200,214,255,0)');
-  ctx.globalCompositeOperation = 'screen'; ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
-  // 중앙은 섬과 항로를 위해 비워 두고, 먼 물가에만 작은 빛을 흩뿌린다.
-  const rnd = seeded(2026);
+  ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.fillStyle = g; ctx.fillRect(0, 0, w, h); ctx.restore();
+}
+//  nightSparkles: middle = false 면 가운데도 비우지 않는다 (해도 밖 바다 한 장)
+export function nightSparkles(ctx, W, S, { seed = 2026, middle = true } = {}) {
+  const rnd = seeded(seed);
+  ctx.save(); ctx.globalCompositeOperation = 'screen';
   for (let k = 0; k < 92; k++) {
     const x = rnd() * W, y = rnd() * W;
-    if (x > W * 0.16 && x < W * 0.84 && y > W * 0.17 && y < W * 0.83) continue;
+    if (middle && x > W * 0.16 && x < W * 0.84 && y > W * 0.17 && y < W * 0.83) continue;
     const r = S * (0.0008 + rnd() * 0.0017), a = 0.12 + rnd() * 0.3;
     ctx.fillStyle = 'rgba(222,236,255,' + a + ')';
     ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();

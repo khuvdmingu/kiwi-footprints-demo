@@ -9,7 +9,7 @@
 //  그림을 아직 못 읽었으면 beach.js 의 예전 선 발자국이 그대로 쓰인다.
 
 const CELL = 160, COLS = 4, FIT = 0.92;   // 칸 크기 · 칸 열 수 · 발자국이 칸에서 차지하는 비율(긴 변)
-const SHEETS = { kiwi: 'prints-kiwi-dark.webp?v=v30.23.0-cda5927', a: 'prints-guests-a-dark.webp?v=v30.23.0-cda5927', b: 'prints-guests-b-dark.webp?v=v30.23.0-cda5927' };
+const SHEETS = { kiwi: 'prints-kiwi-dark.webp?v=v30.27.0-1ab39f2', a: 'prints-guests-a-dark.webp?v=v30.27.0-1ab39f2', b: 'prints-guests-b-dark.webp?v=v30.27.0-1ab39f2' };
 // 손님 → [격자, 칸, 크기(f 배), 뒤집기]. 크기는 발자국 묶음 하나의 긴 변 · 뒤집기 1 = 그림의 발끝이 아래(물갈퀴 둘)
 export const GUEST_STAMP = {
   gull: ['a', 0, 2.0, 1], crab: ['a', 1, 2.2], weka: ['a', 2, 2.2], hedgehog: ['a', 3, 1.7], duck: ['a', 4, 2.0, 1],
@@ -25,6 +25,7 @@ const GROUND = {
   gravel: { dark: [72, 66, 58], lit: [255, 250, 240] },
 };
 const NIGHT = { dark: [44, 56, 92], lit: [150, 172, 215] };   // 밤 그늘은 검정이 아니라 달빛 아래 푸른 그늘
+const TINT_KEEP = 4;   // 칠한 격자를 몇 벌까지 둘지 — 한 번 그리는 데 2벌(그늘·턱), 바로 전 단계 2벌
 
 const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
 const hash = (x, y) => ((Math.imul(Math.round(x * 10) | 0, 73856093) ^ Math.imul(Math.round(y * 10) | 0, 19349663)) >>> 0);
@@ -40,11 +41,17 @@ export class Stamps {
     }
   }
   // 그늘·턱 색으로 칠한 격자 (바닥 × 밤 8단계 × 그늘/턱 — 해 질 녘에 몇 번만 새로 칠한다)
+  //  (2026-11-22) 최근에 쓴 몇 벌만 둔다 — 한 벌이 격자 3장(약 3.6MB)인데 예전엔 24벌이 찰 때까지 비우지 않아
+  //   해 질 녘·새벽을 지나면(밤 8단계 × 그늘/턱) 60MB 넘게 쌓였다. 다시 칠한 것은 같은 명령이라 그림은 같다.
   tinted(ground, nq, which) {
     const key = `${ground}|${nq}|${which}`;
     let t = this.tints.get(key);
-    if (t) return t;
-    if (this.tints.size > 24) this.tints.clear();
+    if (t) { this.tints.delete(key); this.tints.set(key, t); return t; }   // 가장 최근 것으로
+    while (this.tints.size >= TINT_KEEP) {
+      const [old, set] = this.tints.entries().next().value;
+      this.tints.delete(old);
+      for (const cv of Object.values(set)) { cv.width = 0; cv.height = 0; }   // 캔버스 메모리를 바로 돌려준다
+    }
     const rgb = mix(GROUND[ground][which], NIGHT[which], nq * (which === 'dark' ? 0.75 : 1));
     t = {};
     for (const [k, im] of Object.entries(this.src)) {

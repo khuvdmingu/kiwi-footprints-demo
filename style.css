@@ -14,7 +14,7 @@
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --t-fast: 0.35s; --t-slow: 1.2s;
   /* v22 누르는 크기·간격 — 손가락(44px, Apple HIG) 기준, 마우스면 조금 작게 */
-  --tap: 44px; --tap-in: 40px; --icon: 22px; --gap: 10px; --edge: 16px;
+  --tap: 44px; --tap-in: 40px; --icon: 22px; --gap: 8px; --edge: 16px;
   --top: max(var(--edge), env(safe-area-inset-top)); --right: max(var(--edge), env(safe-area-inset-right));
   --font: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", system-ui, sans-serif;
 }
@@ -89,7 +89,7 @@ body.typing #saySend { opacity: 1; }
 
 body.info-open #say { opacity: 0; pointer-events: none; }
 
-.corner { position: fixed; z-index: 20; top: max(14px, env(safe-area-inset-top)); right: max(14px, env(safe-area-inset-right)); display: flex; gap: 8px;
+.corner { position: fixed; z-index: 20; top: max(16px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); display: flex; gap: 8px;
   opacity: 0.82; transition: opacity var(--t-fast) var(--ease); }
 .corner:hover, .corner:focus-within { opacity: 1; }
 /* 화면 정리(v18.5): 그림만 남긴다 — 다시 보이기 버튼은 누르거나 움직일 때만 잠깐 희미하게 (글 모드 캡션·열어 본 카드는 그대로) */
@@ -115,12 +115,12 @@ body[data-view="top"] #viewBtn .v-top, body[data-view="diorama"] #viewBtn .v-dio
 #weatherBtn[data-weather="storm"] .w-storm { display: inline; }   /* v30.1 천둥번개 */
 /* v30.1 실제 날씨를 따르는 중: 날씨 버튼 오른쪽 위에 작은 도장 점 */
 #weatherBtn { position: relative; }
-#weatherBtn[data-real]::after { content: ""; position: absolute; top: 5px; right: 5px; width: 7px; height: 7px; border-radius: 50%; background: var(--k-accent); box-shadow: 0 0 0 1.5px var(--k-paper); }
+#weatherBtn[data-real]::after { content: ""; position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--k-accent); box-shadow: 0 0 0 1.5px var(--k-paper); }
 
 
 /* 캡션: 다 쓴 뒤 천천히 드러나는 뜻·출처 */
-#caption { position: fixed; z-index: 6; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom)); transform: translate(-50%, 6px);
-  width: max-content; max-width: min(86vw, 560px); padding: 10px 20px 11px; border-radius: 14px; text-align: center; pointer-events: none;
+#caption { position: fixed; z-index: 6; left: 50%; bottom: calc(88px + env(safe-area-inset-bottom)); transform: translate(-50%, 6px);
+  width: max-content; max-width: min(86vw, 560px); padding: 12px 20px; border-radius: 14px; text-align: center; pointer-events: none;
   background: var(--panel); border: 1px solid var(--panel-line); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   opacity: 0; transition: opacity var(--t-slow) var(--ease), transform var(--t-slow) var(--ease); word-break: keep-all; }
 #caption.on { opacity: 1; transform: translate(-50%, 0); }
@@ -130,29 +130,29 @@ body[data-view="top"] #viewBtn .v-top, body[data-view="diorama"] #viewBtn .v-dio
 body.typing #caption, body.info-open #caption { opacity: 0; }
 
 /* 소리 믹서 */
-#mixer { position: fixed; z-index: 25; top: calc(var(--top) + var(--tap) + 10px); right: max(14px, env(safe-area-inset-right));
-  width: min(280px, calc(100vw - 28px)); padding: 14px 16px 10px; border-radius: 14px;
+#mixer { position: fixed; z-index: 25; top: calc(var(--top) + var(--tap) + 8px); right: max(16px, env(safe-area-inset-right));
+  width: min(280px, calc(100vw - 28px)); padding: 16px 16px 8px; border-radius: 14px;
   background: rgba(20, 47, 73, 0.78); border: 1px solid var(--panel-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 10px 30px rgba(var(--shadow), 0.35); font-size: 14px; }
 /* 공용 창 틀: 설정 · 바구니 · 꾸미기 (자리 차이는 shell.css) */
-.uiWindow { position: fixed; z-index: 25; top: calc(var(--top) + var(--tap) + 10px); right: max(14px, env(safe-area-inset-right));
+.uiWindow { position: fixed; z-index: 25; top: calc(var(--top) + var(--tap) + 8px); right: max(16px, env(safe-area-inset-right));
   width: min(300px, calc(100vw - 28px)); padding: 12px 12px 8px; border-radius: 14px;
   background: rgba(20, 47, 73, 0.78); border: 1px solid var(--panel-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 10px 30px rgba(var(--shadow), 0.35); font-size: 14px; }
 .uiWindow[hidden] { display: none; }
 /* v12 집중 모드: 창은 설정 창과 같은 모양, 진행 중에는 위 가운데 작은 알약 */
-#focusPanel { position: fixed; z-index: 25; top: calc(var(--top) + var(--tap) + 10px); right: max(14px, env(safe-area-inset-right));
-  width: min(300px, calc(100vw - 28px)); padding: 12px 12px 10px; border-radius: 14px;
+#focusPanel { position: fixed; z-index: 25; top: calc(var(--top) + var(--tap) + 8px); right: max(16px, env(safe-area-inset-right));
+  width: min(300px, calc(100vw - 28px)); padding: 12px 12px 8px; border-radius: 14px;
   background: rgba(20, 47, 73, 0.78); border: 1px solid var(--panel-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 10px 30px rgba(var(--shadow), 0.35); font-size: 14px; }
 #focusPanel[hidden], #focusPanel [hidden] { display: none; }
-#focusPanel textarea { display: block; width: 100%; box-sizing: border-box; margin: 8px 0; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--panel-line);
+#focusPanel textarea { display: block; width: 100%; box-sizing: border-box; margin: 8px 0; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--panel-line);
   background: rgba(255, 255, 255, 0.08); color: inherit; font: inherit; font-size: 14px; resize: none; }
-#focusPanel button { display: block; width: 100%; padding: 10px; border-radius: 999px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.08);
+#focusPanel button { display: block; width: 100%; padding: 8px; border-radius: 999px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.08);
   color: inherit; font: inherit; font-weight: 600; cursor: pointer; }
 
 #focusHud { position: fixed; z-index: 19; left: 50%; top: calc(var(--top) + var(--tap) + 12px); transform: translateX(-50%);
-  display: flex; gap: 10px; align-items: baseline; padding: 6px 14px; border-radius: 999px; background: var(--panel); border: 1px solid var(--panel-line);
+  display: flex; gap: 8px; align-items: baseline; padding: 8px 16px; border-radius: 999px; background: var(--panel); border: 1px solid var(--panel-line);
   color: rgb(var(--ink)); font: inherit; font-size: 14px; font-variant-numeric: tabular-nums; cursor: pointer; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 #focusHud[hidden] { display: none; }
 #focusHud .t { font-weight: 600; letter-spacing: 0.04em; }
@@ -161,8 +161,8 @@ body.typing #caption, body.info-open #caption { opacity: 0; }
 #kiwiOpts { margin-top: 8px; }
 #kiwiOpts input[type="range"] { width: 100%; margin: 4px 0 4px; accent-color: var(--sand); }
 /* v10 모은 것 */
-.uiWindow { max-height: calc(100dvh - 90px); overflow-y: auto; }
-.colgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 4px 2px 0; }
+.uiWindow { max-height: calc(100dvh - 88px); overflow-y: auto; }
+.colgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 4px 2px 0; }
 .colgrid button { aspect-ratio: 1; padding: 0; border-radius: 10px; border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.06); color: inherit; font-size: 18px; position: relative; cursor: pointer; overflow: hidden; }
 .colgrid button img { width: 120%; height: 120%; object-fit: contain; margin: -10%; }
 .colgrid button.locked { opacity: 0.4; cursor: default; font-size: 14px; }
@@ -175,20 +175,20 @@ body.typing #caption, body.info-open #caption { opacity: 0; }
 .colgrid canvas.catchIcon { position: absolute; inset: 6%; width: 88%; height: 88%; }
 .chartBox { width: 100%; max-width: 560px; margin: 4px auto 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--panel-line); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18); }
 .chartBox canvas { display: block; width: 100%; height: auto; aspect-ratio: 1; }
-.chartList { display: grid; gap: 6px; margin-top: 8px; }
+.chartList { display: grid; gap: 8px; margin-top: 8px; }
 .builds { display: grid; gap: 8px; }
-.buildRow { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 10px; }
+.buildRow { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 8px; }
 .buildRow .buildIcons { letter-spacing: 3px; font-size: 13px; opacity: 0.85; justify-self: end; }
 .buildRow .buildBar { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.12); position: relative; overflow: hidden; }
 .buildRow .buildBar::after { content: ''; position: absolute; inset: 0 auto 0 0; width: calc(var(--f, 0) * 100%); background: rgba(240, 190, 110, 0.85); border-radius: 3px; }
 .buildRow .buildText { grid-column: 1 / -1; font-size: 13px; opacity: 0.8; }
-#voyChartBtn { margin-top: 6px; }
+#voyChartBtn { margin-top: 8px; }
 .colgrid .cnt { position: absolute; right: 1px; bottom: 0; font-size: 9.5px; font-weight: 700; line-height: 1; padding: 1px 2px; border-radius: 4px; background: rgba(20, 47, 73, 0.75); }
 .colgrid button.place img { width: 100%; height: 100%; margin: 0; object-fit: cover; }
 .colgrid button.place.on { outline: 2px solid var(--sand); outline-offset: -2px; }
-.colgrid button.place.on::after { right: 3px; bottom: 3px; width: 15px; height: 15px; line-height: 15px; border-radius: 50%; background: var(--sand); }
+.colgrid button.place.on::after { right: 4px; bottom: 4px; width: 16px; height: 16px; line-height: 16px; border-radius: 50%; background: var(--sand); }
 .colgrid button.on { background: var(--sand); border-color: transparent; }
-.colgrid button.on::after { content: '✓'; position: absolute; right: 3px; bottom: 1px; font-size: 11px; color: #2a2016; font-weight: 700; }
+.colgrid button.on::after { content: '✓'; position: absolute; right: 4px; bottom: 1px; font-size: 11px; color: #2a2016; font-weight: 700; }
 /* v10 떠내려온 것을 열었을 때의 카드 */
 
 
@@ -226,9 +226,9 @@ body.ready #boot { opacity: 0; visibility: hidden; }
 /* 장소: 그림 카드에 이름 */
 .colgrid.places { grid-template-columns: repeat(3, 1fr); }
 .colgrid.places button { aspect-ratio: 4 / 3; }
-.colgrid.places button.place .nm { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 4px 3px; font-size: 11px; font-weight: 600; text-align: center; color: #fff;
+.colgrid.places button.place .nm { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 4px 4px; font-size: 11px; font-weight: 600; text-align: center; color: #fff;
   background: linear-gradient(transparent, rgba(10, 24, 36, 0.75)); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); }
-.colgrid.places button.place.on::after { top: 3px; bottom: auto; }
+.colgrid.places button.place.on::after { top: 4px; bottom: auto; }
 
 /* 소리 요약 → 소리 창으로 */
 /* 소리 창 */
@@ -237,20 +237,20 @@ body.ready #boot { opacity: 0; visibility: hidden; }
 
 
 /* ── v18.6.2 고르기 창 (날씨 · 글 모드 · 시점) ── */
-#picker { position: fixed; z-index: 26; width: max-content; max-width: calc(100vw - 20px); padding: 10px; border-radius: 14px;
+#picker { position: fixed; z-index: 26; width: max-content; max-width: calc(100vw - 20px); padding: 8px; border-radius: 14px;
   background: rgba(20, 47, 73, 0.9); border: 1px solid var(--panel-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 10px 30px rgba(var(--shadow), 0.35); font-size: 13px; animation: pickIn 0.16s var(--ease); }
 #picker[hidden] { display: none; }
 #picker::before { content: ''; position: absolute; top: -6px; left: calc(var(--arrow, 50%) - 6px); width: 10px; height: 10px; transform: rotate(45deg);
   background: rgba(20, 47, 73, 0.9); border-left: 1px solid var(--panel-line); border-top: 1px solid var(--panel-line); }
 @keyframes pickIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
-#picker button { display: grid; justify-items: center; gap: 4px; padding: 9px 4px 7px; border-radius: 10px; border: 1px solid var(--panel-line);
+#picker button { display: grid; justify-items: center; gap: 4px; padding: 8px 4px 8px; border-radius: 10px; border: 1px solid var(--panel-line);
   background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
 body.clean #picker { display: none !important; }
 @media (prefers-reduced-motion: reduce) { #picker { animation: none; } }
 
 /* v19 집중 기록 달력 — 날마다 발자국 도장 */
-#focusPanel { max-height: calc(100dvh - max(14px, env(safe-area-inset-top)) - 70px); overflow-y: auto; overscroll-behavior: contain; }
+#focusPanel { max-height: calc(100dvh - max(16px, env(safe-area-inset-top)) - 72px); overflow-y: auto; overscroll-behavior: contain; }
 
 /* v19.2 테스트 탭 */
 
@@ -259,8 +259,8 @@ body.clean #picker { display: none !important; }
 
 /* v19 나의 키위 무리 */
 .flock .mate { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; grid-template-rows: auto auto; column-gap: 8px; align-items: center;
-  padding: 4px 6px 4px 4px; border-radius: 10px; border: 1px solid var(--panel-line); }
-.flock .mate select { grid-column: 2 / span 2; min-width: 0; padding: 3px 6px; border-radius: 7px; border: 1px solid var(--panel-line);
+  padding: 4px 8px 4px 4px; border-radius: 10px; border: 1px solid var(--panel-line); }
+.flock .mate select { grid-column: 2 / span 2; min-width: 0; padding: 4px 8px; border-radius: 7px; border: 1px solid var(--panel-line);
   background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; font-size: 12.5px; }
 
 /* v19 다녀간 손님 · v19.1 손님 그림(assets/guests.webp 4×3) */
@@ -275,8 +275,8 @@ body.shutter::after { content: ''; position: fixed; inset: 0; z-index: 30; backg
 @media (prefers-reduced-motion: reduce) { body.shutter::after { animation-duration: 0.01s; } }
 
 /* ── v21 쉬는 시간 호흡 ── */
-#breathOffer { position: fixed; z-index: 8; left: 50%; bottom: calc(150px + env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; align-items: center; gap: 10px;
-  padding: 8px 18px 8px 10px; border-radius: 999px; border: 1px solid var(--panel-line); background: rgba(24, 34, 44, 0.62); color: rgb(var(--ink));
+#breathOffer { position: fixed; z-index: 8; left: 50%; bottom: calc(152px + env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px 8px 8px; border-radius: 999px; border: 1px solid var(--panel-line); background: rgba(24, 34, 44, 0.62); color: rgb(var(--ink));
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); font: 500 14px/1.25 var(--font); cursor: pointer; box-shadow: 0 6px 22px rgba(0, 0, 0, 0.25); animation: offerIn 0.6s var(--ease, ease) both; }
 #breathOffer[hidden] { display: none; }
 #breathOffer img { width: 26px; height: auto; transform: rotate(-14deg); }
@@ -288,9 +288,9 @@ body.clean #breathOffer { opacity: 0.8; }
 
 /* ── v22 위 버튼 줄 다시 짜기 · 누르기 편한 크기 ──
    8개를 같은 무게로 늘어놓던 것을 세 덩어리로: [글 모드 · 날씨 · 시점] 한 알약 / 소리 · 집중 / ⋯ 메뉴(설정 · 모은 것 · 화면 정리 · 작품 설명).
-   손가락 44px · 간격 10px · 화면 끝에서 16px. 마우스(정밀 포인터)는 40px. */
+   손가락 44px · 간격 8px · 화면 끝에서 16px. 마우스(정밀 포인터)는 40px. */
 @media (pointer: fine) { :root { --tap: 40px; --tap-in: 36px; --icon: 20px; } }
-@media (max-width: 359px) { :root { --tap: 42px; --gap: 6px; --edge: 12px; } }
+@media (max-width: 359px) { :root { --tap: 40px; --gap: 4px; --edge: 12px; } }
 .corner { top: var(--top); right: var(--right); gap: var(--gap); align-items: center; }
 
 
@@ -303,23 +303,23 @@ body.clean #breathOffer { opacity: 0.8; }
 
 body.clean #menu { display: none !important; }
 /* 메뉴 */
-#menu { position: fixed; z-index: 26; top: calc(var(--top) + var(--tap) + 10px); right: var(--right); width: min(250px, calc(100vw - 2 * var(--edge)));
-  display: grid; gap: 2px; padding: 6px; border-radius: 16px; background: rgba(20, 47, 73, 0.92); border: 1px solid var(--panel-line);
+#menu { position: fixed; z-index: 26; top: calc(var(--top) + var(--tap) + 8px); right: var(--right); width: min(248px, calc(100vw - 2 * var(--edge)));
+  display: grid; gap: 2px; padding: 8px; border-radius: 16px; background: rgba(20, 47, 73, 0.92); border: 1px solid var(--panel-line);
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 10px 30px rgba(var(--shadow), 0.35); animation: pickIn 0.16s var(--ease); }
 #menu[hidden] { display: none; }
-#menu button { display: grid; grid-template-columns: 26px 1fr auto; grid-template-rows: auto auto; column-gap: 12px; align-items: center; min-height: 52px; padding: 6px 12px;
+#menu button { display: grid; grid-template-columns: 26px 1fr auto; grid-template-rows: auto auto; column-gap: 12px; align-items: center; min-height: 52px; padding: 8px 12px;
   border: 0; border-radius: 11px; background: transparent; color: rgb(var(--ink)); font: inherit; text-align: left; cursor: pointer; }
 @media (pointer: coarse) { #menu kbd { display: none; } }
 @media (prefers-reduced-motion: reduce) { #menu { animation: none; } }
 
 
 /* 창 안쪽: 누르는 것은 모두 --tap-in(40px) 이상, 묶음 사이는 조금 더 띄움 */
-.uiWindow, #focusPanel { width: min(320px, calc(100vw - 2 * var(--edge))); padding: 14px 14px 12px; border-radius: 16px; right: var(--right); }
-.uiWindow { max-height: calc(100dvh - var(--top) - var(--tap) - 26px); }
-#focusPanel { max-height: calc(100dvh - var(--top) - var(--tap) - 26px); }
+.uiWindow, #focusPanel { width: min(320px, calc(100vw - 2 * var(--edge))); padding: 16px 16px 12px; border-radius: 16px; right: var(--right); }
+.uiWindow { max-height: calc(100dvh - var(--top) - var(--tap) - 24px); }
+#focusPanel { max-height: calc(100dvh - var(--top) - var(--tap) - 24px); }
 
 .colgrid { gap: 8px; }
-.colgrid.finds { gap: 5px; }
+.colgrid.finds { gap: 4px; }
 
 
 #picker { padding: 12px; }
@@ -342,7 +342,7 @@ body.drowse #focusHud { opacity: 0.22; transition: opacity 4s var(--ease), trans
    위에 가로 줄을 두고 그 아래로 창을 내리면 창이 300px 안팎밖에 안 돼서 안에서 계속 스크롤해야 했다.
    레일 높이 = 버튼 6개 ≈ 300px 라 390px 높이에도 들어간다. 고르기 창은 버튼 옆으로 뜬다(main.js openPicker 가 같은 조건을 본다) */
 @media (orientation: landscape) and (max-height: 520px) {
-  :root { --edge: 10px; --rail: calc(var(--right) + var(--tap) + 12px); }
+  :root { --edge: 8px; --rail: calc(var(--right) + var(--tap) + 12px); }
   .corner { flex-direction: column; top: var(--top); right: var(--right); }
 
 
@@ -386,6 +386,6 @@ body.atSea #say, body.atSea #touch { display: none; }
 #cutscene.out { opacity: 0; transition: opacity .35s ease-in; }
 #cutscene video { width: 100%; height: 100%; object-fit: cover; }
 #cutscene .cutCaption { position: absolute; left: 0; right: 0; bottom: max(28px, env(safe-area-inset-bottom)); margin: 0; text-align: center; color: #fffdf7; font: 600 17px/1.4 var(--font); text-shadow: 0 1px 6px rgba(0, 0, 0, .45); pointer-events: none; }
-#cutscene button { position: absolute; top: max(14px, env(safe-area-inset-top)); right: 14px; min-height: 40px; padding: 0 16px; border: 0; border-radius: 99px; color: #fffdf7; background: rgba(10, 24, 36, .55); font: 500 14px/1 var(--font); cursor: pointer; }
+#cutscene button { position: absolute; top: max(16px, env(safe-area-inset-top)); right: 16px; min-height: 40px; padding: 0 16px; border: 0; border-radius: var(--k-r-btn, 12px); corner-shape: squircle; color: #fffdf7; background: rgba(10, 24, 36, .55); font: 500 14px/1 var(--font); cursor: pointer; }
 @keyframes cutIn { from { opacity: 0; } to { opacity: 1; } }
 }

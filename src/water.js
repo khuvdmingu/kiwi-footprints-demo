@@ -150,11 +150,20 @@ void main() {
       vec2 warp = vec2(fbm(wq + vec2(0., -uT * .18)), fbm(wq + vec2(4.3, -uT * .14))) - .5;
       vec3 under = tD(uvOf(p + warp * 22. * u), uLod);
       float k = clamp((p.y - e - D0) / max(1., up), 0., 1.);
-      vec3 teal = mix(uFilmA, uFilmB, k);
-      vec3 film = mix(under * uFilmM + vec3(.03, .09, .11), teal, .45 + .25 * k);
+      // 밤: 같은 자리 바다 그림이 밤 판으로 바뀐 비율(흐리게 읽어 무늬 없이)을 물 막 색에도 곱한다.
+      //  비친 모래(tD)는 이미 밤 판을 따르는데 물 막 색만 낮 청록 그대로라, 밤에 큰 파도가 오면 물 막이 밝은 띠로 빛났다 (2026-11-22)
+      //  노을·새벽(W 판)은 비율을 곱하면 청록 × 주황 = 올리브 초록이 되어 예전 색 그대로 둔다 — 밤 몫만 떼어 낸다
+      vec3 tone = vec3(1.);
+      if (uNA > 0.) {
+        vec2 tu = uvOf(sp); float L = uLod + 5.;
+        vec3 base = textureLod(uSea, tu, L).rgb; if (uWA > 0.) base = mix(base, textureLod(uSeaW, tu, max(0., L + uWS)).rgb, uWA);
+        tone = clamp(tS(tu, L) / max(base, vec3(.04)), 0., 1.2);
+      }
+      vec3 teal = mix(uFilmA, uFilmB, k) * tone;
+      vec3 film = mix(under * uFilmM + vec3(.03, .09, .11) * tone, teal, .45 + .25 * k);
       float lum = fbm(wq * 2.3 + warp * 1.6 + vec2(0., -uT * .3));
-      film += (lum - .5) * .07;                                                        // 물빛 얼룩 (부드럽게)
-      film = mix(film, vec3(1.), smoothstep(.66, .8, lum) * .14 * (1. - k));            // 드문드문 흩어지는 거품
+      film += (lum - .5) * .07 * tone;                                                 // 물빛 얼룩 (부드럽게)
+      film = mix(film, tone, smoothstep(.66, .8, lum) * .14 * (1. - k));                // 드문드문 흩어지는 거품
       sea = mix(sea, film, sheet);
     }
     // 얕은 물의 빛 그물
@@ -211,15 +220,41 @@ void main() {
   o = vec4(col, 1.);
 }`;
 
+// (2026-11-22 최적화) 켤 때 판 그림을 받는 동안 물 셰이더 번역을 먼저 시작해 둔다. 결과(성공 여부)는 여기서 묻지 않아
+//  기다리지 않는다 — 데스크톱 D3D 에서 약 1.1초 걸리던 번역이 그림 받는 시간과 겹친다. WaterGL 이 같은 캔버스에서 이어 받는다.
+//  같은 셰이더·같은 연결 설정이라 그림은 같다. 이어 받지 못하면(연결을 잃음 등) 생성자가 예전처럼 처음부터 만든다.
+const GL_OPTS = { antialias: false, alpha: false, preserveDrawingBuffer: false };
+const warmed = new WeakMap();
+export function warmWaterGL(canvas) {
+  try {
+    if (warmed.has(canvas)) return;
+    const gl = canvas.getContext('webgl2', GL_OPTS);
+    if (!gl) return;
+    gl.getExtension?.('KHR_parallel_shader_compile');   // 되는 기기는 번역을 다른 스레드에서
+    const mk = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
+    const vs = mk(gl.VERTEX_SHADER, VS), fs = mk(gl.FRAGMENT_SHADER, FS), pr = gl.createProgram();
+    gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
+    warmed.set(canvas, { gl, vs, fs, pr });
+  } catch (e) { /* 생성자가 처음부터 다시 만든다 */ }
+}
+
 export class WaterGL {
   constructor(canvas) {
     this.cv = canvas;
-    const gl = (this.gl = canvas.getContext('webgl2', { antialias: false, alpha: false, preserveDrawingBuffer: false }));
+    const w = warmed.get(canvas); warmed.delete(canvas);
+    const gl = (this.gl = canvas.getContext('webgl2', GL_OPTS));
     if (!gl) throw new Error('WebGL2 없음');
-    const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
-    const pr = (this.pr = gl.createProgram());
-    gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS));
-    gl.linkProgram(pr);
+    let pr;
+    if (w && w.gl === gl && !gl.isContextLost()) {
+      // 미리 시작한 번역을 이어 받는다 — 예전과 같은 순서로 확인(꼭짓점 → 조각 → 연결)
+      for (const s of [w.vs, w.fs]) if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+      pr = this.pr = w.pr;
+    } else {
+      const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+      pr = (this.pr = gl.createProgram());
+      gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS));
+      gl.linkProgram(pr);
+    }
     if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr));
     gl.useProgram(pr);
     const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);

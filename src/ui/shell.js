@@ -1,7 +1,7 @@
-import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v30.23.0-cda5927';
-import { BoatPreview } from './boat-preview.js?v=v30.23.0-cda5927';
-import { KiwiStage } from './kiwi-stage.js?v=v30.23.0-cda5927';
-import { ITEMS } from '../items.js?v=v30.23.0-cda5927';
+import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=v30.27.0-1ab39f2';
+import { BoatPreview } from './boat-preview.js?v=v30.27.0-1ab39f2';
+import { KiwiStage } from './kiwi-stage.js?v=v30.27.0-1ab39f2';
+import { ITEMS } from '../items.js?v=v30.27.0-1ab39f2';
 // src/ui/shell.js — 2026-10-24 UI 구조 개편 (결정 10개: _views/html-views/2026-10-24_kiwi-ui-restructure.html)
 //
 //  마크업은 index.html 에 제자리로 있고(예전 src/ia/ia.js 처럼 뜬 뒤에 옮기지 않는다), 여기는 새 창 셋의 동작만 맡는다.
@@ -95,7 +95,7 @@ export function mountShell(env) {
   }
   const stageAct = kind => { if (!ward.hidden) kiwiStage.act(kind); };
   // 소리 창 무대 아래 한 줄: 옷 이름 대신 무엇을 들려주는지
-  const SOUND_NOTE = { bg: '곡 · 자연 배경만 들려요 — 고르면 바로 바뀌어요', voice: '누르면 키위가 걸어 보고(발자국) 콕 찍어 봐요(찾았을 때)' };
+  const SOUND_NOTE = { bg: '곡과 자연 배경만 들려요. 고르면 바로 바뀌어요', voice: '누르면 키위가 걸어 보고(발자국), 콕 찍어 봐요(찾았을 때)' };
   let journalOn = false;
   function openWard(open, { save = false, tab, mode: m } = {}) {
     if (open && !ward.hidden && m && m !== mode) openWard(false, { save: true });   // 꾸미기 ↔ 소리 바꿔 열면 바꾼 것은 저장하고 넘어간다

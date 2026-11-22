@@ -8,13 +8,13 @@
 //  main.js 는 매 프레임 update(dt, kiwis, atmos.v, beach) 를 부르고, 그릴 때 drawLeaning(ctx, k, () => k.draw(ctx)) 로 감싸고
 //  drawUmbrella(ctx, k) · drawFeathers(ctx, u) 를 키위 위에 얹는다. 키위 그림(kiwi.js)은 건드리지 않는다.
 
-import { clamp } from '../util.js?v=v30.23.0-cda5927';
-import { headPose, setKiwiActs } from '../kiwi.js?v=v30.23.0-cda5927';
-import { ACTS } from '../acts.js?v=v30.23.0-cda5927';
+import { clamp } from '../util.js?v=v30.27.0-1ab39f2';
+import { headPose, setKiwiActs } from '../kiwi.js?v=v30.27.0-1ab39f2';
+import { ACTS } from '../acts.js?v=v30.27.0-1ab39f2';
 
 export const UMB_SHARE = 0.45;   // 우산을 드는 성격의 비율
-const SHEET = 'assets/umbrellas.webp?v=v30.23.0-cda5927';
-const HOODS = 'assets/hoods.webp?v=v30.23.0-cda5927';   // v27.7 머리에 얹는 잎 2×2 (Higgsfield nano_banana_pro: 토란잎 · 몬스테라 / 바나나잎 · 연잎, 옆에서 본 둥근 지붕 모양)
+const SHEET = 'assets/umbrellas.webp?v=v30.27.0-1ab39f2';
+const HOODS = 'assets/hoods.webp?v=v30.27.0-1ab39f2';   // v27.7 머리에 얹는 잎 2×2 (Higgsfield nano_banana_pro: 토란잎 · 몬스테라 / 바나나잎 · 연잎, 옆에서 본 둥근 지붕 모양)
 const HOOD_SHARE = 0.5;               // 우산을 드는 키위 가운데 머리에 얹는 성격의 비율
 const GREEN = [1, 1, 0], AUTUMN = [2, 3];   // 칸: 0 토란잎 · 1 열대 잎(양산 모양이라 더 자주) / 2 단풍 · 3 은행잎
 // 키위 그림 기준(k 배수, 오른쪽을 볼 때): 부리 끝 (0.79, −0.48) · 머리 꼭대기 (−0.07, −0.89) — kiwi.webp 에서 잰 값
@@ -23,6 +23,13 @@ const STEM = ['#5f8a3e', '#4f7a3a', '#c4552c', '#d9a035'];   // 칸마다 줄기
 // v27.6 잎을 더 뒤로 눕히고 길게 받쳐 등까지 덮는 양산처럼 (예전 −0.5 · 0.42 · 1.2 는 머리 앞에 깃발처럼 섰다)
 const TILT = -0.78, EXT = 0.5, SIZE = 1.38;
 const approach = (a, b, d) => (a < b ? Math.min(b, a + d) : Math.max(b, a - d));
+// 「움직임 줄이기」 설정: 매 프레임 matchMedia 를 새로 만들지 않고 한 번 만든 것의 .matches 를 본다 (설정을 바꾸면 따라 바뀐다, 2026-11-22)
+let reduceMQ = null;
+const reducedMotion = () => {
+  if (typeof matchMedia === 'undefined') return false;
+  if (reduceMQ?.fn !== matchMedia) reduceMQ = { fn: matchMedia, mq: matchMedia('(prefers-reduced-motion: reduce)') };
+  return reduceMQ.mq.matches;
+};
 
 export class KiwiWeather {
   constructor({ rand = Math.random } = {}) { this.rand = rand; this.feathers = []; this.drips = []; this.wet = 0; this.hoods = null; this.t = 0; this.shelterAt = 4; this.mapId = 'beach'; this.sprites = null; }   // mapId: 합칠 때 main.js 가 알려 준다
@@ -33,7 +40,7 @@ export class KiwiWeather {
     this.t += dt;
     const wet = KiwiWeather.wetness(v), wind = KiwiWeather.windiness(v), u = beach.u || 1, R = this.rand;
     this.wet = wet;
-    const motion = typeof matchMedia === 'undefined' || !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const motion = !reducedMotion();
     if (wet > 0.35 && motion && !this.rainArt && typeof Image !== 'undefined') {
       this.rainArt = true;
       for (const id of ['rainLeaf', 'rainHollow']) {

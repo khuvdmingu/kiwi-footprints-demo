@@ -1,6 +1,9 @@
 // iPad에서 확인된 합성 제외 경로를 기본 적용한다. 장면의 그림/물결/키위는 그대로.
 // 플랫폼 판별은 로컬에서만 수행하며 진단 UI·전송·저장은 기본 방문에 없다.
 const LAYERS = ['tint', 'glow', 'grain'];
+// v30.24 진단 첫 줄의 판 이름: 데모 배포(tools/deploy-demo.sh)가 import 주소에 붙이는 ?v=<버전> 을 읽는다 (로컬은 dev).
+//  예전엔 'v24.4.4' 가 글자로 박혀 있어 v30 판에서도 v24 로 보였다.
+const BUILD = (() => { try { return new URL(import.meta.url).searchParams.get('v') || 'dev'; } catch { return 'dev'; } })();
 // iPad 층별 비교 시험 (2026-10-19): ?layers=tint · ?layers=glow,grain … — 적은 층만 켜고 나머지는 끈다. 기본 방문에는 없다.
 //  세 층을 한꺼번에 켜고 끄는 tint=1/0 만으로는 어느 층(조합)이 iPad 화면을 덮는지 몰랐다 (docs/IPAD_RENDERING_HANDOFF.md 5번)
 export function layerTest(q) {
@@ -30,7 +33,7 @@ export function mountRenderDiagnostics(q, readState, doc = document, win = windo
   doc.body.appendChild(el);
   const update = () => {
     const state = readState(), plate = doc.getElementById('plate');
-    el.textContent = ['v24.4.4 · 풍경 진단',
+    el.textContent = [`${BUILD} · 풍경 진단`,
       `색조 합성: ${test ? `층 시험 — 켬 ${test.on.join('·') || '없음'} / 끔 ${test.off.join('·') || '없음'}` : compositing ? '사용' : '제외 (호환 모드)'} · ${state.renderer}`,
       `화면 ${win.innerWidth}×${win.innerHeight} · DPR ${win.devicePixelRatio}`,
       `그림 ${plate?.width || 0}×${plate?.height || 0} · ${state.ready ? '그리기 시작' : '시작 중'}`,

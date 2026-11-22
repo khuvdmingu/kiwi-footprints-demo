@@ -9,12 +9,15 @@
 export const ACT_EMOTE = { startle: 2, tilt: 3, joy: 6, wiggle: 7, proud: 15, hide: 12, lookup: 15, sneeze: 13, shake: 4, nibble: 14, yawn: 8 };
 const DREAMS = [1, 2, 3, 4, 5, 6, 7];
 
-function cut(src, cols, rows) {
+// 쓰는 칸만 잘라 둔다 (2026-11-22) — 감정 표시는 ACT_EMOTE 에 있는 칸, 꿈은 DREAMS 칸만 그린다.
+//  예전엔 안 쓰는 7칸도 잘라 캔버스 약 7.5MB 를 늘 쥐고 있었다. 자르는 방식은 그대로라 그림은 같다
+const EMOTE_USED = new Set(Object.values(ACT_EMOTE)), DREAM_USED = new Set(DREAMS);
+function cut(src, cols, rows, used) {
   return new Promise(ok => {
     const im = new Image();
     im.onload = () => {
-      const cw = im.naturalWidth / cols, ch = im.naturalHeight / rows, list = [];
-      for (let k = 0; k < cols * rows; k++) { const cv = document.createElement('canvas'); cv.width = Math.round(cw); cv.height = Math.round(ch); cv.getContext('2d').drawImage(im, (k % cols) * cw, Math.floor(k / cols) * ch, cw, ch, 0, 0, cv.width, cv.height); list.push(cv); }
+      const cw = im.naturalWidth / cols, ch = im.naturalHeight / rows, list = new Array(cols * rows);
+      for (let k = 0; k < cols * rows; k++) { if (!used.has(k)) continue; const cv = document.createElement('canvas'); cv.width = Math.round(cw); cv.height = Math.round(ch); cv.getContext('2d').drawImage(im, (k % cols) * cw, Math.floor(k / cols) * ch, cw, ch, 0, 0, cv.width, cv.height); list[k] = cv; }
       ok(list);
     };
     im.onerror = () => ok(null);
@@ -24,7 +27,7 @@ function cut(src, cols, rows) {
 
 export class Bubbles {
   constructor(rand = Math.random) { this.rand = rand; this.list = []; this.emotes = null; this.dreams = null; this.dreamAt = new Map(); }
-  load(base = 'assets/') { cut(base + 'emotes.webp?v=v30.23.0-cda5927', 4, 4).then(l => { this.emotes = l; }); cut(base + 'dreams.webp?v=v30.23.0-cda5927', 4, 2).then(l => { this.dreams = l; }); }
+  load(base = 'assets/') { cut(base + 'emotes.webp?v=v30.27.0-1ab39f2', 4, 4, EMOTE_USED).then(l => { this.emotes = l; }); cut(base + 'dreams.webp?v=v30.27.0-1ab39f2', 4, 2, DREAM_USED).then(l => { this.dreams = l; }); }
   emote(kw, cell, t, life = 1.6) {
     if (cell == null) return;
     this.list = this.list.filter(b => b.kw !== kw);   // 한 키위에 하나만

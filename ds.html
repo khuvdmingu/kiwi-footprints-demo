@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>키위 디자인 시스템</title>
   <!-- 카탈로그: 부품 전부를 한 장에서. 새 부품·변형을 parts.css 에 더하면 여기에도 한 칸 (docs/DESIGN_SYSTEM.md) -->
-  <link rel="stylesheet" href="style.css?v=v30.23.0-cda5927" />
-  <link rel="stylesheet" href="theme-paper.css?v=v30.23.0-cda5927" />
-  <link rel="stylesheet" href="src/ui/tokens.css?v=v30.23.0-cda5927" />
-  <link rel="stylesheet" href="src/ui/parts.css?v=v30.23.0-cda5927" />
+  <link rel="stylesheet" href="style.css?v=v30.27.0-1ab39f2" />
+  <link rel="stylesheet" href="theme-paper.css?v=v30.27.0-1ab39f2" />
+  <link rel="stylesheet" href="src/ui/tokens.css?v=v30.27.0-1ab39f2" />
+  <link rel="stylesheet" href="src/ui/parts.css?v=v30.27.0-1ab39f2" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <style>
     /* 카탈로그 페이지 자체의 배치만 (부품 모양은 parts.css) */
@@ -18,9 +18,9 @@
     .k-win.card:not([hidden]) { display: block; padding: var(--k-s-4); }
     .card > .lbl { margin: 0 0 var(--k-s-2); font-size: var(--k-fs-s); color: var(--k-ink-soft); font-family: ui-monospace, monospace; }
     .ctl { display: flex; flex-wrap: wrap; gap: var(--k-s-3); align-items: center; }
-    .ctl label { display: flex; gap: 6px; align-items: center; font-size: var(--k-fs-m); }
-    .sw { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
-    .sw i { display: grid; place-items: end start; height: 44px; padding: 3px; border-radius: var(--k-r-s); box-shadow: var(--k-shadow-1); font: 9px/1 ui-monospace, monospace; font-style: normal; }
+    .ctl label { display: flex; gap: 8px; align-items: center; font-size: var(--k-fs-m); }
+    .sw { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+    .sw i { display: grid; place-items: end start; height: 44px; padding: 4px; border-radius: var(--k-r-s); corner-shape: squircle; box-shadow: var(--k-shadow-1); font: 9px/1 ui-monospace, monospace; font-style: normal; }
     .scale > * { margin: 0 0 4px; }
     .demo-win { position: static; max-height: 360px; }
     .k-grid i.find { background-position: 0 0; }
@@ -70,7 +70,7 @@
     <section class="k-win card">
       <p class="lbl">.k-grid (정사각) · .k-grid--items · 상태 .locked .on .waiting .mat .giftable · .cnt</p>
       <div class="k-grid"><button><img src="assets/kiwi.webp" alt="" /></button><button class="on"><img src="assets/kiwi.webp" alt="" /></button><button class="waiting"><img src="assets/kiwi.webp" alt="" /></button><button class="locked">?</button><button class="mat giftable"><img src="assets/kiwi.webp" alt="" /><span class="cnt">3</span></button></div>
-      <div class="k-grid k-grid--items" style="margin-top:10px" id="itemsDemo"></div>
+      <div class="k-grid k-grid--items" style="margin-top:8px" id="itemsDemo"></div>
     </section>
 
     <section class="k-win card">
@@ -125,7 +125,7 @@
     <section class="k-win card">
       <p class="lbl">.k-entries (기록 줄) · .k-pill · .k-card</p>
       <div class="k-entries"><div><b>작은 섬 · 물안개</b><button>이름 짓기</button><span>12.4해리 · 2026-10-25</span></div><div class="spot"><b>고래 길</b><span>바다 위의 곳</span></div></div>
-      <p style="margin:12px 0 6px"><span class="k-pill k-pill--title">해도</span> <span class="k-pill">열린 섬 36 / 36</span></p>
+      <p style="margin:12px 0 8px"><span class="k-pill k-pill--title">해도</span> <span class="k-pill">열린 섬 36 / 36</span></p>
       <div class="k-card"><b class="nm">벚꽃 강변</b><p class="k-hint">3번 닿음 · 다음 섬까지 1.0해리</p><div class="k-actions"><button class="k-btn k-btn--primary">항해로 가기</button><button class="k-btn">닫기</button></div></div>
     </section>
 
