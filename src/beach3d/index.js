@@ -9,6 +9,7 @@
 //   · write(text) 글을 발자국으로 모래에 쓴다(물이 지나가면 지워짐) · clearPrints()
 //   · setActors(on) 모래 위를 돌아다니는 키위 켜고 끄기 (물이 오면 피한다)
 //   · setWeather('clear' | 'rain' | 'fog' 또는 { rain, fog }) 비(물 위 파문·젖은 모래)·안개
+//   · setWater(값) 워터 그래픽: 물 성질(거품·투명도·빛 비침·파티클…)을 바꾼다 — 값은 water-gfx.js 의 waterFor(맵) · waterOfKind(종류) · tuneWater(값, 배율)
 //   · edgeY(그림 x) 지금 물가선의 그림 y — 게임 로직(글씨 지우기·게·물고기)이 물을 따라갈 때 쓴다
 //   · resize(w, h, dpr) · dispose()
 

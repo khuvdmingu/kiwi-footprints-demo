@@ -70,6 +70,7 @@ export const BEACH_GLSL = /* glsl */ `
   uniform float uU;
   uniform float uT;
   uniform float uAmp;
+  uniform float uSwell;   // 너울 크기 배율 (워터 그래픽 모듈 — 호수·연못은 잔잔하게)
   uniform vec4 uRip[6];   // 누른 자리 파문: (그림 x, 그림 y, 시작 시각, 세기)
   uniform sampler2D uEdge;   // 게임 연결: 게임이 정한 물가선 (그려진 물가선에서의 거리 u, 가로 128칸 · 16비트)
   uniform float uExt;        // 1 이면 철썩임 식 대신 uEdge 를 따른다
@@ -109,7 +110,7 @@ export const BEACH_GLSL = /* glsl */ `
   float front(vec2 P, float d, float t) { return sin((d + swellBend(P.x / uU)) / 22. + t * 1.1); }
   float swell(vec2 P, float d, float t) {
     float xu = P.x / uU, bend = swellBend(xu);
-    float a = smoothstep(0., 60., d) * uAmp;
+    float a = smoothstep(0., 60., d) * uAmp * uSwell;
     return a * (.10 * sin((d + bend) / 22. + t * 1.1) + .06 * sin((d - bend * .6) / 13. + t * 1.6 + xu / 90.) + .03 * sin(d / 7. + t * 2.3 - xu / 40.));
   }
   float ripple(vec2 P, float t) {

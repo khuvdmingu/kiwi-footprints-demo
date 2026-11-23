@@ -14,15 +14,17 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { loadPlate } from '../plate.js?v=v30.37.0-65e8ff8';
-import { MAPS } from '../maps.js?v=v30.37.0-65e8ff8';
-import { skyAt } from '../gfx3d/sky.js?v=v30.37.0-65e8ff8';
-import { artAt } from '../atmos.js?v=v30.37.0-65e8ff8';   // 시간대 그림 가중치 — 2D 게임과 같은 식
-import { M, edgeD, terrainH, packEdge } from './model.js?v=v30.37.0-65e8ff8';
-import { KIWI, makeActor, stepActor } from './layers/actors.js?v=v30.37.0-65e8ff8';
-import { WEATHERS, approach } from './layers/weather.js?v=v30.37.0-65e8ff8';
-import { sandArea, layoutPrints, washed } from './layers/prints.js?v=v30.37.0-65e8ff8';
-import { QUAD_VERT, SAND_FRAG, SIM_FRAG, WATER_FRAG, RELIEF_VERT, RELIEF_FRAG } from './shaders.js?v=v30.37.0-65e8ff8';
+import { loadPlate } from '../plate.js?v=v30.38.0-353baf5';
+import { MAPS } from '../maps.js?v=v30.38.0-353baf5';
+import { skyAt } from '../gfx3d/sky.js?v=v30.38.0-353baf5';
+import { artAt } from '../atmos.js?v=v30.38.0-353baf5';   // 시간대 그림 가중치 — 2D 게임과 같은 식
+import { M, edgeD, terrainH, packEdge } from './model.js?v=v30.38.0-353baf5';
+import { KIWI, makeActor, stepActor } from './layers/actors.js?v=v30.38.0-353baf5';
+import { WEATHERS, approach } from './layers/weather.js?v=v30.38.0-353baf5';
+import { waterFor, mergeWater } from './water-gfx.js?v=v30.38.0-353baf5';   // 워터 그래픽 모듈: 맵마다 다른 물 성질
+import { MAX_PARTICLES, makeParticles, stepParticles, particleAlpha } from './layers/particles.js?v=v30.38.0-353baf5';
+import { sandArea, layoutPrints, washed } from './layers/prints.js?v=v30.38.0-353baf5';
+import { PARTICLE_VERT, PARTICLE_FRAG, QUAD_VERT, SAND_FRAG, SIM_FRAG, WATER_FRAG, RELIEF_VERT, RELIEF_FRAG } from './shaders.js?v=v30.38.0-353baf5';
 
 const PLANE_W = 32;                    // 입체 판의 폭 (월드 단위)
 const FOV = 30;
@@ -83,7 +85,7 @@ export class Beach3D {
     // 모든 식이 함께 쓰는 값
     const shared = this.shared = {
       uShore: { value: shoreTex }, uRock: { value: rockTex }, uPlate: { value: new THREE.Vector2(pw, ph) }, uU: { value: this.u },
-      uT: { value: 0 }, uAmp: { value: this.waves }, uRip: { value: this.rips },
+      uT: { value: 0 }, uAmp: { value: this.waves }, uSwell: { value: 1 }, uRip: { value: this.rips },
       uEdge: { value: this.edgeTex = new THREE.DataTexture(this.edgeData = new Uint8Array(128 * 4), 128, 1) }, uExt: { value: 0 }, uEdgeX: { value: new THREE.Vector2(0, pw) },
     };
 
@@ -105,7 +107,9 @@ export class Beach3D {
     this.waterMat = new THREE.ShaderMaterial({
       vertexShader: QUAD_VERT, fragmentShader: WATER_FRAG,
       uniforms: {
-        ...shared, ...this.wx, uGround: { value: null }, ...this.art, uSeaD: { value: d0.sea }, uSeaW: { value: d0.sea }, uSeaN: { value: d0.sea }, uSim: { value: null },
+        ...shared, ...this.wx, uGround: { value: null },
+        uWFoam: { value: 1 }, uWCrest: { value: 1 }, uWLace: { value: 1 }, uWClarity: { value: 1 }, uWDeep: { value: 1 }, uWTint: { value: new THREE.Vector3(1, 1, 1) },
+        uWRefract: { value: 1 }, uWSky: { value: 1 }, uWSparkle: { value: 1 }, ...this.art, uSeaD: { value: d0.sea }, uSeaW: { value: d0.sea }, uSeaN: { value: d0.sea }, uSim: { value: null },
         uCam: { value: new THREE.Vector3() }, uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uSunCol: { value: new THREE.Color() },
         uSpec: { value: 1 }, uShine: { value: 600 }, uPath: { value: 200 }, uGlow: { value: 0.08 }, uSkyCol: { value: new THREE.Color() }, uWaterCol: { value: new THREE.Color() },
         uFoamCol: { value: new THREE.Color() }, uCaus: { value: 0.5 }, uDebug: { value: 0 },
@@ -124,6 +128,8 @@ export class Beach3D {
     comp.addPass(new RenderPass(this.scene, this.camera));
     this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.5, 0.35, 1.0);   // 1.0 넘는 값(반사광)만 번진다 — 흰 거품은 그대로
     comp.addPass(this.bloom); comp.addPass(new OutputPass());
+    this.makeParticleLayer();
+    this.water = waterFor(this.mapId);   // 이 맵의 물 성질 (water-gfx.js)
     if (this.game) this.actors = []; else await this.makeActors();   // 게임에서는 키위·글씨를 게임이 그린다
     this.ready = true;
     this.makeTargets();
@@ -170,13 +176,15 @@ export class Beach3D {
     u.uWaterCol.value.setRGB(...mix3(mix3([0.3, 0.8, 0.76], [0.75, 0.6, 0.5], warm), [0.06, 0.16, 0.3], n));
     u.uFoamCol.value.setRGB(...mix3(mix3([1, 0.99, 0.96], [1, 0.9, 0.8], warm), [0.55, 0.66, 0.85], n));
     u.uCaus.value = 0.55 * (1 - n) * (1 - 0.5 * warm);
+    this.lightBase = { spec: u.uSpec.value, path: u.uPath.value, glow: u.uGlow.value, caus: u.uCaus.value };   // 시간대의 빛 × 맵의 물 성질
+    this.applyWater();
     this.wx.uFogCol.value.setRGB(...mix3(mix3([0.86, 0.89, 0.9], [0.9, 0.76, 0.68], warm), [0.2, 0.25, 0.36], n));
     this.bloom.strength = 0.35 + 0.35 * Math.max(n, warm);
   }
   // 시간대 그림은 필요해질 때 한 번만 읽는다. 읽는 동안은 낮 그림으로 그린다(가중치가 0 근처일 때 읽기 시작하므로 티가 안 난다)
   need(kind) {
     if (this.tex[kind] || this.loading[kind]) return;
-    this.loading[kind] = Promise.all([this.loadTex(`${this.name}-dry${ART[kind]}.webp?v=v30.37.0-65e8ff8`), this.loadTex(`${this.name}-sea${ART[kind]}.webp?v=v30.37.0-65e8ff8`)])
+    this.loading[kind] = Promise.all([this.loadTex(`${this.name}-dry${ART[kind]}.webp?v=v30.38.0-353baf5`), this.loadTex(`${this.name}-sea${ART[kind]}.webp?v=v30.38.0-353baf5`)])
       .then(([dry, sea]) => { this.tex[kind] = { dry, sea }; }, () => { this.tex[kind] = this.tex.day; })
       .then(() => { delete this.loading[kind]; if (this.ready) this.applyArt(); });
   }
@@ -187,6 +195,42 @@ export class Beach3D {
   setTilt(rad) { this.tilt = rad; this.place(); }
   setWaves(k) { this.waves = k; if (this.shared) this.shared.uAmp.value = k; }
   setBloom(on) { this.bloomOn = on; }
+  // 워터 그래픽: 물 성질 한 벌을 넣는다 (water-gfx.js 의 waterFor · waterOfKind · tuneWater 로 만든 값. 빠진 값은 바다 기본)
+  setWater(w) { this.water = mergeWater(w); this.applyWater(); }
+  applyWater() {
+    if (!this.ready && !this.waterMat) return;
+    const w = this.water || mergeWater(), u = this.waterMat.uniforms, b = this.lightBase;
+    u.uWFoam.value = w.foam; u.uWCrest.value = w.crest; u.uWLace.value = w.lace; u.uWClarity.value = Math.max(0.15, w.clarity); u.uWDeep.value = w.deep;
+    u.uWTint.value.set(w.tint[0], w.tint[1], w.tint[2]); u.uWRefract.value = w.refract; u.uWSky.value = w.sky; u.uWSparkle.value = w.sparkle;
+    this.shared.uSwell.value = w.swell;
+    if (b) { u.uSpec.value = b.spec * w.shine; u.uPath.value = b.path / Math.max(0.2, w.path); u.uGlow.value = b.glow * w.glow; u.uCaus.value = b.caus * w.caustics; }
+  }
+  // 물 파티클 층 (움직임은 layers/particles.js): 점 MAX_PARTICLES 개를 미리 잡아 두고 프레임마다 자리·크기·세기를 채운다
+  makeParticleLayer() {
+    const g = new THREE.BufferGeometry(), n = MAX_PARTICLES;
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    g.setAttribute('aSize', new THREE.BufferAttribute(new Float32Array(n), 1));
+    g.setAttribute('aAlpha', new THREE.BufferAttribute(new Float32Array(n), 1));
+    this.partMat = new THREE.ShaderMaterial({ vertexShader: PARTICLE_VERT, fragmentShader: PARTICLE_FRAG, transparent: true, depthTest: false, depthWrite: false,
+      uniforms: { uScale: { value: 600 }, uColor: { value: new THREE.Color(1, 1, 1) } } });
+    this.partPoints = new THREE.Points(g, this.partMat); this.partPoints.frustumCulled = false; this.partPoints.renderOrder = 3;
+    this.scene.add(this.partPoints); this.parts = makeParticles();
+  }
+  updateParticles(dt) {
+    const w = this.water; if (!this.partPoints || !w) return;
+    const rain = this.wx.uRain.value, amount = w.particles === 'none' ? 0 : w.particleAmount * this.waves * (1 - 0.6 * rain);
+    stepParticles(this.parts, dt, { type: w.particles, amount, pw: this.pw, ph: this.ph, u: this.u, edgeY: (x) => this.edgeY(x) });
+    const g = this.partPoints.geometry, pos = g.attributes.position.array, sz = g.attributes.aSize.array, al = g.attributes.aAlpha.array;
+    const k = PLANE_W / this.pw, relief = this.reliefMat.uniforms.uRelief.value, list = this.parts.list, n = Math.min(list.length, MAX_PARTICLES);
+    for (let i = 0; i < n; i++) {
+      const p = list[i];
+      pos[i * 3] = (p.x / this.pw - 0.5) * PLANE_W; pos[i * 3 + 1] = 0.05 + 0.9 * relief; pos[i * 3 + 2] = (p.y / this.ph - 0.5) * this.planeH;
+      sz[i] = p.size * k * 2; al[i] = particleAlpha(p, this.t);
+    }
+    g.setDrawRange(0, n); g.attributes.position.needsUpdate = true; g.attributes.aSize.needsUpdate = true; g.attributes.aAlpha.needsUpdate = true;
+    this.partMat.uniforms.uColor.value.copy(this.waterMat.uniforms.uFoamCol.value);
+    this.partMat.uniforms.uScale.value = (this.H || 600) * this.dpr / (2 * Math.tan(THREE.MathUtils.degToRad(FOV) / 2));
+  }
   // 날씨: 'clear' | 'rain' | 'fog' 또는 { rain, fog } (0~1). 몇 초에 걸쳐 부드럽게 바뀐다
   setWeather(w) { const v = typeof w === 'string' ? WEATHERS[w] || WEATHERS.clear : w || {}; this.wxTo = { rain: Math.min(1, Math.max(0, v.rain || 0)), fog: Math.min(1, Math.max(0, v.fog || 0)) }; }
   setActors(on) { this.actorsOn = on; if (this.actorGroup) this.actorGroup.visible = on; }
@@ -213,7 +257,7 @@ export class Beach3D {
   // 키위: 모래 위를 돌아다니는 판. 늘 카메라를 본다 — 위에서 보면 바닥에 누운 그림처럼, 기울이면 서 있는 것처럼 (움직임은 layers/actors.js)
   async makeActors(n = 4) {
     this.actorGroup = new THREE.Group(); this.actorGroup.visible = this.actorsOn !== false; this.scene.add(this.actorGroup);
-    let tex; try { tex = await this.loadTex('kiwi.webp?v=v30.37.0-65e8ff8'); } catch (e) { this.actors = []; return; }
+    let tex; try { tex = await this.loadTex('kiwi.webp?v=v30.38.0-353baf5'); } catch (e) { this.actors = []; return; }
     this.kiwiTex = tex;
     const k = PLANE_W / this.pw, h = KIWI.SIZE * this.u * k, w = h * tex.image.naturalWidth / tex.image.naturalHeight;
     const body = new THREE.PlaneGeometry(w, h); body.translate(0, h * 0.3, 0);   // 발밑이 기준점
@@ -305,6 +349,7 @@ export class Beach3D {
     this.wx.uRain.value = approach(this.wx.uRain.value, this.wxTo.rain, dt); this.wx.uFog.value = approach(this.wx.uFog.value, this.wxTo.fog, dt);
     this.updateMarks(dt);
     this.updateActors(dt);
+    this.updateParticles(dt);
     // ① 바닥 층
     r.setRenderTarget(this.groundRT); r.render(this.ground, this.groundCam);
     // 게임 연결: 켠 직후 1초의 젖음·거품은 버린다 (게임이 시작할 때 물가선이 잠깐 높이 잡혀 모래 위쪽에 거품 줄이 남던 것)
@@ -330,6 +375,7 @@ export class Beach3D {
     for (const k of ['groundRT', 'compRT', 'simA', 'simB']) this[k]?.dispose();
     for (const set of Object.values(this.tex)) { set.dry?.dispose(); set.sea?.dispose(); }
     for (const m of [this.simMat, this.waterMat, this.reliefMat, this.sandMat]) m?.dispose();
+    this.partPoints?.geometry.dispose(); this.partMat?.dispose();
     this.edgeTex?.dispose(); this.shared?.uShore.value.dispose(); this.shared?.uRock.value.dispose(); this.markTex?.dispose();
     for (const k of this.actors || []) { k.m.geometry.dispose(); k.m.material.dispose(); k.sh.geometry.dispose(); k.sh.material.dispose(); }
     this.kiwiTex?.dispose();

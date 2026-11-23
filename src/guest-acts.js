@@ -61,7 +61,7 @@ export function animateGuest(el, id, base = 'assets/') {
   const a = GUEST_ACTS[id];
   if (!a || a.off || typeof Image === 'undefined' || !el.animate) return;
   if (typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const src = base + 'guest-act-' + id + '.webp?v=v30.37.0-65e8ff8';
+  const src = base + 'guest-act-' + id + '.webp?v=v30.38.0-353baf5';
   const im = new Image();
   let shown = false;
   const showStill = () => { if (!shown) { shown = true; el.style.opacity = ''; } };

@@ -6,7 +6,7 @@
   <title>해변 3D 물 시험</title>
   <!-- 2026-11-23 해변을 three.js 로 구조부터 다시 세운 판(src/beach3d) 시험 — 물에 집중. 지금 게임 화면은 바꾸지 않는다.
        화면을 누르면: 물 = 파문, 모래 = 발자국(물이 지나가면 지워짐)
-       주소 옵션: ?hour=18.2 · ?tilt=20(도) · ?waves=1 · ?bloom=0 · ?debug=1|2 · ?map=beach · ?text=안녕(발자국 글씨) · ?q=0.5(폰용 화질 — 합성 그림 크기 배율 0.25~1) -->
+       주소 옵션: ?hour=18.2 · ?tilt=20(도) · ?waves=1 · ?bloom=0 · ?debug=1|2 · ?map=beach · ?water=lake(물 종류: sea lagoon lake glacier river stream pond swamp hotspring) · ?text=안녕(발자국 글씨) · ?q=0.5(폰용 화질 — 합성 그림 크기 배율 0.25~1) -->
   <script type="importmap">{ "imports": { "three": "./vendor/three/build/three.module.js", "three/addons/": "./vendor/three/addons/" } }</script>
   <style>
     :root { --bg: #f4ecdc; --ink: #3d2b1c; --soft: #8a7258; --line: #e2d3b6; --accent: #b4532a; }
@@ -35,6 +35,11 @@
     <label>파도 <input id="waves" type="range" min="0" max="2" step="0.05" /></label>
     <button id="bloom">빛 번짐</button>
     <button id="kiwi">키위</button>
+    <label>물 <select id="wkind" style="min-height:40px; padding:0 10px; border-radius:99px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font:inherit"></select></label>
+    <label>거품 <input id="wFoam" type="range" min="0" max="2" step="0.05" value="1" /></label>
+    <label>투명도 <input id="wClar" type="range" min="0.2" max="2" step="0.05" value="1" /></label>
+    <label>빛 <input id="wShine" type="range" min="0" max="2" step="0.05" value="1" /></label>
+    <label>파티클 <input id="wPart" type="range" min="0" max="2" step="0.05" value="1" /></label>
     <button data-wx="clear">맑음</button><button data-wx="rain">비</button><button data-wx="fog">안개</button>
     <button data-debug="0">그림</button><button data-debug="1">물 깊이</button><button data-debug="2">젖음·거품</button>
     <label>글씨 <input id="text" type="text" placeholder="안녕 키위" style="min-height:40px; width:130px; padding:0 12px; border-radius:99px; border:1px solid var(--line); background:transparent; color:var(--ink); font:inherit" /></label><button id="write">쓰기</button>
@@ -43,6 +48,7 @@
   <main><canvas id="cv"></canvas><div id="msg">불러오는 중…</div></main>
   <script type="module">
     import { mountBeach3D, canUse3D } from './src/beach3d/index.js';
+    import { waterFor, waterOfKind, tuneWater, WATER_KIND_NAME } from './src/beach3d/water-gfx.js';   // 워터 그래픽 모듈 (값만 — three.js 를 읽지 않는다)
     const q = new URLSearchParams(location.search), num = (k, d) => (q.has(k) && isFinite(+q.get(k)) ? +q.get(k) : d);
     const st = { hour: num('hour', 12), tilt: num('tilt', 0), waves: num('waves', 1), bloom: q.get('bloom') !== '0', debug: num('debug', 0), map: q.get('map') || 'beach', q: num('q', 1), text: q.get('text') || '', kiwi: q.get('kiwi') !== '0', weather: q.get('weather') || 'clear' };
     const $ = id => document.getElementById(id), main = document.querySelector('main'), msg = $('msg'), cv = $('cv');
@@ -59,7 +65,7 @@
     sync();
     if (!canUse3D()) msg.textContent = '이 기기는 WebGL2 가 안 돼서 3D 장면을 못 엽니다';
     else mountBeach3D(cv, { map: st.map, hour: st.hour, tilt: st.tilt * Math.PI / 180, bloom: st.bloom, waves: st.waves, quality: st.q })
-      .then(s => { scene = s; s.setDebug(st.debug); s.setActors(st.kiwi); s.setWeather(st.weather); if (st.text) s.write(st.text); const r = main.getBoundingClientRect(); s.resize(r.width, r.height, devicePixelRatio || 1); msg.textContent = '눌러 보세요 — 물: 파문 · 모래: 발자국'; setTimeout(() => (msg.hidden = true), 5000); })
+      .then(s => { scene = s; s.setDebug(st.debug); s.setActors(st.kiwi); s.setWeather(st.weather); window.__applyWater?.(); if (st.text) s.write(st.text); const r = main.getBoundingClientRect(); s.resize(r.width, r.height, devicePixelRatio || 1); msg.textContent = '눌러 보세요 — 물: 파문 · 모래: 발자국'; setTimeout(() => (msg.hidden = true), 5000); })
       .catch(e => { msg.textContent = '열지 못했어요: ' + e.message; console.error(e); });
     $('hour').oninput = e => { st.hour = +e.target.value; scene?.setHour(st.hour); sync(); };
     document.querySelectorAll('[data-hour]').forEach(b => b.onclick = () => { st.hour = +b.dataset.hour; scene?.setHour(st.hour); sync(); });
@@ -68,6 +74,15 @@
     $('text').value = st.text; $('write').onclick = () => { st.text = $('text').value; scene?.write(st.text); };
     $('text').onkeydown = e => { if (e.key === 'Enter') $('write').click(); };
     document.querySelectorAll('[data-wx]').forEach(b => b.onclick = () => { st.weather = b.dataset.wx; scene?.setWeather(st.weather); sync(); });
+    // 워터 그래픽: 「물」 = 이 맵의 기본 또는 종류를 골라 보기, 막대 = 그 값에 곱하는 배율
+    const wk = $('wkind'); wk.innerHTML = '<option value="map">맵 기본</option>' + Object.entries(WATER_KIND_NAME).map(([k, n]) => `<option value="${k}">${n}</option>`).join('');
+    wk.value = q.get('water') && WATER_KIND_NAME[q.get('water')] ? q.get('water') : 'map';
+    const applyWater = () => {
+      const base = wk.value === 'map' ? waterFor(st.map) : waterOfKind(wk.value), f = +$('wFoam').value, sh = +$('wShine').value;
+      scene?.setWater(tuneWater(base, { foam: f, crest: f, lace: f, clarity: +$('wClar').value, shine: sh, sparkle: sh, glow: sh, particleAmount: +$('wPart').value }));
+    };
+    window.__applyWater = applyWater;
+    for (const id of ['wkind', 'wFoam', 'wClar', 'wShine', 'wPart']) $(id).oninput = applyWater;
     $('kiwi').onclick = () => { st.kiwi = !st.kiwi; scene?.setActors(st.kiwi); sync(); };
     $('bloom').onclick = () => { st.bloom = !st.bloom; scene?.setBloom(st.bloom); sync(); };
     document.querySelectorAll('[data-debug]').forEach(b => b.onclick = () => { st.debug = +b.dataset.debug; scene?.setDebug(st.debug); sync(); });

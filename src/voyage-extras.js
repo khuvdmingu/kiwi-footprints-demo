@@ -7,10 +7,10 @@
 //   · extras.drawIsland(ctx, beach, mapId, night) — 섬 장면에 지은 것을 그린다
 //  규칙·저장은 chart.js · fishing.js · build.js 에, 화면 칸(바구니 › 해도 · 장소·소리 · 도감, 집중 창 안내)은 index.html 에.
 
-import { Chart, ISLET, SPOT, BIG, STOCK_ISLE_SHEETS, tally, drawChart, drawIsle, drawChartLabel, drawChartNames, drawVoyageMark, voyagePoint, mutedSea, nightTone, nightSparkles, moonGlow, mapDim, NIGHT_OUT, routeLine, josa, SHEET as CHART_SHEET, CHART_B, BIG_ART } from './chart.js?v=v30.37.0-65e8ff8';
-import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v30.37.0-65e8ff8';
-import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v30.37.0-65e8ff8';
-import { loadSheet } from './sheet.js?v=v30.37.0-65e8ff8';
+import { Chart, ISLET, SPOT, BIG, STOCK_ISLE_SHEETS, tally, drawChart, drawIsle, drawChartLabel, drawChartNames, drawVoyageMark, voyagePoint, mutedSea, nightTone, nightSparkles, moonGlow, mapDim, NIGHT_OUT, routeLine, josa, SHEET as CHART_SHEET, CHART_B, BIG_ART } from './chart.js?v=v30.38.0-353baf5';
+import { Catches, CATCHES, CATCH, rollCatch, catchLine, drawCatch, drawLine, MATERIAL_MIN, RARITY, SHEET as CATCH_SHEET } from './fishing.js?v=v30.38.0-353baf5';
+import { Builds, BUILDS, buildFor, drawBuilds, nextText } from './build.js?v=v30.38.0-353baf5';
+import { loadSheet } from './sheet.js?v=v30.38.0-353baf5';
 
 // 그림 격자가 assets/ 에 들어오면 true 로 (없을 때 404 를 내지 않게 — 그동안은 코드 그림)
 export const ART = { chart: true, catch: true, extra: true, kit: true, isles: true };   // isles: 재고 24곳 섬 그림 격자 chart-isles-a/b.webp (v29.4.1 Codex 그림)   // 2026-10-21 Higgsfield 격자 2장 (docs/GRAPHICS-PROMPTS.md v28)
@@ -23,18 +23,18 @@ export function mountExtras(env) {
   const base = new URL('../assets/', import.meta.url).href;
   const sheets = { chart: null, catch: null, extra: null, kit: null, chartB: null, paper: null };
   const load = (k, f) => { if (ART[k]) loadSheet(base + f).then(s => { if (s) { sheets[k] = s; paintAll(); } }); };
-  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v30.37.0-65e8ff8'); load('kit', 'build-sheet-2.webp?v=v30.37.0-65e8ff8');   // v28.20 벚꽃 강변·오아시스 건물   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
+  load('chart', CHART_SHEET); load('catch', CATCH_SHEET); load('extra', 'extra-sheet.webp?v=v30.38.0-353baf5'); load('kit', 'build-sheet-2.webp?v=v30.38.0-353baf5');   // v28.20 벚꽃 강변·오아시스 건물   // v28.3 보충 격자 (작은 섬 4 · 바다 위의 곳 4 · 장소별 건물 8)
   // v28.19 해도 그림 B — 양피지 + 새 아이콘 (못 읽으면 지금 그림 그대로)
   loadSheet(base + CHART_B.sheet).then(s => { if (s) { sheets.chartB = s; paintAll(); } });
   // v29.4.5: 양피지 종이(틀 있는 그림)는 해도 창에서 안 쓴다 — 바탕이 화면 끝까지
   sheets.isles = [];   // v29.4 재고 24곳 섬 그림 격자 두 장
   // v29.4.8 해도 바다 = Codex 가 섬 그림과 같은 붓질로 그린 물 한 장 (stock/chart-sea) — 해도 전체에 한 장으로 편다
   //  2026-11-22 (사용자 「해도 바깥 경계가 선이 너무 잘 보인다」): 이 그림은 끝과 끝이 이어지는 한 장(stock/chart-sea/sea-b.png)이라 해도 밖에 그대로 이어 붙인다
-  { const im = new Image(); im.onload = () => { sheets.sea = im; paintAll(); }; im.src = base + 'chart-sea.webp?v=v30.37.0-65e8ff8'; }
+  { const im = new Image(); im.onload = () => { sheets.sea = im; paintAll(); }; im.src = base + 'chart-sea.webp?v=v30.38.0-353baf5'; }
   if (ART.isles) STOCK_ISLE_SHEETS.forEach((f, i) => loadSheet(base + f).then(s => { if (s) { sheets.isles[i] = s; paintAll(); } }));
   const stump = new Image();
   stump.onload = () => { sheets.stump = stump; };
-  stump.src = base + 'harbor-stump.webp?v=v30.37.0-65e8ff8';
+  stump.src = base + 'harbor-stump.webp?v=v30.38.0-353baf5';
   sheets.bigArt = {};   // v28.20 격자 칸이 없는 큰 섬 (벚꽃 강변·오아시스)
   for (const [id, f] of Object.entries(BIG_ART)) { const im = new Image(); im.onload = () => { sheets.bigArt[id] = im; paintAll(); }; im.src = base + f; }
   // 같은 판의 다른 그림 묶음 (2026-11-22) — 밤(-night: 달밤으로 다시 칠함, 사용자 「밤일 때 섬들만 낮이라 어색하다」) ·
@@ -43,7 +43,7 @@ export function mountExtras(env) {
   let chartStyle = saved('chartStyle') === 'map' ? 'map' : 'real';
   const artSet = (sfx, sea) => {
     const s = { asked: false, chart: null, chartB: null, isles: [], bigArt: {}, sea: null };
-    const file = f => f.replace(/\.webp$/, `-${sfx}.webp?v=v30.37.0-65e8ff8`);
+    const file = f => f.replace(/\.webp$/, `-${sfx}.webp?v=v30.38.0-353baf5`);
     s.ready = () => !!(s.chart && s.chartB && STOCK_ISLE_SHEETS.every((_, i) => s.isles[i]) && Object.keys(BIG_ART).every(id => s.bigArt[id]) && (!sea || s.sea));
     s.load = () => {
       if (s.asked) return; s.asked = true;
@@ -56,7 +56,7 @@ export function mountExtras(env) {
     };
     return s;
   };
-  const nightArt = artSet('night'), mapArt = artSet('map', 'chart-sea-map.webp?v=v30.37.0-65e8ff8');
+  const nightArt = artSet('night'), mapArt = artSet('map', 'chart-sea-map.webp?v=v30.38.0-353baf5');
   // 지금 그릴 그림: 옛 해도면 옛 해도 판(밤엔 종이째 어둡게) · 그림이면 밤엔 밤 판 · 아직 안 왔으면 낮 판
   const artNow = () => {
     const nt = isNight(), map = chartStyle === 'map';

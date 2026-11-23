@@ -1,7 +1,7 @@
 // beach3d/shaders.js — 그리는 식 셋: ① 젖음·거품 기억 ② 물 합성 ③ 입체 판
 //  모두 "그림 좌표"(해변 그림의 픽셀, 왼쪽 위가 0,0)에서 계산한다. 모래 높이·물 높이 식은 model.js 의 BEACH_GLSL.
 //  색은 그림의 값을 그대로 쓴다(색 공간 변환·톤 매핑 없음 — 그린 색이 바뀌지 않게, beach3d.js 의 렌더러 설정과 짝).
-import { BEACH_GLSL, M } from './model.js?v=v30.37.0-65e8ff8';
+import { BEACH_GLSL, M } from './model.js?v=v30.38.0-353baf5';
 
 const f = (v) => { const s = String(v); return s.includes('.') ? s : s + '.'; };
 
@@ -65,6 +65,16 @@ export const WATER_FRAG = /* glsl */ `
   uniform vec3 uFoamCol;
   uniform float uCaus;         // 빛 그물 세기 (낮에만)
   uniform int uDebug;          // 0 그림 · 1 물 깊이 · 2 젖음·거품
+  // 워터 그래픽 모듈(water-gfx.js)의 물 성질 — 맵마다 다르다. 1 = 바다 기본
+  uniform float uWFoam;        // 물가 거품 띠
+  uniform float uWCrest;       // 물마루 거품
+  uniform float uWLace;        // 남는 거품 자국
+  uniform float uWClarity;     // 맑기
+  uniform float uWDeep;        // 그려진 물빛으로 넘어가는 빠르기
+  uniform vec3 uWTint;         // 물 자체의 색 배율
+  uniform float uWRefract;     // 바닥이 일렁이는 정도
+  uniform float uWSky;         // 하늘 비침
+  uniform float uWSparkle;     // 빛길 밖 반짝임
   uniform float uRain;         // 비 0~1
   uniform float uFog;          // 안개 0~1
   uniform vec3 uFogCol;
@@ -118,29 +128,30 @@ export const WATER_FRAG = /* glsl */ `
 
     // 물 아래 바닥: 물결에 굴절돼 일렁이고, 얕은 곳엔 빛 그물, 깊어질수록 붉은빛부터 사라진다
     vec2 wob = (vec2(wn, vnoise(q / 19. - vec2(0., uT * .04))) - .5) * .25;   // 물속이 느리게 일렁임
-    vec2 ro = (Nb.xz + wob) * min(wd, 1.5) * 10. * uU / uPlate;
+    vec2 ro = (Nb.xz + wob) * min(wd, 1.5) * 10. * uWRefract * uU / uPlate;
     vec3 g = texture(uGround, vUv + vec2(ro.x, -ro.y)).rgb;
     g *= 1. + caustic(q + Nb.xz * 3., uT) * uCaus * clear * smoothstep(.02, .25, D) * exp(-wd * 1.1);
-    vec3 tr = exp(-wd * vec3(1.7, .62, .42));
-    vec3 shallow = g * tr + uWaterCol * (1. - tr.g) * .55;
+    vec3 tr = exp(-wd * vec3(1.7, .62, .42) / uWClarity);   // 맑을수록 깊은 곳까지 바닥이 비친다
+    vec3 shallow = g * tr + uWaterCol * uWTint * (1. - tr.g) * .55;
     // 깊은 물: 그려진 바다 (물결 따라 살짝 일렁임)
-    vec2 so = (Nb.xz + wob) * 6. * uU / uPlate;
+    vec2 so = (Nb.xz + wob) * 6. * uWRefract * uU / uPlate;
     vec2 suv = vUv + vec2(so.x, -so.y);
     vec3 seaC = mix(mix(texture(uSeaD, suv).rgb, texture(uSeaW, suv).rgb, uArtW), texture(uSeaN, suv).rgb, uArtN);
-    vec3 water = mix(shallow, seaC, 1. - exp(-wd * 1.5));
+    vec3 water = mix(shallow, seaC, 1. - exp(-wd * 1.5 * uWDeep));
     // 하늘 비침 + 해·달 반사광 (잔물결마다 반짝)
     float F = .02 + .98 * pow(1. - max(dot(Nb, V), 0.), 5.);
-    water = mix(water, uSkyCol, F * .5);
+    water *= mix(vec3(1.), uWTint, .4);   // 물빛 전체에도 색이 옅게 밴다 (늪의 초록, 빙하의 푸른빛)
+    water = mix(water, uSkyCol, clamp(F * .5 * uWSky, 0., 1.));
     //  빛길: 물 한가운데(빛이 되비치는 자리) 둘레에서만 잔물결마다 작게 반짝이고, 그 안에 은은한 광택
     float path = pow(max(dot(Nb, Hh), 0.), uPath);
     float glint = pow(max(dot(N, Hh), 0.), uShine);
-    water += uSunCol * (glint * (.09 + 2.2 * path) * uSpec + path * uGlow) * clear;
+    water += uSunCol * (glint * (.09 * uWSparkle + 2.2 * path) * uSpec + path * uGlow) * clear;
 
     // 거품: 물가 띠 + 밀려오는 물마루
     float fn = vnoise(q / 3.1 + vec2(0., uT * .35)) * .6 + vnoise(q / 1.2 - vec2(uT * .2, 0.)) * .4;
     float edge = (1. - smoothstep(0., .11, D)) * inW;
     float crest = smoothstep(.78, 1., front(P, d, uT)) * smoothstep(6., 30., d) * (1. - smoothstep(70., 150., d)) * smoothstep(.42, .62, fn);
-    float foam = clamp(edge * smoothstep(.2, .5, fn + edge * .45) + crest * .8, 0., 1.);
+    float foam = clamp(edge * smoothstep(.2, .5, fn + edge * .45) * uWFoam + crest * .8 * uWCrest, 0., 1.);
     water = mix(water, uFoamCol, foam);
 
     // 비: 물 위 곳곳에 빗방울 파문이 번갈아 퍼진다 (2D water.js 와 같은 방식 — 칸마다 하나, 저마다 다른 박자. 위에서 보므로 둥글다)
@@ -159,7 +170,7 @@ export const WATER_FRAG = /* glsl */ `
     vec3 col = mix(sand, water, inW);
     // 물이 빠진 자리에 남은 거품 자국
     float lace = sim.g * (1. - inW) * (1. - rock) * smoothstep(.5, .68, fn);
-    col = mix(col, uFoamCol, lace * .7);
+    col = mix(col, uFoamCol, clamp(lace * .7 * uWLace, 0., 1.));
 
     // 비 오는 날의 회청 톤 · 안개(천천히 흐르는 큰 무늬 두 겹, 물 쪽이 조금 더 짙다)
     if (uRain > 0.) col = mix(col, vec3(dot(col, vec3(.3, .59, .11))) * vec3(.9, .95, 1.02), .3 * uRain) * (1. - .12 * uRain);
@@ -190,4 +201,28 @@ export const RELIEF_FRAG = /* glsl */ `
   varying vec2 vUv;
   uniform sampler2D uComp;
   void main() { gl_FragColor = vec4(texture(uComp, vUv).rgb, 1.); }
+`;
+
+// 물 파티클 (물방울 · 빛 알갱이 · 김): 둥글고 가장자리가 부드러운 점. 크기는 월드 단위 → 화면 px
+export const PARTICLE_VERT = /* glsl */ `
+  attribute float aSize;
+  attribute float aAlpha;
+  varying float vAlpha;
+  uniform float uScale;   // 화면 높이(px) / (2 × tan(시야각 / 2))
+  void main() {
+    vAlpha = aAlpha;
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    gl_PointSize = max(1., aSize * uScale / -mv.z);
+    gl_Position = projectionMatrix * mv;
+  }
+`;
+export const PARTICLE_FRAG = /* glsl */ `
+  varying float vAlpha;
+  uniform vec3 uColor;
+  void main() {
+    float d = length(gl_PointCoord - .5) * 2.;
+    float a = (1. - smoothstep(.25, 1., d)) * vAlpha;
+    if (a < .004) discard;
+    gl_FragColor = vec4(uColor, a);
+  }
 `;
