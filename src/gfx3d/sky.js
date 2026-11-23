@@ -1,6 +1,6 @@
 // gfx3d/sky.js — 3D 장면들이 같이 쓰는 하루의 빛과 물결 (three.js 없이 계산만 — 시험에서 그대로 부른다)
 //  시간대 가중치는 2D 항해와 같은 voyageLight(hour) 를 쓴다 → 밤·노을·새벽이 2D 와 같은 시각에 바뀐다.
-import { voyageLight } from '../voyage-scene.js?v=v30.36.0-8ae5258';
+import { voyageLight } from '../voyage-scene.js?v=v30.37.0-65e8ff8';
 
 const mix = (a, b, k) => a + (b - a) * k;
 const mix3 = (a, b, k) => a.map((v, i) => mix(v, b[i], k));

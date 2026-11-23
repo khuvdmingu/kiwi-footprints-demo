@@ -13,14 +13,14 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { skyAt, waveAt, WAVES_GLSL } from './sky.js?v=v30.36.0-8ae5258';
-import { boxesOf, SPEED } from '../voyage-scene.js?v=v30.36.0-8ae5258';
+import { skyAt, waveAt, WAVES_GLSL } from './sky.js?v=v30.37.0-65e8ff8';
+import { boxesOf, SPEED } from '../voyage-scene.js?v=v30.37.0-65e8ff8';
 
 const SEA = 60;            // 바다 면 크기 (월드 단위)
 const TEX_W = 52;          // 바다 그림 한 장이 덮는 폭 — 비스듬히 보이는 깊이(가까운 물~안개)까지 한 장이 덮어야 거울 이음매가 덜 보인다
 const BOAT = 2.1;          // 배 그림 판 크기 (나무 보트 길이 ≈ 1.9)
 const FLOW = 0.9;          // 물이 흐르는 빠르기 (월드 단위/초 — 2D 의 SPEED 와 비슷하게 보이게)
-const ART = { day: 'sea.webp?v=v30.36.0-8ae5258', sunset: 'sea-sunset.webp?v=v30.36.0-8ae5258', night: 'sea-night.webp?v=v30.36.0-8ae5258', dawn: 'sea-dawn.webp?v=v30.36.0-8ae5258' };
+const ART = { day: 'sea.webp?v=v30.37.0-65e8ff8', sunset: 'sea-sunset.webp?v=v30.37.0-65e8ff8', night: 'sea-night.webp?v=v30.37.0-65e8ff8', dawn: 'sea-dawn.webp?v=v30.37.0-65e8ff8' };
 const CREW = ['up', 'left', 'right', 'sleep', 'sky', 'wave'];
 const SEATS = [[-0.19, -0.04, 'up'], [0.19, -0.04, 'right'], [0, 0.26, 'left']];   // voyage-scene WIDE_SEATS 와 같은 자리 (배 폭·길이 비율)
 
@@ -65,7 +65,7 @@ export class Voyage3D {
   async load() {
     const b = this.base, tl = new THREE.TextureLoader();
     const tex = async f => { const t = await tl.loadAsync(b + f); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = this.renderer.capabilities.getMaxAnisotropy(); return t; };
-    const [boatT, sailT, crewT] = await Promise.all([tex('voyage-boat.webp?v=v30.36.0-8ae5258'), tex('voyage-sail.webp?v=v30.36.0-8ae5258'), tex('voyage-crew.webp?v=v30.36.0-8ae5258')]);
+    const [boatT, sailT, crewT] = await Promise.all([tex('voyage-boat.webp?v=v30.37.0-65e8ff8'), tex('voyage-sail.webp?v=v30.37.0-65e8ff8'), tex('voyage-crew.webp?v=v30.37.0-65e8ff8')]);
     this.seaTex = {};
     this.seaTex.day = await tex(ART.day);
     for (const t of Object.values(this.seaTex)) this.prepSea(t);
