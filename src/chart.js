@@ -8,25 +8,25 @@
 //  기록은 이 기기에만 (localStorage 'chart'). 항해 기록(voyage.log)은 voyage.js 가 갖고, 여기는 발견·이름만 갖는다.
 //  그리기: 그림 격자(assets/chart-sheet.webp, 4×4)가 있으면 칸을 잘라 쓰고, 없으면 코드로 그린다.
 
-import { fitCell, roundCell } from './sheet.js?v=v30.38.0-353baf5';
-import { drawCairn } from './build.js?v=v30.38.0-353baf5';
+import { fitCell, roundCell } from './sheet.js?v=v30.39.0-0299996';
+import { drawCairn } from './build.js?v=v30.39.0-0299996';
 
-export const SHEET = 'chart-sheet.webp?v=v30.38.0-353baf5';
+export const SHEET = 'chart-sheet.webp?v=v30.39.0-0299996';
 // v28.19 해도 그림 B (사용자 2026-10-24 비교 페이지에서 고름): 양피지 종이(나침반 포함) + 새 아이콘 격자 4×4
 //  새 격자 칸: 1행 화산·폭포 절벽·거북·등대 / 2행 환초·쌍둥이·빙산·떠 있는 꽃섬 / 3행 고래 꼬리·바다뱀·난파선·병 / 4행 X·닻·별 항로·바람 구름
 //  그림 칸이 없던 섬·바다 표시만 새 칸으로 (나머지는 지금 격자 그대로)
 // v28.20 격자 칸이 없는 큰 섬은 낱장 그림 (Codex 그림, 흰 바탕을 뺀 투명 webp)
-import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v30.38.0-353baf5';
-import { WATER_PLACES, WATER_IDS } from './maps-water.js?v=v30.38.0-353baf5';
-export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v30.38.0-353baf5', oasis: 'chart-isle-oasis.webp?v=v30.38.0-353baf5',
+import { STOCK_PLACES, STOCK_IDS } from './maps-stock.js?v=v30.39.0-0299996';
+import { WATER_PLACES, WATER_IDS } from './maps-water.js?v=v30.39.0-0299996';
+export const BIG_ART = { cherry: 'chart-isle-cherry.webp?v=v30.39.0-0299996', oasis: 'chart-isle-oasis.webp?v=v30.39.0-0299996',
   // 2026-11-22 (사용자 「그려」): 다른 섬 그림을 빌려 쓰던 물 장소 5곳(isleLike)의 전용 해도 섬 — 해도를 확대해 이름표가 뜨자 한강(은행나무 그림)은
   //  이름과 그림이 어긋나고 나머지는 같은 섬이 둘씩 보였다. Codex 가 장소 판을 보고 그린 한 장(stock/chart-isles-water)에서 잘라 냄 · 밤(-night) · 옛 해도(-map) 도 같이
-  'hydrangea-cove': 'chart-isle-hydrangea-cove.webp?v=v30.38.0-353baf5', 'hot-spring': 'chart-isle-hot-spring.webp?v=v30.38.0-353baf5', hangang: 'chart-isle-hangang.webp?v=v30.38.0-353baf5',
-  'bamboo-bay': 'chart-isle-bamboo-bay.webp?v=v30.38.0-353baf5', 'lavender-sandbar': 'chart-isle-lavender-sandbar.webp?v=v30.38.0-353baf5' };
+  'hydrangea-cove': 'chart-isle-hydrangea-cove.webp?v=v30.39.0-0299996', 'hot-spring': 'chart-isle-hot-spring.webp?v=v30.39.0-0299996', hangang: 'chart-isle-hangang.webp?v=v30.39.0-0299996',
+  'bamboo-bay': 'chart-isle-bamboo-bay.webp?v=v30.39.0-0299996', 'lavender-sandbar': 'chart-isle-lavender-sandbar.webp?v=v30.39.0-0299996' };
 // v29.4 재고 새 장소 24곳의 해도 섬 그림 (Codex 그림, 4×4 격자 두 장 — 위 세 줄에 12곳씩, STOCK_PLACES 순서). 못 읽으면 코드 그림
-export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v30.38.0-353baf5', 'chart-isles-b.webp?v=v30.38.0-353baf5'];
+export const STOCK_ISLE_SHEETS = ['chart-isles-a.webp?v=v30.39.0-0299996', 'chart-isles-b.webp?v=v30.39.0-0299996'];
 export const stockIsleCell = id => { const motif = WATER_PLACES.find(p => p.id === id)?.isleLike || id; const i = STOCK_PLACES.findIndex(p => p.id === motif); return i < 0 ? null : { sheet: Math.floor(i / 12), cell: i % 12 }; };
-export const CHART_B = { paper: 'chart-paper.webp?v=v30.38.0-353baf5', sheet: 'chart-sheet-2.webp?v=v30.38.0-353baf5',
+export const CHART_B = { paper: 'chart-paper.webp?v=v30.39.0-0299996', sheet: 'chart-sheet-2.webp?v=v30.39.0-0299996',
   islet: { 'i-twin': 5, 'i-lantern': 3, 'i-turtle': 2, 'i-end': 6, 'i-steam': 0, 'i-falls': 1, 'i-float': 7 },
   spot: { 's-reef': 4, 's-current': 15, 's-whale': 8, 's-wreck': 10, 's-bottle': 11 } };
 //  v30.21 (2026-11-22) 그려 두고 안 쓰던 칸: 0 화산 · 1 폭포 절벽 · 7 떠 있는 꽃섬 → 작은 섬, 10 난파선 · 11 병 → 바다 위의 곳.

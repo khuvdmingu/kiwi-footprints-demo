@@ -14,7 +14,7 @@ export function canUse3D() {
 // 장면 하나를 만들어 그림을 읽고 돌린다. 반환값의 setHour(h) · setBloom(on) · resize(w,h,dpr) · dispose() 를 쓴다
 export async function mountGfx3D(kind, canvas, opts = {}) {
   if (!canUse3D()) throw new Error('webgl2');
-  const mod = kind === 'lighthouse' ? await import('./lighthouse3d.js') : await import('./voyage3d.js');
+  const mod = kind === 'lighthouse' ? await import('./lighthouse3d.js?v=v30.39.0-0299996') : await import('./voyage3d.js?v=v30.39.0-0299996');
   const Scene = kind === 'lighthouse' ? mod.Lighthouse3D : mod.Voyage3D;
   const s = new Scene(canvas, opts);
   const r = canvas.getBoundingClientRect();

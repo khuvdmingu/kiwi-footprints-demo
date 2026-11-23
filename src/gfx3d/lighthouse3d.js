@@ -13,12 +13,12 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { volumetricBeamMaterial } from '../../vendor/threex/volumetric-beam.js?v=v30.38.0-353baf5';
-import { skyAt } from './sky.js?v=v30.38.0-353baf5';
-import { boxesOf } from '../voyage-scene.js?v=v30.38.0-353baf5';
+import { volumetricBeamMaterial } from '../../vendor/threex/volumetric-beam.js?v=v30.39.0-0299996';
+import { skyAt } from './sky.js?v=v30.39.0-0299996';
+import { boxesOf } from '../voyage-scene.js?v=v30.39.0-0299996';
 
 const PLATE_W = 16;
-const ART = { day: 'plate.webp?v=v30.38.0-353baf5', sunset: 'plate-sunset.webp?v=v30.38.0-353baf5', night: 'plate-night.webp?v=v30.38.0-353baf5', dawn: 'plate-dawn.webp?v=v30.38.0-353baf5' };
+const ART = { day: 'plate.webp?v=v30.39.0-0299996', sunset: 'plate-sunset.webp?v=v30.39.0-0299996', night: 'plate-night.webp?v=v30.39.0-0299996', dawn: 'plate-dawn.webp?v=v30.39.0-0299996' };
 const CELLS16 = Array.from({ length: 16 }, (_, i) => 'c' + i);
 const REACH = 10;           // 빛줄기 길이
 const BEAM_ANGLE = 0.13;    // 빛줄기 반각 (라디안)
@@ -53,7 +53,7 @@ export class Lighthouse3D {
     return t;
   }
   async load() {
-    const [plate, sheetT] = await Promise.all([this.loadTex(ART.day), this.loadTex('catch-sheet.webp?v=v30.38.0-353baf5')]);
+    const [plate, sheetT] = await Promise.all([this.loadTex(ART.day), this.loadTex('catch-sheet.webp?v=v30.39.0-0299996')]);
     this.tex.day = plate;
     const img = plate.image, ph = PLATE_W * img.naturalHeight / img.naturalWidth;
     this.plateH = ph;

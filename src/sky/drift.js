@@ -8,7 +8,7 @@
 //  나타나는 때: 맑은 낮(비·눈·짙은 안개 아님) — 나비는 눈밭 빼고 어디서나 · 홀씨는 바닷가·모래 정원·벚꽃 강변·오아시스 · 씨앗은 가을 호숫가
 //  v30.31 한강 둔치는 버들솜만 — 바람이 불수록 더 많이·빠르게 (2026-10-25 Codex feature/map-weather 의 강바람 버들솜을 이 층으로 옮김)
 
-const FILES = { bf: 'assets/drift-butterflies.webp?v=v30.38.0-353baf5', fluff: 'assets/drift-fluff.webp?v=v30.38.0-353baf5', seeds: 'assets/drift-seeds.webp?v=v30.38.0-353baf5' };
+const FILES = { bf: 'assets/drift-butterflies.webp?v=v30.39.0-0299996', fluff: 'assets/drift-fluff.webp?v=v30.39.0-0299996', seeds: 'assets/drift-seeds.webp?v=v30.39.0-0299996' };
 const FLUFF_MAPS = new Set(['beach', 'zen', 'cherry', 'oasis', 'hangang']);
 const WILLOW_ONLY = new Set(['hangang']);   // 2행 버들솜 칸만 쓰는 장소
 const WING = [0, 1, 2, 3, 2, 1];   // 날갯짓 칸 차례 (펼침 → 접힘 → 펼침)

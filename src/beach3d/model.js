@@ -18,6 +18,8 @@ export const M = {
   SWASH_REST: 0.1,  // 쉬는 동안 물가선이 그려진 물가선보다 조금 아래
   DRY_SECS: 16,     // 젖은 모래가 마르는 시간
   LACE_SECS: 4,     // 물러난 자리에 남은 거품이 사라지는 시간
+  FOAM_SECS: 2.6,   // 물 위 거품이 스러지는 시간 (water/foam.js)
+  SURF: 42,         // 물가에서 이만큼(u) 멀어지면 철썩임을 따르는 정도가 1/e 로 준다 (water/flow.js)
 };
 
 const TAU = Math.PI * 2;
@@ -65,7 +67,9 @@ export function packEdge(arr, out) {
 const f = (v) => { const s = String(v); return s.includes('.') ? s : s + '.'; };
 export const BEACH_GLSL = /* glsl */ `
   uniform sampler2D uShore;
-  uniform sampler2D uRock;
+  uniform sampler2D uRock;      // 바위 가림막 (또렷한 판)
+  uniform sampler2D uRockSoft;  // 바위 가림막을 넓게 번지게 한 판 — 돌 둘레(얕아짐·잔물결·거품 고리)
+  uniform float uTRock;         // 돌이 솟는 높이 배율 (지형 모듈)
   uniform vec2 uPlate;
   uniform float uU;
   uniform float uT;
@@ -78,7 +82,7 @@ export const BEACH_GLSL = /* glsl */ `
 
   float hash21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
   float vnoise(vec2 p) {
-    vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
+    vec2 i = floor(p), f = fract(p); f = f * f * f * (f * (f * 6. - 15.) + 10.);   // 5차 보간 — 칸 경계가 줄·네모로 드러나지 않게
     return mix(mix(hash21(i), hash21(i + vec2(1., 0.)), f.x), mix(hash21(i + vec2(0., 1.)), hash21(i + vec2(1., 1.)), f.x), f.y);
   }
   float shoreY(float px) {
@@ -89,16 +93,24 @@ export const BEACH_GLSL = /* glsl */ `
     return mix(ya, yb, fx - i) * uPlate.y;
   }
   float shoreD(vec2 P) { return (P.y - shoreY(P.x)) / uU; }
-  float rockAt(vec2 P) { return smoothstep(.22, .6, texture(uRock, vec2(P.x / uPlate.x, 1. - P.y / uPlate.y)).r); }
+  float rockRaw(vec2 P) { return texture(uRock, vec2(P.x / uPlate.x, 1. - P.y / uPlate.y)).r; }
+  float rockAt(vec2 P) { return smoothstep(.36, .64, rockRaw(P)); }
+  float rockNear(vec2 P) { return texture(uRockSoft, vec2(P.x / uPlate.x, 1. - P.y / uPlate.y)).r; }   // 0 멀다 ~ 1 돌 한가운데
   float sandH(float d) { return d < 0. ? -d * ${f(M.SLOPE)} : -d * ${f(M.SLOPE)} * (1. + d / ${f(M.DEEP)}); }
-  float terrainH(vec2 P) { float s = sandH(shoreD(P)); return mix(s, max(s, 0.) + ${f(M.ROCK)}, rockAt(P)); }
-  float edgeExt(float px) {
+  float terrainH(vec2 P) {   // 돌 둘레는 바닥이 얕아지고(물이 감싸며 거품이 인다) 돌 자리는 수면 위로 솟는다
+    float s = sandH(shoreD(P));
+    s = mix(s, max(s, -.22), smoothstep(.12, .5, rockNear(P)));
+    return mix(s, max(s, 0.) + ${f(M.ROCK)} * uTRock, rockAt(P));
+  }
+  float edgeRow(float px, int row) {   // row 0 = 지금 · 1 = 앞 프레임 (물가선의 빠르기를 구한다 — water/flow.js)
     float fx = clamp((px - uEdgeX.x) / max(uEdgeX.y - uEdgeX.x, 1.), 0., 1.) * 127.;
     float i = floor(fx);
-    vec4 a = texelFetch(uEdge, ivec2(int(i), 0), 0), b = texelFetch(uEdge, ivec2(int(min(i + 1., 127.)), 0), 0);
+    vec4 a = texelFetch(uEdge, ivec2(int(i), row), 0), b = texelFetch(uEdge, ivec2(int(min(i + 1., 127.)), row), 0);
     float da = (a.r * 65280. + a.g * 255.) / 65535., db = (b.r * 65280. + b.g * 255.) / 65535.;
     return (mix(da, db, fx - i) - .5) * 2000.;
   }
+  float edgeExt(float px) { return edgeRow(px, 0); }
+  float edgeExtPrev(float px) { return edgeRow(px, 1); }
   float swash(float xu, float t) {
     if (uExt > .5) return sandH(edgeExt(xu * uU));   // 물가선이 그 자리에 오도록 하는 물 높이
     float ph = t / ${f(M.T_SWASH)} + .16 * sin(xu / 260. + 1.7) + .1 * sin(xu / 97. + t * .05);
@@ -107,11 +119,14 @@ export const BEACH_GLSL = /* glsl */ `
     return (lift * big * ${f(M.SWASH_UP)} - ${f(M.SWASH_REST)}) * uAmp;
   }
   float swellBend(float xu) { return 16. * sin(xu / 150. + .8) + 9. * sin(xu / 61. + 2.9); }
-  float front(vec2 P, float d, float t) { return sin((d + swellBend(P.x / uU)) / 22. + t * 1.1); }
+  // 물마루가 곳에 따라 간격·높이가 달라지게 하는 느린 일렁임 (사인파만 쓰면 나란한 줄무늬가 반복돼 보였다 — 사용자 2026-11-23).
+  //  너울은 물가에서 0 이라 이 노이즈는 물가선을 건드리지 않는다. JS 쪽 swell() 은 이 일렁임 없이 평균값만 낸다.
+  float swellWarp(vec2 P, float t) { return (vnoise(P / uU / 46. + vec2(3.1, t * .02)) - .5) * 30.; }
+  float front(vec2 P, float d, float t) { return sin((d + swellBend(P.x / uU) + swellWarp(P, t)) / 22. + t * 1.1); }
   float swell(vec2 P, float d, float t) {
-    float xu = P.x / uU, bend = swellBend(xu);
-    float a = smoothstep(0., 60., d) * uAmp * uSwell;
-    return a * (.10 * sin((d + bend) / 22. + t * 1.1) + .06 * sin((d - bend * .6) / 13. + t * 1.6 + xu / 90.) + .03 * sin(d / 7. + t * 2.3 - xu / 40.));
+    float xu = P.x / uU, bend = swellBend(xu), wp = swellWarp(P, t);
+    float a = smoothstep(0., 60., d) * uAmp * uSwell * (.5 + vnoise(P / uU / 85. + vec2(t * .012, 0.)));
+    return a * (.10 * sin((d + bend + wp) / 22. + t * 1.1) + .06 * sin((d - bend * .6 - wp * .7) / 13. + t * 1.6 + xu / 90.) + .03 * sin((d + wp * .4) / 7. + t * 2.3 - xu / 40.));
   }
   float ripple(vec2 P, float t) {
     float s = 0.;

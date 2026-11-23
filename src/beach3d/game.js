@@ -42,7 +42,7 @@ export class BeachGfx {
     const cv = this.cv = document.createElement('canvas'); cv.id = 'plate3d'; cv.setAttribute('aria-hidden', 'true'); cv.style.visibility = 'hidden';
     plateEl.after(cv);
     this.plate = plate; this.size = ''; this.hour = null;
-    const job = this.pending = import('./beach3d.js').then(async ({ Beach3D }) => {
+    const job = this.pending = import('./beach3d.js?v=v30.39.0-0299996').then(async ({ Beach3D }) => {
       const s = new Beach3D(cv, { map: mapId, plate, game: true, bloom: false });
       await s.load();
       if (this.pending !== job) { s.dispose(); return; }   // 그 사이 장소가 바뀌었거나 꺼졌다
