@@ -1,0 +1,122 @@
+/* 디자인 시스템 전환 중: 이 파일은 옛 규칙 층(legacy) — src/ui/tokens.css · parts.css(층 없음)가 늘 이긴다. 옮긴 화면의 규칙은 여기서 지운다 (docs/DESIGN_SYSTEM.md) */
+@layer legacy {
+/* theme-paper.css — v24 UI 테마 「종이」 (바닷가에서 쓰는 편지지)
+ *
+ *  켜는 법: <html data-ui="paper">. 이 파일은 모양(색·질감·둥글기·그림자·글꼴)만 바꾸고 자리·구조는 그대로 둔다.
+ *  밤(<html data-time="night">)엔 등불 아래 종이처럼 톤을 낮춘다 — 밤 화면에서 종이만 하얗게 뜨지 않게.
+ *  새 창·버튼을 만들 땐 이 파일을 고치지 말고 공용 부품(.round · 창 · .seg · .chips · 카드)을 쓰면 저절로 따라온다 (docs/UI.md).
+ *  아직 앱에 연결 전 — 미리 보기는 ui-lab.html.
+ */
+
+/* 색·글자·그림자 값은 src/ui/tokens.css (디자인 시스템 토큰) — 여기선 var(--k-*) / 옛 이름 var(--pp-*) 만 쓴다 */
+
+/* ── 떠 있는 버튼: 종이 동그라미에 잉크 아이콘 ── */
+html[data-ui="paper"] #focusHud {
+  background: var(--k-surface); border: 1px solid var(--k-edge); color: var(--k-ink);
+  box-shadow: var(--k-shadow-3); backdrop-filter: var(--k-blur); -webkit-backdrop-filter: var(--k-blur);   /* 창과 같은 투명도를 따른다 (DS) */
+}
+html[data-ui="paper"] .corner { opacity: 0.95; }
+
+
+html[data-ui="paper"] .round svg, html[data-ui="paper"] #saySend svg, html[data-ui="paper"] #menu svg, html[data-ui="paper"] #picker svg { stroke-width: 1.9; }
+
+html[data-ui="paper"] #focusBtn.on { background: var(--pp-stamp); color: var(--pp-stamp-ink); border-color: transparent; }
+
+/* ── 창: 크림색 종이 · 손으로 자른 듯 고르지 않은 모서리 ── */
+html[data-ui="paper"] .uiWindow, html[data-ui="paper"] #mixer, html[data-ui="paper"] #focusPanel, html[data-ui="paper"] #menu, html[data-ui="paper"] #picker {
+  background: var(--pp-grain), var(--pp); color: var(--pp-ink); border: 1px solid var(--pp-edge);
+  border-radius: 18px 14px 17px 13px / 13px 17px 14px 18px;
+  box-shadow: var(--pp-shadow); backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+html[data-ui="paper"] #picker::before { background: var(--pp); border-color: var(--pp-edge); }
+html[data-ui="paper"] .uiWindow h2, html[data-ui="paper"] #focusPanel h2, html[data-ui="paper"] #picker .ttl {
+  font-family: var(--pp-hand); font-size: 18px; font-weight: 700; letter-spacing: 0.01em; opacity: 1; color: var(--pp-ink);
+}
+html[data-ui="paper"] .hint, html[data-ui="paper"] .note, html[data-ui="paper"] #menu small, html[data-ui="paper"] .lightNow { color: var(--pp-ink-soft); opacity: 1; }
+
+/* 탭: 종이 위 한 칸 어두운 홈, 고른 탭은 종이 조각이 올라온 것처럼 */
+html[data-ui="paper"] .uiWindow .tabs button[aria-selected="true"], html[data-ui="paper"] #mixer .tabs button[aria-selected="true"] {
+  background: var(--pp); color: var(--pp-ink); opacity: 1; box-shadow: 0 1px 3px rgba(80, 60, 30, 0.22);
+}
+
+/* 고르기 칸: 연필 테두리, 고른 것은 주황 도장 (살짝 비뚤게) — 기존 규칙이 .uiWindow 처럼 id 로 잡고 있어 :is(id) 로 맞선다 */
+html[data-ui="paper"] :is(.uiWindow, #focusPanel) .seg span, html[data-ui="paper"] #lightOpts .chips button, html[data-ui="paper"] #picker button, html[data-ui="paper"] #tunePane .tbtns button, html[data-ui="paper"] #craftList button, html[data-ui="paper"] .fcustom button {
+  border: 1px solid rgba(74, 56, 38, 0.28); background: rgba(255, 255, 255, 0.35); color: var(--pp-ink);
+}
+html[data-ui="paper"] :is(.uiWindow, #focusPanel) .seg input:checked + span, html[data-ui="paper"] #lightOpts .chips button.on, html[data-ui="paper"] #picker button[aria-pressed="true"] {
+  background: var(--pp-stamp); color: var(--pp-stamp-ink); border-color: transparent;
+  transform: rotate(-1.2deg); box-shadow: inset 0 0 0 2px rgba(255, 240, 220, 0.35), 0 1px 0 rgba(120, 60, 20, 0.35);
+}
+html[data-ui="paper"] :is(.uiWindow, #focusPanel) .seg input:focus-visible + span { outline-color: var(--pp-stamp); }
+html[data-ui="paper"] input[type="range"], html[data-ui="paper"] input[type="checkbox"] { accent-color: var(--pp-stamp); }
+html[data-ui="paper"] #focusPanel textarea, html[data-ui="paper"] .fcustom input, html[data-ui="paper"] #tunePane select {
+  background: rgba(255, 255, 255, 0.5); border-color: rgba(74, 56, 38, 0.28); color: var(--pp-ink);
+}
+
+/* 메뉴: 편지지 목록처럼 줄 사이 점선 */
+
+/* 알림 · 뜻 풀이: 작은 쪽지 */
+html[data-ui="paper"] #caption {
+  background: var(--pp-grain), var(--pp); color: var(--pp-ink); border: 1px solid var(--pp-edge); box-shadow: var(--pp-shadow);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+html[data-ui="paper"] #caption .main { font-family: var(--pp-hand); font-size: clamp(19px, 4.6vw, 24px); }
+
+/* 입력창 안내 글: 모래 위에 연필로 쓴 듯 */
+
+
+/* 집중 창 규칙 머리글(선물·10초…)은 원래 모래색 — 종이 위에선 도장색으로 */
+
+/* v24.1 아이콘: 한 벌 그대로, 종이에선 잉크로 그은 듯 가장자리를 아주 조금 흔든다 (index.html #ink 필터) */
+html[data-ui="paper"] #focusHud svg { filter: url(#ink); }   /* v24.4 부터 다른 아이콘은 칠한 그림 — 잉크 번짐은 남은 선 그림에만 */
+
+/* ── v24.4 종이 테마 아이콘: 손으로 칠한 그림 (assets/icons-paper-a/b.webp, 4×4, Higgsfield 한 장씩 묶어 뽑음) ──
+   모던은 선 아이콘(index.html svg) 그대로. 종이에선 같은 svg 상자에 그림을 배경으로 깔고 선은 숨긴다 —
+   버튼·고르기 창·작품 설명이 쓰는 svg 를 그대로 두니 구조·스크립트는 안 바뀐다. 칸 배치는 docs/GRAPHICS-PROMPTS.md */
+/* 공통 규칙은 :where 로 우선순위를 0 으로 — 아이콘마다 그림을 고르는 아래 규칙이 늘 이기게 (전엔 :is(#info …) 가 더 세서 그림이 지워졌다) */
+html[data-ui="paper"] :where(.round, #saySend, #menu button, #picker button, #info .keys i) svg {
+  background-position: center; background-size: 400% 400%; background-repeat: no-repeat;
+  --pp-ico-shadow: drop-shadow(0 0 0.6px rgba(74, 56, 38, 0.55)) drop-shadow(0 1px 1px rgba(74, 56, 38, 0.18));   /* 흰 눈송이·구름도 종이 위에서 보이게 */
+  filter: var(--pp-ico-shadow);
+}
+html[data-ui="paper"] :where(.round, #saySend, #menu button, #picker button, #info .keys i) svg > * { visibility: hidden; }
+html[data-ui="paper"] .round svg, html[data-ui="paper"] #saySend svg { width: 30px; height: 30px; }
+html[data-ui="paper"] #picker svg { width: 34px; height: 34px; }
+html[data-ui="paper"] #menu svg { width: 28px; height: 28px; }
+/* v30.11 칠한 그림 넷째 장(assets/icons-paper-d.webp, 4×2, Codex): 천둥번개 · 실제 날씨 · 나가기 (아래 줄 소라·두루마리·열쇠·병은 재고) */
+html[data-ui="paper"] #weatherBtn[data-weather="storm"] svg, html[data-ui="paper"] svg[data-ico="w-storm"] { background-image: url("assets/icons-paper-d.webp"); background-size: 400% 200%; background-position: 0.000% 0.000%; }
+html[data-ui="paper"] svg[data-ico="w-real"] { background-image: url("assets/icons-paper-d.webp"); background-size: 400% 200%; background-position: 33.333% 0.000%; }
+html[data-ui="paper"] #exitBtn svg { background-image: url("assets/icons-paper-d.webp"); background-size: 400% 200%; background-position: 66.667% 0.000%; background-repeat: no-repeat; }
+html[data-ui="paper"] #exitBtn svg > * { visibility: hidden; }
+html[data-ui="paper"] #info .keys i svg { width: 24px; height: 24px; }
+html[data-ui="paper"] #weatherBtn[data-weather="clear"] svg, html[data-ui="paper"] svg[data-ico="w-clear"] { background-image: url("assets/icons-paper-a.webp"); background-position: 0.000% 0.000%; }
+html[data-ui="paper"] #weatherBtn[data-weather="cloudy"] svg, html[data-ui="paper"] svg[data-ico="w-cloudy"] { background-image: url("assets/icons-paper-a.webp"); background-position: 33.333% 0.000%; }
+html[data-ui="paper"] #weatherBtn[data-weather="drizzle"] svg, html[data-ui="paper"] svg[data-ico="w-drizzle"] { background-image: url("assets/icons-paper-a.webp"); background-position: 66.667% 0.000%; }
+html[data-ui="paper"] #weatherBtn[data-weather="rain"] svg, html[data-ui="paper"] svg[data-ico="w-rain"] { background-image: url("assets/icons-paper-a.webp"); background-position: 100.000% 0.000%; }
+html[data-ui="paper"] #weatherBtn[data-weather="snow"] svg, html[data-ui="paper"] svg[data-ico="w-snow"] { background-image: url("assets/icons-paper-a.webp"); background-position: 0.000% 33.333%; }
+html[data-ui="paper"] #weatherBtn[data-weather="fog"] svg, html[data-ui="paper"] svg[data-ico="w-fog"] { background-image: url("assets/icons-paper-a.webp"); background-position: 33.333% 33.333%; }
+html[data-ui="paper"] #weatherBtn[data-weather="wind"] svg, html[data-ui="paper"] svg[data-ico="w-wind"] { background-image: url("assets/icons-paper-a.webp"); background-position: 66.667% 33.333%; }
+html[data-ui="paper"] #weatherBtn[data-weather="blossom"] svg, html[data-ui="paper"] svg[data-ico="w-blossom"] { background-image: url("assets/icons-paper-a.webp"); background-position: 100.000% 33.333%; }
+html[data-ui="paper"] #modeBtn[data-mode="free"] svg, html[data-ui="paper"] svg[data-ico="m-free"] { background-image: url("assets/icons-paper-a.webp"); background-position: 0.000% 66.667%; }
+html[data-ui="paper"] #modeBtn[data-mode="clock"] svg, html[data-ui="paper"] svg[data-ico="m-clock"] { background-image: url("assets/icons-paper-a.webp"); background-position: 33.333% 66.667%; }
+html[data-ui="paper"] #modeBtn[data-mode="quote"] svg, html[data-ui="paper"] svg[data-ico="m-quote"] { background-image: url("assets/icons-paper-a.webp"); background-position: 66.667% 66.667%; }
+html[data-ui="paper"] #modeBtn[data-mode="word"] svg, html[data-ui="paper"] svg[data-ico="m-word"] { background-image: url("assets/icons-paper-a.webp"); background-position: 100.000% 66.667%; }
+html[data-ui="paper"] body[data-view="top"] #viewBtn svg, html[data-ui="paper"] svg[data-ico="v-top"] { background-image: url("assets/icons-paper-b.webp"); background-position: 0.000% 0.000%; }
+html[data-ui="paper"] body[data-view="diorama"] #viewBtn svg, html[data-ui="paper"] svg[data-ico="v-diorama"] { background-image: url("assets/icons-paper-b.webp"); background-position: 33.333% 0.000%; }
+html[data-ui="paper"] body[data-view="follow"] #viewBtn svg, html[data-ui="paper"] svg[data-ico="v-follow"] { background-image: url("assets/icons-paper-b.webp"); background-position: 66.667% 0.000%; }
+html[data-ui="paper"] body[data-view="scope"] #viewBtn svg, html[data-ui="paper"] svg[data-ico="v-scope"] { background-image: url("assets/icons-paper-b.webp"); background-position: 100.000% 0.000%; }
+html[data-ui="paper"] body[data-view="text"] #viewBtn svg, html[data-ui="paper"] svg[data-ico="v-text"] { background-image: url("assets/icons-paper-b.webp"); background-position: 0.000% 33.333%; }
+html[data-ui="paper"] body[data-view="breeze"] #viewBtn svg, html[data-ui="paper"] svg[data-ico="v-breeze"] { background-image: url("assets/icons-paper-b.webp"); background-position: 33.333% 33.333%; }
+html[data-ui="paper"] :is(#soundBtn, #info i[data-icon="soundBtn"]) svg { background-image: url("assets/icons-paper-a.webp"); background-position: 0.000% 100.000%; }
+html[data-ui="paper"] #soundBtn[data-on="0"] svg { background-image: url("assets/icons-paper-a.webp"); background-position: 33.333% 100.000%; }
+html[data-ui="paper"] :is(#focusBtn, #info i[data-icon="focusBtn"]) svg { background-image: url("assets/icons-paper-a.webp"); background-position: 66.667% 100.000%; }
+html[data-ui="paper"] :is(#hideBtn, #info i[data-icon="hideBtn"]) svg { background-image: url("assets/icons-paper-a.webp"); background-position: 100.000% 100.000%; }
+html[data-ui="paper"] :is(#cleanBtn, #info i[data-icon="cleanBtn"]) svg { background-image: url("assets/icons-paper-a.webp"); background-position: 100.000% 100.000%; }
+html[data-ui="paper"] :is(#setBtn, #info i[data-icon="setBtn"]) svg { background-image: url("assets/icons-paper-b.webp"); background-position: 66.667% 33.333%; }
+html[data-ui="paper"] :is(#bagBtn, #info i[data-icon="bagBtn"]) svg { background-image: url("assets/icons-paper-b.webp"); background-position: 100.000% 33.333%; }
+html[data-ui="paper"] :is(#infoBtn, #info i[data-icon="infoBtn"]) svg { background-image: url("assets/icons-paper-b.webp"); background-position: 0.000% 66.667%; }
+html[data-ui="paper"] :is(#saySend, #info i[data-icon="saySend"]) svg { background-image: url("assets/icons-paper-b.webp"); background-position: 33.333% 66.667%; }
+html[data-ui="paper"] :is(#menuBtn, #info i[data-icon="menuBtn"]) svg { background-image: url("assets/icons-paper-b.webp"); background-position: 66.667% 66.667%; }
+/* 2026-11-22 (사용자 「항해·섬 색 연동」 QA): 잉크 점 셋(⋯)만 거의 검은 갈색이라 밤 남색 단추 위에서 사라졌다 → 밤(--k-night 1)엔 밝은 갈색으로. 창 색과 같은 값을 따라 2.5초에 걸쳐 바뀐다 */
+html[data-ui="paper"] :is(#menuBtn, #info i[data-icon="menuBtn"]) svg { filter: var(--pp-ico-shadow) brightness(calc(1 + 2.4 * var(--k-night, 0))); }
+}

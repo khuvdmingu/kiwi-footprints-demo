@@ -1,0 +1,159 @@
+/* tokens.css — 키위 디자인 시스템 1층: 토큰 (단일 출처)
+ *
+ *  화면의 색·글자·둥글기·그림자·간격·투명도 값은 여기에만 쓴다. 부품(parts.css)과 기능 CSS 는 var(--k-*) 만 쓴다.
+ *  지금은 종이 테마 한 벌. 낮(크림 종이·잉크)에서 밤(남색 종이·크림 글씨)으로 하루 빛을 따라 천천히 섞인다 —
+ *  main.js 가 하루 빛이 조금이라도 어두우면(새벽·노을 포함) --k-night 를 1, 아니면 0 으로 정하고, 바뀔 때 2.5초에 걸쳐 섞인다.
+ *  모던은 MODERN_OFF 가 풀릴 때 같은 이름의 값 한 벌을 html[data-ui="modern"] 에 더한다.
+ *  규칙·부품 목록: docs/DESIGN_SYSTEM.md · 카탈로그: ds.html
+ *
+ *  투명도는 한 값(--k-a)으로 모든 면이 함께 움직인다: 창 · 탭 · 떠 있는 버튼 · 고르기 창 · 칸.
+ *  설정 › 화면 › 창 투명도 막대가 --win-a 를 바꾸면(shell.js) 아래 면 색이 전부 따라온다.
+ */
+
+/* 밤 비율은 숫자로 등록해 바뀔 때 부드럽게 넘어가게 (등록을 모르는 브라우저는 바로 바뀐다) */
+@property --k-night { syntax: '<number>'; inherits: true; initial-value: 0; }
+html[data-ui="paper"] { transition: --k-night 2.5s ease; color-scheme: light; }
+html[data-ui="paper"][data-time="night"] { color-scheme: dark; }   /* 시간 고르기·스크롤 같은 기본 조절도 밤엔 어두운 판 */
+
+html[data-ui="paper"] {
+  /* ── 낮·밤 섞기: --k-night 0(낮)~1(밤), main.js 가 하루 빛에서 정한다 (2026-10-26 사용자: 밤엔 네이비·톤 다운) ── */
+  --k-n: calc(var(--k-night, 0) * 100%);
+  /* 원색 = 낮 색과 밤 색을 하루 빛만큼 섞은 것 */
+  --k-paper-c: color-mix(in srgb, #fbf4e4, #1f2d47 var(--k-n));        /* 종이 → 남색 종이 */
+  /* 높이 역할 (다크 모드 문법): 패인 바탕은 늘 종이보다 어둡게, 올라온 것·고른 것은 늘 종이보다 밝게 — 밤에도 뒤집히지 않게 (2026-10-26 사용자) */
+  --k-paper-2-c: color-mix(in srgb, #f4e9d2, #16223a var(--k-n));      /* 패인 바탕 (탭 줄·달력) — 종이보다 한 칸 어둡게 */
+  --k-raised-c: color-mix(in srgb, #fffcf5, #3a4e74 var(--k-n));       /* 올라온 것 (고른 탭·눌린 칩·누를 때) — 종이보다 한 칸 밝게 */
+  --k-note-c: color-mix(in srgb, #fffaee, #34476a var(--k-n));         /* 쪽지 — 종이 위 작은 알약(개수·칩) */
+  --k-edge-solid: color-mix(in srgb, #e3d3b2, #4a5f82 var(--k-n));     /* 종이 가장자리·점선 */
+  --k-ink: color-mix(in srgb, #4a3826, #d6c9ad var(--k-n));            /* 잉크 → 톤 낮춘 베이지 글씨 (밤에 흰색으로 뜨지 않게 — 2026-10-26 사용자) */
+  --k-ink-soft: color-mix(in srgb, rgba(74, 56, 38, 0.76), rgba(214, 201, 173, 0.76) var(--k-n));   /* 보조 글씨 — 낮 0.68→0.76 · 밤 0.66→0.76 (2026-11-22: 낮 4.1 · 밤 3.9 → 어느 바탕에서도 4.5↑) */
+  --k-accent: color-mix(in srgb, #b85614, #e08a46 var(--k-n));         /* 고른 것: 주황 도장 (밤엔 조금 밝게) — 낮 #d9772b→#b85614 한 톤 깊게: 도장 위 흰 글씨 3.05 → 4.6 (2026-11-22 사용자) */
+  --k-on-accent: color-mix(in srgb, #fffaf0, #16223a var(--k-n));   /* 도장 위 글씨 — 밤엔 짙은 남색 잉크 (2026-11-22: 밤 주황 위 크림 글씨 대비 2.1 → 6) */
+  --k-stamp-paper: color-mix(in srgb, #fffaf0, #f0e2c6 var(--k-n));   /* 도장 색과 짝인 밝은 면 — 스위치 동그라미 · 고른 선물 칸 바탕 (밤에도 밝게 보여야 하는 것) */
+  --k-accent-ink: color-mix(in srgb, #a14b12, #f2a66a var(--k-n));   /* 주황을 글씨로 쓸 때 — 낮엔 도장보다 한 칸 진하게, 밤엔 밝게 (종이·칸 바탕 위 4.5↑) */
+  --k-accent-wash: color-mix(in srgb, rgba(184, 86, 20, 0.14), rgba(224, 138, 70, 0.22) var(--k-n));
+  /* 칸 바탕·선은 투명도(--k-a)를 함께 따른다 — 창이 비칠수록 칸·칩·테두리도 함께 옅어진다 */
+  --k-wash: color-mix(in srgb, color-mix(in srgb, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.07) var(--k-n)) calc(var(--k-a) * 100%), transparent);   /* 종이 위 칸 */
+  --k-wash-dim: color-mix(in srgb, color-mix(in srgb, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04) var(--k-n)) calc(var(--k-a) * 100%), transparent);
+  --k-line-soft: color-mix(in srgb, color-mix(in srgb, rgba(160, 130, 90, 0.18), rgba(200, 215, 240, 0.14) var(--k-n)) calc(var(--k-a) * 100%), transparent);
+  --k-line: color-mix(in srgb, color-mix(in srgb, rgba(74, 56, 38, 0.28), rgba(214, 201, 173, 0.22) var(--k-n)) calc(var(--k-a) * 100%), transparent);   /* 칸 테두리 */
+  --k-field: color-mix(in srgb, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.08) var(--k-n));   /* 입력 칸 바탕 */
+  --k-danger: #b0473a;                 /* 한 번 더 누르면 지워지는 것 */
+  --k-danger-ink: color-mix(in srgb, #b0473a, #f09484 var(--k-n));   /* 빨강을 글씨로 쓸 때 — 밤엔 밝게 */
+  --k-on-danger: #fff8ec;
+  --k-stamp-ring: inset 0 0 0 2px rgba(255, 240, 220, 0.35), 0 1px 0 rgba(120, 60, 20, 0.35);   /* 도장 눌림 */
+  --k-mark: #f3c77e;                   /* 재료 표시 점 (옷 재료) */
+  --k-mark-ring: rgba(20, 47, 73, 0.7);
+  --k-photo: #fbf6ea;                  /* 사진 인화지 (낮·밤 같음 — 사진은 등불 톤을 타지 않는다) */
+  --k-photo-ink: #4a3826;
+  --k-scrim: linear-gradient(transparent, rgba(10, 24, 36, 0.75));   /* 그림 위 글씨 받침 */
+  --k-on-scrim: color-mix(in srgb, #fffaf2, #e6dac0 var(--k-n));   /* 그림 위 글씨 — 순백 대신 */
+  --k-stage-bg: #f0d9ad;               /* 키위 무대 바닥 (붓질 모래 그림이 깔리기 전) */
+  /* DS-5: 장면 위 입력, 편지, 사진 원본 보기의 역할 색 */
+  --k-overlay-scrim: rgba(10, 24, 36, 0.45);
+  --k-viewer-scrim: rgba(10, 24, 36, 0.75);
+  --k-viewer-bg: #0a1824; --k-viewer-ink: #fbf4e4;
+  --k-viewer-line: rgba(251, 244, 228, 0.3);
+  --k-scene-ink: #fbebc8; --k-scene-ink-soft: rgba(251, 235, 200, 0.7);
+  --k-composer-shadow: rgba(23, 60, 100, 0.6);
+  --k-letter-paper: #fffaf0; --k-letter-line: #e6d6b4;
+  --k-letter-paper-mine: #fdf1df; --k-letter-line-mine: #e8c9a0;
+  --k-letter-paper-cheer: #f3f8f1; --k-letter-line-cheer: #c9dccd;
+  --k-seal-light: #d4554a; --k-seal-dark: #9c2b25;
+  --k-share: #346c78;   /* 공유 단추 바탕 — 크림 글씨 대비 낮 5.7 · 밤 4.6 (2026-11-22: #3f7f8c 는 4.4 · 3.6) */
+  --k-serif: 'Noto Serif KR', 'Nanum Myeongjo', 'AppleMyungjo', 'Batang', serif;
+  --k-floating-icon: 30px;
+  --k-composer-size: clamp(17px, min(4.4vw, 3.2vh), 28px);
+  /* 사진 보기 JS와 공유하는 기존 이름은 토큰을 참조하는 별칭으로 유지 */
+  --photo-view-bg: var(--k-viewer-bg); --photo-view-ink: var(--k-viewer-ink);
+  --photo-view-line: var(--k-viewer-line); --photo-view-pad: var(--k-s-3); --photo-view-control: var(--tap);
+
+  /* ── 투명도: 한 값 ── */
+  --k-a: var(--win-a, 1);
+
+  /* ── 면 (투명도를 따른다) ── */
+  --k-paper: color-mix(in srgb, var(--k-paper-c) calc(var(--k-a) * 100%), transparent);
+  --k-paper-2: color-mix(in srgb, var(--k-paper-2-c) calc(var(--k-a) * 100%), transparent);
+  --k-paper-up: color-mix(in srgb, var(--k-raised-c) calc(min(1, var(--k-a) + 0.25) * 100%), transparent);   /* 올라온 것 (고른 탭·눌린 칩) — 낮·밤 모두 바탕보다 밝게 */
+  --k-note: color-mix(in srgb, var(--k-note-c) calc(max(0.5, 0.95 * var(--k-a)) * 100%), transparent);   /* 작은 알약·칩도 비치되 글씨가 읽히는 만큼은 남긴다 */
+  --k-solid: var(--k-paper-c);                                                /* 비치면 안 되는 종이 (읽는 책장) */
+  --k-edge: var(--k-edge-solid);
+  --k-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.35 0 0 0 0 0.2 0 0 0 0.09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --k-surface: var(--k-grain), var(--k-paper);                                /* 창·떠 있는 버튼의 바탕 */
+  --k-blur: none;                                                             /* 비칠 때만 뒤를 흐린다 (아래) */
+
+  /* ── 글자 (5단계 + 손글씨) ── */
+  --k-fs-xs: 10.5px;   /* 칸 안 숫자·요일 */
+  --k-fs-s: 12px;      /* 안내·설명·칸 이름 */
+  --k-fs-m: 13px;      /* 본문·버튼 */
+  --k-fs-l: 15px;      /* 강조 숫자 */
+  --k-fs-xl: 18px;     /* 제목(손글씨) */
+  --k-font: var(--font);
+  --k-hand: 'Gaegu', 'Nanum Pen Script', var(--font);   /* 손글씨는 제목에만 */
+
+  /* ── 둥글기 (4단계) ── */
+  --k-r-s: 8px;        /* 작은 칸 (달력 날) */
+  --k-r-m: 12px;       /* 칸 · 카드 */
+  --k-r-l: var(--win-r, 16px);   /* 창 */
+  --k-r-pill: 999px;   /* 알약 · 동그라미 버튼 — 창·메뉴 안 글자 단추에는 쓰지 않는다 */
+  --k-r-btn: 12px;     /* 단추 (2026-11-22 사용자: 창·메뉴 안 알약 단추도 이 둥글기로) — 스쿼클은 parts.css 「단추 모서리」 */
+  --k-r-win: 18px 14px 17px 13px / 13px 17px 14px 18px;   /* 종이 창: 손으로 자른 듯한 모서리 */
+  --k-r-photo: 3px;    /* 사진 */
+
+  /* ── 그림자 (3단계) ── */
+  --k-shadow-1: 0 0 0 1px var(--k-edge);                                                   /* 알약 테두리 */
+  --k-shadow-2: 0 1px 3px color-mix(in srgb, rgba(80, 60, 30, 0.22), rgba(0, 0, 0, 0.4) var(--k-n));                                          /* 한 겹 위 (고른 탭) */
+  --k-shadow-3: 0 2px 0 color-mix(in srgb, rgba(120, 90, 50, 0.12), rgba(0, 0, 0, 0.2) var(--k-n)), 0 8px 22px color-mix(in srgb, rgba(60, 40, 20, 0.22), rgba(0, 0, 0, 0.45) var(--k-n));        /* 떠 있음 (창·버튼) */
+  --k-inset: inset 0 1px 2px color-mix(in srgb, rgba(80, 60, 30, 0.12), rgba(0, 0, 0, 0.3) var(--k-n));                                       /* 패인 바탕 (탭 줄) */
+  --k-shadow-float: 0 2px 8px color-mix(in srgb, rgba(61, 43, 28, 0.18), rgba(0, 0, 0, 0.4) var(--k-n));                                       /* 장면 위에 뜬 알약 */
+  --k-shadow-photo: 0 2px 8px rgba(0, 0, 0, 0.28);                                         /* 사진 한 장 */
+  --k-text-shadow-scrim: 0 1px 2px rgba(0, 0, 0, 0.5);
+
+  /* ── 아이콘 (작은 표시 그림 — 색이 들어 있어 토큰으로 둔다) ── */
+  --k-ico-gift: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c8692a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='8' width='18' height='4' rx='1'/><path d='M12 8v13'/><path d='M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7'/><path d='M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5'/></svg>");
+  --k-ico-gift-ring: 0 0 0 1px rgba(200, 105, 42, 0.35);
+
+  /* ── 간격 (4배수 5단계 + 2px 하나) — 누르는 크기는 style.css 의 --tap · --tap-in 그대로 ──
+   *  여백·간격·줄 높이는 4배수만 쓴다(2026-11-22 사용자). 20·28·32px 처럼 토큰에 없는 4배수는 숫자로 써도 된다.
+   *  --k-s-0(2px)은 불가피할 때만: 글씨를 칸 끝보다 2px 안쪽에 세우는 맞춤 · 칩 안 아주 작은 틈. 검사: test/spacing-grid.test.mjs */
+  --k-s-0: 2px; --k-s-1: 4px; --k-s-2: 8px; --k-s-3: 12px; --k-s-4: 16px; --k-s-5: 24px;
+
+  /* ── 옛 이름 (theme-paper.css · 기능 CSS 가 아직 쓰는 것) — 옮기는 대로 지운다 ── */
+  --pp: var(--k-paper); --pp-2: var(--k-paper-2); --pp-edge: var(--k-edge);
+  --pp-ink: var(--k-ink); --pp-ink-soft: var(--k-ink-soft);
+  --pp-stamp: var(--k-accent); --pp-stamp-ink: var(--k-on-accent);
+  --pp-shadow: var(--k-shadow-3); --pp-hand: var(--k-hand); --pp-grain: var(--k-grain);
+}
+
+/* 비칠 때(투명도 0% 초과): 가장자리 선은 비친 만큼 옅게(진하게 남지 않게 — 2026-10-26 사용자), 뒤를 흐린다 */
+/* 스쿼클을 아는 브라우저: 같은 반지름이면 보통 모서리보다 각져 보여서 한 단계씩 키운다 — 지금 보통 모서리만큼 부드럽고 곡선은 iOS 처럼 이어진다 (2026-11-22 화면 비교)
+ * 작은 칸 8→12 · 칸/카드/단추 12→16 · 창 16→20 · 손으로 자른 종이 창 모서리도 같은 비율(18·14·17·13 → 24·20·24·16, 비뚤어진 모양은 그대로) */
+@supports (corner-shape: squircle) {
+  html[data-ui="paper"] { --k-r-s: 12px; --k-r-m: 16px; --k-r-btn: 16px; --k-r-l: 20px; --k-r-win: 24px 20px 24px 16px / 16px 24px 20px 24px; }
+}
+
+html[data-ui="paper"][data-win-see] {
+  --k-edge: color-mix(in srgb, var(--k-edge-solid) calc(var(--k-a) * 100%), color-mix(in srgb, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.16) var(--k-n)));
+  --k-blur: blur(12px) saturate(1.08);
+}
+
+/* ── 마이크로 모션 (2026-11-22 사용자: GUI 에 필요한 곳은 마이크로 모션) — 테마와 상관없이 같은 값 ──
+ *  누름(짧게) · 상태 바뀜(색·도장) · 나타남(창·판·펼침) 세 길이만 쓴다. 부품의 움직임은 parts.css 맨 아래 「마이크로 모션」 한 곳.
+ *  움직임 줄이기(prefers-reduced-motion)를 켠 기기에선 크기·위치 움직임을 끄고 색만 바뀐다. */
+:root {
+  --k-t-press: 90ms;     /* 누르는 동안 살짝 작아짐 */
+  --k-t-state: 160ms;    /* 색·테두리·고른 표시가 바뀜 */
+  --k-t-enter: 220ms;    /* 창·떠 있는 판·펼친 내용이 나타남 */
+  --k-t-move: 160ms;     /* 도장이 기울며 자리 잡음 (움직임 줄이기에선 0) */
+  --k-ease: cubic-bezier(0.2, 0.8, 0.2, 1);        /* 빨리 시작해 부드럽게 멈춤 */
+  --k-ease-pop: cubic-bezier(0.3, 1.4, 0.5, 1);    /* 살짝 넘쳤다 자리 잡음 — 도장·체크·스위치 */
+  --k-press: 0.96;       /* 작은 단추·칸 */
+  --k-press-wide: 0.985; /* 줄 전체 너비 단추 (같은 비율이면 넓은 줄이 너무 많이 줄어든다) */
+  --k-rise: 8px;         /* 나타날 때 올라오는 거리 (4배수) */
+  --k-drop-from: 0.98;   /* 떠 있는 판이 단추에서 펼쳐질 때 처음 크기 */
+  --k-pop-from: 0.4;     /* 고른 칸 체크 표시가 튀어나올 때 처음 크기 */
+}
+/* 움직임 줄이기: 크기·거리는 0, 넘침 없음 — 나타남은 투명도만, 누름·도장은 색만 바뀐다 */
+@media (prefers-reduced-motion: reduce) {
+  :root { --k-t-move: 0ms; --k-press: 1; --k-press-wide: 1; --k-rise: 0px; --k-drop-from: 1; --k-pop-from: 1; --k-ease-pop: var(--k-ease); }
+}

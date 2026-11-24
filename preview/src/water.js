@@ -1,0 +1,435 @@
+// water.js — v8: 그림 판을 깔고 그 위의 바다를 살아 움직이게 하는 WebGL2 층
+//
+//  같은 그림을 한 번 더 읽되, 물이 있는 자리에서는 "어디를 읽을지"를 움직인다:
+//   · 밀려오기  파도가 해안선(edge)을 올리면 그려진 바다 전체가 그만큼 위로 미끄러져 올라온다
+//              (물가는 많이, 먼바다는 거의 안 움직인다) → 그림 속 거품·얕은 물·물속 바위가 통째로 해변을 덮는다
+//   · 일렁임    물속을 천천히 비트는 굴절 (얕은 곳은 잔물결, 깊은 곳은 큰 너울) → 물속 바위가 흔들려 보인다
+//   · 빠지기    물이 그려진 해안선보다 아래로 내려가면 plate-dry(물 뺀 모래 바닥)가 드러난다
+//   · 젖은 모래 물이 지나간 자리는 한동안 짙고 반들반들 · 물러난 물은 레이스 거품 한 줄을 남기고 사라진다
+//   · 물가 거품 테두리 · 큰 파도 때 하얀 물보라 줄무늬 · 얕은 물의 빛 그물(커스틱) · 반짝이는 햇빛
+//   · v30.32 윤슬: 노을엔 빛 방향으로 물을 가르는 금빛 빛길, 밤엔 반대쪽에서 내려오는 가는 은빛 달빛 길 — 트인 물가 장소만(maps glitter)
+//   · 바위는 제자리  물은 바위를 지운 판(plate-sea)에서 읽고, 바위는 가림막 자리에 원본에서 다시 얹는다
+//  해안선 값은 beach.edge(x) 를 그대로 받는다(줄 텍스처) → 발자국을 지우는 줄과 그림 속 물가가 정확히 같다.
+
+// v30.12 큰 파도 물 막 기본 물빛 (예전 셰이더에 박혀 있던 값 그대로) — [물가 쪽, 안쪽, 비친 모래에 곱함]
+export const FILM_TEAL = [[.5, .85, .8], [.3, .73, .75], [.66, .93, .95]];
+const N = 128;   // 해안선 줄 칸 수 (셰이더 상수 배열로 넘긴다)
+
+const VS = `#version 300 es
+in vec2 aP; void main(){ gl_Position = vec4(aP, 0., 1.); }`;
+
+const FS = `#version 300 es
+precision highp float;
+precision highp sampler2D;
+uniform sampler2D uPlate, uDry, uSea, uRock, uPlateN, uDryN, uSeaN, uPlateW, uDryW, uSeaW;   // …N = 밤 그림 (v16.5) · …W = 노을·새벽 그림 (v16.6)
+uniform float uNA, uWA;     // 섞는 정도 0~1 (따뜻한 빛을 먼저 섞고 그 위에 밤)
+uniform float uNS, uWS;     // 그 그림을 줄여 올린 비율의 log2 (≤ 0) — 해상도 단계 맞추기
+uniform vec4 uL[${N}];   // 칸마다 (해안선, 그린 해안선, 젖은 줄, 바다 판 해안선) ÷ 화면 높이
+uniform float uLod;          // 그림을 읽을 해상도 단계 — 직접 정한다 (휴대폰 GPU가 조건문 안에서 단계를 잘못 골라 색이 튀지 않게)
+uniform vec2 uRes, uPS;
+uniform vec3 uMap;
+uniform float uDpr, uT, uU, uSnow, uNight, uSurge, uRain;
+uniform float uSunG, uMoonG;   // v30.32 윤슬 세기 0~1 (노을 금빛 · 밤 달빛) — 날씨·장소까지 곱해서 받는다
+uniform vec3 uFilmA, uFilmB, uFilmM;   // v30.12 큰 파도 물 막 물빛 (물가 쪽 · 안쪽 · 비친 모래에 곱함) — 장소별 maps film, 없으면 청록
+uniform float uLand;        // 1 = 물 없는 장소(젠 가든 v18): 판만 그린다 — 지우는 그림은 2D 층(zen.js)이 맡는다
+out vec4 o;
+
+// 해안선 줄: 텍스처를 거치지 않고 상수 배열에서 바로 읽어 잇는다
+// (반정밀도 텍스처·8비트 텍스처 모두 S25 Ultra 에서 물 위에 모래색 세로선이 번쩍였다)
+#define NL ${N}
+vec4 lineAt(float x) {
+  float f = clamp(x / uRes.x, 0., 1.) * float(NL - 1);
+  int i = int(floor(f)), j = min(i + 1, NL - 1);
+  return mix(uL[i], uL[j], f - float(i));
+}
+vec2 uvOf(vec2 p) { return ((p - uMap.yz) / uMap.x) / uPS; }
+// 판 읽기: 해 질 녘부터 밤 그림을 섞는다 (낮에는 uNA = 0 이라 밤 그림을 읽지 않는다)
+vec3 tP(vec2 uv, float l) { vec3 c = textureLod(uPlate, uv, l).rgb; if (uWA > 0.) c = mix(c, textureLod(uPlateW, uv, max(0., l + uWS)).rgb, uWA); if (uNA > 0.) c = mix(c, textureLod(uPlateN, uv, max(0., l + uNS)).rgb, uNA); return c; }
+vec3 tD(vec2 uv, float l) { vec3 c = textureLod(uDry, uv, l).rgb; if (uWA > 0.) c = mix(c, textureLod(uDryW, uv, max(0., l + uWS)).rgb, uWA); if (uNA > 0.) c = mix(c, textureLod(uDryN, uv, max(0., l + uNS)).rgb, uNA); return c; }
+vec3 tS(vec2 uv, float l) { vec3 c = textureLod(uSea, uv, l).rgb; if (uWA > 0.) c = mix(c, textureLod(uSeaW, uv, max(0., l + uWS)).rgb, uWA); if (uNA > 0.) c = mix(c, textureLod(uSeaN, uv, max(0., l + uNS)).rgb, uNA); return c; }
+float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+float vnoise(vec2 p) {
+  vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
+  return mix(mix(h21(i), h21(i + vec2(1, 0)), f.x), mix(h21(i + vec2(0, 1)), h21(i + vec2(1, 1)), f.x), f.y);
+}
+float fbm(vec2 p) { float s = 0., a = .5; for (int i = 0; i < 4; i++) { s += a * vnoise(p); p = p * 2.03 + vec2(1.7, 9.2); a *= .5; } return s; }
+// 빛 그물: 움직이는 점들의 보로노이 경계 (가장 가까운 두 점 거리 차가 작은 곳)
+float web(vec2 p, float t) {
+  vec2 i = floor(p), f = fract(p);
+  float d1 = 9., d2 = 9.;
+  for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
+    vec2 g = vec2(x, y), r = vec2(h21(i + g), h21(i + g + 17.3));
+    r = .5 + .42 * sin(t + 6.2831 * r);
+    float d = length(g + r - f);
+    if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) d2 = d;
+  }
+  return 1. - smoothstep(0., .24, d2 - d1);
+}
+
+void main() {
+  vec2 p = vec2(gl_FragCoord.x, uRes.y * uDpr - gl_FragCoord.y) / uDpr;
+  vec4 L = lineAt(p.x);
+  float s = L.g * uRes.y, u = uU;
+  if (uLand > .5) {
+    vec3 c = tP(uvOf(p), uLod);
+    if (uSnow > 0.) { float k = smoothstep(.38, .7, fbm(p / (55. * u)) + uSnow * .9 - .42) * uSnow; c = mix(c, vec3(.97, .96, .94), k * .92); }
+    o = vec4(c, 1.); return;
+  }
+  // 안전장치: 값이 어떻게 들어와도 그린 해안선 근처로 묶는다 (물이 어느 한 칸만 사라지는 일이 없게)
+  float e = clamp(L.r * uRes.y, s - uRes.y * .7, s + uRes.y * .06);
+  float w = clamp(L.b * uRes.y, e - uRes.y, e);
+  float s2 = clamp(L.a * uRes.y, s - uRes.y * .08, s + uRes.y * .08);
+  float d = p.y - e;
+
+  // ── 땅: 그려진 판, 그려진 해안선 아래는 물 뺀 모래 바닥 ──
+  // (최적화) 깊은 물(d ≥ 1.2)에서는 땅 색이 섞이지 않는다 — 판 읽기·노이즈를 건너뛴다
+  vec3 land = vec3(0.);
+  if (d < 1.2) {
+    land = tP(uvOf(p), uLod);
+    if (p.y > s - 6. * u) land = mix(land, tD(uvOf(p), uLod), smoothstep(s - 4. * u, s + 8. * u, p.y));
+    if (uSnow > 0.) {
+      float k = smoothstep(.38, .7, fbm(p / (55. * u)) + uSnow * .9 - .42) * uSnow;
+      land = mix(land, vec3(.97, .96, .94), k * smoothstep(e - 2., e - 30. * u, p.y) * .92);
+    }
+    // 젖은 모래: 물이 닿았던 줄(w) 아래부터 물가까지 짙고 반들반들
+    // 마르는 중인 위쪽은 옅고, 물가로 갈수록 짙게 — 넓은 그라데이션 (각진 경계가 생기지 않게 경계선도 살짝 흔든다)
+    // (최적화) 젖은 줄은 ±12u 흔들리므로 그 위 18u 보다 위쪽·물가 아래쪽은 값이 0 — 노이즈를 계산하지 않는다
+    if (p.y > w - 19. * u && p.y < e + 1.) {
+      float wy = w + (fbm(vec2(p.x / (40. * u), 3.7)) - .5) * 24. * u;
+      float wetK = smoothstep(wy - 6. * u, wy + 150. * u, p.y) * (1. - smoothstep(e - 1., e + 1., p.y));
+      land = mix(land, land * vec3(.82, .79, .8) + vec3(.02, .03, .05), wetK * .8);
+      // 물러난 물이 남긴 레이스 거품 한 줄 (물이 멀어질수록 옅어진다)
+      float gap = e - w;
+      float laceK = (1. - smoothstep(12. * u, 80. * u, gap)) * smoothstep(1. * u, 6. * u, gap);
+      if (laceK > 0. && abs(p.y - w - 3. * u) < 6. * u) {
+        // 선 하나가 아니라 거품 알갱이가 모인 띠: 줄이 살짝 출렁이고, 굵기가 들쭉날쭉하고, 알갱이 사이가 비친다
+        float ly = w + 3. * u + (vnoise(vec2(p.x / (18. * u), 7.1)) - .5) * 4. * u;
+        float hw = (.8 + 1.8 * vnoise(vec2(p.x / (7. * u), 2.3))) * u;
+        float band = 1. - smoothstep(hw * .4, hw, abs(p.y - ly));
+        float bub = smoothstep(.42, .62, vnoise(vec2(p.x / (2.6 * u), (p.y - ly) / (2.6 * u) + w / (9. * u))));
+        land = mix(land, vec3(1., .99, .96), band * bub * laceK * .75);
+      }
+    }
+
+    // 비: 모래는 젖어 짙어지고 색이 조금 바랜다
+    if (uRain > 0.) {
+      float g = dot(land, vec3(.3, .59, .11));
+      land = mix(land, vec3(g), .22 * uRain) * (1. - .1 * uRain);
+    }
+  }
+  vec3 col = land;
+  if (d > -2.) {
+    // ── 물: 그려진 바다를 해안선만큼 끌어올리고, 깊이에 따라 다르게 비튼다 ──
+    float depth = max(d, 0.);
+    float shift = s - e;
+    // 물가 띠(거품·얕은 물, D0)는 모양 그대로 해안선을 따라 올라오고, 그 뒤로는 모래를 덮은 얕은 물 막이 원래 바다까지 이어진다.
+    // 먼바다는 제자리 (큰 파도 = 해변을 타고 오르는 얕은 물 — 바다 전체가 움직이지 않는다)
+    float D0 = min(150. * u, uRes.y * .2), up = max(shift, 0.);
+    // 바다 판 좌표: 바다 판 자신의 물가선(s2)을 지금 해안선(e)에 맞춘다
+    float shift2 = s2 - e, rest = s2 - s;
+    // 띠 아래 Z 구간만 부드럽게 늘여 원래 바다로 잇는다 (늘임은 최대 1.5배 — 한 줄을 늘인 세로 줄무늬가 생기지 않게)
+    //  잔파도: 띠 아래 Z 구간을 살짝(≤1.5배) 늘여 원래 바다로 잇는다
+    //  큰 파도: 먼바다는 제자리, 띠와 먼바다 사이는 물 막이 덮는다 (늘이지 않으니 줄무늬·이음매가 없다)
+    float Z = max(3. * up, 220. * u), y1 = p.y - e - D0, big = smoothstep(20. * u, 90. * u, up);
+    float yS = depth < D0 ? p.y + shift2 : (y1 < Z ? s2 + D0 + y1 * (Z - up) / Z : p.y + rest + min(shift, 0.));
+    float yI = depth < D0 ? p.y + shift2 : p.y + rest + min(shift, 0.);
+    float pb = uMap.z + uPS.y * uMap.x - 2.;
+    if (yS > pb) yS = 2. * pb - yS;
+    vec2 sp = vec2(p.x, mix(yS, yI, step(.5, big)));
+    vec2 q = sp / u;
+    float a1 = (1. + 3.5 * smoothstep(0., 260. * u, depth)) * u;
+    vec2 dis = vec2(sin(q.y * .045 + uT * .75 + 1.5 * sin(q.x * .012 + uT * .3)),
+                    cos(q.x * .03 - uT * .6 + 1.2 * sin(q.y * .02 - uT * .25))) * a1;
+    if (depth > 60. * u) dis += (vec2(fbm(q * .008 + vec2(uT * .05, 0.)), fbm(q * .008 + vec2(5.2, uT * .04))) - .5) * 14. * u * smoothstep(60. * u, 420. * u, depth);
+    vec3 sea = big > 0. && big < 1. ? mix(tS(uvOf(vec2(p.x, yS) + dis), uLod), tS(uvOf(vec2(p.x, yI) + dis), uLod), big) : tS(uvOf(sp + dis), uLod);
+    // 얕은 물 막: 그 줄의 물빛을 흐리게 펴고, 비친 모래·되돌아 흐르는 물결을 얹는다
+    // 물 막은 물가 띠 안에서 차오르고 원래 바다 안쪽에서 빠진다 → 띠와 바다 사이의 "한 줄을 늘인" 자리는 늘 물 막에 가려진다
+    float sheet = smoothstep(e + D0 - 60. * u, e + D0, p.y) * (1. - smoothstep(s + D0, s + D0 + 50. * u, p.y)) * big;   // 물 막은 큰 파도 때만
+    if (sheet > 0.) {
+      // 그림 속 얕은 물빛(청록)으로 비친 모래를 덮는다 — 물가 쪽일수록 맑고 밝다
+      // 얕은 물 아래 모래가 일렁여 비친다: 큰 덩어리 노이즈로 휘게(도메인 워핑) 해서 반복 무늬가 안 보이게
+      vec2 wq = q * .012;
+      vec2 warp = vec2(fbm(wq + vec2(0., -uT * .18)), fbm(wq + vec2(4.3, -uT * .14))) - .5;
+      vec3 under = tD(uvOf(p + warp * 22. * u), uLod);
+      float k = clamp((p.y - e - D0) / max(1., up), 0., 1.);
+      // 밤: 같은 자리 바다 그림이 밤 판으로 바뀐 비율(흐리게 읽어 무늬 없이)을 물 막 색에도 곱한다.
+      //  비친 모래(tD)는 이미 밤 판을 따르는데 물 막 색만 낮 청록 그대로라, 밤에 큰 파도가 오면 물 막이 밝은 띠로 빛났다 (2026-11-22)
+      //  노을·새벽(W 판)은 비율을 곱하면 청록 × 주황 = 올리브 초록이 되어 예전 색 그대로 둔다 — 밤 몫만 떼어 낸다
+      vec3 tone = vec3(1.);
+      if (uNA > 0.) {
+        vec2 tu = uvOf(sp); float L = uLod + 5.;
+        vec3 base = textureLod(uSea, tu, L).rgb; if (uWA > 0.) base = mix(base, textureLod(uSeaW, tu, max(0., L + uWS)).rgb, uWA);
+        tone = clamp(tS(tu, L) / max(base, vec3(.04)), 0., 1.2);
+      }
+      vec3 teal = mix(uFilmA, uFilmB, k) * tone;
+      vec3 film = mix(under * uFilmM + vec3(.03, .09, .11) * tone, teal, .45 + .25 * k);
+      float lum = fbm(wq * 2.3 + warp * 1.6 + vec2(0., -uT * .3));
+      film += (lum - .5) * .07 * tone;                                                 // 물빛 얼룩 (부드럽게)
+      film = mix(film, tone, smoothstep(.66, .8, lum) * .14 * (1. - k));                // 드문드문 흩어지는 거품
+      sea = mix(sea, film, sheet);
+    }
+    // 얕은 물의 빛 그물
+    float shallow = (1. - smoothstep(10. * u, 150. * u, depth)) * smoothstep(4. * u, 16. * u, depth);
+    if (shallow > 0.) {
+      float cw = web(q * .02 + dis / u * .02, uT * .45) * web(q * .027 + vec2(3.1, 7.7), uT * .55 + 2.);
+      sea += cw * .09 * shallow * (1. - uNight * .75) * vec3(.9, 1., .95);
+    }
+    // 물가 거품 테두리 (끊기며 흐른다)
+    float rim = 1. - smoothstep(0., (3.5 + uSurge * 5.) * u, depth);
+    if (rim > 0.) {
+      float brk = smoothstep(.35, .62, fbm(vec2(p.x / (14. * u) - uT * .12, depth / (5. * u) - uT * .9)));
+      sea = mix(sea, vec3(1., .99, .96), rim * (.5 + .5 * brk) * .9);
+    }
+    // 큰 파도: 밀려오는 물보라 줄무늬
+    if (uSurge > 0. && depth < 60. * u) {
+      float streak = smoothstep(.56, .74, fbm(vec2(p.x / (20. * u), depth / (6. * u) - uT * 1.6)));
+      sea = mix(sea, vec3(1.), uSurge * (1. - smoothstep(0., 60. * u, depth)) * streak * .75);
+    }
+    // 반짝이는 햇빛
+    if (depth > 12. * u && depth < 380. * u && uNight < 1. && uRain < 1.) {   // (최적화) 반짝임이 0이 되는 곳은 건너뛴다
+      float cs = 15. * u;
+      vec2 g = floor(p / cs); float hs = h21(g);
+      vec2 c0 = (g + .5 + (vec2(h21(g + 3.1), h21(g + 7.7)) - .5) * .6) * cs;
+      float tw = pow(max(0., sin(uT * (1.1 + hs * 1.6) + hs * 40.)), 26.);
+      // 반짝임은 드문드문, 얕은 물~중간 물에서만 (그림 속 물방울 점과 겹치지 않게)
+      float zone = smoothstep(.45, .7, vnoise(p / (90. * u) + vec2(uT * .02, 0.)));
+      sea += (1. - smoothstep(0., 1.5 * u, length(p - c0))) * tw * step(.82, hs) * zone * smoothstep(12. * u, 50. * u, depth) * (1. - smoothstep(200. * u, 380. * u, depth)) * .9 * (1. - uNight) * (1. - uRain);
+    }
+    // v30.32 윤슬 (사용자: "노을 시기에 윤슬 효과를 물에" · "밤에 보이는 달빛 윤슬도")
+    //  v30.32.4: 반짝이는 점·빛줄은 시간 빛 위 효과 층(glitter.js)이 그린다 — 여기서는 빛길 둘레 물빛만 은은하게 밝힌다
+    //   (노을: 아래로 갈수록 넓어지는 금빛 길 · 밤: 좁고 곧은 은빛 길, glitter.js 의 pathOf 와 같은 자리)
+    if (uSunG + uMoonG > .001 && depth > 6. * u) {
+      float wd = max(uRes.y - e, 60. * u), near = smoothstep(6. * u, 36. * u, depth);
+      float yS = (p.y - (e + wd * .56)) / (wd * .4), xS = (p.x - uRes.x * .5) / (uRes.x * .11 + max(p.y - e, 0.) * .2);
+      float yM = (p.y - (e + wd * .54)) / (wd * .38), xM = (p.x - uRes.x * .5) / (uRes.x * .04 + max(p.y - e, 0.) * .04);
+      float colS = exp(-.5 * (xS * xS * .35 + yS * yS)), colM = exp(-.5 * (xM * xM * .3 + yM * yM));
+      sea += (uSunG * colS * vec3(1., .72, .42) * .16 + uMoonG * colM * vec3(.6, .72, .95) * .14) * near;
+    }
+    // 비: 물 위 곳곳에 빗방울 파문이 번갈아 퍼진다 (칸마다 하나, 저마다 다른 박자)
+    if (uRain > 0.) {
+      float rs = 30. * u;
+      for (int k = 0; k < 2; k++) {
+        vec2 gp = p / rs + float(k) * vec2(.5, .37), gi = floor(gp);
+        float h1 = h21(gi + float(k) * 7.1), h2 = h21(gi + 3.3 + float(k));
+        vec2 c = (gi + .2 + .6 * vec2(h1, h2)) * rs - float(k) * vec2(.5, .37) * rs;
+        float ph = fract(uT * (.55 + .4 * h1) + h2), r = ph * 11. * u;
+        vec2 dv = (p - c) * vec2(1., 2.);                    // 위에서 비스듬히 본 납작한 원
+        float ring = (1. - smoothstep(0., 1.3 * u, abs(length(dv) - r))) * (1. - ph) * step(.25, h1);
+        float ring2 = (1. - smoothstep(0., 1. * u, abs(length(dv) - r * .55))) * (1. - ph) * .6 * step(.25, h1) * step(.3, ph);
+        sea += (ring + ring2) * .32 * uRain * vec3(.92, .97, 1.);
+      }
+      sea = mix(sea, vec3(dot(sea, vec3(.3, .59, .11))), .15 * uRain);
+    }
+    // 바위는 움직이는 물과 상관없이 원래 자리에 (깊은 바위만 물결 굴절로 살짝 흔들린다)
+    vec2 rp = uvOf(p + dis * .5 * smoothstep(60. * u, 260. * u, depth));
+    float rk = textureLod(uRock, rp, 0.).a;
+    if (rk > .01) {
+      vec3 rc = tP(rp, uLod);
+      sea = mix(sea, rc, rk);
+    }
+    col = mix(land, sea, smoothstep(-1.2, 1.2, d));
+  }
+  o = vec4(col, 1.);
+}`;
+
+// (2026-11-22 최적화) 켤 때 판 그림을 받는 동안 물 셰이더 번역을 먼저 시작해 둔다. 결과(성공 여부)는 여기서 묻지 않아
+//  기다리지 않는다 — 데스크톱 D3D 에서 약 1.1초 걸리던 번역이 그림 받는 시간과 겹친다. WaterGL 이 같은 캔버스에서 이어 받는다.
+//  같은 셰이더·같은 연결 설정이라 그림은 같다. 이어 받지 못하면(연결을 잃음 등) 생성자가 예전처럼 처음부터 만든다.
+const GL_OPTS = { antialias: false, alpha: false, preserveDrawingBuffer: false };
+const warmed = new WeakMap();
+export function warmWaterGL(canvas) {
+  try {
+    if (warmed.has(canvas)) return;
+    const gl = canvas.getContext('webgl2', GL_OPTS);
+    if (!gl) return;
+    gl.getExtension?.('KHR_parallel_shader_compile');   // 되는 기기는 번역을 다른 스레드에서
+    const mk = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
+    const vs = mk(gl.VERTEX_SHADER, VS), fs = mk(gl.FRAGMENT_SHADER, FS), pr = gl.createProgram();
+    gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
+    warmed.set(canvas, { gl, vs, fs, pr });
+  } catch (e) { /* 생성자가 처음부터 다시 만든다 */ }
+}
+
+export class WaterGL {
+  constructor(canvas) {
+    this.cv = canvas;
+    const w = warmed.get(canvas); warmed.delete(canvas);
+    const gl = (this.gl = canvas.getContext('webgl2', GL_OPTS));
+    if (!gl) throw new Error('WebGL2 없음');
+    let pr;
+    if (w && w.gl === gl && !gl.isContextLost()) {
+      // 미리 시작한 번역을 이어 받는다 — 예전과 같은 순서로 확인(꼭짓점 → 조각 → 연결)
+      for (const s of [w.vs, w.fs]) if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+      pr = this.pr = w.pr;
+    } else {
+      const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+      pr = (this.pr = gl.createProgram());
+      gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS));
+      gl.linkProgram(pr);
+    }
+    if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr));
+    gl.useProgram(pr);
+    const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(pr, 'aP'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    this.U = {};
+    for (const n of ['uPlate', 'uDry', 'uL', 'uLod', 'uSea', 'uRock', 'uPlateN', 'uDryN', 'uSeaN', 'uNA', 'uPlateW', 'uDryW', 'uSeaW', 'uWA', 'uNS', 'uWS', 'uRes', 'uPS', 'uMap', 'uDpr', 'uT', 'uU', 'uSnow', 'uNight', 'uSurge', 'uRain', 'uSunG', 'uMoonG', 'uLand', 'uFilmA', 'uFilmB', 'uFilmM']) this.U[n] = gl.getUniformLocation(pr, n);
+    this.line = new Float32Array(N * 4);
+    gl.uniform1i(this.U.uPlate, 0); gl.uniform1i(this.U.uDry, 1); gl.uniform1i(this.U.uSea, 3); gl.uniform1i(this.U.uRock, 4);
+    gl.uniform1i(this.U.uPlateN, 5); gl.uniform1i(this.U.uDryN, 6); gl.uniform1i(this.U.uSeaN, 7);
+    gl.uniform1i(this.U.uPlateW, 8); gl.uniform1i(this.U.uDryW, 9); gl.uniform1i(this.U.uSeaW, 10);
+    this.slots = { N: null, W: null };   // 시간대 그림 칸: N = 밤 · W = 노을 또는 새벽 (읽었을 때만)
+    this.texs = {};
+    this.checkFrame = true;
+  }
+
+  tex(unit, upload, mip) {
+    const gl = this.gl, t = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, t);
+    upload();
+    if (mip) gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, mip ? gl.LINEAR_MIPMAP_LINEAR : gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    return t;
+  }
+
+  setPlate(plate) {
+    const gl = this.gl;
+    if (this.plate === plate) return;
+    for (const t of Object.values(this.texs)) gl.deleteTexture(t);   // 가로 ↔ 세로 판을 바꿀 때 앞 판을 비운다
+    this.texs = {};
+    this.drop('N'); this.drop('W');
+    this.plate = plate;
+    const up = (unit, src) => this.tex(unit, () => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src), true);
+    this.texs = { img: up(0, plate.img), dry: up(1, plate.dry), sea: up(3, plate.sea), rock: up(4, plate.rockMask) };
+    this.bindSet('N'); this.bindSet('W');
+    this.checkFrame = true;
+    gl.uniform2f(this.U.uPS, plate.pw, plate.ph);
+  }
+
+  // 섞는 양이 0이어도 활성 sampler에는 완전한 텍스처가 필요하다.
+  // 아직 안 읽었거나 내린 시간대는 낮 판을 공유한다 — 복사·추가 GPU 메모리 없음.
+  bindSet(slot) {
+    const texs = this.slots[slot]?.texs || [this.texs.img, this.texs.dry, this.texs.sea];
+    if (!texs.every(Boolean)) return;
+    const gl = this.gl, base = slot === 'N' ? 5 : 8;
+    texs.forEach((t, i) => { gl.activeTexture(gl.TEXTURE0 + base + i); gl.bindTexture(gl.TEXTURE_2D, t); });
+  }
+
+  // 시간대 그림 올리기 · 내리기 (v16.5~): 칸 N(밤) · W(노을/새벽).
+  //  화면에 필요한 만큼만 줄여 올린다 (휴대폰 세로면 약 70% → GPU 메모리 절반) — 판 한 픽셀이 화면 몇 픽셀인지 × 1.25
+  setSet(slot, plate, kind) {
+    const gl = this.gl, set = plate.sets && plate.sets[kind];
+    if (plate !== this.plate || !set || (this.slots[slot] && this.slots[slot].kind === kind)) return;
+    this.drop(slot);
+    const f = Math.min(1, 1.25 * (this.plate.map ? this.plate.map.s : 1) * this.dpr);
+    const shrink = src => { if (f >= 0.999) return src; const c = document.createElement('canvas'); c.width = Math.round(src.naturalWidth * f); c.height = Math.round(src.naturalHeight * f); const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, c.width, c.height); return c; };
+    const base = slot === 'N' ? 5 : 8;
+    const up = (unit, src) => this.tex(unit, () => {
+      const image = shrink(src);
+      try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image); }
+      finally { if (image !== src) { image.width = 0; image.height = 0; } }   // 업로드용 캔버스를 바로 반환
+    }, true);
+    this.slots[slot] = { kind, shift: Math.log2(f), texs: [up(base, set.img), up(base + 1, set.dry), up(base + 2, set.sea)] };
+    this.checkFrame = true;
+  }
+  drop(slot) {
+    const s = this.slots[slot];
+    if (s) for (const t of s.texs) this.gl.deleteTexture(t);
+    this.slots[slot] = null; this.bindSet(slot); this.checkFrame = true;
+  }
+  has(slot, kind) { const s = this.slots[slot]; return !!s && (!kind || s.kind === kind); }
+
+  resize(W, H, dpr) {
+    this.W = W; this.H = H; this.dpr = Math.min(dpr, 2);   // 숲 잎 층(키위 위)과 같은 해상도 — 다르면 잎 가장자리가 어긋나 보인다
+    this.cv.width = Math.round(W * this.dpr); this.cv.height = Math.round(H * this.dpr);
+    this.cv.style.width = W + 'px'; this.cv.style.height = H + 'px';
+    this.gl.viewport(0, 0, this.cv.width, this.cv.height);
+    this.checkFrame = true;
+  }
+
+  // 해안선 줄(uL): 그린 물가·젖은 모래·파도 끝을 칸마다 올린다
+  uploadLine(beach, P, W, H, step, wc) {
+    const gl = this.gl;
+    // 젖은 줄을 옆 칸과 이어 부드럽게 (v16.2.4) — 칸마다 "가장 높이 왔던 곳"을 따로 기억하고 똑같은 속도로 말라서,
+    // 파도 마루 사이마다 뾰족한 V자 골이 생기고 그 위의 거품 줄이 지그재그가 됐다. 5칸 상자 흐림 세 번 ≈ 둥근 흐림.
+    const wet = (this.wetS ||= new Float32Array(wc)), tmp = (this.wetT ||= new Float32Array(wc));
+    wet.set(beach.wet);
+    for (let pass = 0; pass < 3; pass++) {
+      for (let i = 0; i < wc; i++) { let a = 0; for (let k = -2; k <= 2; k++) a += wet[Math.min(wc - 1, Math.max(0, i + k))]; tmp[i] = a / 5; }
+      wet.set(tmp);
+    }
+    for (let i = 0; i < N; i++) {
+      const x = i * step, wf = (x / W) * (wc - 1), wi = Math.min(wc - 2, Math.floor(wf)), wt = wf - wi;
+      const sh = P.shore(x), ok = v => (Number.isFinite(v) ? v / H : sh / H);
+      this.line[i * 4] = ok(beach.edge(x));
+      this.line[i * 4 + 1] = sh / H;
+      this.line[i * 4 + 2] = ok(wet[wi] * (1 - wt) + wet[wi + 1] * wt);
+      this.line[i * 4 + 3] = ok(P.shoreSea(x));
+    }
+    gl.uniform4fv(this.U.uL, this.line);
+  }
+
+  draw(beach, { snow = 0, night = 0, rain = 0, art = 0, warm = 0, land = false, film = null, glitter = null } = {}) {
+    const gl = this.gl, { W, H } = this, P = this.plate, m = P.map;
+    const step = W / (N - 1), wc = beach.wet.length;
+    // O7 (2026-10-19): 물 없는 장소(uLand)의 셰이더는 판·눈만 그리고 해안선 줄(uL)을 읽지 않는다 → 줄 계산·업로드를 건너뛴다.
+    //  물 있는 장소로 돌아가면 첫 프레임에 다시 채우므로 낡은 줄이 남지 않는다
+    if (!land) this.uploadLine(beach, P, W, H, step, wc);
+    // 그림 한 픽셀이 화면 몇 픽셀에 해당하는지로 해상도 단계를 정한다 (화면보다 큰 그림을 줄여 볼 때만 > 0)
+    gl.uniform1f(this.U.uLod, Math.max(0, Math.log2(1 / (m.s * this.dpr))));
+    gl.uniform2f(this.U.uRes, W, H);
+    gl.uniform3f(this.U.uMap, m.s, m.ox, m.oy);
+    gl.uniform1f(this.U.uDpr, this.dpr);
+    gl.uniform1f(this.U.uT, beach.t);
+    gl.uniform1f(this.U.uU, beach.u);
+    gl.uniform1f(this.U.uSnow, snow);
+    gl.uniform1f(this.U.uNight, night);
+    gl.uniform1f(this.U.uRain, rain);
+    gl.uniform1f(this.U.uSunG, glitter ? glitter.sun || 0 : 0); gl.uniform1f(this.U.uMoonG, glitter ? glitter.moon || 0 : 0);   // v30.32 윤슬
+    const F = film || FILM_TEAL; gl.uniform3f(this.U.uFilmA, ...F[0]); gl.uniform3f(this.U.uFilmB, ...F[1]); gl.uniform3f(this.U.uFilmM, ...F[2]);
+    const sN = this.slots.N, sW = this.slots.W;   // (N 은 해안선 칸 수 상수라 다른 이름)
+    gl.uniform1f(this.U.uNA, sN ? art : 0); gl.uniform1f(this.U.uNS, sN ? sN.shift : 0);
+    gl.uniform1f(this.U.uWA, sW ? warm : 0); gl.uniform1f(this.U.uWS, sW ? sW.shift : 0);
+    gl.uniform1f(this.U.uSurge, beach.surgeK || 0);
+    gl.uniform1f(this.U.uLand, land ? 1 : 0);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    // WebGL은 업로드/그리기를 거절해도 JS 예외를 던지지 않는다.
+    // 자원을 바꾼 첫 프레임만 검사해 빈 풍경을 정상 시작으로 처리하지 않는다.
+    if (this.checkFrame) {
+      this.checkFrame = false;
+      const error = gl.getError();
+      if (error !== gl.NO_ERROR) throw new Error('WebGL 그리기 실패: 0x' + error.toString(16));
+    }
+  }
+}
+
+// 3D 그래픽(WebGL2)을 못 쓰는 기기용 대체 (v18.5.5) — 물결 없이 그림 판만 2D 로 그린다.
+//  WaterGL 과 같은 이름의 메서드를 갖고 있어 main.js 는 어느 쪽인지 몰라도 된다. 시간대 그림 칸(N·W)은 쓰지 않는다
+export class FlatWater {
+  constructor(canvas) {
+    this.cv = canvas; this.g = canvas.getContext('2d'); this.slots = {}; this.flat = true;
+    if (!this.g) throw new Error('2D 캔버스 없음');
+  }
+  setPlate(plate) { if (this.plate !== plate) { this.plate = plate; this.drawn = null; } }
+  setSet() {}
+  drop() {}
+  has() { return false; }
+  resize(W, H, dpr) {
+    this.W = W; this.H = H; this.dpr = Math.min(dpr, 2);
+    this.cv.width = Math.round(W * this.dpr); this.cv.height = Math.round(H * this.dpr);
+    this.cv.style.width = W + 'px'; this.cv.style.height = H + 'px';
+    this.drawn = null;
+  }
+  draw() {
+    const P = this.plate, m = P && P.map;
+    if (!m || this.drawn === m) return;   // 그림이 안 움직이므로 판·크기가 바뀔 때만 다시 그린다
+    const g = this.g;
+    g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    g.fillStyle = '#1A5C91'; g.fillRect(0, 0, this.W, this.H);
+    g.drawImage(P.img, m.ox, m.oy, P.pw * m.s, P.ph * m.s);
+    this.drawn = m;
+  }
+}

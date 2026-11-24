@@ -1,0 +1,208 @@
+import { wireTabs, rememberOpener, returnFocus, installDialogKeyboard } from './a11y.js?v=pv-7441cb8';
+import { BoatPreview } from './boat-preview.js?v=pv-7441cb8';
+import { KiwiStage } from './kiwi-stage.js?v=pv-7441cb8';
+import { ITEMS } from '../items.js?v=pv-7441cb8';
+// src/ui/shell.js — 2026-10-24 UI 구조 개편 (결정 10개: _views/html-views/2026-10-24_kiwi-ui-restructure.html)
+//
+//  마크업은 index.html 에 제자리로 있고(예전 src/ia/ia.js 처럼 뜬 뒤에 옮기지 않는다), 여기는 새 창 셋의 동작만 맡는다.
+//   · 바구니 = 읽는 것(일지 · 편지 · 모은 것)
+//   · 꾸미기 = 고르는 것(키위 옷 · 배·돛 · 소리 · 만들기). 누르면 바로 입혀 보고 들어 보고, 「저장」해야 남는다 — 다른 길로 닫으면 되돌린다
+//   · 해도  = 장소의 유일한 입구(그리기·누르기는 voyage-extras.js 의 paintChart · pickAt)
+//  그 밖에: 설정 › 풍경의 시점 줄 · 설정 › 화면의 창 투명도 · 아래 입력창 끄기 · 떠나기 창 「더 보기」 기억
+//  main.js 는 맨 아래에서 mountShell(env) 한 번만 부른다.
+
+const $ = id => document.getElementById(id);
+const KEY = 'kiwi-footprints.';
+const get = k => { try { return localStorage.getItem(KEY + k); } catch (e) { return null; } };
+const put = (k, v) => { try { localStorage.setItem(KEY + k, v); } catch (e) {} };
+
+// 꾸미기에서 바꿀 수 있는 값은 모두 같은 저장/되돌리기 경계를 쓴다.
+export function snapshotWardrobe(env) {
+  return { wear: [...env.col.wear], boat: env.voyScene.boatId, sail: env.voyScene.sailId, line: env.voyScene.line !== false, mix: { ...env.sound.mix },
+    members: env.flock.members.map(({ id, name, wear }) => ({ id, name, wear })) };
+}
+export function wardrobeChanged(n, d) {
+  return !!d && (JSON.stringify(n.wear.slice().sort()) !== JSON.stringify(d.wear.slice().sort()) ||
+    n.boat !== d.boat || n.sail !== d.sail || n.line !== d.line || JSON.stringify(n.members) !== JSON.stringify(d.members) ||
+    ['voice', 'stepPack', 'natStep', 'findPack', 'nature', 'song'].some(k => n.mix[k] !== d.mix[k]));
+}
+export function restoreWardrobe(env, d) {
+  for (const id of [...env.col.wear]) if (!d.wear.includes(id)) env.setWear(id, false);
+  for (const id of d.wear) if (!env.col.wearing(id)) env.setWear(id, true);
+  if (env.voyScene.boatId !== d.boat) { env.voyScene.setBoat(d.boat); env.save('boat', d.boat); }
+  if (env.voyScene.sailId !== d.sail) { env.voyScene.setSail(d.sail); env.save('sail', d.sail); }
+  if ('line' in d && (env.voyScene.line !== false) !== d.line) { env.voyScene.line = d.line; env.save('line', d.line ? 'on' : 'off'); }
+  for (const m of d.members) {
+    if (!env.flock.get(m.id)) continue;
+    env.flock.rename(m.id, m.name); env.flock.setWear(m.id, m.wear);
+  }
+  env.syncFlock();
+  const m = d.mix, now = env.sound.mix;
+  const pick = {}; for (const k of ['voice', 'stepPack', 'natStep', 'findPack']) if (now[k] !== m[k]) pick[k] = m[k];
+  if (Object.keys(pick).length) env.sound.setMix(pick);
+  if (now.nature !== m.nature) env.sound.setNature(m.nature);
+  if (now.song !== m.song) env.sound.setSong(m.song);
+}
+
+export function mountShell(env) {
+  const { closeOthers, paintCollection, paintPacks, onChart, unlock } = env;
+  const basket = $('basket'), basketBtn = $('basketBtn');
+  const ward = $('wardrobe'), wardBtn = $('wardBtn');
+  const chartView = $('chartView'), chartBtn = $('chartBtn');
+  const basketTab = wireTabs(basket, 'basket', { load: get, save: put, first: 'photo' });
+  const wardTab = wireTabs(ward, 'ward', { load: get, save: put, first: 'kiwi' });
+
+  // ── 바구니 ──
+  function openBasket(open) {
+    if (open === !basket.hidden) return;
+    if (open) { rememberOpener(basket, basketBtn); closeAll(); closeOthers(); paintCollection(); env.sound?.moreFx('tap', 0.4); }   // v30.23 바구니 여는 나무 톡
+    basket.hidden = !open; basketBtn.setAttribute('aria-expanded', String(open));
+    if (open) basket.querySelector('[role="tab"][aria-selected="true"]')?.focus();
+    else returnFocus(basket, basketBtn);
+  }
+  basketBtn.addEventListener('click', () => { unlock(); openBasket(basket.hidden); });
+
+  // ── 꾸미기: 지금 상태를 적어 두고 → 마음껏 바꿔 보고 → 저장 or 되돌리기 ──
+  let draft = null;
+  const snap = () => snapshotWardrobe(env);
+  const restore = d => restoreWardrobe(env, d);
+  const changed = () => wardrobeChanged(snap(), draft);
+  function paintWardBar() { const c = changed(); $('wdSave').disabled = !c; $('wdCancel').textContent = c ? '되돌리기' : '닫기'; }
+  const preview = new BoatPreview($('boatPreview'), $('boatPreviewNote'));
+  function paintBoatStage() {
+    if (ward.hidden || $('boatStage').closest('.pane').hidden) { preview.release(); return; }
+    preview.paint(env.voyScene.boatId, env.voyScene.sailId, env.previewCrew(), env.voyScene.line !== false);
+  }
+  // v29.7 키위 탭 무대: 입힌 옷을 입은 키위들이 모래 위에서 움직인다
+  const kiwiStage = new KiwiStage($('kiwiPreview'), $('kiwiPreviewNote'));
+  // v29.12 한 창 두 얼굴: 꾸미기(dress) = 키위 · 배·돛 / 소리(sound) = 배경 소리 · 키위 소리
+  const MODES = { dress: { title: '꾸미기', sub: '눌러서 바로 입혀 봐요 · 저장해야 남아요', first: 'kiwi' },
+    sound: { title: '소리', sub: '눌러서 들어 봐요 · 고르는 소리만 들려요 · 저장해야 남아요', first: 'bg' } };
+  let mode = 'dress';
+  const curTab = () => ward.querySelector('[role="tab"][aria-selected="true"]')?.dataset.tab;
+  function setMode(m) {
+    mode = MODES[m] ? m : 'dress';
+    $('wdTitle').textContent = MODES[mode].title; $('wdSub').textContent = MODES[mode].sub; ward.setAttribute('aria-label', MODES[mode].title); ward.dataset.mode = mode;
+    for (const b of ward.querySelectorAll('[role="tab"]')) b.hidden = b.dataset.mode !== mode;
+  }
+  // 소리 창에선 고르는 갈래만 들린다 (배경 소리 = 곡·자연 배경 / 키위 소리 = 발자국·찾았을 때), 닫으면 평소대로
+  function applySolo() { env.sound?.setSolo?.(ward.hidden || mode !== 'sound' ? null : curTab() === 'voice' ? ['sfx'] : ['music', 'amb']); }
+  function paintKiwiStage() {
+    const on = !ward.hidden && ['kiwi', 'bg', 'voice'].includes(curTab());
+    $('kiwiStage').hidden = !on;
+    if (!on) { kiwiStage.release(); return; }
+    kiwiStage.show(ITEMS.filter(it => it.kind === 'wear' && env.col.wearing(it.id))).then(() => { if (mode === 'sound') $('kiwiPreviewNote').textContent = SOUND_NOTE[curTab()] || ''; });
+  }
+  const stageAct = kind => { if (!ward.hidden) kiwiStage.act(kind); };
+  // 소리 창 무대 아래 한 줄: 옷 이름 대신 무엇을 들려주는지
+  const SOUND_NOTE = { bg: '곡과 자연 배경만 들려요. 고르면 바로 바뀌어요', voice: '누르면 키위가 걸어 보고(발자국), 콕 찍어 봐요(찾았을 때)' };
+  let journalOn = false;
+  function openWard(open, { save = false, tab, mode: m } = {}) {
+    if (open && !ward.hidden && m && m !== mode) openWard(false, { save: true });   // 꾸미기 ↔ 소리 바꿔 열면 바꾼 것은 저장하고 넘어간다
+    if (open === !ward.hidden) { if (open && tab) wardTab(tab); return; }
+    if (open) {
+      setMode(m || 'dress');
+      const saved = get('tab.ward.' + mode);
+      tab ||= ward.querySelector(`[role="tab"][data-tab="${saved}"][data-mode="${mode}"]`) ? saved : MODES[mode].first;
+      rememberOpener(ward, $('menuBtn'));
+      closeAll(); closeOthers();
+      draft = snap();
+      // 복구 기록은 안전망일 뿐 — 못 쓰면(사생활 보호 모드 등) 꾸미기는 그대로 열고, 저장·되돌리기는 지금 화면 기준으로만 (v29.3.3)
+      journalOn = !!env.wardrobeJournal?.begin(draft);
+      paintCollection(); paintPacks(); paintWardBar();
+      if (tab) wardTab(tab);
+    } else {
+      if (!save && draft) { if (changed()) { restore(draft); env.toast('바꾼 것을 되돌렸어요'); } if (journalOn) env.wardrobeJournal.recover(); }
+      else if (save && draft) {
+        if (journalOn && !env.wardrobeJournal.commit(snap())) { env.toast('저장하지 못했어요 · 다시 시도해 주세요'); return; }
+        if (changed()) env.toast('저장했어요');
+      }
+      draft = null; paintCollection();
+    }
+    ward.hidden = !open; wardBtn.setAttribute('aria-expanded', String(open));
+    document.body.classList.toggle('dressing', open);
+    if (open) { ward.querySelector('[role="tab"][aria-selected="true"]')?.focus(); paintBoatStage(); paintKiwiStage(); }
+    else { preview.release(); kiwiStage.release(); returnFocus(ward, $('menuBtn')); }
+    applySolo();
+  }
+  wardBtn.addEventListener('click', () => { unlock(); openWard(true, { mode: 'dress' }); });
+  $('toWardSound')?.addEventListener('click', () => { unlock(); openWard(true, { mode: 'sound' }); });
+  $('wdSave').addEventListener('click', () => openWard(false, { save: true }));
+  $('wdCancel').addEventListener('click', () => openWard(false));
+  // 고를 때마다 저장 단추·배 그림을 갱신 (각 칸의 그리는 함수가 다시 그린 뒤)
+  for (const event of ['input', 'change']) ward.addEventListener(event, () => { if (!ward.hidden) paintWardBar(); });
+  ward.addEventListener('click', () => setTimeout(() => { if (!ward.hidden) { paintBoatStage(); paintKiwiStage(); paintWardBar(); applySolo(); const t = curTab(); if (t) put('tab.ward.' + mode, t); } }, 0));
+
+  // ── 해도 ──
+  function openChart(open) {
+    if (open === !chartView.hidden) return;
+    if (open) { rememberOpener(chartView, chartBtn); closeAll(); closeOthers(); }
+    chartView.hidden = !open; chartBtn.setAttribute('aria-expanded', String(open));
+    if (open) { $('isleCard').hidden = true; onChart(); $('chartClose').focus(); }
+    else returnFocus(chartView, chartBtn);
+  }
+  chartBtn.addEventListener('click', () => { unlock(); openChart(chartView.hidden); });
+  $('chartClose').addEventListener('click', () => { openChart(false); chartBtn.focus(); });
+
+  // 바깥을 누르면 바구니·해도는 닫힌다 (꾸미기는 저장/되돌리기로만 — 그 사이 섬을 보며 고르도록)
+  const onTop = t => t.closest?.('#found, #picker, #photoViewer, .journey-book, [role="dialog"][aria-modal="true"]');
+  document.addEventListener('pointerdown', e => {
+    const t = e.target; if (onTop(t)) return;
+    if (!basket.hidden && !basket.contains(t) && !basketBtn.contains(t)) openBasket(false);
+  }, true);
+  for (const [button, panel] of Object.entries({ basketBtn: 'basket', chartBtn: 'chartView', wardBtn: 'wardrobe', toWardSound: 'wardrobe' })) $(button)?.setAttribute('aria-controls', panel);
+  const closeChartKey = () => {
+    if (!$('isleCard').hidden) { $('isleCard').hidden = true; $('chartClose').focus(); }
+    else openChart(false);
+  };
+  installDialogKeyboard([
+    { panel: $('found'), close: env.closeFound },
+    { panel: $('info'), close: env.closeInfo },
+    { panel: $('picker'), close: env.closePicker },
+    { panel: chartView, close: closeChartKey },
+    { panel: ward, close: () => openWard(false) },
+    { panel: basket, close: () => openBasket(false) },
+    { panel: $('settings'), close: env.closeSettings },
+    { panel: $('focusPanel'), close: env.closeFocus },
+  ]);
+
+  function closeAll() { openBasket(false); openWard(false); openChart(false); }
+  // 새로고침·탭 종료·뒤로 가기 캐시에 들어가기 전에 현재 장면도 원래대로 돌린다.
+  addEventListener('pagehide', () => { if (!ward.hidden) openWard(false); });
+
+  // ── 설정 › 풍경 › 시점 ──
+  const viewRow = $('viewRow'), viewBtn = $('viewBtn');
+  const NAMES = { top: '위에서', diorama: '디오라마', follow: '따라가기', scope: '쌍안경', text: '글자 보기', breeze: '바람결' };
+  for (const [v, nm] of Object.entries(NAMES)) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'pick'; b.dataset.view = v;
+    const svg = viewBtn.querySelector('svg').cloneNode(true);
+    svg.querySelectorAll(':scope > g[class]').forEach(g => { if (g.getAttribute('class') !== 'v-' + v) g.remove(); else g.style.display = 'inline'; });
+    svg.dataset.ico = 'v-' + v;   // 종이 테마 아이콘이 이 이름으로 그림을 고른다
+    const sp = document.createElement('span'); sp.textContent = nm;
+    b.append(svg, sp); b.addEventListener('click', () => env.setView(v));
+    viewRow.append(b);
+  }
+  const paintView = () => { for (const b of viewRow.children) b.setAttribute('aria-pressed', String(b.dataset.view === document.body.dataset.view)); };
+  new MutationObserver(paintView).observe(document.body, { attributes: true, attributeFilter: ['data-view'] }); paintView();
+
+  // ── 설정 › 화면 › 창 투명도 (모던·종이 따로 기억, 0% = 비치지 않음) ──
+  {
+    const DEF = { modern: 22, paper: 0 }, r = $('winSee'), now = $('winSeeNow');
+    const ui = () => (document.documentElement.dataset.ui === 'paper' ? 'paper' : 'modern');
+    const read = u => { const v = get('winSee.' + u); return v !== null && isFinite(+v) ? Math.min(70, Math.max(0, +v)) : DEF[u]; };
+    const apply = v => { const de = document.documentElement; de.style.setProperty('--win-a', String(1 - v / 100)); de.toggleAttribute('data-win-see', v > 0); r.value = String(v); now.textContent = v === 0 ? '비치지 않음' : `${v}% 비침`; };
+    r.addEventListener('input', () => { apply(+r.value); put('winSee.' + ui(), r.value); });
+    new MutationObserver(() => apply(read(ui()))).observe(document.documentElement, { attributes: true, attributeFilter: ['data-ui'] });
+    apply(read(ui()));
+  }
+  // ── 설정 › 화면 › 아래 입력창 ──
+  {
+    const cb = $('optSay'), apply = off => { document.body.classList.toggle('say-off', off); cb.checked = !off; };
+    apply(get('sayOff') === '1');
+    cb.addEventListener('change', () => { apply(!cb.checked); put('sayOff', cb.checked ? '0' : '1'); });
+  }
+  // ── 떠나기 창 「더 보기」 펼침 기억 ──
+  { const m = $('focusMore'); if (m) { m.open = get('ia.more') === '1'; m.addEventListener('toggle', () => put('ia.more', m.open ? '1' : '0')); } }
+
+  return { closeAll, openBasket, openWard, openChart, basketTab, wardTab, stageAct, get dressing() { return !ward.hidden; } };
+}

@@ -1,0 +1,90 @@
+// album-view.js — v23.2 사진 앨범 보기 · 공유
+//
+//  · 묶기: 최근 몇 장은 지금처럼 폴라로이드로 펼치고, 나머지는 달별 카드 묶음으로 접는다 (사진이 수백 장이 돼도 창이 가볍게).
+//  · 공유 카드: 사진 아래에 이유·날짜·집중 시간을 적은 폴라로이드 한 장(JPEG — 메신저·SNS 가 webp 를 못 받는 경우가 있어서).
+//  · 공유: 폰의 공유 창(Web Share)으로 다른 앱에 파일을 넘긴다. 서버로 보내는 것 없음. 공유 창이 없는 브라우저는 내려받기.
+//  groupShots 는 DOM 없이 돌아서 node 시험에서 그대로 쓴다.
+
+import { photoDate, PHOTO_MONTHS } from './album.js?v=pv-7441cb8';
+
+export const RECENT = 6;
+
+const monthKey = ms => { const d = new Date(ms); return `${d.getFullYear()}-${d.getMonth() + 1}`; };
+export function monthLabel(ms, now = Date.now()) {
+  const d = new Date(ms);
+  return `${PHOTO_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+// list: 최신순 사진 → { recent: [..최근 n장], months: [{ key, label, shots, start }] }
+//  start = 전체 목록에서 그 달 첫 사진의 자리 (크게 보기에서 이어서 넘기려고)
+export function groupShots(list, now = Date.now(), n = RECENT) {
+  const recent = list.slice(0, n), months = [];
+  for (let i = n; i < list.length; i++) {
+    const s = list[i], key = monthKey(s.at);
+    let g = months[months.length - 1];
+    if (!g || g.key !== key) months.push(g = { key, label: monthLabel(s.at, now), shots: [], start: i });
+    g.shots.push(s);
+  }
+  return { recent, months };
+}
+
+// v29.5 일지 묶어 보기: 'year' | 'month' | 'day' → [{ key, label, shots, min }] (최신순 목록을 그대로 이어 묶는다)
+//  올해 것은 연도를 빼고 적는다 — 「10월」 · 「10월 24일 금요일」, 지난해부터 「2025년 10월」.
+export const ALBUM_BY = Object.freeze(['all', 'year', 'month', 'day']);
+const WEEK = '일월화수목금토';
+export function groupBy(list, by, now = Date.now()) {
+  const thisYear = new Date(now).getFullYear(), out = [];
+  for (const s of list) {
+    const d = new Date(s.at), y = d.getFullYear(), m = d.getMonth() + 1, dd = d.getDate(), yr = y === thisYear ? '' : `${y}년 `;
+    const key = by === 'year' ? `${y}` : by === 'month' ? `${y}-${m}` : `${y}-${m}-${dd}`;
+    let g = out[out.length - 1];
+    if (!g || g.key !== key) out.push(g = { key, label: by === 'year' ? `${y}년` : by === 'month' ? `${yr}${m}월` : `${yr}${m}월 ${dd}일 ${WEEK[d.getDay()]}요일`, shots: [], min: 0 });
+    g.shots.push(s); g.min += s.min || 0;
+  }
+  return out;
+}
+// 묶음 머리의 작은 글씨: 「5쪽 · 2시간 5분」
+export function groupNote(g) {
+  const h = Math.floor(g.min / 60), m = g.min % 60;
+  return [`${g.shots.length}쪽`, g.min ? (h ? `${h}시간` + (m ? ` ${m}분` : '') : `${m}분`) : ''].filter(Boolean).join(' · ');
+}
+
+// 공유 카드: 사진 + 아래 띠(이유 · 날짜 · 몇 분 집중 · 발자국 한글) → Promise<Blob(JPEG)>
+export async function shareCard(shot, font = 'sans-serif') {
+  const bmp = await createImageBitmap(shot.blob);
+  const W = 1200, pad = 44, pw = W - pad * 2, ph = Math.round(pw * bmp.height / bmp.width), band = 200;
+  const H = pad + ph + band;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d');
+  g.fillStyle = '#fffdf7'; g.fillRect(0, 0, W, H);
+  g.drawImage(bmp, pad, pad, pw, ph); bmp.close?.();
+  g.strokeStyle = 'rgba(60, 40, 20, 0.08)'; g.lineWidth = 2; g.strokeRect(pad, pad, pw, ph);
+  const y0 = pad + ph;
+  g.fillStyle = '#3a2c1c'; g.textBaseline = 'alphabetic';
+  g.font = `600 54px ${font}`;
+  g.fillText(fit(g, shot.reason || '집중', pw - 10), pad + 6, y0 + 92);
+  g.fillStyle = '#8a6a48'; g.font = `400 36px ${font}`;
+  const meta = [photoDate(shot.at), shot.min ? `${shot.min}분 집중` : ''].filter(Boolean).join(' · ');
+  g.fillText(meta, pad + 6, y0 + 150);
+  g.textAlign = 'right'; g.fillStyle = '#b39a7a'; g.font = `500 30px ${font}`;
+  g.fillText('발자국 한글', W - pad - 6, y0 + 150);
+  return new Promise((res, rej) => c.toBlob(b => (b ? res(b) : rej(new Error('카드 실패'))), 'image/jpeg', 0.9));
+}
+function fit(g, text, max) {
+  if (g.measureText(text).width <= max) return text;
+  let t = text; while (t.length > 1 && g.measureText(t + '…').width > max) t = t.slice(0, -1);
+  return t + '…';
+}
+
+// 공유 창으로 넘기기 → 'shared' | 'cancel' | 'download'
+export async function shareFile(blob, name, title = '') {
+  const file = new File([blob], name, { type: blob.type });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title }); return 'shared'; }
+    catch (e) { if (e && e.name === 'AbortError') return 'cancel'; }   // 그 밖의 실패는 내려받기로
+  }
+  const url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url; a.download = name; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  return 'download';
+}

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>그림 모드 시험</title>
+  <!-- 2026-11-25 그림 모드: 모래·뭍은 일러스트 그대로, 키위는 발자국으로 글씨를 쓰고, 물만 레퍼런스(해변 샌드박스 영상) 느낌으로 새로 그린다.
+       지금 게임(index.html) · 해변 3D(beach3d-lab.html) · 디오라마(diorama-lab.html)는 바꾸지 않는다. 코드 src/painted/ · src/sandsim/ -->
+  <script type="importmap">{ "imports": { "three": "./vendor/three/build/three.module.js", "three/addons/": "./vendor/three/addons/" } }</script>
+  <style>
+    :root { --ink: #3b3026; --paper: rgba(255, 250, 240, .92); --line: rgba(80, 60, 40, .18); --acc: #e0773f; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #1d2228; font: 14px/1.4 system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; color: var(--ink); }
+    #cv { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+    .panel { position: fixed; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 4px 18px rgba(0, 0, 0, .2); }
+    #side { right: 16px; top: 16px; padding: 10px 12px; width: 210px; display: grid; gap: 8px; }
+    #side label { display: grid; gap: 2px; font-size: 12px; } #side input[type=range] { width: 100%; }
+    #tools { left: 50%; bottom: 16px; transform: translateX(-50%); padding: 8px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 32px); }
+    button { font: inherit; border: 1px solid var(--line); background: #fff; border-radius: 10px; min-height: 40px; padding: 0 12px; cursor: pointer; color: var(--ink); }
+    button.on { background: var(--acc); color: #fff; border-color: var(--acc); }
+    #text { font: inherit; width: 130px; border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; min-height: 40px; }
+    #stat { font-size: 11px; opacity: .6; } #load { position: fixed; inset: 0; display: grid; place-items: center; color: #fff; }
+  </style>
+</head>
+<body>
+  <canvas id="cv"></canvas>
+  <div id="load">그림을 읽는 중…</div>
+  <div id="side" class="panel">
+    <strong style="font-size:14px">그림 모드 (시험)</strong>
+    <button id="art">원래 그림 보기</button>
+    <label>파도 <input id="wave" type="range" min="0" max="2" step="0.05" value="1"></label>
+    <label>깊은 물 붓결 <input id="art2" type="range" min="0" max="1" step="0.05" value="0.25"></label>
+    <div style="display:flex;gap:6px"><button id="reset">다시</button><button id="pause">멈춤</button></div>
+    <div id="stat"></div>
+  </div>
+  <div id="tools" class="panel">
+    <input id="text" value="안녕 키위" maxlength="16"><button id="go">키위가 쓰기</button>
+    <span style="align-self:center;font-size:12px;opacity:.7">모래를 끌면 발자국</span>
+  </div>
+  <script type="module">
+    import { Painted } from './src/painted/painted.js?v=pv-7441cb8';
+    const $ = (id) => document.getElementById(id), q = new URLSearchParams(location.search);
+    const p = window.__pm = await new Painted($('cv'), { map: q.get('map') || 'beach' }).load();
+    $('load').remove(); p.bind($('cv'));
+    const fit = () => p.resize(innerWidth, innerHeight); addEventListener('resize', fit); fit();
+    $('art').onclick = (e) => { const on = !p.u.uShowArt.value; p.showArt(on); e.target.classList.toggle('on', on); e.target.textContent = on ? '새 모드로 보기' : '원래 그림 보기'; };
+    $('wave').oninput = (e) => p.setWave(+e.target.value);
+    $('art2').oninput = (e) => { p.u.uArtDeep.value = +e.target.value; };
+    $('reset').onclick = () => p.reset();
+    $('pause').onclick = (e) => { p.paused = !p.paused; e.target.textContent = p.paused ? '흐르기' : '멈춤'; };
+    $('go').onclick = () => p.write($('text').value || '안녕');
+    setInterval(() => { $('stat').textContent = `${p.fps || '-'} fps · 격자 ${p.g.nx}×${p.g.nz}`; }, 1000);
+    if (q.get('text')) p.write(q.get('text'));
+    if (!q.has('manual')) p.start();
+  </script>
+</body>
+</html>
