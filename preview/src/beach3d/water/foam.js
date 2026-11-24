@@ -5,8 +5,8 @@
 //   b 물마루 거품 — 부서지는 물결에서 생겨 꼬리처럼 뒤에 남는다
 //   a 돌 둘레 거품
 //  세기(맵마다 다른 배율)는 여기서 곱하지 않는다 — 그릴 때(shade.js) 물·지형 모듈의 값을 곱한다.
-import { M, BEACH_GLSL } from '../model.js?v=pv-7441cb8';
-import { FLOW_GLSL } from './flow.js?v=pv-7441cb8';
+import { M, BEACH_GLSL } from '../model.js?v=pv-b0a0e55';
+import { FLOW_GLSL } from './flow.js?v=pv-b0a0e55';
 
 const f = (v) => { const s = String(v); return s.includes('.') ? s : s + '.'; };
 

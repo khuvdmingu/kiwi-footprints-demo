@@ -45,7 +45,7 @@ export class BeachGfx {
     plateEl.after(cv);
     this.plate = plate; this.size = ''; this.hour = null;
     const sim = this.kind === 'sim';
-    const job = this.pending = (sim ? import('../painted/gamewater.js?v=pv-7441cb8') : import('./beach3d.js?v=pv-7441cb8')).then(async (mod) => {
+    const job = this.pending = (sim ? import('../painted/gamewater.js?v=pv-b0a0e55') : import('./beach3d.js?v=pv-b0a0e55')).then(async (mod) => {
       const s = sim ? new mod.SimWater(cv, { map: mapId, plate, game: true }) : new mod.Beach3D(cv, { map: mapId, plate, game: true, bloom: false });
       await s.load();
       if (this.pending !== job) { s.dispose(); return; }   // 그 사이 장소가 바뀌었거나 꺼졌다

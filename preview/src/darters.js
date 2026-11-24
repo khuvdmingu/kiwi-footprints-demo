@@ -9,7 +9,7 @@
 //  그림: assets/darters.webp 4×1 칸 (0 고추 펼침 · 1 고추 날갯짓 · 2 실잠자리 펼침 · 3 실잠자리 날갯짓), 머리가 위를 본다.
 //        (Codex image_gen 한 장 4×2 격자 — 아래 줄 4칸은 다음 단계 생물 재고, stock/critters-2026-11-22)
 
-import { LIGHT } from './tokens.js?v=pv-7441cb8';
+import { LIGHT } from './tokens.js?v=pv-b0a0e55';
 
 export const DARTER_KINDS = {
   red: { cell: 0, size: 38, n: [5, 8], few: [3, 5], dip: 0.12, shade: 0.18 },    // 고추잠자리: 크고, 가끔 물 찍기

@@ -7,9 +7,9 @@
 //     잔물결은 식이 아니라 물결 그림(normals.js) 두 장을 흘려 읽는다 — 식으로 그린 물결은 자글거리거나(잘 때) 기름처럼 매끈했다(굵을 때).
 //     잔 노이즈 기울기와 그려 넣은 빛 그물 무늬는 걷어냈다 — 빛이 자글거리고 만화처럼 보였다. 참고: Evan Wallace 의 WebGL Water(빛 그물 = 닿는 면적의 비)
 //   · 거품은 여기서 만들지 않는다. 흐름에 실려 다닌 거품의 기억(foam.js)을 얹고, 잔무늬도 물가와 함께 움직인다
-import { BEACH_GLSL } from '../model.js?v=pv-7441cb8';
-import { FLOW_GLSL } from './flow.js?v=pv-7441cb8';
-import { SURFACE_GLSL } from './surface.js?v=pv-7441cb8';
+import { BEACH_GLSL } from '../model.js?v=pv-b0a0e55';
+import { FLOW_GLSL } from './flow.js?v=pv-b0a0e55';
+import { SURFACE_GLSL } from './surface.js?v=pv-b0a0e55';
 
 export const WATER_FRAG = /* glsl */ `
   varying vec2 vUv;
