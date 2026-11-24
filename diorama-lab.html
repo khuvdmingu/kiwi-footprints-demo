@@ -44,8 +44,8 @@
     <button data-tool="dig" class="on">파기</button><button data-tool="rake">갈퀴</button><button data-tool="tower">모래성</button><button data-tool="pour">모래 붓기</button><button data-tool="look">둘러보기</button>
   </div>
   <script type="module">
-    import { Diorama } from './src/diorama/diorama.js?v=lab-40a1952';
-    import { SANDS, WATERS } from './src/diorama/sands.js?v=lab-40a1952';
+    import { Diorama } from './src/diorama/diorama.js?v=lab-2bd3096';
+    import { SANDS, WATERS } from './src/diorama/sands.js?v=lab-2bd3096';
     const $ = (id) => document.getElementById(id), q = new URLSearchParams(location.search);
     const d = window.__dio = new Diorama($('cv'));
     for (const [k, v] of Object.entries(SANDS)) $('sand').add(new Option(v.name, k));

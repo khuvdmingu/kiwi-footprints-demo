@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>그림 모드 시험</title>
-  <!-- 2026-11-25 그림 모드: 일러스트가 색을 맡고 모래 높이·흐르는 물·빛은 시뮬레이션이 맡는다 ("2d와 3d를 절묘하게 조합").
+  <!-- 2026-11-25 그림 모드: 모래·뭍은 일러스트 그대로, 키위는 발자국으로 글씨를 쓰고, 물만 레퍼런스(해변 샌드박스 영상) 느낌으로 새로 그린다.
        지금 게임(index.html) · 해변 3D(beach3d-lab.html) · 디오라마(diorama-lab.html)는 바꾸지 않는다. 코드 src/painted/ · src/sandsim/ -->
   <script type="importmap">{ "imports": { "three": "./vendor/three/build/three.module.js", "three/addons/": "./vendor/three/addons/" } }</script>
   <style>
@@ -29,29 +29,26 @@
     <strong style="font-size:14px">그림 모드 (시험)</strong>
     <button id="art">원래 그림 보기</button>
     <label>파도 <input id="wave" type="range" min="0" max="2" step="0.05" value="1"></label>
-    <label>깎이는 빠르기 <input id="ero" type="range" min="0" max="3" step="0.05" value="1"></label>
-    <label>새 그늘 세기 <input id="relief" type="range" min="0" max="2.5" step="0.05" value="1"></label>
+    <label>깊은 물 붓결 <input id="art2" type="range" min="0" max="1" step="0.05" value="0.25"></label>
     <div style="display:flex;gap:6px"><button id="reset">다시</button><button id="pause">멈춤</button></div>
     <div id="stat"></div>
   </div>
   <div id="tools" class="panel">
     <input id="text" value="안녕 키위" maxlength="16"><button id="go">키위가 쓰기</button>
-    <button data-tool="dig" class="on">파기</button><button data-tool="rake">갈퀴</button><button data-tool="tower">모래성</button><button data-tool="pour">모래 붓기</button>
+    <span style="align-self:center;font-size:12px;opacity:.7">모래를 끌면 발자국</span>
   </div>
   <script type="module">
-    import { Painted } from './src/painted/painted.js?v=lab-40a1952';
+    import { Painted } from './src/painted/painted.js?v=lab-2bd3096';
     const $ = (id) => document.getElementById(id), q = new URLSearchParams(location.search);
     const p = window.__pm = await new Painted($('cv'), { map: q.get('map') || 'beach' }).load();
     $('load').remove(); p.bind($('cv'));
     const fit = () => p.resize(innerWidth, innerHeight); addEventListener('resize', fit); fit();
     $('art').onclick = (e) => { const on = !p.u.uShowArt.value; p.showArt(on); e.target.classList.toggle('on', on); e.target.textContent = on ? '새 모드로 보기' : '원래 그림 보기'; };
     $('wave').oninput = (e) => p.setWave(+e.target.value);
-    $('ero').oninput = (e) => p.setErosion(+e.target.value);
-    $('relief').oninput = (e) => { p.u.uRelief.value = +e.target.value; };
+    $('art2').oninput = (e) => { p.u.uArtDeep.value = +e.target.value; };
     $('reset').onclick = () => p.reset();
     $('pause').onclick = (e) => { p.paused = !p.paused; e.target.textContent = p.paused ? '흐르기' : '멈춤'; };
     $('go').onclick = () => p.write($('text').value || '안녕');
-    document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => { p.tool = b.dataset.tool; document.querySelectorAll('[data-tool]').forEach(x => x.classList.toggle('on', x === b)); });
     setInterval(() => { $('stat').textContent = `${p.fps || '-'} fps · 격자 ${p.g.nx}×${p.g.nz}`; }, 1000);
     if (q.get('text')) p.write(q.get('text'));
     if (!q.has('manual')) p.start();

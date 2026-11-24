@@ -112,7 +112,7 @@ const FLUX = (H) => H + /* glsl */`
 
 // ③ 흐름 빠르기와 거품 (거품은 흐름에 실려 다니다 옅어진다)
 const VEL = (H) => H + /* glsl */`
-  uniform sampler2D uS, uF, uV; uniform float uDt;
+  uniform sampler2D uS, uF, uV; uniform float uDt, uFoamK, uFoamDry;
   void main() {
     ivec2 ip = ivec2(gl_FragCoord.xy); vec4 c = at(uS, ip), f = at(uF, ip);
     float ix = at(uF, ip - ivec2(1, 0)).y - f.x + f.y - at(uF, ip + ivec2(1, 0)).x;
@@ -126,9 +126,13 @@ const VEL = (H) => H + /* glsl */`
     float steep = length(vec2(Hx, Hz)) / (2. * CELL);
     float wet = smoothstep(.001, .01, c.g);
     float gen = wet * (smoothstep(.9, 2.6, sp) * (1. - smoothstep(.015, .1, c.g)) + smoothstep(.2, .45, steep) * smoothstep(.2, .6, c.g) * .7);   // 앞머리 · 부서지는 물마루에서만
-    foam = clamp(foam + gen * uDt * 3., 0., 1.2);
-    if (c.g < .002) foam *= exp(-uDt * 2.5);   // 모래 위에 남은 거품은 빨리 스민다
-    gl_FragColor = vec4(v, foam, 0.);
+    //  바위로 들이치는 세기: 처음 땅이 가파르게 솟는 곳(바위 면)으로 물이 밀고 올라갈 때 — 물보라와 거품이 여기서 생긴다 (V.a)
+    vec2 gb = vec2(baseH(ip + ivec2(1, 0)) - baseH(ip - ivec2(1, 0)), baseH(ip + ivec2(0, 1)) - baseH(ip - ivec2(0, 1))) / (2. * CELL);
+    float gbl = length(gb), hit = smoothstep(.25, .6, gbl) * max(0., dot(v, gb / max(gbl, 1e-4))) * smoothstep(.004, .05, c.g);
+    gen += smoothstep(.3, 1.2, hit) * .9;
+    foam = clamp(foam + gen * uDt * 3. * uFoamK, 0., 1.2);
+    if (c.g < .002) foam *= exp(-uDt * uFoamDry);   // 모래 위에 남은 거품은 스민다 (빠르기 uFoamDry)
+    gl_FragColor = vec4(v, foam, hit);
   }`;
 
 // ④ 물 깊이 · 깎기 · 쌓기 · 젖음 · 바다 쪽 파도
@@ -186,7 +190,7 @@ export class Sim {
       init: mat(INIT(H)), zero: mat(ZERO),
       tool: mat(TOOL(H), { uS: { value: null }, uA: { value: Array.from({ length: 24 }, () => new THREE.Vector4()) }, uP: { value: Array.from({ length: 24 }, () => new THREE.Vector4()) }, uCount: { value: 0 } }),
       flux: mat(FLUX(H), { uS: { value: null }, uF: { value: null }, uDt: U.uDt, uDamp: { value: SIM.damp } }),
-      vel: mat(VEL(H), { uS: { value: null }, uF: { value: null }, uV: { value: null }, uDt: U.uDt }),
+      vel: mat(VEL(H), { uS: { value: null }, uF: { value: null }, uV: { value: null }, uDt: U.uDt, uFoamK: { value: 1 }, uFoamDry: { value: 2.5 } }),
       water: mat(WATER(H), { uS: { value: null }, uF: { value: null }, uV: { value: null }, uDt: U.uDt, uT: U.uT, uWave: U.uWave, uPeriod: U.uPeriod,
         uKc: { value: SIM.kc }, uKs: { value: SIM.ks }, uKd: { value: SIM.kd }, uDry: { value: SIM.dry }, uHeal: { value: SIM.heal } }),
       move: mat(MOVE(H), { uS: { value: null }, uV: { value: null }, uDt: U.uDt, uTalAir: { value: SIM.talAir }, uTalWet: { value: SIM.talWet }, uKt: { value: SIM.kt } }),
@@ -214,7 +218,10 @@ export class Sim {
       t.uCount.value = batch.length; t.uS.value = this.S[0].texture; this.pass(this.m.tool, this.S[1]); this.swap(this.S);
     }
   }
-  setErosion(k) { this.erosion = k; this.m.water.uniforms.uKc.value = SIM.kc * k; this.m.water.uniforms.uHeal.value = SIM.heal * k; this.m.move.uniforms.uKt.value = SIM.kt * Math.min(1, 0.4 + 0.6 * k); this.m.move.uniforms.uTalWet.value = SIM.talWet / Math.max(0.3, k); }
+  // 모래 고정: 물만 흐르고 모래는 깎이지도 무너지지도 않는다 (그림 모드 — 발자국은 게임처럼 따로 찍는다, 사용자 2026-11-25)
+  freezeSand() { this.frozen = true; this.m.water.uniforms.uKc.value = 0; this.m.water.uniforms.uHeal.value = 0; this.m.move.uniforms.uKt.value = 0; }
+  setFoam(k = 1, dry = 2.5) { this.m.vel.uniforms.uFoamK.value = k; this.m.vel.uniforms.uFoamDry.value = dry; }
+  setErosion(k) { if (this.frozen) return; this.erosion = k; this.m.water.uniforms.uKc.value = SIM.kc * k; this.m.water.uniforms.uHeal.value = SIM.heal * k; this.m.move.uniforms.uKt.value = SIM.kt * Math.min(1, 0.4 + 0.6 * k); this.m.move.uniforms.uTalWet.value = SIM.talWet / Math.max(0.3, k); }
   step(dt, sub = 2) {
     const prev = this.r.getRenderTarget(), m = this.m, h = Math.min(dt, 1 / 30) / sub * 1.6;   // 조금 빨리 감아 파도가 시원하게 온다
     this.applyOps();
