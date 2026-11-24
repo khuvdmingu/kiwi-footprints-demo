@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>해변 디오라마 시험</title>
+  <!-- 2026-11-24 해변 샌드박스 영상의 느낌("딱 이느낌을 원해")을 시험하는 판 — 모래가 높이를 갖고, 물이 그 위를 흘러 글씨를 씻어 간다.
+       지금 게임 화면(index.html)과 해변 3D(beach3d-lab.html)는 바꾸지 않는다. 코드 src/diorama/ -->
+  <script type="importmap">{ "imports": { "three": "./vendor/three/build/three.module.js", "three/addons/": "./vendor/three/addons/" } }</script>
+  <style>
+    :root { --ink: #3b3026; --paper: rgba(255, 250, 240, .9); --line: rgba(80, 60, 40, .18); --acc: #e0773f; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; overflow: hidden; font: 14px/1.4 system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; color: var(--ink); }
+    body { background: linear-gradient(180deg, var(--sky1, #cfdde6), var(--sky2, #e9e3d8)); transition: background 1s; }
+    #cv { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+    .panel { position: fixed; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 4px 18px rgba(60, 40, 20, .12); }
+    #top { left: 16px; top: 16px; padding: 10px 14px; max-width: calc(100vw - 32px); }
+    #top h1 { margin: 0; font-size: 15px; } #top p { margin: 2px 0 0; font-size: 12px; opacity: .7; }
+    #side { right: 16px; top: 16px; padding: 10px 12px; width: 220px; display: grid; gap: 8px; }
+    #side label { display: grid; gap: 2px; font-size: 12px; }
+    #side select, #side input[type=range] { width: 100%; }
+    #tools { left: 50%; bottom: 16px; transform: translateX(-50%); padding: 8px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 32px); }
+    button { font: inherit; border: 1px solid var(--line); background: #fff; border-radius: 10px; min-height: 40px; padding: 0 12px; cursor: pointer; color: var(--ink); }
+    button.on { background: var(--acc); color: #fff; border-color: var(--acc); }
+    #write { display: flex; gap: 6px; } #write input { font: inherit; width: 140px; border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; min-height: 40px; }
+    #stat { font-size: 11px; opacity: .6; }
+    @media (max-width: 720px) { #side { top: auto; bottom: 120px; width: 180px; } #top p { display: none; } }
+  </style>
+</head>
+<body>
+  <canvas id="cv"></canvas>
+  <div id="top" class="panel"><h1>해변 디오라마 시험</h1><p>모래에 홈을 파면 파도가 와서 씻어 갑니다 · 오른쪽 버튼 끌기 = 돌려 보기 · 휠 = 가까이</p></div>
+  <div id="side" class="panel">
+    <label>모래 <select id="sand"></select></label>
+    <label>물 <select id="water"></select></label>
+    <label>시각 <span id="hourV"></span><input id="hour" type="range" min="6" max="19" step="0.1" value="9"></label>
+    <label>파도 <input id="wave" type="range" min="0" max="2" step="0.05" value="1"></label>
+    <label>깎이는 빠르기 <input id="ero" type="range" min="0" max="3" step="0.05" value="1"></label>
+    <div style="display:flex;gap:6px"><button id="reset">다시</button><button id="pause">멈춤</button></div>
+    <div id="stat"></div>
+  </div>
+  <div id="tools" class="panel">
+    <div id="write"><input id="text" value="안녕 키위" maxlength="20"><button id="go">키위가 쓰기</button></div>
+    <button data-tool="dig" class="on">파기</button><button data-tool="rake">갈퀴</button><button data-tool="tower">모래성</button><button data-tool="pour">모래 붓기</button><button data-tool="look">둘러보기</button>
+  </div>
+  <script type="module">
+    import { Diorama } from './src/diorama/diorama.js?v=lab-40a1952';
+    import { SANDS, WATERS } from './src/diorama/sands.js?v=lab-40a1952';
+    const $ = (id) => document.getElementById(id), q = new URLSearchParams(location.search);
+    const d = window.__dio = new Diorama($('cv'));
+    for (const [k, v] of Object.entries(SANDS)) $('sand').add(new Option(v.name, k));
+    for (const [k, v] of Object.entries(WATERS)) $('water').add(new Option(v.name, k));
+    d.onSky = (h, low) => {   // 배경 하늘도 시각 따라
+      document.body.style.setProperty('--sky1', low > .5 ? '#e9b48f' : low > .2 ? '#d9cdbf' : '#cfdde6');
+      document.body.style.setProperty('--sky2', low > .5 ? '#f3dcc0' : '#e9e3d8');
+    };
+    const sync = () => { const u = new URL(location); u.searchParams.set('sand', $('sand').value); u.searchParams.set('water', $('water').value); u.searchParams.set('hour', $('hour').value); history.replaceState(null, '', u); };
+    $('sand').value = q.get('sand') || 'white'; $('water').value = q.get('water') || 'teal'; $('hour').value = q.get('hour') || 9;
+    const apply = () => { d.setSand($('sand').value); d.setWater($('water').value); const h = +$('hour').value; d.setHour(h); $('hourV').textContent = `${Math.floor(h)}시 ${String(Math.round(h % 1 * 60)).padStart(2, '0')}분`; sync(); };
+    ['sand', 'water', 'hour'].forEach(id => $(id).addEventListener('input', apply)); apply();
+    $('wave').addEventListener('input', e => d.setWave(+e.target.value));
+    $('ero').addEventListener('input', e => d.setErosion(+e.target.value));
+    $('reset').onclick = () => d.reset();
+    $('pause').onclick = (e) => { d.paused = !d.paused; e.target.textContent = d.paused ? '흐르기' : '멈춤'; };
+    $('go').onclick = () => d.write($('text').value || '안녕');
+    document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => { d.tool = b.dataset.tool; document.querySelectorAll('[data-tool]').forEach(x => x.classList.toggle('on', x === b)); });
+    const fit = () => d.resize(innerWidth, innerHeight); addEventListener('resize', fit); fit();
+    setInterval(() => { $('stat').textContent = `${d.fps || '-'} fps · ${d.sim.type === 1015 ? '실수 32' : '실수 16'} · 격자 256`; }, 1000);
+    if (q.get('text')) d.write(q.get('text'));
+    if (!q.has('manual')) d.start();
+  </script>
+</body>
+</html>
