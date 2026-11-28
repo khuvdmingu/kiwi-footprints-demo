@@ -8,12 +8,12 @@
   <meta name="description" content="밝은 열대 해변, 날지 못하는 키위들이 천천히 걸어 나와 발자국으로 글씨를 쓰고 파도가 지웁니다. 켜 두고 감상하는 작은 인터랙티브 공간." />
   <!-- v30.37 3D 그래픽(설정 › 화면)이 three.js 를 읽을 때 쓰는 주소 지도. 켜기 전에는 아무것도 받지 않는다 -->
   <script type="importmap">{ "imports": { "three": "./vendor/three/build/three.module.js", "three/addons/": "./vendor/three/addons/" } }</script>
-  <link rel="stylesheet" href="style.css?v=v30.39.0-0299996" />
-  <link rel="stylesheet" href="memos.css?v=v30.39.0-0299996" />
-  <link rel="stylesheet" href="theme-paper.css?v=v30.39.0-0299996" />
-  <link rel="stylesheet" href="src/ui/tokens.css?v=v30.39.0-0299996" />
-  <link rel="stylesheet" href="src/ui/parts.css?v=v30.39.0-0299996" />
-  <link rel="stylesheet" href="src/ui/shell.css?v=v30.39.0-0299996" />
+  <link rel="stylesheet" href="style.css?v=v30.40.0-bb99cd3" />
+  <link rel="stylesheet" href="memos.css?v=v30.40.0-bb99cd3" />
+  <link rel="stylesheet" href="theme-paper.css?v=v30.40.0-bb99cd3" />
+  <link rel="stylesheet" href="src/ui/tokens.css?v=v30.40.0-bb99cd3" />
+  <link rel="stylesheet" href="src/ui/parts.css?v=v30.40.0-bb99cd3" />
+  <link rel="stylesheet" href="src/ui/shell.css?v=v30.40.0-bb99cd3" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
   <!-- 홈 화면 설치(PWA) -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -285,6 +285,8 @@
     <p class="k-hint">버튼과 창·입력창을 숨기고 그림만 남겨요. 스위치를 켜 두면 10초 동안 아무것도 누르지 않을 때 저절로 정리돼요(글을 쓰거나 카드를 보는 중엔 안 해요). 다시 보려면 화면을 누른 뒤 오른쪽 위 눈 버튼을 누르세요.</p>
     <h2 class="k-h sep">그래픽</h2>
     <label class="row switch k-row"><span>3D 그래픽 (해변 물)</span><input type="checkbox" id="optGfx3d" /></label>
+    <label class="row switch k-row"><span>새 물 (시험)</span><input type="checkbox" id="optGfxSim" /></label>
+    <p class="k-hint">3D 그래픽 자리에 새로 만드는 물을 써요 — 물이 모래 모양을 따라 흘러 올라오고, 바위에 부딪혀 물보라가 튀어요. 키위와 글씨는 그대로예요. 지금은 바닷가에서만 나오고(낮·노을·밤 모두) 다른 곳은 기본 그림이에요.</p>
     <p class="k-hint">끄면 기본 그림, 켜면 해변의 모래와 물을 3D 로 그려요. 얕은 물 아래 모래가 비치고, 물이 빠진 자리가 젖었다 마르고, 노을과 밤에는 물 위에 빛길이 반짝여요. 키위와 글씨는 그대로예요. 처음 켤 때 그래픽 파일(약 2MB)을 받느라 몇 초 걸리고, 폰에서는 배터리를 더 쓸 수 있어요. 물이 없는 곳과 눈밭은 기본 그림으로 나와요.</p>
     <h2 class="k-h sep">그래픽 시험판 (3D)</h2>
     <div class="gfxLinks" style="display:flex; flex-wrap:wrap; gap:var(--k-s-2)"><a id="gfxVoyage" class="k-btn" style="display:inline-flex; align-items:center; text-decoration:none; color:inherit" href="gfx-lab.html?scene=voyage">3D 항해</a><a id="gfxLight" class="k-btn" style="display:inline-flex; align-items:center; text-decoration:none; color:inherit" href="gfx-lab.html?scene=lighthouse&amp;hour=23">3D 등대</a></div>
@@ -557,10 +559,10 @@
 
   <div id="boot" aria-hidden="true"></div>
   <noscript><p class="noscript">이 작품은 JavaScript가 필요합니다.</p></noscript>
-  <script type="module" src="src/main.js?v=v30.39.0-0299996"></script>
-  <script type="module" src="src/credits.js?v=v30.39.0-0299996"></script>
+  <script type="module" src="src/main.js?v=v30.40.0-bb99cd3"></script>
+  <script type="module" src="src/credits.js?v=v30.40.0-bb99cd3"></script>
   <!-- 테스트 탭 누름 세기(src/taps.js) -->
-  <script type="module" src="src/taps.js?v=v30.39.0-0299996"></script>
+  <script type="module" src="src/taps.js?v=v30.40.0-bb99cd3"></script>
   <script>
   // 홈 화면 설치(PWA) — 서비스 워커(sw.js)를 켠다.
   //  개발 중(localhost)에는 저장본이 고친 코드를 가리므로 꺼 두고, ?sw=1 일 때만 켠다. ?sw=0 이면 이 앱의 워커와 저장본을 지운다.

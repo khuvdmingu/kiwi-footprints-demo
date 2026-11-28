@@ -22,8 +22,10 @@ export function canUse3D() {
 }
 
 export class BeachGfx {
-  constructor() { this.on = false; this.scene = null; this.cv = null; this.plate = null; this.pending = null; this.failed = null; this.active = false; this.size = ''; this.hour = null; this.buf = new Float32Array(128); }
+  constructor() { this.kind = '3d'; this.on = false; this.scene = null; this.cv = null; this.plate = null; this.pending = null; this.failed = null; this.active = false; this.size = ''; this.hour = null; this.buf = new Float32Array(128); }
   setEnabled(on) { this.on = !!on; if (!this.on) this.release(); }
+  // 2026-11-25 「새 물 (시험)」: '3d' = 해변 3D · 'sim' = 새 물 (모래 높이 위를 흐르는 물 · 바위 2.5D — src/painted/gamewater.js). 바뀌면 다시 만든다
+  setKind(k) { k = k === 'sim' ? 'sim' : '3d'; if (k === this.kind) return; this.kind = k; this.release(); this.failed = null; }
   release() {
     this.scene?.dispose(); this.scene = null; this.plate = null; this.pending = null; this.active = false; this.size = ''; this.hour = null;
     this.cv?.remove(); this.cv = null;
@@ -42,16 +44,18 @@ export class BeachGfx {
     const cv = this.cv = document.createElement('canvas'); cv.id = 'plate3d'; cv.setAttribute('aria-hidden', 'true'); cv.style.visibility = 'hidden';
     plateEl.after(cv);
     this.plate = plate; this.size = ''; this.hour = null;
-    const job = this.pending = import('./beach3d.js?v=v30.39.0-0299996').then(async ({ Beach3D }) => {
-      const s = new Beach3D(cv, { map: mapId, plate, game: true, bloom: false });
+    const sim = this.kind === 'sim';
+    const job = this.pending = (sim ? import('../painted/gamewater.js?v=v30.40.0-bb99cd3') : import('./beach3d.js?v=v30.40.0-bb99cd3')).then(async (mod) => {
+      const s = sim ? new mod.SimWater(cv, { map: mapId, plate, game: true }) : new mod.Beach3D(cv, { map: mapId, plate, game: true, bloom: false });
       await s.load();
       if (this.pending !== job) { s.dispose(); return; }   // 그 사이 장소가 바뀌었거나 꺼졌다
       this.scene = s; this.pending = null;
+      globalThis.__gfxScene = s;   // 시험용 손잡이 (콘솔에서 프레임을 손으로 돌려 본다 — 시험 페이지의 __beach 와 같은 쓰임)
     }).catch((e) => { if (this.pending === job) { this.pending = null; this.failed = plate; console.warn('3D 그래픽을 열지 못해 기본 그림으로 그립니다:', e); } });
   }
   // 프레임마다 부른다. 3D 가 그렸으면 true (부른 쪽은 2D 물 그리기를 건너뛴다)
-  draw({ plateEl, plate, mapId, map, W, H, dpr, beach, hour, rain = 0, fog = 0 }) {
-    if (!this.on || !plate || !supports3D(map) || beach.snow > 0.02 || this.failed === plate) { this.show(false, plateEl); return false; }
+  draw({ plateEl, plate, mapId, map, W, H, dpr, beach, hour, rain = 0, fog = 0, glitter = false }) {
+    if (!this.on || !plate || !supports3D(map) || beach.snow > 0.02 || this.failed === plate || (this.kind === 'sim' && mapId !== 'beach')) { this.show(false, plateEl); return false; }   // 새 물은 아직 바닷가 낮만
     if (this.plate !== plate) this.mount(plateEl, plate, mapId);
     const s = this.scene;
     if (!s || !s.ready) { this.show(false, plateEl); return false; }
@@ -59,6 +63,7 @@ export class BeachGfx {
     if (this.size !== key) { this.size = key; this.cv.style.width = W + 'px'; this.cv.style.height = H + 'px'; s.resize(W, H, dpr); }
     if (this.hour == null || Math.abs(hour - this.hour) > 0.004) { this.hour = hour; s.setHour(hour); }
     s.setWeatherNow(rain, fog);
+    s.setGlitter(glitter);   // 2D 윤슬이 함께 그려지면 3D 반짝임은 옅게
     const m = plate.map;   // 화면 ← 판 맞춤 (cover): 화면 x = 판 x × s + ox
     s.setEdge(edgeSamples((x) => beach.edge(x), (x) => beach.shoreAt(x), W, m.s, s.u, 128, this.buf), -m.ox / m.s, (W - m.ox) / m.s);
     try { s.frame(); } catch (e) { this.failed = plate; console.warn('3D 그래픽이 멈춰 기본 그림으로 돌아갑니다:', e); this.show(false, plateEl); return false; }

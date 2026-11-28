@@ -63,3 +63,30 @@ export function buildBase(g, shoreZ, { rock25 = null, rockA = null } = {}, p = P
   }
   return a;
 }
+
+// 바위 없는 모래만의 높이 (바위 입체 빛을 구할 때 비교 기준)
+export function sandOnlyBase(g, shoreZ, p = PB) {
+  const { nx, nz, cell } = g, a = new Float32Array(nx * nz);
+  for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) a[j * nx + i] = sandH((j + 0.5) * cell - g.wz / 2 - shoreZ((i + 0.5) * cell - g.wx / 2), p);
+  return a;
+}
+
+// 바위 2.5D 빛 (사용자 2026-11-25 "바위도 3d나 2.5로"): 바위가 있는 땅과 바위 없는 모래에서 해가 비추는 밝기의 비율
+//  — 그림에 곱하면 바위 윗면·해 쪽은 밝고, 반대쪽과 바위가 모래·물에 드리우는 그림자는 짙어진다 (나머지는 비율 1 = 그림 그대로)
+//  해는 고정이라 한 번만 구한다. sun = [x, y, z] (단위 벡터, 세계 좌표)
+export function rockLight(g, base, sand, sun, { amb = 0.5, k = 0.8, relief = 2.4, steps = 18, step = 0.22 } = {}) {
+  const { nx, nz, cell } = g, out = new Float32Array(nx * nz);
+  const at = (A, i, j) => A[Math.min(nz - 1, Math.max(0, j)) * nx + Math.min(nx - 1, Math.max(0, i))];
+  const light = (A, i, j) => {
+    const hx = (at(A, i + 1, j) - at(A, i - 1, j)) * relief, hz = (at(A, i, j + 1) - at(A, i, j - 1)) * relief;
+    const nl = Math.hypot(hx, 2 * cell, hz), d = (-hx * sun[0] + 2 * cell * sun[1] - hz * sun[2]) / nl;
+    let sh = 1, y = at(A, i, j) * relief + 0.02, x = i, z = j;
+    for (let s = 1; s <= steps; s++) {
+      x += sun[0] * step / cell; z += sun[2] * step / cell; y += sun[1] * step;
+      const hb = at(A, Math.round(x), Math.round(z)) * relief; sh = Math.min(sh, Math.max(0, Math.min(1, (y - hb) / (0.04 * s) + 0.15)));
+    }
+    return amb + k * Math.max(0, d) * sh;
+  };
+  for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) out[j * nx + i] = Math.min(1.5, Math.max(0.45, light(base, i, j) / Math.max(0.05, light(sand, i, j))));
+  return out;
+}

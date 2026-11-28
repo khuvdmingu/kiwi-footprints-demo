@@ -125,7 +125,7 @@ const VEL = (H) => H + /* glsl */`
     float Hz = (at(uS, ip + ivec2(0, 1)).r + at(uS, ip + ivec2(0, 1)).g) - (at(uS, ip - ivec2(0, 1)).r + at(uS, ip - ivec2(0, 1)).g);
     float steep = length(vec2(Hx, Hz)) / (2. * CELL);
     float wet = smoothstep(.001, .01, c.g);
-    float gen = wet * (smoothstep(.9, 2.6, sp) * (1. - smoothstep(.015, .1, c.g)) + smoothstep(.2, .45, steep) * smoothstep(.2, .6, c.g) * .7);   // 앞머리 · 부서지는 물마루에서만
+    float gen = wet * (smoothstep(.55, 2.2, sp) * (1. - smoothstep(.015, .1, c.g)) + smoothstep(.2, .45, steep) * smoothstep(.2, .6, c.g) * .7);   // 앞머리 · 부서지는 물마루에서만
     //  바위로 들이치는 세기: 처음 땅이 가파르게 솟는 곳(바위 면)으로 물이 밀고 올라갈 때 — 물보라와 거품이 여기서 생긴다 (V.a)
     vec2 gb = vec2(baseH(ip + ivec2(1, 0)) - baseH(ip - ivec2(1, 0)), baseH(ip + ivec2(0, 1)) - baseH(ip - ivec2(0, 1))) / (2. * CELL);
     float gbl = length(gb), hit = smoothstep(.25, .6, gbl) * max(0., dot(v, gb / max(gbl, 1e-4))) * smoothstep(.004, .05, c.g);
@@ -138,12 +138,20 @@ const VEL = (H) => H + /* glsl */`
 // ④ 물 깊이 · 깎기 · 쌓기 · 젖음 · 바다 쪽 파도
 const WATER = (H) => H + SEA_GLSL + /* glsl */`
   uniform sampler2D uS, uF, uV; uniform float uDt, uKc, uKs, uKd, uDry, uHeal;
+  uniform sampler2D uEdgeL; uniform float uEdgeOn, uEdgeK;   // 게임 연결: 칸 줄마다 게임 물가선이 정한 물 높이 (2026-11-25)
   void main() {
     ivec2 ip = ivec2(gl_FragCoord.xy); vec4 c = at(uS, ip), f = at(uF, ip);
     float inflow = at(uF, ip - ivec2(1, 0)).y + at(uF, ip + ivec2(1, 0)).x + at(uF, ip - ivec2(0, 1)).w + at(uF, ip + ivec2(0, 1)).z;
     float w = max(0., c.g + uDt * (inflow - (f.x + f.y + f.z + f.w)) / (CELL * CELL));
     vec2 p = cellXZ(ip);
-    if (p.y > SEA_Z) w = mix(w, max(0., seaLevel(p.x, uT) - c.r), .3);
+    if (uEdgeOn > .5) {
+      //  게임이 정한 물가선을 따른다 — 물가선 바다 쪽은 물 높이를 그 수면 쪽으로 당기고(흐름·거품·바위 부딪힘은 그대로), 뭍 쪽 물은 빨리 빠진다
+      //  → 파도가 글씨를 지우는 자리와 물이 어긋나지 않는다 (해변 3D 와 같은 약속)
+      float lvl = texture(uEdgeL, vec2(cellUv(ip).x, .5)).r, b0 = baseH(ip);
+      float k = clamp(uEdgeK * uDt, 0., 1.);
+      w = mix(w, max(0., lvl - c.r), k * smoothstep(.0, .3, lvl - b0));
+      w *= 1. - k * .7 * smoothstep(.0, .12, b0 - lvl);
+    } else if (p.y > SEA_Z) w = mix(w, max(0., seaLevel(p.x, uT) - c.r), .3);
     float b = c.r, s = c.b;
     vec2 v = at(uV, ip).rg; float sp = length(v);
     float gx = at(uS, ip + ivec2(1, 0)).r - at(uS, ip - ivec2(1, 0)).r, gz = at(uS, ip + ivec2(0, 1)).r - at(uS, ip - ivec2(0, 1)).r;
@@ -192,7 +200,8 @@ export class Sim {
       flux: mat(FLUX(H), { uS: { value: null }, uF: { value: null }, uDt: U.uDt, uDamp: { value: SIM.damp } }),
       vel: mat(VEL(H), { uS: { value: null }, uF: { value: null }, uV: { value: null }, uDt: U.uDt, uFoamK: { value: 1 }, uFoamDry: { value: 2.5 } }),
       water: mat(WATER(H), { uS: { value: null }, uF: { value: null }, uV: { value: null }, uDt: U.uDt, uT: U.uT, uWave: U.uWave, uPeriod: U.uPeriod,
-        uKc: { value: SIM.kc }, uKs: { value: SIM.ks }, uKd: { value: SIM.kd }, uDry: { value: SIM.dry }, uHeal: { value: SIM.heal } }),
+        uKc: { value: SIM.kc }, uKs: { value: SIM.ks }, uKd: { value: SIM.kd }, uDry: { value: SIM.dry }, uHeal: { value: SIM.heal },
+        uEdgeL: { value: null }, uEdgeOn: { value: 0 }, uEdgeK: { value: 1.1 } }),
       move: mat(MOVE(H), { uS: { value: null }, uV: { value: null }, uDt: U.uDt, uTalAir: { value: SIM.talAir }, uTalWet: { value: SIM.talWet }, uKt: { value: SIM.kt } }),
     };
     this.ops = []; this.erosion = 1; this.reset();
@@ -220,6 +229,12 @@ export class Sim {
   }
   // 모래 고정: 물만 흐르고 모래는 깎이지도 무너지지도 않는다 (그림 모드 — 발자국은 게임처럼 따로 찍는다, 사용자 2026-11-25)
   freezeSand() { this.frozen = true; this.m.water.uniforms.uKc.value = 0; this.m.water.uniforms.uHeal.value = 0; this.m.move.uniforms.uKt.value = 0; }
+  // 게임 연결: 칸 줄(가로 nx)마다 목표 물 높이 — 게임 물가선이 그 줄에서 닿는 모래 높이
+  setEdgeLevels(arr) {
+    if (!this.edgeTex) { this.edgeTex = new THREE.DataTexture(new Float32Array(this.g.nx), this.g.nx, 1, THREE.RedFormat, THREE.FloatType); this.edgeTex.magFilter = this.edgeTex.minFilter = THREE.LinearFilter; }
+    this.edgeTex.image.data.set(arr); this.edgeTex.needsUpdate = true;
+    const u = this.m.water.uniforms; u.uEdgeL.value = this.edgeTex; u.uEdgeOn.value = 1;
+  }
   setFoam(k = 1, dry = 2.5) { this.m.vel.uniforms.uFoamK.value = k; this.m.vel.uniforms.uFoamDry.value = dry; }
   setErosion(k) { if (this.frozen) return; this.erosion = k; this.m.water.uniforms.uKc.value = SIM.kc * k; this.m.water.uniforms.uHeal.value = SIM.heal * k; this.m.move.uniforms.uKt.value = SIM.kt * Math.min(1, 0.4 + 0.6 * k); this.m.move.uniforms.uTalWet.value = SIM.talWet / Math.max(0.3, k); }
   step(dt, sub = 2) {
@@ -241,6 +256,6 @@ export class Sim {
     this.r.readRenderTargetPixels(this.S[0], i, j, 1, 1, buf);
     return this.type === THREE.FloatType ? Array.from(buf) : Array.from(buf, THREE.DataUtils.fromHalfFloat);
   }
-  dispose() { this.baseTex.dispose(); [...this.S, ...this.F, ...this.V].forEach(t => t.dispose()); Object.values(this.m).forEach(m => m.dispose()); this.quad.geometry.dispose(); }
+  dispose() { this.baseTex.dispose(); this.edgeTex?.dispose(); [...this.S, ...this.F, ...this.V].forEach(t => t.dispose()); Object.values(this.m).forEach(m => m.dispose()); this.quad.geometry.dispose(); }
 }
 export const SIM_SHADERS = (grid) => { const H = head(grid); return { INIT: INIT(H), TOOL: TOOL(H), FLUX: FLUX(H), VEL: VEL(H), WATER: WATER(H), MOVE: MOVE(H) }; };

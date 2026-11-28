@@ -14,18 +14,20 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { loadPlate } from '../plate.js?v=v30.39.0-0299996';
-import { MAPS } from '../maps.js?v=v30.39.0-0299996';
-import { skyAt } from '../gfx3d/sky.js?v=v30.39.0-0299996';
-import { artAt } from '../atmos.js?v=v30.39.0-0299996';   // 시간대 그림 가중치 — 2D 게임과 같은 식
-import { M, edgeD, terrainH, packEdge } from './model.js?v=v30.39.0-0299996';
-import { KIWI, makeActor, stepActor } from './layers/actors.js?v=v30.39.0-0299996';
-import { WEATHERS, approach } from './layers/weather.js?v=v30.39.0-0299996';
-import { waterFor, mergeWater } from './water-gfx.js?v=v30.39.0-0299996';
-import { terrainFor, mergeTerrain, rockEdgePoints } from './terrain-gfx.js?v=v30.39.0-0299996';   // 지형 모듈: 맵마다 다른 돌·모래 성질   // 워터 그래픽 모듈: 맵마다 다른 물 성질
-import { MAX_PARTICLES, makeParticles, stepParticles, particleAlpha, burst } from './layers/particles.js?v=v30.39.0-0299996';
-import { sandArea, layoutPrints, washed } from './layers/prints.js?v=v30.39.0-0299996';
-import { PARTICLE_VERT, PARTICLE_FRAG, QUAD_VERT, SAND_FRAG, SIM_FRAG, WATER_FRAG, RELIEF_VERT, RELIEF_FRAG } from './shaders.js?v=v30.39.0-0299996';
+import { loadPlate } from '../plate.js?v=v30.40.0-bb99cd3';
+import { MAPS } from '../maps.js?v=v30.40.0-bb99cd3';
+import { skyAt } from '../gfx3d/sky.js?v=v30.40.0-bb99cd3';
+import { artAt } from '../atmos.js?v=v30.40.0-bb99cd3';   // 시간대 그림 가중치 — 2D 게임과 같은 식
+import { M, edgeD, terrainH, packEdge } from './model.js?v=v30.40.0-bb99cd3';
+import { KIWI, makeActor, stepActor } from './layers/actors.js?v=v30.40.0-bb99cd3';
+import { WEATHERS, approach } from './layers/weather.js?v=v30.40.0-bb99cd3';
+import { waterFor, mergeWater } from './water-gfx.js?v=v30.40.0-bb99cd3';
+import { makeWaveSlopes, WAVE_TEX } from './water/normals.js?v=v30.40.0-bb99cd3';
+import { ALL_ON, LAYER_INDEX } from './water/layers.js?v=v30.40.0-bb99cd3';   // 물을 겹으로 나눠 켜고 끈다   // 잔물결 그림 (이음새 없이 반복)
+import { terrainFor, mergeTerrain, rockEdgePoints } from './terrain-gfx.js?v=v30.40.0-bb99cd3';   // 지형 모듈: 맵마다 다른 돌·모래 성질   // 워터 그래픽 모듈: 맵마다 다른 물 성질
+import { MAX_PARTICLES, makeParticles, stepParticles, particleAlpha, burst } from './layers/particles.js?v=v30.40.0-bb99cd3';
+import { sandArea, layoutPrints, washed } from './layers/prints.js?v=v30.40.0-bb99cd3';
+import { PARTICLE_VERT, PARTICLE_FRAG, QUAD_VERT, SAND_FRAG, SIM_FRAG, WATER_FRAG, RELIEF_VERT, RELIEF_FRAG } from './shaders.js?v=v30.40.0-bb99cd3';
 
 const PLANE_W = 32;                    // 입체 판의 폭 (월드 단위)
 const FOV = 30;
@@ -86,6 +88,9 @@ export class Beach3D {
     const tiny = mkCv(56), tg = tiny.getContext('2d'); tg.imageSmoothingEnabled = true; tg.drawImage(rc, 0, 0, tiny.width, tiny.height);   // 작게 줄였다 키우면 넓게 번진다
     const soft = mkCv(224), sg = soft.getContext('2d'); sg.imageSmoothingEnabled = true; sg.drawImage(tiny, 0, 0, soft.width, soft.height);
     const rockTex = new THREE.CanvasTexture(rc), rockSoftTex = this.rockSoftTex = new THREE.CanvasTexture(soft);
+    // 2.5D 물속 돌 판 (<판>-rock25.webp, 2026-11-24 — tools/rock25.py): 돌 자리를 또렷하게 + 높이. 없으면 예전 가림막만
+    const rock25 = this.rock25Tex = plate.rockArt ? await this.loadTex(this.name + '-rock25.webp?v=v30.40.0-bb99cd3').catch(() => null) : null;
+    const none25 = this.none25 = new THREE.DataTexture(new Uint8Array(4), 1, 1); none25.needsUpdate = true;
     // 돌 자리를 JS 로도 묻는다 (누르기 · 물방울이 튀는 자리): 작은 격자의 밝기
     const grid = mkCv(256), gg = grid.getContext('2d', { willReadFrequently: true }); gg.drawImage(rc, 0, 0, grid.width, grid.height);
     const gd = gg.getImageData(0, 0, grid.width, grid.height).data; this.rockGW = grid.width; this.rockGH = grid.height;
@@ -94,8 +99,8 @@ export class Beach3D {
     this.rockPts = rockEdgePoints(this.rockGrid, grid.width, grid.height, (x, y) => (y + 0.5) * gy2p > this.shoreAt((x + 0.5) * gx2p) + 6 * this.u).map(([x, y]) => [(x + 0.5) * gx2p, (y + 0.5) * gy2p]);
     // 모든 식이 함께 쓰는 값
     const shared = this.shared = {
-      uShore: { value: shoreTex }, uRock: { value: rockTex }, uRockSoft: { value: rockSoftTex }, uTRock: { value: 1 }, uPlate: { value: new THREE.Vector2(pw, ph) }, uU: { value: this.u },
-      uT: { value: 0 }, uAmp: { value: this.waves }, uSwell: { value: 1 }, uRip: { value: this.rips },
+      uShore: { value: shoreTex }, uRock: { value: rockTex }, uRockSoft: { value: rockSoftTex }, uTRock: { value: 1 }, uRock25: { value: rock25 || none25 }, uHas25: { value: rock25 ? 1 : 0 }, uPlate: { value: new THREE.Vector2(pw, ph) }, uU: { value: this.u },
+      uT: { value: 0 }, uAmp: { value: this.waves }, uSwell: { value: 1 }, uRip: { value: this.rips }, uL: { value: (this.layers || ALL_ON).slice() },
       uEdge: { value: this.edgeTex = new THREE.DataTexture(this.edgeData = new Uint8Array(128 * 4 * 2), 128, 2) }, uExt: { value: 0 }, uEdgeX: { value: new THREE.Vector2(0, pw) },
     };
 
@@ -114,6 +119,11 @@ export class Beach3D {
 
     // ②③ 식
     this.simMat = new THREE.ShaderMaterial({ vertexShader: QUAD_VERT, fragmentShader: SIM_FRAG, uniforms: { ...shared, uPrev: { value: null }, uDt: { value: 0 }, uRain: this.wx.uRain } });
+    // 잔물결 그림: 그래픽 카드가 화면 칸에 맞춰 걸러 쓰도록(밉맵) 만든다 — 자글거림을 막는 몫이 여기 있다
+    this.waveTex = new THREE.DataTexture(makeWaveSlopes(), WAVE_TEX, WAVE_TEX);
+    this.waveTex.wrapS = this.waveTex.wrapT = THREE.RepeatWrapping;
+    this.waveTex.generateMipmaps = true; this.waveTex.minFilter = THREE.LinearMipmapLinearFilter; this.waveTex.magFilter = THREE.LinearFilter;
+    this.waveTex.anisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy()); this.waveTex.needsUpdate = true;
     this.waterMat = new THREE.ShaderMaterial({
       vertexShader: QUAD_VERT, fragmentShader: WATER_FRAG,
       uniforms: {
@@ -123,7 +133,7 @@ export class Beach3D {
         uTSoft: { value: 1 }, uTFoam: { value: 1 }, uTRipple: { value: 1 }, uTWet: { value: 1 }, uTShadow: { value: 1 }, uTSandWet: { value: 1 }, uTSandMirror: { value: 1 }, ...this.art, uSeaD: { value: d0.sea }, uSeaW: { value: d0.sea }, uSeaN: { value: d0.sea }, uSim: { value: null },
         uCam: { value: new THREE.Vector3() }, uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uSunCol: { value: new THREE.Color() },
         uSpec: { value: 1 }, uShine: { value: 600 }, uPath: { value: 200 }, uGlow: { value: 0.08 }, uSkyCol: { value: new THREE.Color() }, uWaterCol: { value: new THREE.Color() },
-        uFoamCol: { value: new THREE.Color() }, uCaus: { value: 0.5 }, uDebug: { value: 0 },
+        uFoamCol: { value: new THREE.Color() }, uCaus: { value: 0.5 }, uDebug: { value: 0 }, uWaveN: { value: this.waveTex }, uGlit: { value: 0 },
       },
     });
     // ④ 입체 판
@@ -181,7 +191,7 @@ export class Beach3D {
     const u = this.waterMat.uniforms, n = s.night, warm = s.warm;
     u.uSunCol.value.setRGB(...mix3(mix3([1, 0.98, 0.9], [1, 0.8, 0.5], warm), [0.8, 0.88, 1], n));
     u.uSpec.value = mix(mix(0.6, 1.1, warm), 0.6, n);      // 한낮엔 은은하게, 노을·밤엔 또렷한 빛길
-    u.uShine.value = mix(mix(340, 380, warm), 220, n);        // 낮출수록 빛 조각이 넓고 부드럽다. 밤(달빛)은 가장 넓고 옅게 — 가늘고 센 빛줄은 꿈틀거려 보였다
+    u.uShine.value = mix(mix(700, 600, warm), 500, n);        // 반짝임 하나의 크기 — 클수록 작고 드물다 (water/shade.js 의 thr). 잔물결 그림이 걸러져서 작게 해도 자글거리지 않는다
     u.uPath.value = mix(mix(520, 560, warm), 900, n);     // 달빛 길은 좁고 곧다
     u.uGlow.value = mix(mix(0.04, 0.22, warm), 0.24, n);
     u.uSkyCol.value.setRGB(...mix3(mix3([0.72, 0.86, 0.96], [1, 0.72, 0.5], warm), [0.1, 0.16, 0.3], n));
@@ -196,7 +206,7 @@ export class Beach3D {
   // 시간대 그림은 필요해질 때 한 번만 읽는다. 읽는 동안은 낮 그림으로 그린다(가중치가 0 근처일 때 읽기 시작하므로 티가 안 난다)
   need(kind) {
     if (this.tex[kind] || this.loading[kind]) return;
-    this.loading[kind] = Promise.all([this.loadTex(`${this.name}-dry${ART[kind]}.webp?v=v30.39.0-0299996`), this.loadTex(`${this.name}-sea${ART[kind]}.webp?v=v30.39.0-0299996`)])
+    this.loading[kind] = Promise.all([this.loadTex(`${this.name}-dry${ART[kind]}.webp?v=v30.40.0-bb99cd3`), this.loadTex(`${this.name}-sea${ART[kind]}.webp?v=v30.40.0-bb99cd3`)])
       .then(([dry, sea]) => { this.tex[kind] = { dry, sea }; }, () => { this.tex[kind] = this.tex.day; })
       .then(() => { delete this.loading[kind]; if (this.ready) this.applyArt(); });
   }
@@ -205,11 +215,15 @@ export class Beach3D {
     su.uDryW.value = w.dry; wu.uSeaW.value = w.sea; su.uDryN.value = n.dry; wu.uSeaN.value = n.sea;
   }
   setTilt(rad) { this.tilt = rad; this.place(); }
+  // 겹 스위치: [0~1 × 8] (water/layers.js 의 LAYERS 차례). 모두 0 이면 원래 일러스트 그대로
+  setLayers(arr) { this.layers = arr.slice(); if (this.shared) this.shared.uL.value = this.layers; }
+  layer(key) { return (this.layers || ALL_ON)[LAYER_INDEX[key]]; }
   setWaves(k) { this.waves = k; if (this.shared) this.shared.uAmp.value = k; }
   setBloom(on) { this.bloomOn = on; }
   // 워터 그래픽: 물 성질 한 벌을 넣는다 (water-gfx.js 의 waterFor · waterOfKind · tuneWater 로 만든 값. 빠진 값은 바다 기본)
   setWater(w) { this.water = mergeWater(w); this.applyWater(); }
   // 지형: 돌·모래 성질 한 벌을 넣는다 (terrain-gfx.js 의 terrainFor · terrainOfKind · tuneTerrain 으로 만든 값)
+  setGlitter(on) { if (this.waterMat) this.waterMat.uniforms.uGlit.value = on ? 1 : 0; }   // 게임이 2D 윤슬을 함께 그리는가
   setTerrain(t) { this.terrain = mergeTerrain(t); this.applyTerrain(); }
   applyTerrain() {
     if (!this.waterMat) return;
@@ -240,10 +254,10 @@ export class Beach3D {
   }
   updateParticles(dt) {
     const w = this.water; if (!this.partPoints || !w) return;
-    const rain = this.wx.uRain.value, amount = w.particles === 'none' ? 0 : w.particleAmount * this.waves * (1 - 0.6 * rain);
+    const rain = this.wx.uRain.value, amount = w.particles === 'none' ? 0 : w.particleAmount * this.waves * (1 - 0.6 * rain) * this.layer('particles');
     const tr = this.terrain || mergeTerrain();
     stepParticles(this.parts, dt, { type: w.particles, amount, pw: this.pw, ph: this.ph, u: this.u, edgeY: (x) => this.edgeY(x),
-      rocks: this.rockPts, rockSplash: tr.rockSplash * this.waves * (1 - 0.6 * rain) });   // 돌에 부딪혀 튀는 물방울 (지형 모듈)
+      rocks: this.rockPts, rockSplash: tr.rockSplash * this.waves * (1 - 0.6 * rain) * this.layer('rock') * this.layer('particles') });   // 돌에 부딪혀 튀는 물방울 (지형 모듈)
     const g = this.partPoints.geometry, pos = g.attributes.position.array, sz = g.attributes.aSize.array, al = g.attributes.aAlpha.array;
     const k = PLANE_W / this.pw, relief = this.reliefMat.uniforms.uRelief.value, list = this.parts.list, n = Math.min(list.length, MAX_PARTICLES);
     for (let i = 0; i < n; i++) {
@@ -281,7 +295,7 @@ export class Beach3D {
   // 키위: 모래 위를 돌아다니는 판. 늘 카메라를 본다 — 위에서 보면 바닥에 누운 그림처럼, 기울이면 서 있는 것처럼 (움직임은 layers/actors.js)
   async makeActors(n = 4) {
     this.actorGroup = new THREE.Group(); this.actorGroup.visible = this.actorsOn !== false; this.scene.add(this.actorGroup);
-    let tex; try { tex = await this.loadTex('kiwi.webp?v=v30.39.0-0299996'); } catch (e) { this.actors = []; return; }
+    let tex; try { tex = await this.loadTex('kiwi.webp?v=v30.40.0-bb99cd3'); } catch (e) { this.actors = []; return; }
     this.kiwiTex = tex;
     const k = PLANE_W / this.pw, h = KIWI.SIZE * this.u * k, w = h * tex.image.naturalWidth / tex.image.naturalHeight;
     const body = new THREE.PlaneGeometry(w, h); body.translate(0, h * 0.3, 0);   // 발밑이 기준점
@@ -319,7 +333,7 @@ export class Beach3D {
   shoreAt(px) { const f = Math.min(798.999, Math.max(0, px / this.pw * 799)), i = Math.floor(f); return this.shore[i] + (this.shore[i + 1] - this.shore[i]) * (f - i); }
   edgeY(px, t = this.t) {
     if (this.extD) { const x = this.shared.uEdgeX.value, f = Math.min(126.999, Math.max(0, (px - x.x) / Math.max(x.y - x.x, 1) * 127)), i = Math.floor(f); return this.shoreAt(px) + (this.extD[i] + (this.extD[i + 1] - this.extD[i]) * (f - i)) * this.u; }
-    return this.shoreAt(px) + edgeD(px / this.u, t, this.waves) * this.u;
+    return this.shoreAt(px) + edgeD(px / this.u, t, this.waves * this.layer('shore')) * this.u;
   }
   // 게임 연결: 게임이 정한 물가선을 받는다 (d = 그려진 물가선에서의 거리 u × 128칸, x0~x1 = 그 값이 덮는 그림 px 범위)
   setEdge(d, x0, x1) {
@@ -408,7 +422,7 @@ export class Beach3D {
     for (const set of Object.values(this.tex)) { set.dry?.dispose(); set.sea?.dispose(); }
     for (const m of [this.simMat, this.waterMat, this.reliefMat, this.sandMat]) m?.dispose();
     this.partPoints?.geometry.dispose(); this.partMat?.dispose();
-    this.edgeTex?.dispose(); this.shared?.uShore.value.dispose(); this.shared?.uRock.value.dispose(); this.rockSoftTex?.dispose(); this.markTex?.dispose();
+    this.edgeTex?.dispose(); this.shared?.uShore.value.dispose(); this.shared?.uRock.value.dispose(); this.rockSoftTex?.dispose(); this.rock25Tex?.dispose(); this.none25?.dispose(); this.markTex?.dispose(); this.waveTex?.dispose();
     for (const k of this.actors || []) { k.m.geometry.dispose(); k.m.material.dispose(); k.sh.geometry.dispose(); k.sh.material.dispose(); }
     this.kiwiTex?.dispose();
     this.relief?.geometry.dispose(); this.quad.dispose(); this.composer?.dispose(); this.renderer.dispose();

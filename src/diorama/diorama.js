@@ -2,12 +2,12 @@
 //  사용자 2026-11-24: 해변 샌드박스 게임 영상 네 편 → "딱 이느낌을 원해" → "시험적으로 해볼까?"
 //  지금 게임(src/main.js · src/beach3d)과 따로 돈다 — 시험 페이지 diorama-lab.html 에서만 쓴다.
 import * as THREE from 'three';
-import { SIZE, groundH } from './ground.js?v=lab-2bd3096';
-import { Sim } from './sim.js?v=lab-2bd3096';
-import { Look } from './look.js?v=lab-2bd3096';
-import { SANDS, WATERS } from './sands.js?v=lab-2bd3096';
-import { makeWaveSlopes, WAVE_TEX } from '../beach3d/water/normals.js?v=lab-2bd3096';
-import { layoutText, strokesOf } from '../hangul.js?v=lab-2bd3096';
+import { SIZE, groundH } from './ground.js?v=v30.40.0-bb99cd3';
+import { Sim } from './sim.js?v=v30.40.0-bb99cd3';
+import { Look } from './look.js?v=v30.40.0-bb99cd3';
+import { SANDS, WATERS } from './sands.js?v=v30.40.0-bb99cd3';
+import { makeWaveSlopes, WAVE_TEX } from '../beach3d/water/normals.js?v=v30.40.0-bb99cd3';
+import { layoutText, strokesOf } from '../hangul.js?v=v30.40.0-bb99cd3';
 
 export class Diorama {
   constructor(canvas, { base = 'assets/' } = {}) {
@@ -28,7 +28,7 @@ export class Diorama {
   }
 
   makeKiwi(base) {
-    const tex = new THREE.TextureLoader().load(base + 'kiwi.webp?v=lab-2bd3096', t => { t.colorSpace = THREE.SRGBColorSpace; const a = t.image.width / t.image.height; this.kiwiAspect = a; this.kiwi.scale.set(2.3 * a, 2.3, 1); });
+    const tex = new THREE.TextureLoader().load(base + 'kiwi.webp?v=v30.40.0-bb99cd3', t => { t.colorSpace = THREE.SRGBColorSpace; const a = t.image.width / t.image.height; this.kiwiAspect = a; this.kiwi.scale.set(2.3 * a, 2.3, 1); });
     this.kiwi = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
     this.kiwi.center.set(0.5, 0.06); this.kiwi.scale.set(2.3, 2.3, 1); this.kiwi.renderOrder = 3;
     this.kiwiShadow = new THREE.Mesh(new THREE.CircleGeometry(0.42, 24).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.22, depthWrite: false }));

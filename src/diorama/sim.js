@@ -1,6 +1,6 @@
 // diorama/sim.js — 디오라마의 땅(ground.js 식)으로 공용 모래·물 시뮬레이션(src/sandsim)을 돌린다
-import { Sim as SandSim, SIM } from '../sandsim/sim.js?v=lab-2bd3096';
-import { N, CELL, SEA_Z, SIZE, groundH } from './ground.js?v=lab-2bd3096';
+import { Sim as SandSim, SIM } from '../sandsim/sim.js?v=v30.40.0-bb99cd3';
+import { N, CELL, SEA_Z, SIZE, groundH } from './ground.js?v=v30.40.0-bb99cd3';
 export { SIM };
 
 export function dioramaBase() {   // 칸 가운데의 처음 땅 높이 (줄 = z, 뭍 쪽부터)

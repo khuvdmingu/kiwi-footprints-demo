@@ -67,9 +67,19 @@ export function packEdge(arr, out) {
 const f = (v) => { const s = String(v); return s.includes('.') ? s : s + '.'; };
 export const BEACH_GLSL = /* glsl */ `
   uniform sampler2D uShore;
+  uniform float uL[8];          // 겹 스위치 (water/layers.js): 0 물가선 1 투명도 2 젖은 모래 3 물결 4 빛 5 거품 6 바위 7 파티클 — 0 끔 ~ 1 켬
+  #define L_SHORE uL[0]
+  #define L_CLEAR uL[1]
+  #define L_WET uL[2]
+  #define L_WAVE uL[3]
+  #define L_LIGHT uL[4]
+  #define L_FOAM uL[5]
+  #define L_ROCK uL[6]
   uniform sampler2D uRock;      // 바위 가림막 (또렷한 판)
   uniform sampler2D uRockSoft;  // 바위 가림막을 넓게 번지게 한 판 — 돌 둘레(얕아짐·잔물결·거품 고리)
   uniform float uTRock;         // 돌이 솟는 높이 배율 (지형 모듈)
+  uniform sampler2D uRock25;    // 2.5D 물속 돌 판 (<판>-rock25.webp, 2026-11-24): R = 돌 자리(그려진 물가선 아래) · G = 높이 (가장자리 0 → 가운데 1)
+  uniform float uHas25;         // 그 판이 있는가 — 없으면 예전처럼 가림막 한 장으로 평평하게 솟는다
   uniform vec2 uPlate;
   uniform float uU;
   uniform float uT;
@@ -93,14 +103,19 @@ export const BEACH_GLSL = /* glsl */ `
     return mix(ya, yb, fx - i) * uPlate.y;
   }
   float shoreD(vec2 P) { return (P.y - shoreY(P.x)) / uU; }
-  float rockRaw(vec2 P) { return texture(uRock, vec2(P.x / uPlate.x, 1. - P.y / uPlate.y)).r; }
+  //  물속 돌은 2.5D 판의 돌 자리를 쓴다: 예전 가림막(원래 판과 바위 지운 판의 차이)은 돌보다 넓어 둘레 모래까지 얹혔다 (사용자 2026-11-24)
+  float sea25(vec2 P) { return uHas25 * smoothstep(0., 6., shoreD(P)); }
+  vec2 rock25(vec2 P) { return texture(uRock25, vec2(P.x / uPlate.x, 1. - P.y / uPlate.y)).rg; }
+  float rockRaw(vec2 P) { float m = texture(uRock, vec2(P.x / uPlate.x, 1. - P.y / uPlate.y)).r, s = sea25(P); return s > 0. ? mix(m, rock25(P).r, s) : m; }
+  float rockHgt(vec2 P) { float s = sea25(P); return s > 0. ? mix(1., rock25(P).g, s) : 1.; }   // 돌의 높이 비율 — 물에 잠긴 돌은 가장자리부터 잠긴다
   float rockAt(vec2 P) { return smoothstep(.36, .64, rockRaw(P)); }
   float rockNear(vec2 P) { return texture(uRockSoft, vec2(P.x / uPlate.x, 1. - P.y / uPlate.y)).r; }   // 0 멀다 ~ 1 돌 한가운데
   float sandH(float d) { return d < 0. ? -d * ${f(M.SLOPE)} : -d * ${f(M.SLOPE)} * (1. + d / ${f(M.DEEP)}); }
   float terrainH(vec2 P) {   // 돌 둘레는 바닥이 얕아지고(물이 감싸며 거품이 인다) 돌 자리는 수면 위로 솟는다
     float s = sandH(shoreD(P));
-    s = mix(s, max(s, -.22), smoothstep(.12, .5, rockNear(P)));
-    return mix(s, max(s, 0.) + ${f(M.ROCK)} * uTRock, rockAt(P));
+    s = mix(s, max(s, -.22), smoothstep(.12, .5, rockNear(P)) * L_ROCK);
+    float top = max(s, 0.) + ${f(M.ROCK)} * uTRock;   // 돌 꼭대기
+    return mix(s, mix(s, top, rockHgt(P)), rockAt(P) * L_ROCK);   // 바위 겹을 끄면 바위는 물에 잠긴 그림일 뿐 (물이 감싸지 않는다)
   }
   float edgeRow(float px, int row) {   // row 0 = 지금 · 1 = 앞 프레임 (물가선의 빠르기를 구한다 — water/flow.js)
     float fx = clamp((px - uEdgeX.x) / max(uEdgeX.y - uEdgeX.x, 1.), 0., 1.) * 127.;
@@ -139,5 +154,6 @@ export const BEACH_GLSL = /* glsl */ `
     }
     return s;
   }
-  float waterH(vec2 P, float t) { return swash(P.x / uU, t) + swell(P, shoreD(P), t) + ripple(P, t); }
+  //  물가선 겹을 끄면 물가선은 그려진 자리에 멈추고, 물결 겹을 끄면 너울·파문이 없다
+  float waterH(vec2 P, float t) { return swash(P.x / uU, t) * L_SHORE + (swell(P, shoreD(P), t) + ripple(P, t)) * L_WAVE; }
 `;

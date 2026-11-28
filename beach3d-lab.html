@@ -6,7 +6,7 @@
   <title>해변 3D 물 시험</title>
   <!-- 2026-11-23 해변을 three.js 로 구조부터 다시 세운 판(src/beach3d) 시험 — 물에 집중. 지금 게임 화면은 바꾸지 않는다.
        화면을 누르면: 물 = 파문, 모래 = 발자국(물이 지나가면 지워짐), 돌 = 물이 튀고 파문
-       주소 옵션: ?hour=18.2 · ?tilt=20(도) · ?waves=1 · ?bloom=0 · ?debug=1|2 · ?map=beach · ?water=lake(물 종류: sea lagoon lake glacier river stream pond swamp hotspring) · ?text=안녕(발자국 글씨) · ?q=0.5(폰용 화질 — 합성 그림 크기 배율 0.25~1) -->
+       주소 옵션: ?layers=none|shore,clear|all-foam(물의 겹 — 모두 끄면 원래 그림) · ?hour=18.2 · ?tilt=20(도) · ?waves=1 · ?bloom=0 · ?debug=1|2 · ?map=beach · ?water=lake(물 종류: sea lagoon lake glacier river stream pond swamp hotspring) · ?text=안녕(발자국 글씨) · ?q=0.5(폰용 화질 — 합성 그림 크기 배율 0.25~1) -->
   <script type="importmap">{ "imports": { "three": "./vendor/three/build/three.module.js", "three/addons/": "./vendor/three/addons/" } }</script>
   <style>
     :root { --bg: #f4ecdc; --ink: #3d2b1c; --soft: #8a7258; --line: #e2d3b6; --accent: #b4532a; }
@@ -43,18 +43,22 @@
     <label>돌 <input id="tRock" type="range" min="0" max="2" step="0.05" value="1" /></label>
     <button data-wx="clear">맑음</button><button data-wx="rain">비</button><button data-wx="fog">안개</button>
     <button data-debug="0">그림</button><button data-debug="1">물 깊이</button><button data-debug="2">젖음·거품</button>
+    <span id="layers" title="물을 겹으로 나눠 켜고 끈다 — 모두 끄면 원래 일러스트 그대로">겹 <button id="layAll">모두</button><button id="layNone">원래 그림</button></span>
     <label>글씨 <input id="text" type="text" placeholder="안녕 키위" style="min-height:40px; width:130px; padding:0 12px; border-radius:99px; border:1px solid var(--line); background:transparent; color:var(--ink); font:inherit" /></label><button id="write">쓰기</button>
     <span id="fps"></span>
   </div>
   <main><canvas id="cv"></canvas><div id="msg">불러오는 중…</div></main>
   <script type="module">
-    import { mountBeach3D, canUse3D } from './src/beach3d/index.js';
-    import { waterFor, waterOfKind, tuneWater, WATER_KIND_NAME } from './src/beach3d/water-gfx.js';
-    import { terrainFor, tuneTerrain } from './src/beach3d/terrain-gfx.js';   // 지형 모듈 (값만)   // 워터 그래픽 모듈 (값만 — three.js 를 읽지 않는다)
+    import { mountBeach3D, canUse3D } from './src/beach3d/index.js?v=v30.40.0-bb99cd3';
+    import { waterFor, waterOfKind, tuneWater, WATER_KIND_NAME } from './src/beach3d/water-gfx.js?v=v30.40.0-bb99cd3';
+    import { LAYERS, parseLayers, layersToString } from './src/beach3d/water/layers.js?v=v30.40.0-bb99cd3';   // 물의 겹 (값만)
+    import { terrainFor, tuneTerrain } from './src/beach3d/terrain-gfx.js?v=v30.40.0-bb99cd3';   // 지형 모듈 (값만)   // 워터 그래픽 모듈 (값만 — three.js 를 읽지 않는다)
     const q = new URLSearchParams(location.search), num = (k, d) => (q.has(k) && isFinite(+q.get(k)) ? +q.get(k) : d);
     const st = { hour: num('hour', 12), tilt: num('tilt', 0), waves: num('waves', 1), bloom: q.get('bloom') !== '0', debug: num('debug', 0), map: q.get('map') || 'beach', q: num('q', 1), text: q.get('text') || '', kiwi: q.get('kiwi') !== '0', weather: q.get('weather') || 'clear' };
     const $ = id => document.getElementById(id), main = document.querySelector('main'), msg = $('msg'), cv = $('cv');
     let scene = null;
+    st.layers = parseLayers(q.get('layers'));   // ?layers=none · shore,clear · all-foam
+    for (const [i, l] of LAYERS.entries()) { const b = document.createElement('button'); b.dataset.layer = i; b.textContent = l.name; b.title = l.desc; $('layers').appendChild(b); }
     const fmt = h => `${Math.floor(h)}:${String(Math.round((h % 1) * 60) % 60).padStart(2, '0')}`;
     function sync() {
       $('hour').value = st.hour; $('hourTxt').textContent = fmt(st.hour);
@@ -62,13 +66,17 @@
       $('bloom').setAttribute('aria-pressed', String(st.bloom)); $('kiwi').setAttribute('aria-pressed', String(st.kiwi));
       document.querySelectorAll('[data-wx]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.wx === st.weather)));
       document.querySelectorAll('[data-debug]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.debug === st.debug)));
-      const u = new URL(location); for (const k of ['hour', 'tilt', 'waves', 'debug', 'map', 'weather']) u.searchParams.set(k, st[k]); u.searchParams.set('bloom', st.bloom ? 1 : 0); history.replaceState(null, '', u);
+      document.querySelectorAll('[data-layer]').forEach(b => b.setAttribute('aria-pressed', String(st.layers[+b.dataset.layer] > 0.5)));
+      const u = new URL(location); u.searchParams.set('layers', layersToString(st.layers)); for (const k of ['hour', 'tilt', 'waves', 'debug', 'map', 'weather']) u.searchParams.set(k, st[k]); u.searchParams.set('bloom', st.bloom ? 1 : 0); history.replaceState(null, '', u);
     }
     sync();
     if (!canUse3D()) msg.textContent = '이 기기는 WebGL2 가 안 돼서 3D 장면을 못 엽니다';
     else mountBeach3D(cv, { map: st.map, hour: st.hour, tilt: st.tilt * Math.PI / 180, bloom: st.bloom, waves: st.waves, quality: st.q })
-      .then(s => { scene = s; s.setDebug(st.debug); s.setActors(st.kiwi); s.setWeather(st.weather); window.__applyWater?.(); if (st.text) s.write(st.text); const r = main.getBoundingClientRect(); s.resize(r.width, r.height, devicePixelRatio || 1); msg.textContent = '눌러 보세요 — 물: 파문 · 모래: 발자국'; setTimeout(() => (msg.hidden = true), 5000); })
+      .then(s => { scene = s; s.setLayers(st.layers); s.setDebug(st.debug); s.setActors(st.kiwi); s.setWeather(st.weather); window.__applyWater?.(); if (st.text) s.write(st.text); const r = main.getBoundingClientRect(); s.resize(r.width, r.height, devicePixelRatio || 1); msg.textContent = '눌러 보세요 — 물: 파문 · 모래: 발자국'; setTimeout(() => (msg.hidden = true), 5000); })
       .catch(e => { msg.textContent = '열지 못했어요: ' + e.message; console.error(e); });
+    const setLayers = a => { st.layers = a; scene?.setLayers(a); sync(); };
+    document.querySelectorAll('[data-layer]').forEach(b => b.onclick = () => { const a = st.layers.slice(), i = +b.dataset.layer; a[i] = a[i] > 0.5 ? 0 : 1; setLayers(a); });
+    $('layAll').onclick = () => setLayers(parseLayers('all')); $('layNone').onclick = () => setLayers(parseLayers('none'));
     $('hour').oninput = e => { st.hour = +e.target.value; scene?.setHour(st.hour); sync(); };
     document.querySelectorAll('[data-hour]').forEach(b => b.onclick = () => { st.hour = +b.dataset.hour; scene?.setHour(st.hour); sync(); });
     $('tilt').oninput = e => { st.tilt = +e.target.value; scene?.setTilt(st.tilt * Math.PI / 180); sync(); };
