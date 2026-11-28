@@ -3,7 +3,7 @@
 //   물가에는 하얀 레이스 거품과 물방울, 층 경계에도 옅은 거품 줄, 물속에 비치는 바위, 반짝이는 햇빛.
 //  가장 위 층의 윗선은 해변의 해안선 식(beach.edge)과 같다 → 물에 잠긴 발자국을 정확히 지운다.
 
-import { PAL } from './tokens.js?v=pv-d6ce35e';
+import { PAL } from './tokens.js?v=pv-0c2d246';
 
 const LAYERS = [
   // 해안선에서 얼마나 아래(u) · 색 · 불투명도 · 출렁임(u) · 속도 · 파장(1/u) · 위상 · 경계 거품

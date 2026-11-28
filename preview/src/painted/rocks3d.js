@@ -18,7 +18,7 @@ const ROCK_FRAG = /* glsl */`
     //  색: 덩어리 평균색 한 가지로 칠하면 납작한 회색 덩어리로 보였다 (2026-11-28 다듬기) → 위에서 내려다본 자리의 원본 그림을 그대로 입힌다.
     //  그림 속 돌의 붓결·면 나눔이 살고, 3D 면의 명암은 그 위에 옅게만 얹는다. 그림의 돌 밖으로 나온 가장자리는 평균색으로 (모래·물빛이 묻지 않게)
     vec2 auv = vec2(s.x, 1. - s.y);
-    float inArt = smoothstep(.3, .62, texture(uR25, auv).r);
+    float inArt = smoothstep(.5, .82, texture(uR25, auv).r);   // 돌 안쪽만 — 가장자리까지 그림을 입히면 둘레의 모래색이 묻어 주황 테가 됐다 (밤에 특히)
     vec3 flat3 = uCol * uTone * mix(vec3(.46, .48, .64), vec3(1.25, 1.18, 1.06), t);
     vec3 artC = texture(uDry, auv).rgb; if (uMixB > .002) artC = mix(artC, texture(uDryB, auv).rgb, uMixB);   // 시간대 그림 두 벌
     vec3 art = artC * mix(vec3(.8, .82, .92), vec3(1.12, 1.08, 1.02), t);

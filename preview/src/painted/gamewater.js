@@ -9,12 +9,12 @@
 //  · 바다 색은 그림에서 뽑은 얕은·중간·깊은 세 빛깔. 너울은 방향·길이·빠르기가 다른 세 갈래가 묶음(세트)으로 들쭉날쭉 온다 (기계적인 줄무늬 X)
 //  · 바위 2.5D: 바위 있는 땅 ÷ 바위 없는 모래의 밝기 비율을 그림에 곱한다 (윗면·해 쪽 밝게, 반대쪽·드리운 그림자 짙게) + 들이치는 물의 물보라
 import * as THREE from 'three';
-import { Sim } from '../sandsim/sim.js?v=pv-d6ce35e';
-import { makeWaveSlopes, WAVE_TEX } from '../beach3d/water/normals.js?v=pv-d6ce35e';
-import { PB, gridOf, shoreFn, buildBase, pixelsOf, sandH } from './base.js?v=pv-d6ce35e';
-import { buildRocks } from './rocks3d.js?v=pv-d6ce35e';
-import { artAt } from '../atmos.js?v=pv-d6ce35e';        // 시간대 그림 가중치 — 2D 게임·해변 3D 와 같은 식
-import { skyAt } from '../gfx3d/sky.js?v=pv-d6ce35e';    // 시간대의 밤·노을 정도
+import { Sim } from '../sandsim/sim.js?v=pv-0c2d246';
+import { makeWaveSlopes, WAVE_TEX } from '../beach3d/water/normals.js?v=pv-0c2d246';
+import { PB, gridOf, shoreFn, buildBase, pixelsOf, sandH } from './base.js?v=pv-0c2d246';
+import { buildRocks } from './rocks3d.js?v=pv-0c2d246';
+import { artAt } from '../atmos.js?v=pv-0c2d246';        // 시간대 그림 가중치 — 2D 게임·해변 3D 와 같은 식
+import { skyAt } from '../gfx3d/sky.js?v=pv-0c2d246';    // 시간대의 밤·노을 정도
 
 const ART = { day: '', sunset: '-sunset', night: '-night', dawn: '-dawn' };   // 시간대 그림 파일 꼬리표
 const mix3 = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
@@ -73,7 +73,14 @@ const FRAG = (g) => GRID_GLSL(g) + /* glsl */`
   float edgeOff(float x) { float f = x * GRID.x - .5; int i = int(floor(f)); float r = f - floor(f);
     return mix(texelFetch(uEdgeOff, ivec2(clamp(i, 0, int(GRID.x) - 1), 0), 0).r, texelFetch(uEdgeOff, ivec2(clamp(i + 1, 0, int(GRID.x) - 1), 0), 0).r, r); }
   vec4 artT(vec2 uv) { vec4 a = texture(uArt, uv); return uMixB > .002 ? mix(a, texture(uArtB, uv), uMixB) : a; }
-  vec4 seaT(vec2 uv) { vec4 a = texture(uSeaP, uv); return uMixB > .002 ? mix(a, texture(uSeaPB, uv), uMixB) : a; }
+  //  바위 지운 바다 판은 낮 것만 원래 그림과 색이 맞다. 노을·밤 판은 색조가 달라(청록) 돌 둘레에 얼룩이 졌다 (2026-11-28)
+  //  → 낮이 아닌 판은 그 시간의 원래 그림을 넓게 흐려 읽는다 (돌이 둘레 물빛에 섞여 옅은 그늘처럼 남는다 — 그 위에 3D 바위가 선다)
+  uniform float uSeaOk, uSeaOkB;
+  vec4 seaT(vec2 uv) {
+    vec4 a = uSeaOk > .5 ? texture(uSeaP, uv) : texture(uArt, uv, 5.5);
+    if (uMixB > .002) a = mix(a, uSeaOkB > .5 ? texture(uSeaPB, uv) : texture(uArtB, uv, 5.5), uMixB);
+    return a;
+  }
   uniform float uT, uRain, uFog, uRock3D;
   uniform vec3 uSun, uSunCol, uSky, uPalS, uPalM, uPalD, uFoamCol;
   varying vec2 vUv;
@@ -121,7 +128,10 @@ const FRAG = (g) => GRID_GLSL(g) + /* glsl */`
       vec2 su = vec2(vUv.x, vUv.y + edgeOff(vUv.x) * shiftK / (GRID.y * CELL)) + sw.xy * deepK * vec2(.0025, -.0025) + vec2(off.x, -off.y) * .5;
       vec3 seaP = mix(artT(su).rgb, seaT(su).rgb, smoothstep(.15, .6, texture(uRockM, su).a));
       float op = 1. - exp(-w * 7.);                         // 조금 불투명하게 — 아주 얕은 물가에서만 모래가 비친다
-      op = max(op, smoothstep(.0, .35, texture(uR25, vUv, 2.).r) * (1. - rSea));   // 물속 돌 바로 둘레는 물이 얕게 잡혀 모래가 비치며 옅은 테두리가 됐다 → 물빛으로 덮는다
+      //  물속 돌 둘레: 돌의 밑동이 바닥을 높여 물이 얕게 잡히고, 그 자리로 모래가 비쳐 돌마다 희끄무레한 둥근 테가 생겼다.
+      //  돌 바로 옆만 물빛으로 덮으면 그 바깥에 테가 남는다 → 넓게 번진 돌 틀(밑동이 닿는 데까지)로 덮는다 (2026-11-28)
+      float skirt = max(smoothstep(.0, .35, texture(uR25, vUv, 2.).r), smoothstep(.015, .16, texture(uR25, vUv, 4.6).r));
+      op = max(op, skirt * (1. - .5 * rSea));   // 돌 자리 가장자리에서 덮개가 끊기면 그 틈으로 바닥 그림의 모래색이 주황 테로 비친다 (밤에 특히) → 돌 자리 안쪽도 절반은 덮는다
       vec3 wc = mix(bed, seaP, .15 + .85 * op);
       wc *= clamp(1. + 1.6 * (dot(n, uSun) - uSun.y), .86, 1.16);   // 너울의 빛과 그늘은 살짝만 (그림 톤 지키기)
       wc += uSunCol * pow(max(reflect(-uSun, n).y, 0.), 45.) * .16 * (1. - .7 * rockish);   // 반짝임은 넓고 부드럽게 (잔 점으로 자글거리지 않게)
@@ -204,14 +214,14 @@ export class SimWater {
     const g = this.g = gridOf(plate.pw, plate.ph);
     this.shoreZ = shoreFn(plate.shoreP, plate.pw, plate.ph, g);
     const loadImg = (src) => new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = this.base + src; });
-    const r25img = await loadImg((plate.name || 'plate') + '-rock25.webp?v=pv-d6ce35e').catch(() => null), rock25 = r25img ? pixelsOf(r25img, g.nx, g.nz) : null;
+    const r25img = await loadImg((plate.name || 'plate') + '-rock25.webp?v=pv-0c2d246').catch(() => null), rock25 = r25img ? pixelsOf(r25img, g.nx, g.nz) : null;
     const rockA = plate.rockArt ? pixelsOf(plate.rockArt, g.nx, g.nz) : null;
     this.baseArr = buildBase(g, this.shoreZ, { rock25, rockA });
     this.palette(pixelsOf(plate.img, g.nx, g.nz), rockA);
     const r = this.renderer = new THREE.WebGLRenderer({ canvas: this.cv, antialias: true });   // 3D 바위의 가장자리가 계단지지 않게 (2026-11-28)
     r.outputColorSpace = THREE.SRGBColorSpace;
     this.sim = new Sim(r, g, this.baseArr); this.sim.freezeSand(); this.sim.setFoam(1.1, 1.6);
-    const tex = this.texOf = (im) => { const t = new THREE.Texture(im); t.colorSpace = THREE.SRGBColorSpace; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.needsUpdate = true; return t; };
+    const tex = this.texOf = (im, mips = false) => { const t = new THREE.Texture(im); t.colorSpace = THREE.SRGBColorSpace; t.minFilter = mips ? THREE.LinearMipmapLinearFilter : THREE.LinearFilter; t.generateMipmaps = mips; t.needsUpdate = true; return t; };
     const wt = this.waveTex = new THREE.DataTexture(makeWaveSlopes(), WAVE_TEX, WAVE_TEX);
     wt.wrapS = wt.wrapT = THREE.RepeatWrapping; wt.generateMipmaps = true; wt.minFilter = THREE.LinearMipmapLinearFilter; wt.magFilter = THREE.LinearFilter; wt.needsUpdate = true;
     let r25t; if (r25img) { r25t = new THREE.Texture(r25img); r25t.generateMipmaps = true; r25t.minFilter = THREE.LinearMipmapLinearFilter; r25t.needsUpdate = true; } else { r25t = new THREE.DataTexture(new Uint8Array(4), 1, 1); r25t.needsUpdate = true; }
@@ -221,13 +231,13 @@ export class SimWater {
     this.uni = {
       uS: C(this.sim.state), uV: C(this.sim.vel), uBase: C(this.sim.baseTex), uDry: C(tex(plate.dry)), uWave: C(wt), uRockM: C(rm), uR25: C(r25t),
       uArt: C(tex(plate.img)), uSeaP: C(tex(plate.sea)), uEdgeOff: C(this.edgeOffTex),
-      uDryB: C(null), uArtB: C(null), uSeaPB: C(null), uMixB: C(0), uCaus: C(1), uTone: C(new THREE.Color(1, 1, 1)),
+      uDryB: C(null), uArtB: C(null), uSeaPB: C(null), uMixB: C(0), uSeaOk: C(1), uSeaOkB: C(1), uCaus: C(1), uTone: C(new THREE.Color(1, 1, 1)),
       uT: C(0), uRain: C(0), uFog: C(0), uPx: C(600), uRock3D: C(r25img ? 1 : 0),
       uSun: C(SUN.clone()), uSunCol: C(new THREE.Color(1.0, 0.97, 0.9)), uSky: C(new THREE.Color(0.78, 0.9, 0.95)),
       uPalS: C(this.pal[0]), uPalM: C(this.pal[1]), uPalD: C(this.pal[2]), uFoamCol: C(new THREE.Color(1, 1, 1)),
     };
     //  시간대 그림 벌: 낮은 게임이 준 그림 그대로. 노을·밤·새벽은 그 시간이 되면 읽는다 (setHour)
-    this.sets = { day: { dry: this.uni.uDry.value, art: this.uni.uArt.value, sea: this.uni.uSeaP.value } }; this.loadingSet = {};
+    this.sets = { day: { dry: this.uni.uDry.value, art: this.uni.uArt.value, sea: this.uni.uSeaP.value, seaOk: 1 } }; this.loadingSet = {};
     for (const k of ['uDryB', 'uArtB', 'uSeaPB']) this.uni[k].value = this.sets.day[k === 'uDryB' ? 'dry' : k === 'uArtB' ? 'art' : 'sea'];
     this.loadImg = loadImg;
     this.scene = new THREE.Scene();
@@ -302,9 +312,10 @@ export class SimWater {
   needSet(kind) {
     if (this.sets[kind] || this.loadingSet[kind]) return;
     const name = this.plate.name || 'plate', p = this.plate;
-    if (kind === 'day') { this.sets.day = { dry: this.texOf(p.dry), art: this.texOf(p.img), sea: this.texOf(p.sea) }; return; }
-    this.loadingSet[kind] = Promise.all([this.loadImg(`${name}-dry${ART[kind]}.webp?v=pv-d6ce35e`), this.loadImg(`${name}${ART[kind]}.webp?v=pv-d6ce35e`), this.loadImg(`${name}-sea${ART[kind]}.webp?v=pv-d6ce35e`)])
-      .then(([dry, art, sea]) => { if (this.ready) this.sets[kind] = { dry: this.texOf(dry), art: this.texOf(art), sea: this.texOf(sea) }; }, () => { this.missing = { ...(this.missing || {}), [kind]: true }; })
+    if (kind === 'day') { this.sets.day = { dry: this.texOf(p.dry), art: this.texOf(p.img), sea: this.texOf(p.sea), seaOk: 1 }; return; }
+    //  노을·밤·새벽은 두 장만 읽는다 (바위 지운 바다 판은 색이 안 맞아 쓰지 않는다 — 원래 그림을 흐려 읽으므로 밉맵을 만든다)
+    this.loadingSet[kind] = Promise.all([this.loadImg(`${name}-dry${ART[kind]}.webp?v=pv-0c2d246`), this.loadImg(`${name}${ART[kind]}.webp?v=pv-0c2d246`)])
+      .then(([dry, art]) => { if (this.ready) { const a = this.texOf(art, true); this.sets[kind] = { dry: this.texOf(dry), art: a, sea: a, seaOk: 0 }; } }, () => { this.missing = { ...(this.missing || {}), [kind]: true }; })
       .then(() => { delete this.loadingSet[kind]; if (this.ready) this.applySets(); });
   }
   applySets() {
@@ -314,8 +325,9 @@ export class SimWater {
     if (!A) return;   // 아직 읽는 중 — 지금 보이는 벌 그대로 둔다
     u.uDry.value = A.dry; u.uArt.value = A.art; u.uSeaP.value = A.sea; this.shown = w.A;
     const b = B || A; u.uDryB.value = b.dry; u.uArtB.value = b.art; u.uSeaPB.value = b.sea; u.uMixB.value = B && B !== A ? w.k : 0;
+    u.uSeaOk.value = A.seaOk; u.uSeaOkB.value = b.seaOk;
     //  쓰지 않는 벌은 내려놓는다 (그림 한 장이 크다 — 폰 메모리)
-    for (const kind of Object.keys(this.sets)) if (this.sets[kind] !== A && this.sets[kind] !== b) { for (const t of Object.values(this.sets[kind])) t.dispose(); delete this.sets[kind]; }
+    for (const kind of Object.keys(this.sets)) if (this.sets[kind] !== A && this.sets[kind] !== b) { for (const t of Object.values(this.sets[kind])) t.dispose?.(); delete this.sets[kind]; }
   }
   setWeatherNow(rain, fog) { this.uni.uRain.value = rain; this.uni.uFog.value = fog; }
   setGlitter() {}   // 게임이 2D 윤슬을 위에 그린다
@@ -346,7 +358,7 @@ export class SimWater {
   dispose() {
     this.ready = false; this.sim?.dispose(); this.waveTex?.dispose();
     for (const k of ['uRockM', 'uR25', 'uEdgeOff']) this.uni?.[k].value.dispose();
-    for (const set of Object.values(this.sets || {})) for (const t of Object.values(set)) t.dispose();
+    for (const set of Object.values(this.sets || {})) for (const t of Object.values(set)) t.dispose?.();
     this.sets = {};
     this.ground?.geometry.dispose(); this.ground?.material.dispose(); this.rocks?.traverse(o => { o.geometry?.dispose(); o.material?.dispose(); }); this.spray?.geometry.dispose(); this.spray?.material.dispose();
     this.renderer?.dispose();

@@ -6,7 +6,7 @@
 //  새 구조는 "흐름"을 먼저 세운다: 물가선의 자리(edgeNow)와 빠르기(runSpeed) → 물의 속도(flowVel).
 //  거품은 이 흐름에 실려 다니고(foam.js), 빛은 물막과 물결 이는 물을 가르고(shade.js), 파티클도 물가와 함께 오르내린다(layers/particles.js).
 //  참고한 구조: 물결의 "위상" 하나에서 물마루 앞·꼬리·되밀림 거품을 나눠 그리는 방식(스타일 물 셰이더들), 흐름에 무늬를 싣는 flow map.
-import { M } from '../model.js?v=pv-d6ce35e';
+import { M } from '../model.js?v=pv-0c2d246';
 
 const f = (v) => { const s = String(v); return s.includes('.') ? s : s + '.'; };
 

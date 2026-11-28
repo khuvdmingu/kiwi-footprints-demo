@@ -1,7 +1,7 @@
 // diorama/look.js — 디오라마 그리기: 모래(빛·그늘·젖음·빛 그물) · 물(맑은 얕은 물·거품·반짝임) · 옆면 · 자갈 · 덤불
 //  모래 색과 물 색은 갈아 끼운다 (sands.js) — 땅 모양·물 흐름은 그대로 (영상: 흰 모래 · 검은 화산 모래 · 감람석 · 분홍 모래)
 import * as THREE from 'three';
-import { N, SIZE, CELL, GROUND_GLSL, groundH } from './ground.js?v=pv-d6ce35e';
+import { N, SIZE, CELL, GROUND_GLSL, groundH } from './ground.js?v=pv-0c2d246';
 
 const COMMON = /* glsl */`
   #define NI ${N}

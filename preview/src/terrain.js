@@ -4,8 +4,8 @@
 //  #canopy  (키위 위)  : 숲 앞줄 덤불 덩어리 + 부채꼴 야자잎 — 키위가 이 아래에서 걸어 나온다
 //  흔들리는 것(.sway)은 CSS 애니메이션, 덩어리마다 주기·시작이 다르다. 외곽선은 쓰지 않는다.
 
-import { PAL, LIGHT, MOTION } from './tokens.js?v=pv-d6ce35e';
-import { rng } from './util.js?v=pv-d6ce35e';
+import { PAL, LIGHT, MOTION } from './tokens.js?v=pv-0c2d246';
+import { rng } from './util.js?v=pv-0c2d246';
 
 const f1 = v => Math.round(v * 10) / 10;
 const P = ([x, y]) => `${f1(x)},${f1(y)}`;
