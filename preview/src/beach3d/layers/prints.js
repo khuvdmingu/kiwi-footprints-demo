@@ -1,7 +1,7 @@
 // beach3d/layers/prints.js — 발자국 글씨: 글 → 모래 위 발자국 자리 (three.js·DOM 없이 계산만 — 시험에서 그대로 부른다)
 //  글자를 획으로 바꾸는 것은 2D 게임과 같은 hangul.js (layoutText · strokesOf). 여기서는 획을 따라 한 걸음씩 발자국 자리를 놓는다.
 //  좌표는 해변 그림의 픽셀(왼쪽 위 0,0). 그리기와 지우기는 beach3d.js 의 바닥 층(발자국 캔버스)이 한다.
-import { layoutText, strokesOf } from '../../hangul.js?v=pv-b0a0e55';
+import { layoutText, strokesOf } from '../../hangul.js?v=pv-d6ce35e';
 
 // 글씨 쓸 모래 구역: 숲 줄 아래 ~ 그려진 물가선 위 (가로는 가운데 76%). forest·shore = 가로로 늘어놓은 y 값 배열(px)
 export function sandArea(forest, shore, pw, u) {

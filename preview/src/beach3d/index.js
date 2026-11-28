@@ -19,7 +19,7 @@ export function canUse3D() {
 
 export async function mountBeach3D(canvas, opts = {}) {
   if (!canUse3D()) throw new Error('webgl2');
-  const { Beach3D } = await import('./beach3d.js?v=pv-b0a0e55');
+  const { Beach3D } = await import('./beach3d.js?v=pv-d6ce35e');
   const s = new Beach3D(canvas, opts);
   const r = canvas.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
   s.resize(Math.max(1, r.width), Math.max(1, r.height), dpr);

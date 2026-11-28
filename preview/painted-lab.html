@@ -38,7 +38,7 @@
     <span style="align-self:center;font-size:12px;opacity:.7">모래를 끌면 발자국</span>
   </div>
   <script type="module">
-    import { Painted } from './src/painted/painted.js?v=pv-b0a0e55';
+    import { Painted } from './src/painted/painted.js?v=pv-d6ce35e';
     const $ = (id) => document.getElementById(id), q = new URLSearchParams(location.search);
     const p = window.__pm = await new Painted($('cv'), { map: q.get('map') || 'beach' }).load();
     $('load').remove(); p.bind($('cv'));

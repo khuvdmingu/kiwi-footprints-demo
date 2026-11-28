@@ -6,8 +6,8 @@
 //    nameCard(greeter, { onDone(name | null) })           → "뭐라고 불러 줄까요?" 카드 요소
 //  모양은 memos.css (km- 로 시작하는 이름만 쓴다 — 다른 창 스타일과 안 섞이게).
 
-import { MAX_TEXT, MAX_MEMOS, parseTime, sandTime } from './memos.js?v=pv-b0a0e55';
-import { MAX_NAME } from './greet.js?v=pv-b0a0e55';
+import { MAX_TEXT, MAX_MEMOS, parseTime, sandTime } from './memos.js?v=pv-d6ce35e';
+import { MAX_NAME } from './greet.js?v=pv-d6ce35e';
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 

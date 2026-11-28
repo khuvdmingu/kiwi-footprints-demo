@@ -14,20 +14,20 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { loadPlate } from '../plate.js?v=pv-b0a0e55';
-import { MAPS } from '../maps.js?v=pv-b0a0e55';
-import { skyAt } from '../gfx3d/sky.js?v=pv-b0a0e55';
-import { artAt } from '../atmos.js?v=pv-b0a0e55';   // 시간대 그림 가중치 — 2D 게임과 같은 식
-import { M, edgeD, terrainH, packEdge } from './model.js?v=pv-b0a0e55';
-import { KIWI, makeActor, stepActor } from './layers/actors.js?v=pv-b0a0e55';
-import { WEATHERS, approach } from './layers/weather.js?v=pv-b0a0e55';
-import { waterFor, mergeWater } from './water-gfx.js?v=pv-b0a0e55';
-import { makeWaveSlopes, WAVE_TEX } from './water/normals.js?v=pv-b0a0e55';
-import { ALL_ON, LAYER_INDEX } from './water/layers.js?v=pv-b0a0e55';   // 물을 겹으로 나눠 켜고 끈다   // 잔물결 그림 (이음새 없이 반복)
-import { terrainFor, mergeTerrain, rockEdgePoints } from './terrain-gfx.js?v=pv-b0a0e55';   // 지형 모듈: 맵마다 다른 돌·모래 성질   // 워터 그래픽 모듈: 맵마다 다른 물 성질
-import { MAX_PARTICLES, makeParticles, stepParticles, particleAlpha, burst } from './layers/particles.js?v=pv-b0a0e55';
-import { sandArea, layoutPrints, washed } from './layers/prints.js?v=pv-b0a0e55';
-import { PARTICLE_VERT, PARTICLE_FRAG, QUAD_VERT, SAND_FRAG, SIM_FRAG, WATER_FRAG, RELIEF_VERT, RELIEF_FRAG } from './shaders.js?v=pv-b0a0e55';
+import { loadPlate } from '../plate.js?v=pv-d6ce35e';
+import { MAPS } from '../maps.js?v=pv-d6ce35e';
+import { skyAt } from '../gfx3d/sky.js?v=pv-d6ce35e';
+import { artAt } from '../atmos.js?v=pv-d6ce35e';   // 시간대 그림 가중치 — 2D 게임과 같은 식
+import { M, edgeD, terrainH, packEdge } from './model.js?v=pv-d6ce35e';
+import { KIWI, makeActor, stepActor } from './layers/actors.js?v=pv-d6ce35e';
+import { WEATHERS, approach } from './layers/weather.js?v=pv-d6ce35e';
+import { waterFor, mergeWater } from './water-gfx.js?v=pv-d6ce35e';
+import { makeWaveSlopes, WAVE_TEX } from './water/normals.js?v=pv-d6ce35e';
+import { ALL_ON, LAYER_INDEX } from './water/layers.js?v=pv-d6ce35e';   // 물을 겹으로 나눠 켜고 끈다   // 잔물결 그림 (이음새 없이 반복)
+import { terrainFor, mergeTerrain, rockEdgePoints } from './terrain-gfx.js?v=pv-d6ce35e';   // 지형 모듈: 맵마다 다른 돌·모래 성질   // 워터 그래픽 모듈: 맵마다 다른 물 성질
+import { MAX_PARTICLES, makeParticles, stepParticles, particleAlpha, burst } from './layers/particles.js?v=pv-d6ce35e';
+import { sandArea, layoutPrints, washed } from './layers/prints.js?v=pv-d6ce35e';
+import { PARTICLE_VERT, PARTICLE_FRAG, QUAD_VERT, SAND_FRAG, SIM_FRAG, WATER_FRAG, RELIEF_VERT, RELIEF_FRAG } from './shaders.js?v=pv-d6ce35e';
 
 const PLANE_W = 32;                    // 입체 판의 폭 (월드 단위)
 const FOV = 30;
@@ -89,7 +89,7 @@ export class Beach3D {
     const soft = mkCv(224), sg = soft.getContext('2d'); sg.imageSmoothingEnabled = true; sg.drawImage(tiny, 0, 0, soft.width, soft.height);
     const rockTex = new THREE.CanvasTexture(rc), rockSoftTex = this.rockSoftTex = new THREE.CanvasTexture(soft);
     // 2.5D 물속 돌 판 (<판>-rock25.webp, 2026-11-24 — tools/rock25.py): 돌 자리를 또렷하게 + 높이. 없으면 예전 가림막만
-    const rock25 = this.rock25Tex = plate.rockArt ? await this.loadTex(this.name + '-rock25.webp?v=pv-b0a0e55').catch(() => null) : null;
+    const rock25 = this.rock25Tex = plate.rockArt ? await this.loadTex(this.name + '-rock25.webp?v=pv-d6ce35e').catch(() => null) : null;
     const none25 = this.none25 = new THREE.DataTexture(new Uint8Array(4), 1, 1); none25.needsUpdate = true;
     // 돌 자리를 JS 로도 묻는다 (누르기 · 물방울이 튀는 자리): 작은 격자의 밝기
     const grid = mkCv(256), gg = grid.getContext('2d', { willReadFrequently: true }); gg.drawImage(rc, 0, 0, grid.width, grid.height);
@@ -206,7 +206,7 @@ export class Beach3D {
   // 시간대 그림은 필요해질 때 한 번만 읽는다. 읽는 동안은 낮 그림으로 그린다(가중치가 0 근처일 때 읽기 시작하므로 티가 안 난다)
   need(kind) {
     if (this.tex[kind] || this.loading[kind]) return;
-    this.loading[kind] = Promise.all([this.loadTex(`${this.name}-dry${ART[kind]}.webp?v=pv-b0a0e55`), this.loadTex(`${this.name}-sea${ART[kind]}.webp?v=pv-b0a0e55`)])
+    this.loading[kind] = Promise.all([this.loadTex(`${this.name}-dry${ART[kind]}.webp?v=pv-d6ce35e`), this.loadTex(`${this.name}-sea${ART[kind]}.webp?v=pv-d6ce35e`)])
       .then(([dry, sea]) => { this.tex[kind] = { dry, sea }; }, () => { this.tex[kind] = this.tex.day; })
       .then(() => { delete this.loading[kind]; if (this.ready) this.applyArt(); });
   }
@@ -295,7 +295,7 @@ export class Beach3D {
   // 키위: 모래 위를 돌아다니는 판. 늘 카메라를 본다 — 위에서 보면 바닥에 누운 그림처럼, 기울이면 서 있는 것처럼 (움직임은 layers/actors.js)
   async makeActors(n = 4) {
     this.actorGroup = new THREE.Group(); this.actorGroup.visible = this.actorsOn !== false; this.scene.add(this.actorGroup);
-    let tex; try { tex = await this.loadTex('kiwi.webp?v=pv-b0a0e55'); } catch (e) { this.actors = []; return; }
+    let tex; try { tex = await this.loadTex('kiwi.webp?v=pv-d6ce35e'); } catch (e) { this.actors = []; return; }
     this.kiwiTex = tex;
     const k = PLANE_W / this.pw, h = KIWI.SIZE * this.u * k, w = h * tex.image.naturalWidth / tex.image.naturalHeight;
     const body = new THREE.PlaneGeometry(w, h); body.translate(0, h * 0.3, 0);   // 발밑이 기준점

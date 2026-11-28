@@ -9,14 +9,21 @@ const ROCK_VERT = /* glsl */`
   varying vec3 vN; varying vec3 vW;
   void main() { vec4 w = modelMatrix * vec4(position, 1.); vW = w.xyz; vN = normalize(mat3(modelMatrix) * normal); gl_Position = projectionMatrix * viewMatrix * w; }`;
 const ROCK_FRAG = /* glsl */`
-  uniform vec3 uCol, uSun, uSunCol, uSky; uniform sampler2D uS; uniform vec2 uWorld;
+  uniform vec3 uCol, uSun, uSunCol, uSky, uTone; uniform sampler2D uS, uDry, uDryB, uR25; uniform vec2 uWorld; uniform float uMixB;
   varying vec3 vN; varying vec3 vW;
   void main() {
     vec3 n = normalize(vN); float d = dot(n, uSun);
     float t = smoothstep(-.05, .15, d) * .55 + smoothstep(.42, .62, d) * .45;   // 세 단 명암 (그림 같은 면)
-    vec3 c = uCol * mix(vec3(.46, .48, .64), vec3(1.25, 1.18, 1.06), t);
-    c += uSky * .08 * smoothstep(.2, .9, n.y);
     vec2 s = vW.xz / uWorld + .5; vec4 st = texture(uS, vec2(s.x, s.y));
+    //  색: 덩어리 평균색 한 가지로 칠하면 납작한 회색 덩어리로 보였다 (2026-11-28 다듬기) → 위에서 내려다본 자리의 원본 그림을 그대로 입힌다.
+    //  그림 속 돌의 붓결·면 나눔이 살고, 3D 면의 명암은 그 위에 옅게만 얹는다. 그림의 돌 밖으로 나온 가장자리는 평균색으로 (모래·물빛이 묻지 않게)
+    vec2 auv = vec2(s.x, 1. - s.y);
+    float inArt = smoothstep(.3, .62, texture(uR25, auv).r);
+    vec3 flat3 = uCol * uTone * mix(vec3(.46, .48, .64), vec3(1.25, 1.18, 1.06), t);
+    vec3 artC = texture(uDry, auv).rgb; if (uMixB > .002) artC = mix(artC, texture(uDryB, auv).rgb, uMixB);   // 시간대 그림 두 벌
+    vec3 art = artC * mix(vec3(.8, .82, .92), vec3(1.12, 1.08, 1.02), t);
+    vec3 c = mix(flat3, art, inArt);
+    c += uSky * .08 * smoothstep(.2, .9, n.y) * (1. - .6 * inArt);
     float surf = st.r + st.g, above = vW.y - surf;
     c *= mix(1., .7, 1. - smoothstep(.0, .28, above));                          // 물이 막 닿는 아랫부분은 젖어 짙다
     c = mix(c, vec3(.97, .98, 1.) * (uSky * .45 + uSunCol * .7), (1. - smoothstep(.0, .07, abs(above))) * smoothstep(.002, .02, st.g) * .7);   // 물에 닿는 선의 거품
@@ -54,7 +61,7 @@ function rockGeometry(seed) {
     v.multiplyScalar(k); v.y = v.y > 0 ? Math.pow(v.y, 0.85) : v.y;
     p.setXYZ(i, v.x, v.y, v.z);
   }
-  const ng = g.toNonIndexed(); ng.computeVertexNormals(); g.dispose();   // 면마다 따로 — 각진 면이 보인다
+  const ng = g.index ? g.toNonIndexed() : g; ng.computeVertexNormals(); if (ng !== g) g.dispose();   // 면마다 따로 — 각진 면이 보인다
   return ng;
 }
 
@@ -70,7 +77,7 @@ export function buildRocks(r25, dry, g, uni, { RW = 400 } = {}) {
     const n = r.cells.length, color = new THREE.Color().setRGB(R / n / 255, G / n / 255, B / n / 255, THREE.SRGBColorSpace);
     const top = 0.6 * Math.sqrt(r.top) + 0.14, base = -1.2;
     const m = new THREE.Mesh(rockGeometry(i + 1), new THREE.ShaderMaterial({ vertexShader: ROCK_VERT, fragmentShader: ROCK_FRAG,
-      uniforms: { uCol: { value: color }, uSun: uni.uSun, uSunCol: uni.uSunCol, uSky: uni.uSky, uS: uni.uS, uWorld: { value: new THREE.Vector2(g.wx, g.wz) } } }));
+      uniforms: { uCol: { value: color }, uSun: uni.uSun, uSunCol: uni.uSunCol, uSky: uni.uSky, uS: uni.uS, uDry: uni.uDry, uDryB: uni.uDryB, uMixB: uni.uMixB, uTone: uni.uTone, uR25: uni.uR25, uWorld: { value: new THREE.Vector2(g.wx, g.wz) } } }));
     m.position.set((r.x / RW - 0.5) * g.wx, (top + base) / 2, (r.y / RH - 0.5) * g.wz);
     m.scale.set(r.r1 * kx * 1.1, (top - base) / 2, r.r2 * kz * 1.1);   // 그림 속 돌을 다 덮을 만큼
     m.rotation.y = -r.ang;

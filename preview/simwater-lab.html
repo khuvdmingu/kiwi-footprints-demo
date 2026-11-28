@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>새 물 시험</title>
+  <script type="importmap">{ "imports": { "three": "./vendor/three/build/three.module.js", "three/addons/": "./vendor/three/addons/" } }</script>
+  <style>
+    html, body { margin: 0; height: 100%; background: #16324a; overflow: hidden; font: 13px/1.4 system-ui, sans-serif; color: #fff; }
+    canvas { display: block; width: 100vw; height: 100vh; }
+    #bar { position: fixed; left: 8px; top: 8px; display: flex; gap: 8px; align-items: center; padding: 6px 10px; border-radius: 10px; background: rgba(20, 24, 30, .72); }
+    #bar input { width: 120px; }
+  </style>
+</head>
+<body>
+  <canvas id="cv"></canvas>
+  <div id="bar">새 물 시험 · 시각 <input id="hour" type="range" min="0" max="24" step="0.1"> <span id="hv"></span> <span id="stat"></span></div>
+  <!-- 게임을 거치지 않고 「새 물」(src/painted/gamewater.js)만 띄운다. 물가선은 게임 대신 해변 모형의 철썩임 식을 넣는다.
+       주소: ?hour=12 (시각) · ?manual (스스로 돌지 않음 — 콘솔에서 __step(초) 로 돌린다) · 세로로 긴 창이면 세로 그림 -->
+  <script type="module">
+    import { loadPlate } from './src/plate.js?v=pv-d6ce35e';
+    import { MAPS } from './src/maps.js?v=pv-d6ce35e';
+    import { SimWater } from './src/painted/gamewater.js?v=pv-d6ce35e';
+    import { edgeD } from './src/beach3d/model.js?v=pv-d6ce35e';
+    const $ = (id) => document.getElementById(id), q = new URLSearchParams(location.search), m = MAPS.beach;
+    const tall = innerHeight > innerWidth, name = tall ? m.tall : m.wide;
+    const plate = await loadPlate('assets/', name, { stones: !!m.stones, shoreFrom: m.shoreFrom, ground: m.ground, tone: !!m.tone, shoreFix: m.shoreFix?.[tall ? 'tall' : 'wide'], moss: !!m.moss, art: m.art !== false, rockFill: !!m.rockFill, rockArt: m.rockArt !== false, curve: !!m.curve });
+    if (!plate.name) plate.name = name;
+    const s = window.__sim = await new SimWater($('cv'), { map: 'beach', plate }).load();
+    const fit = () => s.resize(innerWidth, innerHeight, devicePixelRatio || 1); addEventListener('resize', fit); fit();
+    const setHour = (h) => { s.setHour(h); $('hour').value = h; $('hv').textContent = h.toFixed(1) + '시'; };
+    setHour(+(q.get('hour') ?? 12)); $('hour').oninput = (e) => setHour(+e.target.value);
+    let t = 0;
+    // 한 걸음(1/30초)씩: 물가선(그려진 물가선에서의 거리 u, 129칸)을 넣고 그린다
+    window.__step = (secs = 1 / 30) => {
+      for (let k = 0, n = Math.max(1, Math.round(secs * 30)); k < n; k++) {
+        const d = new Float32Array(129); for (let i = 0; i < 129; i++) d[i] = edgeD(i / 128 * s.pw / s.u, t);
+        s.setEdge(d, 0, s.pw, 1 / 30); s.frame(1 / 30); t += 1 / 30;
+      }
+      return t;
+    };
+    setInterval(() => { $('stat').textContent = `· ${s.plate.name} · 격자 ${s.g.nx}×${s.g.nz} · 그림 ${Object.keys(s.sets).join('+')}`; }, 1000);
+    if (!q.has('manual')) (function loop() { __step(); requestAnimationFrame(loop); })();
+  </script>
+</body>
+</html>

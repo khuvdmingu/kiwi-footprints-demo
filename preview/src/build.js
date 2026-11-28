@@ -8,8 +8,8 @@
 //  그림: assets/catch-sheet.webp 의 10~15 칸 (fishing.js 와 같은 장). 없으면 코드 그림.
 //  기록은 이 기기에만 (localStorage 'builds').
 
-import { standCell } from './sheet.js?v=pv-b0a0e55';
-import { MAPS } from './maps.js?v=pv-b0a0e55';
+import { standCell } from './sheet.js?v=pv-d6ce35e';
+import { MAPS } from './maps.js?v=pv-d6ce35e';
 
 export const BUILDS = [
   { id: 'flag', min: 15, cell: 10, ko: '돌탑', note: '다시 닿을 때마다 작은 돌을 얹는 자리.', x: 0.17, h: 0.095 },

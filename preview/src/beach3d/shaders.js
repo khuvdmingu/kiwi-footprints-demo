@@ -1,7 +1,7 @@
 // beach3d/shaders.js — 그리는 식 셋: ① 젖음·거품 기억 ② 물 합성 ③ 입체 판
 //  모두 "그림 좌표"(해변 그림의 픽셀, 왼쪽 위가 0,0)에서 계산한다. 모래 높이·물 높이 식은 model.js 의 BEACH_GLSL.
 //  색은 그림의 값을 그대로 쓴다(색 공간 변환·톤 매핑 없음 — 그린 색이 바뀌지 않게, beach3d.js 의 렌더러 설정과 짝).
-import { BEACH_GLSL, M } from './model.js?v=pv-b0a0e55';
+import { BEACH_GLSL, M } from './model.js?v=pv-d6ce35e';
 
 const f = (v) => { const s = String(v); return s.includes('.') ? s : s + '.'; };
 
@@ -23,8 +23,8 @@ export const SAND_FRAG = /* glsl */ `
 `;
 
 // ①·② 젖음·거품의 기억과 물 그리기는 water/ 로 옮겼다 (2026-11-23 새 구조): water/flow.js 흐름 · water/foam.js 거품의 기억 · water/shade.js 물 그리기
-export { FOAM_SIM_FRAG as SIM_FRAG } from './water/foam.js?v=pv-b0a0e55';
-export { WATER_FRAG } from './water/shade.js?v=pv-b0a0e55';
+export { FOAM_SIM_FRAG as SIM_FRAG } from './water/foam.js?v=pv-d6ce35e';
+export { WATER_FRAG } from './water/shade.js?v=pv-d6ce35e';
 
 // ③ 입체 판: 합성한 그림을 입힌 판이 모래·바위·물 높이만큼 실제로 솟는다 (비스듬히 보면 입체가 보인다)
 export const RELIEF_VERT = /* glsl */ `

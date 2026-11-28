@@ -11,12 +11,12 @@
 //     (그림 속 바다를 그대로 붙이면 너울·거품이 그림에 박혀 움직이지 않는다)
 //   · 발자국 = 찍힌 자국 그림(marks) — 물이 닿은 자리부터 스러진다. 해 쪽으로 눌린 자국의 그늘만 더한다
 import * as THREE from 'three';
-import { Sim } from '../sandsim/sim.js?v=pv-b0a0e55';
-import { loadPlate } from '../plate.js?v=pv-b0a0e55';
-import { MAPS } from '../maps.js?v=pv-b0a0e55';
-import { makeWaveSlopes, WAVE_TEX } from '../beach3d/water/normals.js?v=pv-b0a0e55';
-import { layoutText, strokesOf } from '../hangul.js?v=pv-b0a0e55';
-import { PB, gridOf, shoreFn, buildBase, pixelsOf, sandH } from './base.js?v=pv-b0a0e55';
+import { Sim } from '../sandsim/sim.js?v=pv-d6ce35e';
+import { loadPlate } from '../plate.js?v=pv-d6ce35e';
+import { MAPS } from '../maps.js?v=pv-d6ce35e';
+import { makeWaveSlopes, WAVE_TEX } from '../beach3d/water/normals.js?v=pv-d6ce35e';
+import { layoutText, strokesOf } from '../hangul.js?v=pv-d6ce35e';
+import { PB, gridOf, shoreFn, buildBase, pixelsOf, sandH } from './base.js?v=pv-d6ce35e';
 
 const VERT = /* glsl */`varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`;
 const GRID_GLSL = (g) => /* glsl */`
@@ -177,7 +177,7 @@ export class Painted {
     const plate = this.plate = await loadPlate(this.base, m.wide, { stones: !!m.stones, shoreFrom: m.shoreFrom, ground: m.ground, tone: !!m.tone, shoreFix: m.shoreFix?.wide, moss: !!m.moss, art: m.art !== false, rockFill: !!m.rockFill, rockArt: m.rockArt !== false, curve: !!m.curve });
     const g = this.g = gridOf(plate.pw, plate.ph);
     this.shoreZ = shoreFn(plate.shoreP, plate.pw, plate.ph, g);
-    const rock25 = await loadImg(m.wide + '-rock25.webp?v=pv-b0a0e55').then(im => pixelsOf(im, g.nx, g.nz)).catch(() => null);
+    const rock25 = await loadImg(m.wide + '-rock25.webp?v=pv-d6ce35e').then(im => pixelsOf(im, g.nx, g.nz)).catch(() => null);
     const rockA = plate.rockArt ? pixelsOf(plate.rockArt, g.nx, g.nz) : null;
     this.baseArr = buildBase(g, this.shoreZ, { rock25, rockA });
     this.palette(pixelsOf(plate.img, g.nx, g.nz), rockA);
@@ -251,7 +251,7 @@ export class Painted {
     this.stepLeft = t - d;
   }
   makeKiwi() {
-    const tex = new THREE.TextureLoader().load(this.base + 'kiwi.webp?v=pv-b0a0e55', t => { t.colorSpace = THREE.SRGBColorSpace; this.kiwi.scale.set(2.3 * t.image.width / t.image.height, 2.3, 1); });
+    const tex = new THREE.TextureLoader().load(this.base + 'kiwi.webp?v=pv-d6ce35e', t => { t.colorSpace = THREE.SRGBColorSpace; this.kiwi.scale.set(2.3 * t.image.width / t.image.height, 2.3, 1); });
     this.kiwi = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
     this.kiwi.center.set(0.5, 0.12); this.kiwi.scale.set(2.3, 2.3, 1); this.kiwi.renderOrder = 3;
     this.kiwiShadow = new THREE.Mesh(new THREE.CircleGeometry(0.5, 24).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x3a2a1a, transparent: true, opacity: 0.25, depthTest: false }));

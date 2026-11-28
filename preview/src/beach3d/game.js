@@ -45,16 +45,17 @@ export class BeachGfx {
     plateEl.after(cv);
     this.plate = plate; this.size = ''; this.hour = null;
     const sim = this.kind === 'sim';
-    const job = this.pending = (sim ? import('../painted/gamewater.js?v=pv-b0a0e55') : import('./beach3d.js?v=pv-b0a0e55')).then(async (mod) => {
+    const job = this.pending = (sim ? import('../painted/gamewater.js?v=pv-d6ce35e') : import('./beach3d.js?v=pv-d6ce35e')).then(async (mod) => {
       const s = sim ? new mod.SimWater(cv, { map: mapId, plate, game: true }) : new mod.Beach3D(cv, { map: mapId, plate, game: true, bloom: false });
       await s.load();
       if (this.pending !== job) { s.dispose(); return; }   // 그 사이 장소가 바뀌었거나 꺼졌다
       this.scene = s; this.pending = null;
+      globalThis.__gfxScene = s;   // 시험용 손잡이 (콘솔에서 프레임을 손으로 돌려 본다 — 시험 페이지의 __beach 와 같은 쓰임)
     }).catch((e) => { if (this.pending === job) { this.pending = null; this.failed = plate; console.warn('3D 그래픽을 열지 못해 기본 그림으로 그립니다:', e); } });
   }
   // 프레임마다 부른다. 3D 가 그렸으면 true (부른 쪽은 2D 물 그리기를 건너뛴다)
   draw({ plateEl, plate, mapId, map, W, H, dpr, beach, hour, rain = 0, fog = 0, glitter = false }) {
-    if (!this.on || !plate || !supports3D(map) || beach.snow > 0.02 || this.failed === plate || (this.kind === 'sim' && (!(hour >= 7 && hour <= 17.5) || mapId !== 'beach'))) { this.show(false, plateEl); return false; }   // 새 물은 아직 바닷가 낮만
+    if (!this.on || !plate || !supports3D(map) || beach.snow > 0.02 || this.failed === plate || (this.kind === 'sim' && mapId !== 'beach')) { this.show(false, plateEl); return false; }   // 새 물은 아직 바닷가 낮만
     if (this.plate !== plate) this.mount(plateEl, plate, mapId);
     const s = this.scene;
     if (!s || !s.ready) { this.show(false, plateEl); return false; }
